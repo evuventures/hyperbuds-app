@@ -84,7 +84,7 @@ export default function LoginForm() {
         } else if (data.code === 'PROFILE_INCOMPLETE') {
           // Handle case where backend specifically indicates profile is incomplete
           setMessage('Please complete your profile setup.');
-          router.push('/auth/complete-profile');
+          router.push('/profile/complete-profile');
         } else if (data.code === 'ACCOUNT_NOT_VERIFIED') {
           // Handle unverified account
           setError('Please verify your email address first.');
