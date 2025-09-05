@@ -1,6 +1,6 @@
 // components/matching/MatchingUI.tsx
 import React from "react";
-import MatchCard from "./MatchCard";
+import MatchCard from "../MatchCard/MatchCard";
 import { FaUserCircle } from "react-icons/fa";
 
 // ✅ Define types for props

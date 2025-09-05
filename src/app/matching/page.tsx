@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import DashboardLayout from "@/components/layout/Dashboard/Dashboard";
 import LoaderAnimation from "@/components/matching/LoaderAnimation";
-import MatchingUI, { UserProfile, Match, Recommendation, HistoryItem } from "@/components/matching/MatchingUI";
+import MatchingUI, { UserProfile, Match, Recommendation, HistoryItem } from "@/components/matching/MatchingUI/MatchingUI";
 import { getSuggestions, takeAction, blockUser, getHistory } from "@/lib/api/matching.api";
 import { BASE_URL } from '@/config/baseUrl';
 import { mockRecommendations } from "@/components/matching/mock/MockRecommendations";
