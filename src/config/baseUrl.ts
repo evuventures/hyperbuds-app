@@ -1,0 +1,1 @@
+export const BASE_URL = 'https://api-hyperbuds-backend.onrender.com';
