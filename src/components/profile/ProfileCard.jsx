@@ -1,10 +1,34 @@
 import { useState, useEffect, useRouter } from "react";
 import {
-  User, Phone, Mail, MapPin, Building, MoreHorizontal, Calendar, Eye, Users, TrendingUp, Star,
-  Globe, DollarSign, Target, Activity, Shield, Clock, Edit3, Share2, Heart, MessageCircle, Bookmark,
-  Copy, Check, ExternalLink, Verified, Camera
-} from 'lucide-react';
-import Link from "next/link"
+  User,
+  Phone,
+  Mail,
+  MapPin,
+  Building,
+  MoreHorizontal,
+  Calendar,
+  Eye,
+  Users,
+  TrendingUp,
+  Star,
+  Globe,
+  DollarSign,
+  Target,
+  Activity,
+  Shield,
+  Clock,
+  Edit3,
+  Share2,
+  Heart,
+  MessageCircle,
+  Bookmark,
+  Copy,
+  Check,
+  ExternalLink,
+  Verified,
+  Camera,
+} from "lucide-react";
+import Link from "next/link";
 
 // Enhanced Loading skeleton component
 const LoadingSkeleton = () => (
@@ -25,13 +49,18 @@ const LoadingSkeleton = () => (
 );
 
 // Enhanced User Profile Header Component
-export default function UserProfileHeader({ userData, isLoading = false, isOwnProfile = false, onEditProfile, onConnect, onMessage }) {
+export default function UserProfileHeader({
+  userData,
+  isLoading = false,
+  isOwnProfile = false,
+  onEditProfile,
+  onConnect,
+  onMessage,
+}) {
   const [copied, setCopied] = useState(false);
   const [isFollowing, setIsFollowing] = useState(false);
   const [showFullBio, setShowFullBio] = useState(false);
   const [open, setOpen] = useState(false);
-
-
 
   // Show loading skeleton if no userData or isLoading is true
   if (isLoading || !userData || !userData.profile) {
@@ -41,23 +70,23 @@ export default function UserProfileHeader({ userData, isLoading = false, isOwnPr
   const user = userData.profile || userData;
 
   const formatLocation = (location) => {
-    if (!location) return 'Location not provided';
+    if (!location) return "Location not provided";
     return `${location.city}, ${location.state}, ${location.country}`;
   };
 
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
     });
   };
 
   const formatShortDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
+    return new Date(dateString).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
     });
   };
 
@@ -67,7 +96,7 @@ export default function UserProfileHeader({ userData, isLoading = false, isOwnPr
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
-      console.error('Failed to copy:', err);
+      console.error("Failed to copy:", err);
     }
   };
 
@@ -92,7 +121,9 @@ export default function UserProfileHeader({ userData, isLoading = false, isOwnPr
               {/* Enhanced Avatar with Upload Option */}
               <div className="relative group">
                 <div className="w-32 h-32 rounded-3xl flex items-center justify-center text-3xl font-bold transition-all group-hover:scale-105 bg-gradient-to-br from-blue-400 via-purple-500 to-pink-400 dark:from-blue-500 dark:via-purple-600 dark:to-pink-500 text-white shadow-2xl ring-4 ring-white dark:ring-gray-800 ring-offset-4 ring-offset-gray-50 dark:ring-offset-gray-900">
-                  {user.displayName?.charAt(0) || user.username?.charAt(0) || 'U'}
+                  {user.displayName?.charAt(0) ||
+                    user.username?.charAt(0) ||
+                    "U"}
                 </div>
 
                 {/* Avatar Upload Overlay for Own Profile */}
@@ -124,7 +155,10 @@ export default function UserProfileHeader({ userData, isLoading = false, isOwnPr
                       {user.displayName || user.username}
                     </h1>
                     {user.isVerified && (
-                      <Verified size={24} className="text-blue-500 fill-current" />
+                      <Verified
+                        size={24}
+                        className="text-blue-500 fill-current"
+                      />
                     )}
                   </div>
 
@@ -132,20 +166,32 @@ export default function UserProfileHeader({ userData, isLoading = false, isOwnPr
                     <p className="text-lg font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 cursor-pointer transition-colors">
                       @{user.username}
                     </p>
-                    <div className={`px-3 py-1 rounded-full text-sm font-medium flex items-center gap-2 ${user.isActive
-                      ? 'bg-green-50 dark:bg-green-500/20 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-500/30'
-                      : 'bg-gray-50 dark:bg-gray-500/20 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-500/30'
-                      }`}>
-                      <div className={`w-2 h-2 rounded-full ${user.isActive ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`}></div>
-                      {user.isActive ? 'Online' : 'Offline'}
+                    <div
+                      className={`px-3 py-1 rounded-full text-sm font-medium flex items-center gap-2 ${
+                        user.isActive
+                          ? "bg-green-50 dark:bg-green-500/20 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-500/30"
+                          : "bg-gray-50 dark:bg-gray-500/20 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-500/30"
+                      }`}
+                    >
+                      <div
+                        className={`w-2 h-2 rounded-full ${
+                          user.isActive
+                            ? "bg-green-500 animate-pulse"
+                            : "bg-gray-400"
+                        }`}
+                      ></div>
+                      {user.isActive ? "Online" : "Offline"}
                     </div>
                   </div>
                 </div>
 
                 {user.bio && (
                   <div className="max-w-2xl">
-                    <p className={`text-lg leading-relaxed text-gray-600 dark:text-gray-300 transition-all ${showFullBio ? '' : 'line-clamp-2'
-                      }`}>
+                    <p
+                      className={`text-lg leading-relaxed text-gray-600 dark:text-gray-300 transition-all ${
+                        showFullBio ? "" : "line-clamp-2"
+                      }`}
+                    >
                       {user.bio}
                     </p>
                     {user.bio.length > 150 && (
@@ -153,7 +199,7 @@ export default function UserProfileHeader({ userData, isLoading = false, isOwnPr
                         onClick={() => setShowFullBio(!showFullBio)}
                         className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-sm font-medium mt-1 transition-colors"
                       >
-                        {showFullBio ? 'Show less' : 'Show more'}
+                        {showFullBio ? "Show less" : "Show more"}
                       </button>
                     )}
                   </div>
@@ -168,12 +214,16 @@ export default function UserProfileHeader({ userData, isLoading = false, isOwnPr
 
                   <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
                     <Shield size={16} />
-                    <span>{user.isPublic ? 'Public' : 'Private'} Profile</span>
+                    <span>{user.isPublic ? "Public" : "Private"} Profile</span>
                   </div>
 
                   <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
                     <MapPin size={16} />
-                    <span>{user.location ? formatLocation(user.location) : 'Location not set'}</span>
+                    <span>
+                      {user.location
+                        ? formatLocation(user.location)
+                        : "Location not set"}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -186,7 +236,11 @@ export default function UserProfileHeader({ userData, isLoading = false, isOwnPr
                 className="p-3 rounded-xl transition-all hover:scale-105 bg-gray-100/80 dark:bg-gray-700/60 hover:bg-gray-200 dark:hover:bg-gray-600/80 text-gray-600 dark:text-gray-300 border border-gray-200/50 dark:border-gray-600/50 shadow-md group"
                 title="Copy profile URL"
               >
-                {copied ? <Check size={18} className="text-green-500" /> : <Copy size={18} />}
+                {copied ? (
+                  <Check size={18} className="text-green-500" />
+                ) : (
+                  <Copy size={18} />
+                )}
               </button>
 
               <button className="p-3 rounded-xl transition-all hover:scale-105 bg-gray-100/80 dark:bg-gray-700/60 hover:bg-gray-200 dark:hover:bg-gray-600/80 text-gray-600 dark:text-gray-300 border border-gray-200/50 dark:border-gray-600/50 shadow-md">
@@ -231,10 +285,11 @@ export default function UserProfileHeader({ userData, isLoading = false, isOwnPr
               <>
                 <button
                   onClick={handleConnect}
-                  className={`px-8 py-4 rounded-xl font-semibold transition-all transform hover:scale-105 shadow-xl hover:shadow-2xl flex items-center gap-3 ${isFollowing
-                    ? 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
-                    : 'bg-gradient-to-r from-blue-500 to-purple-500 dark:from-blue-600 dark:to-purple-600 hover:from-blue-600 hover:to-purple-600 dark:hover:from-blue-700 dark:hover:to-purple-700 text-white'
-                    }`}
+                  className={`px-8 py-4 rounded-xl font-semibold transition-all transform hover:scale-105 shadow-xl hover:shadow-2xl flex items-center gap-3 ${
+                    isFollowing
+                      ? "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
+                      : "bg-gradient-to-r from-blue-500 to-purple-500 dark:from-blue-600 dark:to-purple-600 hover:from-blue-600 hover:to-purple-600 dark:hover:from-blue-700 dark:hover:to-purple-700 text-white"
+                  }`}
                 >
                   {isFollowing ? (
                     <>
@@ -268,7 +323,7 @@ export default function UserProfileHeader({ userData, isLoading = false, isOwnPr
             </button>
             <Link href="/matching">
               <button className="px-6 py-4 flex row gap-3 items-center bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold rounded-xl shadow-xl hover:bg-pink-600 transition">
-              <Heart size={20} />  Match
+                <Heart size={20} /> Match
               </button>
             </Link>
           </div>
@@ -280,46 +335,62 @@ export default function UserProfileHeader({ userData, isLoading = false, isOwnPr
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           {[
             {
-              label: 'Total Followers',
-              value: user.stats.totalFollowers?.toLocaleString() || '0',
-              color: 'blue',
+              label: "Total Followers",
+              value: user.stats.totalFollowers?.toLocaleString() || "0",
+              color: "blue",
               icon: Users,
-              change: '+12%'
+              change: "+12%",
             },
             {
-              label: 'Engagement Rate',
-              value: `${user.stats.avgEngagement || '0'}%`,
-              color: 'green',
+              label: "Engagement Rate",
+              value: `${user.stats.avgEngagement || "0"}%`,
+              color: "green",
               icon: TrendingUp,
-              change: '+5%'
+              change: "+5%",
             },
             {
-              label: 'Rizz Score',
-              value: user.rizzScore || '0',
-              color: 'purple',
+              label: "Rizz Score",
+              value: user.rizzScore || "0",
+              color: "purple",
               icon: Star,
-              change: '+8%'
+              change: "+8%",
             },
             {
-              label: 'Content Niches',
-              value: user.niche?.length || '0',
-              color: 'orange',
+              label: "Content Niches",
+              value: user.niche?.length || "0",
+              color: "orange",
               icon: Target,
-              change: null
-            }
+              change: null,
+            },
           ].map((stat, index) => (
-            <div key={stat.label} className="group relative overflow-hidden rounded-2xl bg-white dark:bg-gray-800/50 border border-gray-200/60 dark:border-gray-700/60 p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] backdrop-blur-sm">
+            <div
+              key={stat.label}
+              className="group relative overflow-hidden rounded-2xl bg-white dark:bg-gray-800/50 border border-gray-200/60 dark:border-gray-700/60 p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] backdrop-blur-sm"
+            >
               <div className="flex items-center justify-between mb-4">
-                <div className={`p-3 rounded-xl bg-gradient-to-br ${stat.color === 'blue' ? 'from-blue-100 to-blue-200 dark:from-blue-500/20 dark:to-blue-600/20' :
-                  stat.color === 'green' ? 'from-green-100 to-green-200 dark:from-green-500/20 dark:to-green-600/20' :
-                    stat.color === 'purple' ? 'from-purple-100 to-purple-200 dark:from-purple-500/20 dark:to-purple-600/20' :
-                      'from-orange-100 to-orange-200 dark:from-orange-500/20 dark:to-orange-600/20'
-                  }`}>
-                  <stat.icon size={24} className={`${stat.color === 'blue' ? 'text-blue-600 dark:text-blue-400' :
-                    stat.color === 'green' ? 'text-green-600 dark:text-green-400' :
-                      stat.color === 'purple' ? 'text-purple-600 dark:text-purple-400' :
-                        'text-orange-600 dark:text-orange-400'
-                    }`} />
+                <div
+                  className={`p-3 rounded-xl bg-gradient-to-br ${
+                    stat.color === "blue"
+                      ? "from-blue-100 to-blue-200 dark:from-blue-500/20 dark:to-blue-600/20"
+                      : stat.color === "green"
+                      ? "from-green-100 to-green-200 dark:from-green-500/20 dark:to-green-600/20"
+                      : stat.color === "purple"
+                      ? "from-purple-100 to-purple-200 dark:from-purple-500/20 dark:to-purple-600/20"
+                      : "from-orange-100 to-orange-200 dark:from-orange-500/20 dark:to-orange-600/20"
+                  }`}
+                >
+                  <stat.icon
+                    size={24}
+                    className={`${
+                      stat.color === "blue"
+                        ? "text-blue-600 dark:text-blue-400"
+                        : stat.color === "green"
+                        ? "text-green-600 dark:text-green-400"
+                        : stat.color === "purple"
+                        ? "text-purple-600 dark:text-purple-400"
+                        : "text-orange-600 dark:text-orange-400"
+                    }`}
+                  />
                 </div>
                 {stat.change && (
                   <span className="text-xs font-medium text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-500/20 px-2 py-1 rounded-full">
@@ -327,11 +398,17 @@ export default function UserProfileHeader({ userData, isLoading = false, isOwnPr
                   </span>
                 )}
               </div>
-              <div className={`text-3xl font-bold mb-2 bg-gradient-to-r ${stat.color === 'blue' ? 'from-blue-600 to-blue-800 dark:from-blue-400 dark:to-blue-200' :
-                stat.color === 'green' ? 'from-green-600 to-green-800 dark:from-green-400 dark:to-green-200' :
-                  stat.color === 'purple' ? 'from-purple-600 to-purple-800 dark:from-purple-400 dark:to-purple-200' :
-                    'from-orange-600 to-orange-800 dark:from-orange-400 dark:to-orange-200'
-                } bg-clip-text text-transparent`}>
+              <div
+                className={`text-3xl font-bold mb-2 bg-gradient-to-r ${
+                  stat.color === "blue"
+                    ? "from-blue-600 to-blue-800 dark:from-blue-400 dark:to-blue-200"
+                    : stat.color === "green"
+                    ? "from-green-600 to-green-800 dark:from-green-400 dark:to-green-200"
+                    : stat.color === "purple"
+                    ? "from-purple-600 to-purple-800 dark:from-purple-400 dark:to-purple-200"
+                    : "from-orange-600 to-orange-800 dark:from-orange-400 dark:to-orange-200"
+                } bg-clip-text text-transparent`}
+              >
                 {stat.value}
               </div>
               <div className="text-sm font-medium text-gray-500 dark:text-gray-400">
@@ -339,11 +416,17 @@ export default function UserProfileHeader({ userData, isLoading = false, isOwnPr
               </div>
 
               {/* Hover Effect Background */}
-              <div className={`absolute inset-0 opacity-0 group-hover:opacity-5 transition-opacity bg-gradient-to-br ${stat.color === 'blue' ? 'from-blue-500 to-blue-700' :
-                stat.color === 'green' ? 'from-green-500 to-green-700' :
-                  stat.color === 'purple' ? 'from-purple-500 to-purple-700' :
-                    'from-orange-500 to-orange-700'
-                }`}></div>
+              <div
+                className={`absolute inset-0 opacity-0 group-hover:opacity-5 transition-opacity bg-gradient-to-br ${
+                  stat.color === "blue"
+                    ? "from-blue-500 to-blue-700"
+                    : stat.color === "green"
+                    ? "from-green-500 to-green-700"
+                    : stat.color === "purple"
+                    ? "from-purple-500 to-purple-700"
+                    : "from-orange-500 to-orange-700"
+                }`}
+              ></div>
             </div>
           ))}
         </div>
@@ -383,91 +466,152 @@ export default function UserProfileHeader({ userData, isLoading = false, isOwnPr
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[
-            { icon: Phone, label: 'Phone Number', value: user.phone, color: 'blue' },
-            { icon: Mail, label: 'Email Address', value: user.email, color: 'green' },
-            { icon: Globe, label: 'Website', value: user.website, color: 'purple', isLink: true }
-          ].filter(item => item.value).map((contact, index) => (
-            <div key={index} className="group p-5 rounded-xl transition-all hover:scale-[1.02] bg-gray-50/80 dark:bg-gray-700/40 border border-gray-200 dark:border-gray-600/50 hover:border-gray-300 dark:hover:border-gray-500/70 hover:shadow-lg">
-              <div className="flex items-center gap-4">
-                <div className={`p-4 rounded-xl bg-gradient-to-br ${contact.color === 'blue' ? 'from-blue-100 to-blue-200 dark:from-blue-500/20 dark:to-blue-600/30' :
-                  contact.color === 'green' ? 'from-green-100 to-green-200 dark:from-green-500/20 dark:to-green-600/30' :
-                    'from-purple-100 to-purple-200 dark:from-purple-500/20 dark:to-purple-600/30'
-                  } group-hover:scale-110 transition-transform`}>
-                  <contact.icon size={24} className={`${contact.color === 'blue' ? 'text-blue-600 dark:text-blue-400' :
-                    contact.color === 'green' ? 'text-green-600 dark:text-green-400' :
-                      'text-purple-600 dark:text-purple-400'
-                    }`} />
-                </div>
-                <div className="flex-1">
-                  <div className="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1">
-                    {contact.label}
+            {
+              icon: Phone,
+              label: "Phone Number",
+              value: user.phone,
+              color: "blue",
+            },
+            {
+              icon: Mail,
+              label: "Email Address",
+              value: user.email,
+              color: "green",
+            },
+            {
+              icon: Globe,
+              label: "Website",
+              value: user.website,
+              color: "purple",
+              isLink: true,
+            },
+          ]
+            .filter((item) => item.value)
+            .map((contact, index) => (
+              <div
+                key={index}
+                className="group p-5 rounded-xl transition-all hover:scale-[1.02] bg-gray-50/80 dark:bg-gray-700/40 border border-gray-200 dark:border-gray-600/50 hover:border-gray-300 dark:hover:border-gray-500/70 hover:shadow-lg"
+              >
+                <div className="flex items-center gap-4">
+                  <div
+                    className={`p-4 rounded-xl bg-gradient-to-br ${
+                      contact.color === "blue"
+                        ? "from-blue-100 to-blue-200 dark:from-blue-500/20 dark:to-blue-600/30"
+                        : contact.color === "green"
+                        ? "from-green-100 to-green-200 dark:from-green-500/20 dark:to-green-600/30"
+                        : "from-purple-100 to-purple-200 dark:from-purple-500/20 dark:to-purple-600/30"
+                    } group-hover:scale-110 transition-transform`}
+                  >
+                    <contact.icon
+                      size={24}
+                      className={`${
+                        contact.color === "blue"
+                          ? "text-blue-600 dark:text-blue-400"
+                          : contact.color === "green"
+                          ? "text-green-600 dark:text-green-400"
+                          : "text-purple-600 dark:text-purple-400"
+                      }`}
+                    />
                   </div>
-                  {contact.isLink ? (
-                    <a
-                      href={contact.value.startsWith('http') ? contact.value : `https://${contact.value}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-base font-semibold text-gray-900 dark:text-gray-100 hover:text-blue-600 dark:hover:text-blue-400 transition-colors flex items-center gap-2"
-                    >
-                      {contact.value}
-                      <ExternalLink size={14} />
-                    </a>
-                  ) : (
-                    <div className="text-base font-semibold text-gray-900 dark:text-gray-100">
-                      {contact.value}
+                  <div className="flex-1">
+                    <div className="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1">
+                      {contact.label}
                     </div>
-                  )}
+                    {contact.isLink ? (
+                      <a
+                        href={
+                          contact.value.startsWith("http")
+                            ? contact.value
+                            : `https://${contact.value}`
+                        }
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-base font-semibold text-gray-900 dark:text-gray-100 hover:text-blue-600 dark:hover:text-blue-400 transition-colors flex items-center gap-2"
+                      >
+                        {contact.value}
+                        <ExternalLink size={14} />
+                      </a>
+                    ) : (
+                      <div className="text-base font-semibold text-gray-900 dark:text-gray-100">
+                        {contact.value}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
         </div>
       </div>
 
       {/* Enhanced Platform Performance */}
-      {user.stats?.platformBreakdown && Object.keys(user.stats.platformBreakdown).length > 0 && (
-        <div className="rounded-2xl bg-white dark:bg-gray-800/50 border border-gray-200/60 dark:border-gray-700/60 p-6 shadow-lg backdrop-blur-sm">
-          <h3 className="text-xl font-bold mb-6 flex items-center gap-3 text-gray-900 dark:text-gray-100">
-            <div className="p-2 rounded-lg bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-500/20 dark:to-pink-500/20">
-              <TrendingUp size={24} className="text-purple-600 dark:text-purple-400" />
-            </div>
-            Platform Performance
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {Object.entries(user.stats.platformBreakdown).map(([platform, followers]) => (
-              <div
-                key={platform}
-                className="group p-5 rounded-xl transition-all hover:scale-[1.02] bg-gray-50/80 dark:bg-gray-700/40 border border-gray-200 dark:border-gray-600/50 hover:border-gray-300 dark:hover:border-gray-500/70 hover:shadow-lg"
-              >
-                <div className="flex items-center justify-between mb-4">
-                  <div className={`p-3 rounded-xl bg-gradient-to-br ${platform === 'instagram'
-                    ? 'from-pink-100 to-rose-100 dark:from-pink-500/20 dark:to-rose-500/20'
-                    : platform === 'twitter'
-                      ? 'from-cyan-100 to-blue-100 dark:from-cyan-500/20 dark:to-blue-500/20'
-                      : 'from-purple-100 to-violet-100 dark:from-purple-500/20 dark:to-violet-500/20'
-                    } group-hover:scale-110 transition-transform`}>
-                    <Users size={24} className={`${platform === 'instagram'
-                      ? 'text-pink-600 dark:text-pink-400'
-                      : platform === 'twitter'
-                        ? 'text-cyan-600 dark:text-cyan-400'
-                        : 'text-purple-600 dark:text-purple-400'
-                      }`} />
-                  </div>
-                </div>
-                <div className="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">
-                  {platform}
-                </div>
-                <div className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-1">
-                  {followers.toLocaleString()}
-                </div>
-                <div className="text-sm text-gray-500 dark:text-gray-400">
-                  followers
-                </div>
+      {user.stats?.platformBreakdown &&
+        Object.keys(user.stats.platformBreakdown).length > 0 && (
+          <div className="rounded-2xl bg-white dark:bg-gray-800/50 border border-gray-200/60 dark:border-gray-700/60 p-6 shadow-lg backdrop-blur-sm">
+            <h3 className="text-xl font-bold mb-6 flex items-center gap-3 text-gray-900 dark:text-gray-100">
+              <div className="p-2 rounded-lg bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-500/20 dark:to-pink-500/20">
+                <TrendingUp
+                  size={24}
+                  className="text-purple-600 dark:text-purple-400"
+                />
               </div>
-            ))}
+              Platform Performance
+            </h3>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {Object.entries(user.stats.platformBreakdown).map(
+                ([platform, data]) => {
+                  // ✅ safely destructure followers & engagement
+                  const { followers, engagement } = data;
+
+                  return (
+                    <div
+                      key={platform}
+                      className="group p-5 rounded-xl transition-all hover:scale-[1.02] bg-gray-50/80 dark:bg-gray-700/40 border border-gray-200 dark:border-gray-600/50 hover:border-gray-300 dark:hover:border-gray-500/70 hover:shadow-lg"
+                    >
+                      <div className="flex items-center justify-between mb-4">
+                        <div
+                          className={`p-3 rounded-xl bg-gradient-to-br ${
+                            platform === "instagram"
+                              ? "from-pink-100 to-rose-100 dark:from-pink-500/20 dark:to-rose-500/20"
+                              : platform === "twitter"
+                              ? "from-cyan-100 to-blue-100 dark:from-cyan-500/20 dark:to-blue-500/20"
+                              : "from-purple-100 to-violet-100 dark:from-purple-500/20 dark:to-violet-500/20"
+                          } group-hover:scale-110 transition-transform`}
+                        >
+                          <Users
+                            size={24}
+                            className={`${
+                              platform === "instagram"
+                                ? "text-pink-600 dark:text-pink-400"
+                                : platform === "twitter"
+                                ? "text-cyan-600 dark:text-cyan-400"
+                                : "text-purple-600 dark:text-purple-400"
+                            }`}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">
+                        {platform}
+                      </div>
+
+                      <div className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-1">
+                        {followers.toLocaleString()}
+                      </div>
+                      <div className="text-sm text-gray-500 dark:text-gray-400">
+                        followers
+                      </div>
+
+                      <div className="text-sm text-gray-500 dark:text-gray-400">
+                        Engagement: {engagement}%
+                      </div>
+                    </div>
+                  );
+                }
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        )}
     </div>
   );
 }
