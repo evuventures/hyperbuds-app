@@ -202,9 +202,9 @@ export default function LoginForm() {
                   >
                     {/* Render the correct icon based on state */}
                     {showPassword ? (
-                      <FaEyeSlash className="w-5 h-5" />
+                      <FaEyeSlash className="w-5 h-5 cursor-pointer" />
                     ) : (
-                      <FaEye className="w-5 h-5" />
+                      <FaEye className="w-5 h-5 cursor-pointer" />
                     )}
                   </button>
                 </div>

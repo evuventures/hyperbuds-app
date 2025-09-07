@@ -162,22 +162,22 @@ const Recommended: React.FC = () => {
   return (
     <section className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col items-start sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
+      <div className="flex flex-col gap-4 justify-between items-start sm:items-center">
+        <div className="flex gap-3 items-center">
           <div className="p-2 bg-gradient-to-r from-purple-500 to-indigo-500 rounded-xl">
             <Star className="w-5 h-5 text-white" />
           </div>
           <div>
-           <h2 className="text-2xl font-bold text-foreground">
+            <h2 className="text-2xl font-bold text-foreground">
               Perfect Matches for You
             </h2>
-          <p className="text-foreground">
+            <p className="text-foreground">
               Curated creators based on your collaboration style
             </p>
           </div>
         </div>
 
-        <button className="flex items-center gap-2 text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-medium transition-colors">
+        <button className="flex gap-2 items-center font-medium text-purple-600 transition-colors dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300">
           View All Matches
           <ChevronRight className="w-4 h-4" />
         </button>
@@ -213,22 +213,22 @@ const Recommended: React.FC = () => {
             <SwiperSlide key={card.id}>
               <div className="bg-card text-foreground rounded-3xl shadow-sm border border-border overflow-hidden hover:shadow-xl transition-all duration-500 transform hover:scale-[1.02] h-[680px] group">
                 {/* Image Container */}
-                <div className="relative overflow-hidden">
+                <div className="overflow-hidden relative">
                   <Image
                     src={card.img}
                     alt={card.name}
                     width={400}
                     height={280}
-                    className="object-cover w-full h-80 group-hover:scale-110 transition-transform duration-700"
+                    className="object-cover w-full h-80 transition-transform duration-700 group-hover:scale-110"
                   />
 
                   {/* Overlay Elements */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  <div className="absolute inset-0 bg-gradient-to-t via-transparent to-transparent opacity-0 transition-opacity duration-300 from-black/50 group-hover:opacity-100"></div>
 
                   {/* Status Indicators */}
-                  <div className="absolute top-4 left-4 flex items-center gap-2">
+                  <div className="flex absolute top-4 left-4 gap-2 items-center">
                     {card.online && (
-                      <div className="bg-green-500 text-white px-3 py-1 rounded-full text-xs font-medium flex items-center gap-2">
+                      <div className="flex gap-2 items-center px-3 py-1 text-xs font-medium text-white bg-green-500 rounded-full">
                         <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
                         Online
                       </div>
@@ -247,7 +247,7 @@ const Recommended: React.FC = () => {
                         card.rizzScore
                       )} backdrop-blur-sm border border-white/20`}
                     >
-                      <div className="flex items-center gap-1">
+                      <div className="flex gap-1 items-center">
                         <Zap className="w-3 h-3" />
                         Rizz {card.rizzScore}
                       </div>
@@ -255,19 +255,17 @@ const Recommended: React.FC = () => {
                   </div>
 
                   {/* Like Button */}
-                  <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <div className="absolute right-4 bottom-4 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
                     <button
                       onClick={() => toggleLike(card.id)}
-                      className={`p-3 rounded-full backdrop-blur-sm border border-white/20 transition-all duration-200 transform hover:scale-110 ${
-                        likedCreators.includes(card.id)
-                          ? "bg-red-500 text-white"
-                          : "bg-white/20 text-white hover:bg-white/30"
-                      }`}
+                      className={`p-3 rounded-full backdrop-blur-sm border border-white/20 transition-all duration-200 transform hover:scale-110 ${likedCreators.includes(card.id)
+                        ? "bg-red-500 text-white"
+                        : "bg-white/20 text-white hover:bg-white/30"
+                        }`}
                     >
                       <Heart
-                        className={`w-5 h-5 ${
-                          likedCreators.includes(card.id) ? "fill-current" : ""
-                        }`}
+                        className={`w-5 h-5 ${likedCreators.includes(card.id) ? "fill-current" : ""
+                          }`}
                       />
                     </button>
                   </div>
@@ -277,25 +275,25 @@ const Recommended: React.FC = () => {
                 <div className="p-6 space-y-4">
                   {/* Name and Role */}
                   <div>
-                    <div className="flex items-center gap-2 mb-2">
+                    <div className="flex gap-2 items-center mb-2">
                       <h3 className="text-xl font-bold text-foreground">
                         {card.name}
                       </h3>
                       {card.verified && (
-                        <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
+                        <div className="flex justify-center items-center w-5 h-5 bg-blue-500 rounded-full">
                           <Verified className="w-3 h-3 text-white" />
                         </div>
                       )}
                     </div>
-                    <p className="text-muted-foreground font-medium">
+                    <p className="font-medium text-muted-foreground">
                       {card.role}
                     </p>
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
-                      <span className="flex items-center gap-1">
+                    <div className="flex gap-4 items-center mt-1 text-sm text-muted-foreground">
+                      <span className="flex gap-1 items-center">
                         <Users className="w-4 h-4" />
                         {card.followers} followers
                       </span>
-                      <span className="flex items-center gap-1">
+                      <span className="flex gap-1 items-center">
                         <MapPin className="w-4 h-4" />
                         {card.location}
                       </span>
@@ -308,13 +306,13 @@ const Recommended: React.FC = () => {
                       {card.specialties.slice(0, 2).map((specialty, index) => (
                         <span
                           key={index}
-                          className="bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-400 text-xs font-medium px-2 py-1 rounded-full"
+                          className="px-2 py-1 text-xs font-medium text-purple-600 bg-purple-100 rounded-full dark:bg-purple-900/40 dark:text-purple-400"
                         >
                           {specialty}
                         </span>
                       ))}
                       {card.specialties.length > 2 && (
-                        <span className="bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 text-xs font-medium px-2 py-1 rounded-full">
+                        <span className="px-2 py-1 text-xs font-medium text-gray-600 bg-gray-100 rounded-full dark:bg-gray-800 dark:text-gray-300">
                           +{card.specialties.length - 2}
                         </span>
                       )}
@@ -342,10 +340,10 @@ const Recommended: React.FC = () => {
                   </div>
                   {/* Action Buttons */}
                   <div className="flex gap-3 pt-2">
-                    <button className="flex-1 bg-gradient-to-r from-purple-600 to-indigo-600 text-white py-3 px-4 rounded-xl font-semibold hover:from-purple-700 hover:to-indigo-700 transition-all duration-200 transform hover:scale-105 shadow-lg">
+                    <button className="flex-1 px-4 py-3 font-semibold text-white bg-gradient-to-r from-purple-600 to-indigo-600 rounded-xl shadow-lg transition-all duration-200 transform hover:from-purple-700 hover:to-indigo-700 hover:scale-105">
                       View Profile
                     </button>
-                    <button className="flex-1 bg-gray-900 dark:bg-gray-700 text-white py-3 px-4 rounded-xl font-semibold hover:bg-gray-800 dark:hover:bg-gray-600 transition-all duration-200 transform hover:scale-105 flex items-center justify-center gap-2">
+                    <button className="flex flex-1 gap-2 justify-center items-center px-4 py-3 font-semibold text-white bg-gray-900 rounded-xl transition-all duration-200 transform dark:bg-gray-700 hover:bg-gray-800 dark:hover:bg-gray-600 hover:scale-105">
                       <MessageCircle className="w-4 h-4" />
                       Collaborate
                     </button>

@@ -177,9 +177,9 @@ export default function App() {
                     aria-label={showPassword ? 'Hide password' : 'Show password'}
                   >
                     {showPassword ? (
-                      <EyeOff />
+                      <EyeOff className='cursor-pointer' />
                     ) : (
-                      <Eye />
+                      <Eye className='cursor-pointer' />
                     )}
                   </button>
                 </div>
