@@ -174,16 +174,16 @@ export const Sidebar: React.FC<SidebarProps> = ({ user, activeTab, collapsed, on
           <>
             <div className='flex flex-col gap-3'>
               <div className="flex gap-2 items-center">
-                <div className="flex justify-center items-center w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full">
+                <div className="flex justify-center items-center w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full">
                   <span className="text-sm font-medium text-white">
                     {user.username?.[0]?.toUpperCase() || user.email[0].toUpperCase()}
                   </span>
                 </div>
                 <div className='max-w-[150px]'>
-                  <div className="mb-1 text-xs font-medium text-gray-900 truncate  dark:text-gray-100">
+                  <div className="mb-1 text-xs font-medium text-gray-900 truncate dark:text-gray-100">
                     {user.username || user.email}
                   </div>
-                  <div className="text-xs text-gray-500  dark:text-gray-400">
+                  <div className="text-xs text-gray-500 dark:text-gray-400">
                     {mockData.creator.niche.join(', ')}
                   </div>
                 </div>
