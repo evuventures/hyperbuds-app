@@ -65,7 +65,7 @@ export default function LoginForm() {
 
           if (isProfileIncomplete) {
             // Route to registration/profile completion page
-            router.push('/complete-profile');
+            router.push('/profile/complete-profile');
             return;
           }
         }

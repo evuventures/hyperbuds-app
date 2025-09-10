@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Header } from '../Header/Header';
+import { Header } from '@/components/layout/Header/Header';
 import { Sidebar } from '../Sidebar/Sidebar';
 import { RightSidebar } from '../RightSideBar/RightSidebar';
 import DashboardSkeleton from '@/components/ui/skeleton';
