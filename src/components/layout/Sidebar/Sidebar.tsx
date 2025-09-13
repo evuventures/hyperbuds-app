@@ -1,8 +1,8 @@
 "use client"
 import React, { useState } from 'react';
 import {
-  Heart, Users, BarChart3, ShoppingBag, Video, MessageCircle,
-  Zap, UserPlus, Calendar, DollarSign, Send, Settings, Menu, House
+  Heart, Users, ShoppingBag, Video, MessageCircle,
+  UserPlus, Calendar, DollarSign, Send, Menu, House
 } from 'lucide-react';
 import { useRouter } from "next/navigation"
 
@@ -71,7 +71,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ user, activeTab, collapsed, on
   ];
 
   const commItems: MenuItem[] = [
-    { id: 'messages', icon: MessageCircle, label: 'Messages', count: notifications.messages },
+    {
+      id: 'messages', icon: MessageCircle, label: 'Messages', count: notifications.messages,
+      path: '/messages'
+    },
     { id: 'invites', icon: Send, label: 'Invites' },
     { id: 'networking', icon: UserPlus, label: 'Network' }
   ];
@@ -106,7 +109,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ user, activeTab, collapsed, on
   }
 
   return (
-    <div className={`${collapsed ? 'w-16' : 'w-60'} border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 h-screen overflow-y-auto [&::-webkit-scrollbar]:hidden transition-all duration-300 relative `}>
+    <div className={`${collapsed ? 'w-16' : 'w-60'} border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 h-[90vh] overflow-y-auto [&::-webkit-scrollbar]:hidden transition-all duration-300 relative  `}>
 
       {/* Collapse Toggle */}
       <button

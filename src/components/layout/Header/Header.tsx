@@ -5,14 +5,13 @@ import {
   Search,
   Bell,
   Settings,
-  Plus,
   ChevronDown,
   Sun,
   Moon,
-  Maximize2,
   User,
   LogOut,
   CreditCard,
+  Menu,
 } from 'lucide-react';
 import { useTheme } from '@/context/Theme'; // Adjust path as needed
 
@@ -45,9 +44,18 @@ export const Header: React.FC<HeaderProps> = ({ user, onMenuClick }) => {
       <div className="flex justify-between items-center px-6 py-4">
 
         {/* Left Section */}
-        <div className="flex gap-6 items-center" onClick={() => window.location.href = '/'}>
+        <div className="flex gap-6 items-center">
+          {/* Hamburger Menu Button - Mobile Only */}
+          <button
+            onClick={onMenuClick}
+            className="p-2 bg-gray-100 rounded-xl transition-colors lg:hidden dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700"
+            aria-label="Open menu"
+          >
+            <Menu className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+          </button>
+
           {/* Logo */}
-          <div className="flex gap-3 items-center" >
+          <div className="flex gap-3 items-center cursor-pointer" onClick={() => window.location.href = '/'}>
             <div className="flex gap-2 items-center" >
               <div className="flex justify-center items-center w-8 h-8 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg cursor-pointer">
                 <span className="text-sm font-bold text-white cursor-pointer">H</span>
@@ -168,11 +176,13 @@ export const Header: React.FC<HeaderProps> = ({ user, onMenuClick }) => {
                         {user.username?.[0]?.toUpperCase() || user.email[0].toUpperCase()}
                       </span>
                     </div>
-                    <div>
+                    <div className='max-w-[10rem]'>
                       <p className="font-medium text-gray-900 dark:text-gray-100">
                         {user.displayName || user.username || 'User'}
                       </p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">{user.email}</p>
+                      <p className="text-sm text-gray-500 truncate dark:text-gray-400">
+                        {user.email}
+                      </p>
                     </div>
                   </div>
                 </div>

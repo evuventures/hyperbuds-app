@@ -81,33 +81,33 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <ThemeProvider>
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 transition-colors duration-200">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 transition-colors duration-200 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
         {/* Mobile Header */}
-        <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-lg border-b border-gray-200/50 dark:border-gray-700/50 shadow-sm">
-          <div className="flex items-center justify-between px-4 py-3">
-            <div className="flex items-center gap-3">
+        <div className="fixed top-0 right-0 left-0 z-50 border-b shadow-sm backdrop-blur-lg lg:hidden bg-white/95 dark:bg-gray-900/95 border-gray-200/50 dark:border-gray-700/50">
+          <div className="flex justify-between items-center px-4 py-3">
+            <div className="flex gap-3 items-center">
               <button
                 onClick={() => setSidebarOpen(!sidebarOpen)}
-                className="p-2 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                className="p-2 bg-gray-100 rounded-xl transition-colors dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700"
               >
                 <Menu className="w-5 h-5 text-gray-600 dark:text-gray-300" />
               </button>
-              <h1 className="text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+              <h1 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-600">
                 HyperBuds
               </h1>
             </div>
-            
-            <div className="flex items-center gap-2">
+
+            <div className="flex gap-2 items-center">
               <button
                 onClick={() => setRightSidebarOpen(!rightSidebarOpen)}
-                className="p-2 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors xl:hidden"
+                className="p-2 bg-gray-100 rounded-xl transition-colors dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 xl:hidden"
               >
                 <svg className="w-5 h-5 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zM12 13a1 1 0 110-2 1 1 0 010 2zM12 20a1 1 0 110-2 1 1 0 010 2z" />
                 </svg>
               </button>
-              <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
-                <span className="text-white font-medium text-sm">
+              <div className="flex justify-center items-center w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full">
+                <span className="text-sm font-medium text-white">
                   {user.username?.[0]?.toUpperCase() || user.email[0].toUpperCase()}
                 </span>
               </div>
@@ -121,7 +121,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
 
         {/* Main Dashboard Container */}
-        <div className="flex h-screen overflow-hidden pt-16 lg:pt-0">
+        <div className="flex overflow-hidden pt-16 h-[90vh] lg:pt-0">
           {/* Sidebar */}
           <div
             className={`
@@ -131,12 +131,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               ${sidebarCollapsed && window.innerWidth >= 1024 ? 'w-16' : 'w-60'}
             `}
           >
-            <div className="h-full pt-16 lg:pt-0 bg-white dark:bg-gray-900 border-r border-gray-200/50 dark:border-gray-700/50 shadow-xl lg:shadow-none relative transition-colors duration-200">
+            <div className="relative pt-16 h-full bg-white border-r shadow-xl transition-colors duration-200 lg:pt-0 dark:bg-gray-900 border-gray-200/50 dark:border-gray-700/50 lg:shadow-none">
               {/* Mobile close button */}
-              <div className="lg:hidden absolute top-4 right-4 z-10">
+              <div className="absolute top-4 right-4 z-10 lg:hidden">
                 <button
                   onClick={() => setSidebarOpen(false)}
-                  className="p-2 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                  className="p-2 bg-gray-100 rounded-xl transition-colors dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700"
                 >
                   <X className="w-5 h-5 text-gray-600 dark:text-gray-300" />
                 </button>
@@ -157,11 +157,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
 
           {/* Content */}
-          <div className="flex flex-col min-w-0 w-full">
+          <div className="flex flex-col w-full min-w-0">
             <div className="flex overflow-hidden">
               <main className="flex-1 overflow-y-auto [&::-webkit-scrollbar]:hidden transition-colors duration-200">
-                <div className=" py-6 max-w-full">
-                  <div className="min-h-full w-full">
+                <div className=" max-w-full h-[90vh]">
+                  <div className="w-full min-h-full">
                     {children}
                   </div>
                 </div>
@@ -173,16 +173,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 xl:relative xl:translate-x-0 xl:z-auto xl:shadow-none xl:pt-0
                 ${rightSidebarOpen ? 'translate-x-0' : 'translate-x-full xl:translate-x-0'}
               `}>
-                <div className="h-full pt-16 xl:pt-0">
-                  <div className="xl:hidden absolute top-4 left-4 z-10">
+                <div className="pt-16 h-full xl:pt-0">
+                  <div className="absolute top-4 left-4 z-10 xl:hidden">
                     <button
                       onClick={() => setRightSidebarOpen(false)}
-                      className="p-2 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                      className="p-2 bg-gray-100 rounded-xl transition-colors dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700"
                     >
                       <X className="w-5 h-5 text-gray-600 dark:text-gray-300" />
                     </button>
                   </div>
-                  <div className="h-full overflow-y-auto scrollbar-hide">
+                  <div className="overflow-y-auto h-full scrollbar-hide">
                     <RightSidebar />
                   </div>
                 </div>
@@ -194,13 +194,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {/* Overlays */}
         {sidebarOpen && (
           <div
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-30 lg:hidden transition-opacity duration-300"
+            className="fixed inset-0 z-30 backdrop-blur-sm transition-opacity duration-300 bg-black/50 lg:hidden"
             onClick={() => setSidebarOpen(false)}
           />
         )}
         {rightSidebarOpen && (
           <div
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-30 xl:hidden transition-opacity duration-300"
+            className="fixed inset-0 z-30 backdrop-blur-sm transition-opacity duration-300 bg-black/50 xl:hidden"
             onClick={() => setRightSidebarOpen(false)}
           />
         )}
