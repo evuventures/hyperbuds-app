@@ -10,12 +10,11 @@
 
 /* Dark theme CSS variables */
 :root.dark {
-  --background:   linear-gradient(
-    to bottom right,
-    rgba(249, 250, 251, 1) 0%,
-    rgba(255, 255, 255, 1) 50%,
-    rgba(243, 244, 246, 1) 100%
-  );;
+  --background: linear-gradient(to bottom right,
+      rgba(249, 250, 251, 1) 0%,
+      rgba(255, 255, 255, 1) 50%,
+      rgba(243, 244, 246, 1) 100%);
+  ;
   --foreground: #ededed;
 }
 
@@ -117,12 +116,12 @@
   --shadow-inner-glow: inset 0 0 20px -5px rgb(168 85 247 / 0.3);
   --shadow-electric: 0 0 25px -5px rgb(99 102 241 / 0.5);
   --shadow-soft: 0 2px 40px -4px rgba(0, 0, 0, 0.1);
-  --shadow-card: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
-  --shadow-card-hover: 0 10px 25px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
-  
+  --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-card-hover: 0 10px 25px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+
   /* Dark mode shadows */
-  --shadow-dark-card: 0 4px 6px -1px rgba(0,0,0,0.3), 0 2px 4px -1px rgba(0,0,0,0.15);
-  --shadow-dark-card-hover: 0 10px 25px -3px rgba(0,0,0,0.4), 0 4px 6px -2px rgba(0,0,0,0.2);
+  --shadow-dark-card: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.15);
+  --shadow-dark-card-hover: 0 10px 25px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
 
   /* Screens */
   --breakpoint-xs: 375px;
@@ -140,109 +139,290 @@
 
 /* Accordion */
 @keyframes accordion-down {
-  from { height: 0 }
-  to { height: var(--radix-accordion-content-height) }
+  from {
+    height: 0
+  }
+
+  to {
+    height: var(--radix-accordion-content-height)
+  }
 }
+
 @keyframes accordion-up {
-  from { height: var(--radix-accordion-content-height) }
-  to { height: 0 }
+  from {
+    height: var(--radix-accordion-content-height)
+  }
+
+  to {
+    height: 0
+  }
 }
 
 /* Fade + Slide */
 @keyframes fade-in {
-  0% { opacity: 0; transform: translateY(10px) }
-  100% { opacity: 1; transform: translateY(0) }
+  0% {
+    opacity: 0;
+    transform: translateY(10px)
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0)
+  }
 }
+
 @keyframes fade-in-up {
-  0% { opacity: 0; transform: translateY(20px) }
-  100% { opacity: 1; transform: translateY(0) }
+  0% {
+    opacity: 0;
+    transform: translateY(20px)
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0)
+  }
 }
+
 @keyframes slide-in-right {
-  0% { opacity: 0; transform: translateX(100%) }
-  100% { opacity: 1; transform: translateX(0) }
+  0% {
+    opacity: 0;
+    transform: translateX(100%)
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateX(0)
+  }
 }
+
 @keyframes slide-in-left {
-  0% { opacity: 0; transform: translateX(-100%) }
-  100% { opacity: 1; transform: translateX(0) }
+  0% {
+    opacity: 0;
+    transform: translateX(-100%)
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateX(0)
+  }
 }
+
 @keyframes slide-up {
-  0% { opacity: 0; transform: translateY(100%) }
-  100% { opacity: 1; transform: translateY(0) }
+  0% {
+    opacity: 0;
+    transform: translateY(100%)
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0)
+  }
 }
 
 /* Scale */
 @keyframes scale-in {
-  0% { opacity: 0; transform: scale(0.9) }
-  100% { opacity: 1; transform: scale(1) }
+  0% {
+    opacity: 0;
+    transform: scale(0.9)
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1)
+  }
 }
 
 /* Bounce + Pulse */
 @keyframes bounce-subtle {
-  0%, 100% { transform: translateY(0) }
-  50% { transform: translateY(-5px) }
+
+  0%,
+  100% {
+    transform: translateY(0)
+  }
+
+  50% {
+    transform: translateY(-5px)
+  }
 }
+
 @keyframes pulse-soft {
-  0%, 100% { opacity: 1 }
-  50% { opacity: 0.8 }
+
+  0%,
+  100% {
+    opacity: 1
+  }
+
+  50% {
+    opacity: 0.8
+  }
 }
 
 /* Float + Glow */
 @keyframes float {
-  0%, 100% { transform: translateY(0px) }
-  50% { transform: translateY(-10px) }
+
+  0%,
+  100% {
+    transform: translateY(0px)
+  }
+
+  50% {
+    transform: translateY(-10px)
+  }
 }
+
 @keyframes glow-pulse {
-  0% { box-shadow: 0 0 20px -5px rgb(168 85 247 / 0.4) }
-  100% { box-shadow: 0 0 40px -5px rgb(168 85 247 / 0.8) }
+  0% {
+    box-shadow: 0 0 20px -5px rgb(168 85 247 / 0.4)
+  }
+
+  100% {
+    box-shadow: 0 0 40px -5px rgb(168 85 247 / 0.8)
+  }
 }
 
 /* Shimmer + Gradient */
 @keyframes shimmer {
-  0% { background-position: -200% 0 }
-  100% { background-position: 200% 0 }
+  0% {
+    background-position: -200% 0
+  }
+
+  100% {
+    background-position: 200% 0
+  }
 }
+
 @keyframes gradient-x {
-  0%, 100% { background-position: left center }
-  50% { background-position: right center }
+
+  0%,
+  100% {
+    background-position: left center
+  }
+
+  50% {
+    background-position: right center
+  }
 }
+
 @keyframes gradient-y {
-  0%, 100% { background-position: center top }
-  50% { background-position: center bottom }
+
+  0%,
+  100% {
+    background-position: center top
+  }
+
+  50% {
+    background-position: center bottom
+  }
 }
 
 /* Wiggle + Tilt */
 @keyframes wiggle {
-  0%, 100% { transform: rotate(-3deg) }
-  50% { transform: rotate(3deg) }
+
+  0%,
+  100% {
+    transform: rotate(-3deg)
+  }
+
+  50% {
+    transform: rotate(3deg)
+  }
 }
+
 @keyframes tilt {
-  0%, 50%, 100% { transform: rotate(0deg) }
-  25% { transform: rotate(0.5deg) }
-  75% { transform: rotate(-0.5deg) }
+
+  0%,
+  50%,
+  100% {
+    transform: rotate(0deg)
+  }
+
+  25% {
+    transform: rotate(0.5deg)
+  }
+
+  75% {
+    transform: rotate(-0.5deg)
+  }
 }
 
 /* ============================
    📦 ANIMATION UTILITIES
 ============================ */
-@utility animate-accordion-down { animation: accordion-down 0.2s ease-out }
-@utility animate-accordion-up { animation: accordion-up 0.2s ease-out }
-@utility animate-fade-in { animation: fade-in 0.5s ease-out }
-@utility animate-fade-in-up { animation: fade-in-up 0.5s ease-out }
-@utility animate-slide-in-right { animation: slide-in-right 0.3s ease-out }
-@utility animate-slide-in-left { animation: slide-in-left 0.3s ease-out }
-@utility animate-slide-up { animation: slide-up 0.3s ease-out }
-@utility animate-scale-in { animation: scale-in 0.2s ease-out }
-@utility animate-bounce-subtle { animation: bounce-subtle 0.6s ease-in-out }
-@utility animate-pulse-soft { animation: pulse-soft 2s ease-in-out infinite }
-@utility animate-float { animation: float 6s ease-in-out infinite }
-@utility animate-glow-pulse { animation: glow-pulse 2s ease-in-out infinite alternate }
-@utility animate-shimmer { animation: shimmer 2.5s ease-in-out infinite }
-@utility animate-gradient-x { animation: gradient-x 3s ease infinite }
-@utility animate-gradient-y { animation: gradient-y 3s ease infinite }
-@utility animate-spin-slow { animation: spin 3s linear infinite }
-@utility animate-ping-slow { animation: ping 2s cubic-bezier(0,0,0.2,1) infinite }
-@utility animate-wiggle { animation: wiggle 1s ease-in-out infinite }
-@utility animate-tilt { animation: tilt 10s infinite linear }
+@utility animate-accordion-down {
+  animation: accordion-down 0.2s ease-out
+}
+
+@utility animate-accordion-up {
+  animation: accordion-up 0.2s ease-out
+}
+
+@utility animate-fade-in {
+  animation: fade-in 0.5s ease-out
+}
+
+@utility animate-fade-in-up {
+  animation: fade-in-up 0.5s ease-out
+}
+
+@utility animate-slide-in-right {
+  animation: slide-in-right 0.3s ease-out
+}
+
+@utility animate-slide-in-left {
+  animation: slide-in-left 0.3s ease-out
+}
+
+@utility animate-slide-up {
+  animation: slide-up 0.3s ease-out
+}
+
+@utility animate-scale-in {
+  animation: scale-in 0.2s ease-out
+}
+
+@utility animate-bounce-subtle {
+  animation: bounce-subtle 0.6s ease-in-out
+}
+
+@utility animate-pulse-soft {
+  animation: pulse-soft 2s ease-in-out infinite
+}
+
+@utility animate-float {
+  animation: float 6s ease-in-out infinite
+}
+
+@utility animate-glow-pulse {
+  animation: glow-pulse 2s ease-in-out infinite alternate
+}
+
+@utility animate-shimmer {
+  animation: shimmer 2.5s ease-in-out infinite
+}
+
+@utility animate-gradient-x {
+  animation: gradient-x 3s ease infinite
+}
+
+@utility animate-gradient-y {
+  animation: gradient-y 3s ease infinite
+}
+
+@utility animate-spin-slow {
+  animation: spin 3s linear infinite
+}
+
+@utility animate-ping-slow {
+  animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite
+}
+
+@utility animate-wiggle {
+  animation: wiggle 1s ease-in-out infinite
+}
+
+@utility animate-tilt {
+  animation: tilt 10s infinite linear
+}
 
 /* ============================
    🌙 DARK THEME SIDEBAR STYLES
@@ -667,35 +847,35 @@
   .sidebar-content {
     padding: 0 1rem 1rem 1rem;
   }
-  
+
   .user-profile {
     flex-direction: column;
     text-align: center;
     gap: 0.5rem;
   }
-  
+
   .welcome-text {
     font-size: 1rem;
   }
-  
+
   .explore-nav {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 0.5rem;
   }
-  
+
   .nav-item {
     flex-direction: column;
     padding: 1rem 0.5rem;
     text-align: center;
     gap: 0.5rem;
   }
-  
+
   .nav-item-content {
     flex-direction: column;
     gap: 0.5rem;
   }
-  
+
   .nav-text {
     font-size: 0.875rem;
   }
@@ -715,7 +895,7 @@
   .friends-section {
     display: block;
   }
-  
+
   .explore-nav {
     display: flex;
     flex-direction: column;
@@ -727,7 +907,7 @@
   .sidebar-content {
     padding: 0 1.5rem 1.5rem 1.5rem;
   }
-  
+
   .welcome-text {
     font-size: 1.25rem;
   }
@@ -743,6 +923,7 @@
     opacity: 0;
     transform: translateY(-10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -791,35 +972,35 @@
 
 /* Hide scrollbar but keep scroll functionality */
 .no-scrollbar {
-   -ms-overflow-style: none;
-   /* IE & Edge */
-   scrollbar-width: none;
-   /* Firefox */
+  -ms-overflow-style: none;
+  /* IE & Edge */
+  scrollbar-width: none;
+  /* Firefox */
 }
 
 .no-scrollbar::-webkit-scrollbar {
-   display: none;
-   /* Chrome, Safari */
+  display: none;
+  /* Chrome, Safari */
 }
 
 /* Change dot size, shape, and color */
 .swiper-pagination-bullet {
-   background-color: #d1d5db;
-   /* gray-300 */
-   opacity: 1;
-   width: 12px;
-   height: 12px;
-   margin: 0 4px !important;
-   border-radius: 9999px;
-   /* full rounded */
-   transition: all 0.3s ease;
+  background-color: #d1d5db;
+  /* gray-300 */
+  opacity: 1;
+  width: 12px;
+  height: 12px;
+  margin: 0 4px !important;
+  border-radius: 9999px;
+  /* full rounded */
+  transition: all 0.3s ease;
 }
 
 .swiper-pagination-bullet-active {
-   background: linear-gradient(to right, #A259FF, #0011FF);
-   width: 14px;
-   height: 14px;
-   /* elongated active dot */
+  background: linear-gradient(to right, #A259FF, #0011FF);
+  width: 14px;
+  height: 14px;
+  /* elongated active dot */
 }
 
 /* Dashboard Layout Styles */
@@ -862,7 +1043,7 @@
   .dashboard-container {
     padding: 0;
   }
-  
+
   .main-content {
     padding: 1rem;
   }
@@ -886,7 +1067,7 @@
     transform: translateX(-100%);
     transition: transform 0.3s ease-in-out;
   }
-  
+
   .sidebar-mobile.open {
     transform: translateX(0);
   }
@@ -908,6 +1089,7 @@
   0% {
     background-position: 200% 0;
   }
+
   100% {
     background-position: -200% 0;
   }
@@ -921,12 +1103,13 @@
 
 /* Print styles */
 @media print {
+
   .sidebar,
   .right-sidebar,
   .header {
     display: none !important;
   }
-  
+
   .main-content {
     margin: 0 !important;
     padding: 0 !important;
@@ -968,7 +1151,7 @@
   .backdrop-blur-lg {
     background-color: rgba(255, 255, 255, 0.95);
   }
-  
+
   .backdrop-blur-sm {
     background-color: rgba(0, 0, 0, 0.5);
   }
@@ -992,9 +1175,12 @@ textarea:focus-visible {
 
 /* Loading animations */
 @keyframes pulse {
-  0%, 100% {
+
+  0%,
+  100% {
     opacity: 1;
   }
+
   50% {
     opacity: 0.5;
   }
@@ -1009,9 +1195,11 @@ textarea:focus-visible {
   0% {
     background-position: 0% 50%;
   }
+
   50% {
     background-position: 100% 50%;
   }
+
   100% {
     background-position: 0% 50%;
   }
@@ -1217,6 +1405,7 @@ textarea:focus-visible {
   0% {
     background-position: 100% 50%;
   }
+
   100% {
     background-position: -100% 50%;
   }
@@ -1231,4 +1420,58 @@ textarea:focus-visible {
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+/* ============================
+   📱 MESSAGING SCROLLBAR STYLES
+============================ */
+
+/* Hide scrollbar by default, show on hover with custom styling */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Custom scrollbar for messaging area - appears on hover */
+.hover\:scrollbar-thin:hover::-webkit-scrollbar {
+  display: block;
+  width: 4px;
+}
+
+.hover\:scrollbar-thin:hover::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 2px;
+}
+
+.hover\:scrollbar-thin:hover::-webkit-scrollbar-thumb {
+  background: rgba(156, 163, 175, 0.3);
+  border-radius: 2px;
+  transition: background 0.2s ease;
+}
+
+.hover\:scrollbar-thin:hover::-webkit-scrollbar-thumb:hover {
+  background: rgba(156, 163, 175, 0.5);
+}
+
+/* Dark mode scrollbar styles */
+.hover\:dark\:scrollbar-thumb-gray-600:hover::-webkit-scrollbar-thumb {
+  background: rgba(75, 85, 99, 0.4);
+}
+
+.hover\:dark\:scrollbar-thumb-gray-600:hover::-webkit-scrollbar-thumb:hover {
+  background: rgba(75, 85, 99, 0.6);
+}
+
+/* Firefox scrollbar styles */
+.hover\:scrollbar-thin:hover {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(156, 163, 175, 0.3) transparent;
+}
+
+.dark .hover\:scrollbar-thin:hover {
+  scrollbar-color: rgba(75, 85, 99, 0.4) transparent;
 }

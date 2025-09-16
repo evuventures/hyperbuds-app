@@ -1,431 +1,616 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import {
-   Search,
-   Filter,
-   MoreVertical,
-   Send,
-   Plus,
-   Paperclip,
-   Smile,
-   Image as ImageIcon,
-   Phone,
-   Video,
-   Info
-} from "lucide-react";
-
-interface Message {
-   id: string;
-   sender: string;
-   content: string;
-   timestamp: string;
-   isOwn: boolean;
-   avatar?: string;
-   status?: 'typing' | 'delivered' | 'read';
-}
-
-interface Chat {
-   id: string;
-   name: string;
-   lastMessage: string;
-   timestamp: string;
-   unread: boolean;
-   avatar: string;
-   status: 'online' | 'offline' | 'typing';
-   visitInfo?: string;
-}
+import { ChatList } from "@/components/messaging/ChatInterface/ChatList";
+import { ChatHeader } from "@/components/messaging/ChatInterface/ChatHeader";
+import { ChatMessages } from "@/components/messaging/ChatInterface/ChatMessages";
+import { ChatInput } from "@/components/messaging/ChatInterface/ChatInput";
+import { useAuth } from "@/hooks/auth/useAuth";
+import { mapStoreMessagesToComponents } from "@/lib/utils/messageMappers";
+import { Conversation, Message } from "@/types/messaging.types";
 
 export const MessagesContent: React.FC = () => {
-   const [activeChat, setActiveChat] = useState("brooklyn-simmons");
-   const [searchQuery, setSearchQuery] = useState("");
-   const [activeTab, setActiveTab] = useState("Active");
-   const [showChatView, setShowChatView] = useState(false);
+   const { user, accessToken, loading: authLoading } = useAuth();
+   const [conversations, setConversations] = useState<Conversation[]>([]);
+   const [currentConversation, setCurrentConversation] = useState<Conversation | null>(null);
+   const [messages, setMessages] = useState<Message[]>([]);
+   const [loading, setLoading] = useState(true);
 
-   // Mock chat data
-   const chats: Chat[] = [
-      {
-         id: "courtney-henry",
-         name: "Courtney Henry",
-         lastMessage: "What time do you close?",
-         timestamp: "Just now",
-         unread: true,
-         avatar: "/images/user1.png",
-         status: "online"
-      },
-      {
-         id: "kristin-watson",
-         name: "Kristin Watson",
-         lastMessage: "thank you for the reminder!",
-         timestamp: "1 min ago",
-         unread: true,
-         avatar: "/images/user2.png",
-         status: "online"
-      },
-      {
-         id: "ronald-richards",
-         name: "Ronald Richards",
-         lastMessage: "I'll be there at 8:30am",
-         timestamp: "3 min ago",
-         unread: false,
-         avatar: "/images/user3.png",
-         status: "offline"
-      },
-      {
-         id: "brooklyn-simmons",
-         name: "Brooklyn Simmons",
-         lastMessage: "typing...",
-         timestamp: "5 min ago",
-         unread: false,
-         avatar: "/images/user4.png",
-         status: "typing",
-         visitInfo: "Visit 2 • Last visit Sep 16, 2024"
-      },
-      {
-         id: "robert-fox",
-         name: "Robert Fox",
-         lastMessage: "Can we reschedule?",
-         timestamp: "Yesterday",
-         unread: false,
-         avatar: "/images/user5.png",
-         status: "offline"
-      }
-   ];
-
-   // Mock messages for active chat
-   const messages: Message[] = [
-      {
-         id: "1",
-         sender: "Brooklyn Simmons",
-         content: "Hi Dr. Alex, thank you for the reminder! I'll be there at 8:30am Let me know if I need to bring anything specific.",
-         timestamp: "05:00 PM",
-         isOwn: false,
-         avatar: "/images/user4.png"
-      },
-      {
-         id: "2",
-         sender: "You",
-         content: "Hi Brooklyn Simmons, I wanted to let you know that we've received your lab results. Everything looks good, but I'd like to discuss a few preventive measures during our next appointment.",
-         timestamp: "05:02 PM",
-         isOwn: true
-      },
-      {
-         id: "3",
-         sender: "Brooklyn Simmons",
-         content: "Thank you, Dr. Alex I appreciate the update. Can I schedule a time to discuss it?",
-         timestamp: "05:30 PM",
-         isOwn: false,
-         avatar: "/images/user4.png"
-      }
-   ];
-
-   const activeChatData = chats.find(chat => chat.id === activeChat);
-
-   const handleResize = () => {
-      if (window.innerWidth >= 1024) {
-         setShowChatView(false);
-      }
-   };
-
+   // Initialize with mock data since backend isn't ready
    useEffect(() => {
-      window.addEventListener('resize', handleResize);
-      return () => window.removeEventListener('resize', handleResize);
-   }, []);
+      if (!authLoading) {
+         const initializeMockData = () => {
+            // Mock conversations data - Extended for scrollbar testing
+            const mockConversations: Conversation[] = [
+               {
+                  id: "conv-1",
+                  type: "direct",
+                  participants: [
+                     { id: "user-1", name: "John Doe", email: "john@example.com", status: "online" },
+                     { id: user?.id || "current-user", name: user?.name || "You", email: user?.email || "you@example.com", status: "online" }
+                  ],
+                  lastMessage: {
+                     id: "msg-1",
+                     conversationId: "conv-1",
+                     senderId: "user-1",
+                     content: "Hey! How are you doing?",
+                     type: "text",
+                     timestamp: new Date().toISOString(),
+                     status: "read"
+                  },
+                  lastMessageAt: new Date().toISOString(),
+                  unreadCount: 0,
+                  isArchived: false,
+                  isMuted: false,
+                  createdAt: new Date().toISOString(),
+                  updatedAt: new Date().toISOString()
+               },
+               {
+                  id: "conv-2",
+                  type: "direct",
+                  participants: [
+                     { id: "user-2", name: "Jane Smith", email: "jane@example.com", status: "offline" },
+                     { id: user?.id || "current-user", name: user?.name || "You", email: user?.email || "you@example.com", status: "online" }
+                  ],
+                  lastMessage: {
+                     id: "msg-2",
+                     conversationId: "conv-2",
+                     senderId: "user-2",
+                     content: "Thanks for the update!",
+                     type: "text",
+                     timestamp: new Date(Date.now() - 3600000).toISOString(),
+                     status: "read"
+                  },
+                  lastMessageAt: new Date(Date.now() - 3600000).toISOString(),
+                  unreadCount: 2,
+                  isArchived: false,
+                  isMuted: false,
+                  createdAt: new Date().toISOString(),
+                  updatedAt: new Date().toISOString()
+               },
+               {
+                  id: "conv-3",
+                  type: "group",
+                  name: "Team Chat",
+                  participants: [
+                     { id: "user-3", name: "Alice Johnson", email: "alice@example.com", status: "online" },
+                     { id: "user-4", name: "Bob Wilson", email: "bob@example.com", status: "away" },
+                     { id: user?.id || "current-user", name: user?.name || "You", email: user?.email || "you@example.com", status: "online" }
+                  ],
+                  lastMessage: {
+                     id: "msg-3",
+                     conversationId: "conv-3",
+                     senderId: "user-3",
+                     content: "Meeting at 3 PM today",
+                     type: "text",
+                     timestamp: new Date(Date.now() - 7200000).toISOString(),
+                     status: "read"
+                  },
+                  lastMessageAt: new Date(Date.now() - 7200000).toISOString(),
+                  unreadCount: 1,
+                  isArchived: false,
+                  isMuted: false,
+                  createdAt: new Date().toISOString(),
+                  updatedAt: new Date().toISOString()
+               },
+               {
+                  id: "conv-4",
+                  type: "direct",
+                  participants: [
+                     { id: "user-5", name: "Mike Chen", email: "mike@example.com", status: "online" },
+                     { id: user?.id || "current-user", name: user?.name || "You", email: user?.email || "you@example.com", status: "online" }
+                  ],
+                  lastMessage: {
+                     id: "msg-4",
+                     conversationId: "conv-4",
+                     senderId: "user-5",
+                     content: "Can we reschedule our call?",
+                     type: "text",
+                     timestamp: new Date(Date.now() - 10800000).toISOString(),
+                     status: "delivered"
+                  },
+                  lastMessageAt: new Date(Date.now() - 10800000).toISOString(),
+                  unreadCount: 0,
+                  isArchived: false,
+                  isMuted: false,
+                  createdAt: new Date().toISOString(),
+                  updatedAt: new Date().toISOString()
+               },
+               {
+                  id: "conv-5",
+                  type: "direct",
+                  participants: [
+                     { id: "user-6", name: "Sarah Williams", email: "sarah@example.com", status: "away" },
+                     { id: user?.id || "current-user", name: user?.name || "You", email: user?.email || "you@example.com", status: "online" }
+                  ],
+                  lastMessage: {
+                     id: "msg-5",
+                     conversationId: "conv-5",
+                     senderId: user?.id || "current-user",
+                     content: "Sure, let's meet tomorrow!",
+                     type: "text",
+                     timestamp: new Date(Date.now() - 14400000).toISOString(),
+                     status: "read"
+                  },
+                  lastMessageAt: new Date(Date.now() - 14400000).toISOString(),
+                  unreadCount: 0,
+                  isArchived: false,
+                  isMuted: false,
+                  createdAt: new Date().toISOString(),
+                  updatedAt: new Date().toISOString()
+               },
+               {
+                  id: "conv-6",
+                  type: "group",
+                  name: "Project Alpha",
+                  participants: [
+                     { id: "user-7", name: "David Brown", email: "david@example.com", status: "online" },
+                     { id: "user-8", name: "Lisa Garcia", email: "lisa@example.com", status: "online" },
+                     { id: "user-9", name: "Tom Wilson", email: "tom@example.com", status: "offline" },
+                     { id: user?.id || "current-user", name: user?.name || "You", email: user?.email || "you@example.com", status: "online" }
+                  ],
+                  lastMessage: {
+                     id: "msg-6",
+                     conversationId: "conv-6",
+                     senderId: "user-7",
+                     content: "The new design looks amazing! 🎨",
+                     type: "text",
+                     timestamp: new Date(Date.now() - 18000000).toISOString(),
+                     status: "read"
+                  },
+                  lastMessageAt: new Date(Date.now() - 18000000).toISOString(),
+                  unreadCount: 3,
+                  isArchived: false,
+                  isMuted: false,
+                  createdAt: new Date().toISOString(),
+                  updatedAt: new Date().toISOString()
+               },
+               {
+                  id: "conv-7",
+                  type: "direct",
+                  participants: [
+                     { id: "user-10", name: "Emma Davis", email: "emma@example.com", status: "offline" },
+                     { id: user?.id || "current-user", name: user?.name || "You", email: user?.email || "you@example.com", status: "online" }
+                  ],
+                  lastMessage: {
+                     id: "msg-7",
+                     conversationId: "conv-7",
+                     senderId: "user-10",
+                     content: "Thanks for the help yesterday!",
+                     type: "text",
+                     timestamp: new Date(Date.now() - 21600000).toISOString(),
+                     status: "read"
+                  },
+                  lastMessageAt: new Date(Date.now() - 21600000).toISOString(),
+                  unreadCount: 0,
+                  isArchived: false,
+                  isMuted: false,
+                  createdAt: new Date().toISOString(),
+                  updatedAt: new Date().toISOString()
+               },
+               {
+                  id: "conv-8",
+                  type: "direct",
+                  participants: [
+                     { id: "user-11", name: "Alex Rodriguez", email: "alex@example.com", status: "online" },
+                     { id: user?.id || "current-user", name: user?.name || "You", email: user?.email || "you@example.com", status: "online" }
+                  ],
+                  lastMessage: {
+                     id: "msg-8",
+                     conversationId: "conv-8",
+                     senderId: user?.id || "current-user",
+                     content: "Perfect, see you there!",
+                     type: "text",
+                     timestamp: new Date(Date.now() - 25200000).toISOString(),
+                     status: "read"
+                  },
+                  lastMessageAt: new Date(Date.now() - 25200000).toISOString(),
+                  unreadCount: 0,
+                  isArchived: false,
+                  isMuted: false,
+                  createdAt: new Date().toISOString(),
+                  updatedAt: new Date().toISOString()
+               },
+               {
+                  id: "conv-9",
+                  type: "group",
+                  name: "Marketing Team",
+                  participants: [
+                     { id: "user-12", name: "Jessica Lee", email: "jessica@example.com", status: "online" },
+                     { id: "user-13", name: "Kevin Park", email: "kevin@example.com", status: "away" },
+                     { id: "user-14", name: "Rachel Green", email: "rachel@example.com", status: "offline" },
+                     { id: user?.id || "current-user", name: user?.name || "You", email: user?.email || "you@example.com", status: "online" }
+                  ],
+                  lastMessage: {
+                     id: "msg-9",
+                     conversationId: "conv-9",
+                     senderId: "user-12",
+                     content: "Campaign launch is tomorrow! 🚀",
+                     type: "text",
+                     timestamp: new Date(Date.now() - 28800000).toISOString(),
+                     status: "read"
+                  },
+                  lastMessageAt: new Date(Date.now() - 28800000).toISOString(),
+                  unreadCount: 1,
+                  isArchived: false,
+                  isMuted: false,
+                  createdAt: new Date().toISOString(),
+                  updatedAt: new Date().toISOString()
+               },
+               {
+                  id: "conv-10",
+                  type: "direct",
+                  participants: [
+                     { id: "user-15", name: "Daniel Kim", email: "daniel@example.com", status: "online" },
+                     { id: user?.id || "current-user", name: user?.name || "You", email: user?.email || "you@example.com", status: "online" }
+                  ],
+                  lastMessage: {
+                     id: "msg-10",
+                     conversationId: "conv-10",
+                     senderId: "user-15",
+                     content: "Let's grab lunch this week",
+                     type: "text",
+                     timestamp: new Date(Date.now() - 32400000).toISOString(),
+                     status: "delivered"
+                  },
+                  lastMessageAt: new Date(Date.now() - 32400000).toISOString(),
+                  unreadCount: 0,
+                  isArchived: false,
+                  isMuted: false,
+                  createdAt: new Date().toISOString(),
+                  updatedAt: new Date().toISOString()
+               },
+               {
+                  id: "conv-11",
+                  type: "direct",
+                  participants: [
+                     { id: "user-16", name: "Sophie Turner", email: "sophie@example.com", status: "offline" },
+                     { id: user?.id || "current-user", name: user?.name || "You", email: user?.email || "you@example.com", status: "online" }
+                  ],
+                  lastMessage: {
+                     id: "msg-11",
+                     conversationId: "conv-11",
+                     senderId: user?.id || "current-user",
+                     content: "The presentation went well!",
+                     type: "text",
+                     timestamp: new Date(Date.now() - 36000000).toISOString(),
+                     status: "read"
+                  },
+                  lastMessageAt: new Date(Date.now() - 36000000).toISOString(),
+                  unreadCount: 0,
+                  isArchived: false,
+                  isMuted: false,
+                  createdAt: new Date().toISOString(),
+                  updatedAt: new Date().toISOString()
+               },
+               {
+                  id: "conv-12",
+                  type: "group",
+                  name: "Design Reviews",
+                  participants: [
+                     { id: "user-17", name: "Mark Johnson", email: "mark@example.com", status: "online" },
+                     { id: "user-18", name: "Anna Martinez", email: "anna@example.com", status: "online" },
+                     { id: "user-19", name: "Chris Taylor", email: "chris@example.com", status: "away" },
+                     { id: "user-20", name: "Nina Patel", email: "nina@example.com", status: "offline" },
+                     { id: user?.id || "current-user", name: user?.name || "You", email: user?.email || "you@example.com", status: "online" }
+                  ],
+                  lastMessage: {
+                     id: "msg-12",
+                     conversationId: "conv-12",
+                     senderId: "user-17",
+                     content: "Feedback on the mockups: looks great!",
+                     type: "text",
+                     timestamp: new Date(Date.now() - 39600000).toISOString(),
+                     status: "read"
+                  },
+                  lastMessageAt: new Date(Date.now() - 39600000).toISOString(),
+                  unreadCount: 2,
+                  isArchived: false,
+                  isMuted: false,
+                  createdAt: new Date().toISOString(),
+                  updatedAt: new Date().toISOString()
+               },
+               {
+                  id: "conv-13",
+                  type: "direct",
+                  participants: [
+                     { id: "user-21", name: "Ryan Murphy", email: "ryan@example.com", status: "online" },
+                     { id: user?.id || "current-user", name: user?.name || "You", email: user?.email || "you@example.com", status: "online" }
+                  ],
+                  lastMessage: {
+                     id: "msg-13",
+                     conversationId: "conv-13",
+                     senderId: "user-21",
+                     content: "Coffee meeting at 10 AM?",
+                     type: "text",
+                     timestamp: new Date(Date.now() - 43200000).toISOString(),
+                     status: "sent"
+                  },
+                  lastMessageAt: new Date(Date.now() - 43200000).toISOString(),
+                  unreadCount: 0,
+                  isArchived: false,
+                  isMuted: false,
+                  createdAt: new Date().toISOString(),
+                  updatedAt: new Date().toISOString()
+               },
+               {
+                  id: "conv-14",
+                  type: "direct",
+                  participants: [
+                     { id: "user-22", name: "Olivia White", email: "olivia@example.com", status: "away" },
+                     { id: user?.id || "current-user", name: user?.name || "You", email: user?.email || "you@example.com", status: "online" }
+                  ],
+                  lastMessage: {
+                     id: "msg-14",
+                     conversationId: "conv-14",
+                     senderId: user?.id || "current-user",
+                     content: "Thanks for the collaboration!",
+                     type: "text",
+                     timestamp: new Date(Date.now() - 46800000).toISOString(),
+                     status: "read"
+                  },
+                  lastMessageAt: new Date(Date.now() - 46800000).toISOString(),
+                  unreadCount: 0,
+                  isArchived: false,
+                  isMuted: false,
+                  createdAt: new Date().toISOString(),
+                  updatedAt: new Date().toISOString()
+               },
+               {
+                  id: "conv-15",
+                  type: "group",
+                  name: "Weekly Standup",
+                  participants: [
+                     { id: "user-23", name: "James Wilson", email: "james@example.com", status: "online" },
+                     { id: "user-24", name: "Maya Singh", email: "maya@example.com", status: "online" },
+                     { id: "user-25", name: "Luke Anderson", email: "luke@example.com", status: "offline" },
+                     { id: user?.id || "current-user", name: user?.name || "You", email: user?.email || "you@example.com", status: "online" }
+                  ],
+                  lastMessage: {
+                     id: "msg-15",
+                     conversationId: "conv-15",
+                     senderId: "user-23",
+                     content: "Standup meeting in 30 minutes",
+                     type: "text",
+                     timestamp: new Date(Date.now() - 50400000).toISOString(),
+                     status: "read"
+                  },
+                  lastMessageAt: new Date(Date.now() - 50400000).toISOString(),
+                  unreadCount: 1,
+                  isArchived: false,
+                  isMuted: false,
+                  createdAt: new Date().toISOString(),
+                  updatedAt: new Date().toISOString()
+               }
+            ];
 
-   const handleChatSelect = (chatId: string) => {
-      setActiveChat(chatId);
-      if (window.innerWidth < 1024) {
-         setShowChatView(true);
+            // Mock messages for the first conversation
+            const mockMessages: Message[] = [
+               {
+                  id: "msg-1",
+                  conversationId: "conv-1",
+                  senderId: "user-1",
+                  content: "Hey! How are you doing?",
+                  type: "text",
+                  timestamp: new Date(Date.now() - 1800000).toISOString(),
+                  status: "read"
+               },
+               {
+                  id: "msg-2",
+                  conversationId: "conv-1",
+                  senderId: user?.id || "current-user",
+                  content: "I'm doing great! Thanks for asking. How about you?",
+                  type: "text",
+                  timestamp: new Date(Date.now() - 1500000).toISOString(),
+                  status: "read"
+               },
+               {
+                  id: "msg-3",
+                  conversationId: "conv-1",
+                  senderId: "user-1",
+                  content: "Pretty good! Just working on some new projects. Want to grab coffee sometime?",
+                  type: "text",
+                  timestamp: new Date(Date.now() - 900000).toISOString(),
+                  status: "read"
+               },
+               {
+                  id: "msg-4",
+                  conversationId: "conv-1",
+                  senderId: user?.id || "current-user",
+                  content: "That sounds great! I'd love to catch up. When works for you?",
+                  type: "text",
+                  timestamp: new Date(Date.now() - 600000).toISOString(),
+                  status: "read"
+               },
+               {
+                  id: "msg-5",
+                  conversationId: "conv-1",
+                  senderId: "user-1",
+                  content: "How about this Friday afternoon? Around 2 PM?",
+                  type: "text",
+                  timestamp: new Date(Date.now() - 300000).toISOString(),
+                  status: "read"
+               }
+            ];
+
+            setConversations(mockConversations);
+            setMessages(mockMessages);
+            setCurrentConversation(mockConversations[0]);
+            setLoading(false);
+         };
+
+         initializeMockData();
+      }
+   }, [authLoading, user]);
+
+   const handleSendMessage = async (content: string) => {
+      if (currentConversation) {
+         const newMessage: Message = {
+            id: `msg-${Date.now()}`,
+            conversationId: currentConversation.id,
+            senderId: user?.id || "current-user",
+            content,
+            type: "text",
+            timestamp: new Date().toISOString(),
+            status: "sent"
+         };
+
+         setMessages(prev => [...prev, newMessage]);
+
+         // Update conversation's last message
+         setConversations(prev => prev.map(conv =>
+            conv.id === currentConversation.id
+               ? { ...conv, lastMessage: newMessage, lastMessageAt: newMessage.timestamp }
+               : conv
+         ));
       }
    };
 
-   const handleBackToMessages = () => {
-      setShowChatView(false);
+   const handleSendMessageWithAttachments = async (files: File[], textContent?: string) => {
+      if (!currentConversation) return;
+
+      // Determine message type based on content
+      const hasImages = files.some(file => file.type.startsWith('image/'));
+      const hasFiles = files.some(file => !file.type.startsWith('image/'));
+      const messageType = hasImages && hasFiles ? 'text' :
+         hasImages ? 'image' :
+            hasFiles ? 'file' : 'text';
+
+      // Create a single message with all files and text
+      const newMessage: Message = {
+         id: `msg-${Date.now()}`,
+         conversationId: currentConversation.id,
+         senderId: user?.id || "current-user",
+         content: textContent || (files.length === 1 ? files[0].name : `${files.length} files`),
+         type: messageType,
+         timestamp: new Date().toISOString(),
+         status: "sent",
+         attachments: files.map((file, index) => ({
+            id: `att-${Date.now()}-${index}`,
+            type: file.type.startsWith('image/') ? 'image' : 'file',
+            filename: file.name,
+            url: URL.createObjectURL(file),
+            mimeType: file.type,
+            size: file.size
+         }))
+      };
+
+      setMessages(prev => [...prev, newMessage]);
+
+      // Update conversation's last message
+      setConversations(prev => prev.map(conv =>
+         conv.id === currentConversation.id
+            ? { ...conv, lastMessage: newMessage, lastMessageAt: newMessage.timestamp }
+            : conv
+      ));
    };
+
+   const handleCreateNewConversation = () => {
+      console.log('Create new conversation');
+      // TODO: Implement create new conversation modal
+   };
+
+   const selectConversation = (conversationId: string) => {
+      const conversation = conversations.find(c => c.id === conversationId);
+      if (conversation) {
+         setCurrentConversation(conversation);
+         // In a real app, you'd load messages for this conversation
+         // For now, we'll use the same mock messages
+      }
+   };
+
+   const archiveConversation = (conversationId: string) => {
+      setConversations(prev => prev.map(conv =>
+         conv.id === conversationId ? { ...conv, isArchived: true } : conv
+      ));
+   };
+
+   if (authLoading) {
+      return (
+         <div className="flex justify-center items-center h-full">
+            <div className="text-yellow-500">
+               Loading...
+            </div>
+         </div>
+      );
+   }
+
+   if (!accessToken) {
+      return (
+         <div className="flex justify-center items-center h-full">
+            <div className="text-center">
+               <div className="mb-4 text-red-500">
+                  Please log in to access messages
+               </div>
+               <button
+                  onClick={() => {
+                     localStorage.setItem('accessToken', 'demo-token-12345');
+                     window.location.reload();
+                  }}
+                  className="px-4 py-2 text-white bg-blue-500 rounded-lg transition-colors hover:bg-blue-600"
+               >
+                  Use Demo Mode
+               </button>
+            </div>
+         </div>
+      );
+   }
+
+   if (loading) {
+      return (
+         <div className="flex justify-center items-center h-full">
+            <div className="text-yellow-500">
+               Loading conversations...
+            </div>
+         </div>
+      );
+   }
 
    return (
-      <div className="w-full h-[90vh]">
-         {/* Messages Content */}
-         <div className="flex h-full">
-            {/* Messages Sidebar */}
-            <div className={`flex flex-col bg-white border-r border-gray-200 dark:bg-[#111828] dark:border-gray-700 transition-all duration-300 ${
-               // Mobile: Hide messages sidebar when chat is open, show when no chat selected
-               window.innerWidth < 1024
-                  ? (showChatView ? 'hidden' : 'w-full')
-                  : 'w-80'
-               }`}>
-               {/* Messages Header */}
-               <div className="p-4 border-b border-gray-200 sm:p-6 dark:border-gray-700">
-                  <h1 className="mb-4 text-xl font-bold text-gray-900 sm:mb-6 sm:text-2xl dark:text-white">
-                     Messages
-                  </h1>
+      <div className="flex h-[90vh] bg-gray-100 dark:bg-gray-900">
+         {/* Chat List Sidebar */}
+         <div className="w-1/3 bg-white border-r border-gray-200 dark:border-gray-700 dark:bg-gray-800">
+            <ChatList
+               conversations={conversations}
+               selectedConversationId={currentConversation?.id}
+               onSelect={selectConversation}
+               onCreateNew={handleCreateNewConversation}
+               loading={false}
+            />
+         </div>
 
-                  {/* Search Bar */}
-                  <div className="relative">
-                     <Search className="absolute left-3 top-1/2 w-4 h-4 text-gray-400 transform -translate-y-1/2 dark:text-gray-500" />
-                     <input
-                        type="text"
-                        placeholder="Search patients"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="py-2 pr-4 pl-10 w-full text-sm placeholder-gray-500 text-gray-900 bg-gray-50 rounded-xl border border-gray-200 transition-all duration-200 sm:py-3 dark:bg-gray-700 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-500 dark:focus:ring-purple-400 focus:bg-white dark:focus:bg-gray-600 dark:text-gray-100 dark:placeholder-gray-400 sm:text-base"
-                     />
-                     <button className="absolute right-3 top-1/2 text-gray-400 transform -translate-y-1/2 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300">
-                        <Filter className="w-4 h-4" />
-                     </button>
-                  </div>
-
-                  {/* Tabs */}
-                  <div className="flex p-1 mt-4 space-x-1 bg-gray-100 rounded-lg sm:mt-6 dark:bg-gray-700">
-                     <button
-                        onClick={() => setActiveTab("Active")}
-                        className={`flex-1 py-2 px-3 sm:px-4 text-xs sm:text-sm font-medium rounded-md transition-colors ${activeTab === "Active"
-                           ? "bg-white dark:bg-gray-600 text-purple-600 dark:text-purple-400 shadow-sm"
-                           : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
-                           }`}
-                     >
-                        Active
-                     </button>
-                     <button
-                        onClick={() => setActiveTab("Inactive")}
-                        className={`flex-1 py-2 px-3 sm:px-4 text-xs sm:text-sm font-medium rounded-md transition-colors ${activeTab === "Inactive"
-                           ? "bg-white dark:bg-gray-600 text-purple-600 dark:text-purple-400 shadow-sm"
-                           : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
-                           }`}
-                     >
-                        Inactive
-                     </button>
-                  </div>
+         {/* Chat Interface */}
+         <div className="flex flex-col flex-1">
+            {currentConversation ? (
+               <>
+                  <ChatHeader
+                     conversation={currentConversation}
+                     onArchive={archiveConversation}
+                     onVideoCall={() => console.log("Video call clicked")}
+                     onVoiceCall={() => console.log("Voice call clicked")}
+                     onInfoClick={() => console.log("Info clicked")}
+                  />
+                  <ChatMessages
+                     messages={mapStoreMessagesToComponents(messages, user?.id)}
+                     loading={false}
+                     typingUsers={[]}
+                  />
+                  <ChatInput
+                     onSendMessage={handleSendMessage}
+                     onAttachment={handleSendMessageWithAttachments}
+                     onTypingStart={() => { }}
+                     onTypingStop={() => { }}
+                     typingIndicator={{
+                        users: [],
+                        isTyping: false
+                     }}
+                  />
+               </>
+            ) : (
+               <div className="flex justify-center items-center h-full text-gray-500 dark:text-gray-400">
+                  Select a conversation to start chatting
                </div>
-
-               {/* Chat List */}
-               <div className="overflow-y-auto flex-1">
-                  {chats.map((chat) => (
-                     <div
-                        key={chat.id}
-                        onClick={() => handleChatSelect(chat.id)}
-                        className={`flex items-center gap-3 sm:gap-4 p-3 sm:p-4 cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-gray-700 ${activeChat === chat.id ? "bg-purple-50 dark:bg-purple-900/20 border-r-2 border-purple-500" : ""
-                           }`}
-                     >
-                        <div className="relative flex-shrink-0">
-                           <div className="flex justify-center items-center w-10 h-10 bg-gray-300 rounded-full sm:w-12 sm:h-12 dark:bg-gray-600">
-                              <span className="text-xs font-medium text-gray-600 sm:text-sm dark:text-gray-300">
-                                 {chat.name.split(' ').map(n => n[0]).join('')}
-                              </span>
-                           </div>
-                           {chat.status === 'online' && (
-                              <div className="absolute -right-1 -bottom-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white sm:w-4 sm:h-4 dark:border-gray-800"></div>
-                           )}
-                           {chat.status === 'typing' && (
-                              <div className="absolute -right-1 -bottom-1 w-3 h-3 bg-blue-500 rounded-full border-2 border-white animate-pulse sm:w-4 sm:h-4 dark:border-gray-800"></div>
-                           )}
-                        </div>
-
-                        <div className="flex-1 min-w-0">
-                           <div className="flex justify-between items-center">
-                              <h3 className="text-xs font-semibold text-gray-900 truncate sm:text-sm dark:text-white">
-                                 {chat.name}
-                              </h3>
-                              <div className="flex gap-1 items-center sm:gap-2">
-                                 {chat.unread && (
-                                    <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-blue-500 rounded-full"></div>
-                                 )}
-                                 <span className="text-xs text-gray-500 dark:text-gray-400">
-                                    {chat.timestamp}
-                                 </span>
-                              </div>
-                           </div>
-                           <p className="mt-1 text-xs text-gray-600 truncate sm:text-sm dark:text-gray-400">
-                              {chat.lastMessage}
-                           </p>
-                        </div>
-                     </div>
-                  ))}
-               </div>
-            </div>
-
-            {/* Chat Area */}
-            <div className={`flex flex-col flex-1 bg-white min-w-0 transition-all duration-300 max-h-[90vh] dark:bg-[#111828]  ${
-               // Mobile: Hide chat area when not in chat view
-               window.innerWidth < 1024
-                  ? (showChatView ? 'block' : 'hidden')
-                  : 'block'
-               }`}>
-               {/* Chat Header */}
-               <div className="flex justify-between items-center p-4 border-b border-gray-200 sm:p-6 dark:border-gray-700">
-                  <div className="flex flex-1 gap-3 items-center min-w-0 sm:gap-4">
-                     {/* Back button for mobile */}
-                     {window.innerWidth < 1024 && (
-                        <button
-                           onClick={handleBackToMessages}
-                           className="flex-shrink-0 p-2 text-gray-500 rounded-lg transition-colors dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
-                        >
-                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                           </svg>
-                        </button>
-                     )}
-                     <div className="flex flex-shrink-0 justify-center items-center w-10 h-10 bg-gray-300 rounded-full sm:w-12 sm:h-12 dark:bg-gray-600">
-                        <span className="text-xs font-medium text-gray-600 sm:text-sm dark:text-gray-300">
-                           {activeChatData?.name.split(' ').map(n => n[0]).join('')}
-                        </span>
-                     </div>
-                     <div className="flex-1 min-w-0">
-                        <h2 className="text-base font-semibold text-gray-900 truncate sm:text-lg dark:text-white">
-                           {activeChatData?.name}
-                        </h2>
-                        {activeChatData?.visitInfo && (
-                           <p className="text-xs text-gray-500 truncate sm:text-sm dark:text-gray-400">
-                              {activeChatData.visitInfo}
-                           </p>
-                        )}
-                     </div>
-                  </div>
-
-                  <div className="flex flex-shrink-0 gap-1 items-center sm:gap-2">
-                     <button className="p-1.5 sm:p-2 text-gray-500 rounded-lg transition-colors dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">
-                        <Phone className="w-4 h-4 sm:w-5 sm:h-5" />
-                     </button>
-                     <button className="p-1.5 sm:p-2 text-gray-500 rounded-lg transition-colors dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">
-                        <Video className="w-4 h-4 sm:w-5 sm:h-5" />
-                     </button>
-                     <button className="p-1.5 sm:p-2 text-gray-500 rounded-lg transition-colors dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">
-                        <Info className="w-4 h-4 sm:w-5 sm:h-5" />
-                     </button>
-                     <button className="p-1.5 sm:p-2 text-gray-500 rounded-lg transition-colors dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">
-                        <MoreVertical className="w-4 h-4 sm:w-5 sm:h-5" />
-                     </button>
-                  </div>
-               </div>
-
-               {/* Messages Area */}
-               <div className="overflow-y-auto flex-1 p-3 space-y-4 sm:p-6 sm:space-y-6 scrollbar-hide">
-                  {/* Date Separator */}
-                  <div className="flex items-center">
-                     <div className="flex-1 border-t border-gray-200 dark:border-gray-700"></div>
-                     <span className="px-3 text-xs text-gray-500 bg-white sm:px-4 sm:text-sm dark:text-gray-400 dark:bg-gray-800">
-                        Today, Nov 16
-                     </span>
-                     <div className="flex-1 border-t border-gray-200 dark:border-gray-700"></div>
-                  </div>
-
-                  {/* Messages */}
-                  {messages.map((message) => (
-                     <div key={message.id} className={`flex ${message.isOwn ? 'justify-end' : 'justify-start'}`}>
-                        <div className={`flex gap-2 sm:gap-3  sm:max-w-md ${message.isOwn ? 'flex-row-reverse' : 'flex-row'}`}>
-                           {!message.isOwn && (
-                              <div className="flex flex-shrink-0 justify-center items-center w-6 h-6 bg-gray-300 rounded-full sm:w-8 sm:h-8 dark:bg-gray-600">
-                                 <span className="text-xs font-medium text-gray-600 dark:text-gray-300">
-                                    {message.sender.split(' ').map(n => n[0]).join('')}
-                                 </span>
-                              </div>
-                           )}
-
-                           <div className={`flex flex-col ${message.isOwn ? 'items-end' : 'items-start'}`}>
-                              {!message.isOwn && (
-                                 <div className="flex gap-1 items-center mb-1 sm:gap-2">
-                                    <span className="text-xs font-medium text-gray-900 sm:text-sm dark:text-white">
-                                       {message.sender}
-                                    </span>
-                                    <span className="text-xs text-gray-500 dark:text-gray-400">
-                                       {message.timestamp}
-                                    </span>
-                                 </div>
-                              )}
-
-                              <div
-                                 className={`px-3 sm:px-4 py-2 sm:py-3 rounded-2xl ${message.isOwn
-                                    ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
-                                    : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white'
-                                    }`}
-                              >
-                                 <p className="text-xs leading-relaxed break-words sm:text-sm">{message.content}</p>
-                              </div>
-
-                              {message.isOwn && (
-                                 <div className="flex gap-1 items-center mt-1 sm:gap-2">
-                                    <span className="text-xs text-gray-500 dark:text-gray-400">
-                                       {message.timestamp}
-                                    </span>
-                                    <span className="text-xs text-gray-500 dark:text-gray-400">
-                                       You
-                                    </span>
-                                 </div>
-                              )}
-                           </div>
-                        </div>
-                     </div>
-                  ))}
-
-                  {/* New Message Separator */}
-                  <div className="flex items-center">
-                     <div className="flex-1 border-t border-red-300 dark:border-red-600"></div>
-                     <span className="px-3 text-xs font-medium text-red-600 bg-white sm:px-4 sm:text-sm dark:text-red-400 dark:bg-gray-800">
-                        New Message
-                     </span>
-                     <div className="flex-1 border-t border-red-300 dark:border-red-600"></div>
-                  </div>
-
-                  {/* Latest Message */}
-                  <div className="flex justify-start">
-                     <div className="flex gap-2 sm:gap-3 sm:max-w-md">
-                        <div className="flex flex-shrink-0 justify-center items-center w-6 h-6 bg-gray-300 rounded-full sm:w-8 sm:h-8 dark:bg-gray-600">
-                           <span className="text-xs font-medium text-gray-600 dark:text-gray-300">
-                              BS
-                           </span>
-                        </div>
-
-                        <div className="flex flex-col items-start">
-                           <div className="flex gap-1 items-center mb-1 sm:gap-2">
-                              <span className="text-xs font-medium text-gray-900 sm:text-sm dark:text-white">
-                                 Brooklyn Simmons
-                              </span>
-                              <span className="text-xs text-gray-500 dark:text-gray-400">
-                                 05:30 PM
-                              </span>
-                           </div>
-
-                           <div className="px-3 py-2 text-gray-900 bg-gray-100 rounded-2xl sm:px-4 sm:py-3 dark:bg-gray-700 dark:text-white">
-                              <p className="text-xs leading-relaxed break-words sm:text-sm">
-                                 Thank you, Dr. Alex I appreciate the update. Can I schedule a time to discuss it?
-                              </p>
-                           </div>
-                        </div>
-                     </div>
-                  </div>
-               </div>
-
-               {/* Message Input */}
-               <div className="p-3 border-t border-gray-200 sm:p-6 dark:border-gray-700">
-                  <div className="flex gap-2 items-center sm:gap-3">
-                     <button className="p-1.5 sm:p-2 text-gray-500 rounded-lg transition-colors dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 flex-shrink-0">
-                        <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
-                     </button>
-                     <button className="p-1.5 sm:p-2 text-gray-500 rounded-lg transition-colors dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 flex-shrink-0">
-                        <Paperclip className="w-4 h-4 sm:w-5 sm:h-5" />
-                     </button>
-                     <button className="p-1.5 sm:p-2 text-gray-500 rounded-lg transition-colors dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 flex-shrink-0">
-                        <Smile className="w-4 h-4 sm:w-5 sm:h-5" />
-                     </button>
-                     <button className="p-1.5 sm:p-2 text-gray-500 rounded-lg transition-colors dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 flex-shrink-0">
-                        <ImageIcon className="w-4 h-4 sm:w-5 sm:h-5" />
-                     </button>
-
-                     <div className="relative flex-1 min-w-0">
-                        <input
-                           type="text"
-                           placeholder="Type a message..."
-                           className="px-3 py-2 w-full text-sm placeholder-gray-500 text-gray-900 bg-gray-50 rounded-full border border-gray-200 transition-all duration-200 sm:px-4 sm:py-3 dark:bg-gray-700 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-500 dark:focus:ring-purple-400 focus:bg-white dark:focus:bg-gray-600 dark:text-gray-100 dark:placeholder-gray-400 sm:text-base"
-                        />
-                     </div>
-
-                     <button className="flex flex-shrink-0 gap-1 items-center px-3 py-2 text-white bg-gradient-to-r from-purple-500 to-pink-500 rounded-full transition-opacity sm:gap-2 sm:px-6 sm:py-3 hover:opacity-90">
-                        <Send className="w-3 h-3 sm:w-4 sm:h-4" />
-                        <span className="hidden text-sm sm:inline">Send</span>
-                     </button>
-                  </div>
-               </div>
-            </div>
+            )}
          </div>
       </div>
    );
