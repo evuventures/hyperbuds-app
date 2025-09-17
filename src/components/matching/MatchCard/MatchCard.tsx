@@ -5,7 +5,16 @@ import { FaHeart, FaTimes, FaBan } from "react-icons/fa";
 
 // Define the correct type for the props
 interface MatchCardProps {
-  match: any; 
+  match: {
+    id: string;
+    name: string;
+    age: number;
+    bio: string;
+    photos: string[];
+    interests: string[];
+    location: string;
+    compatibility: number;
+  };
   onAction: (id: string, action: string) => void;
   onBlock: (id: string) => void;
 }
@@ -20,7 +29,7 @@ const MatchCard: React.FC<MatchCardProps> = ({ match, onAction, onBlock }) => {
       />
       <h3 className="text-xl font-semibold mb-1">{match.userName}</h3>
       <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">{match.niche || 'Not specified'}</p>
-      
+
       {match.rizzScore && (
         <div className="bg-purple-100 dark:bg-purple-900 text-purple-600 dark:text-purple-300 rounded-full px-3 py-1 text-xs font-bold mb-4">
           Rizz Score: {match.rizzScore}%

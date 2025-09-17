@@ -97,7 +97,7 @@ const LoaderAnimation: React.FC<LoaderAnimationProps> = ({ onComplete }) => {
             },
         },
     };
-    
+
     // Updated mock data with image URLs
     const mockAvatars = [
         { id: 1, score: 88, imageUrl: "https://placehold.co/64x64/E0E7FF/000000?text=AI" },
@@ -217,7 +217,7 @@ const LoaderAnimation: React.FC<LoaderAnimationProps> = ({ onComplete }) => {
                                 Analysis Complete!
                             </h2>
                             <p className="mt-4 text-white/80 text-center max-w-sm">
-                                Your matches have been generated. You're ready to proceed!
+                                Your matches have been generated. You&apos;re ready to proceed!
                             </p>
                         </motion.div>
                     )}

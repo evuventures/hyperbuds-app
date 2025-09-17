@@ -5,11 +5,11 @@ import { createContext, useContext, ReactNode } from 'react'
 import { useAuth } from '@/hooks/auth/useAuth'
 
 interface AuthContextType {
-  user: any
+  user: { id: string; name: string; email: string; avatar?: string } | null
   loading: boolean
-  login: (email: string, password: string) => Promise<any>
+  login: (email: string, password: string) => Promise<{ success: boolean; user: { id: string; name: string; email: string } }>
   logout: () => Promise<void>
-  register: (userData: any) => Promise<any>
+  register: (userData: { name: string; email: string; password: string }) => Promise<{ success: boolean; user: { id: string; name: string; email: string } }>
   refreshSession: () => Promise<string | null>
 }
 
@@ -17,7 +17,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const auth = useAuth()
-  
+
   return (
     <AuthContext.Provider value={auth}>
       {children}

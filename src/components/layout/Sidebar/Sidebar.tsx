@@ -24,7 +24,7 @@ interface SidebarProps {
 // ✅ add this type so TS knows path is optional
 type MenuItem = {
   id: string;
-  icon: any;
+  icon: React.ComponentType<{ size?: number; className?: string }>;
   label: string;
   count?: number;
   path?: string;

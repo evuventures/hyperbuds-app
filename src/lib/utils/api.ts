@@ -22,7 +22,7 @@ async function getAccessToken() {
 }
 
 export async function apiFetch(endpoint: string, options: RequestInit = {}) {
-  let token = await getAccessToken();
+  const token = await getAccessToken();
 
   let res = await fetch(`${BASE_URL}${endpoint}`, {
     ...options,
