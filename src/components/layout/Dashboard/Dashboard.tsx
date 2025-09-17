@@ -108,7 +108,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </button>
               <div className="flex justify-center items-center w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full">
                 <span className="text-sm font-medium text-white">
-                  {user.username?.[0]?.toUpperCase() || user.email[0].toUpperCase()}
+                  {user.name?.[0]?.toUpperCase() || user.email[0].toUpperCase()}
                 </span>
               </div>
             </div>
