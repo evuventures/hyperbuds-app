@@ -11,14 +11,13 @@ export interface ComponentMessage {
       avatar?: string;
    };
    type: Message['type'];
-   status: Message['status'];
+   status: 'sending' | 'sent' | 'delivered' | 'read' | 'failed';
    replyTo?: {
       id: string;
       content: string;
       sender: string;
    };
    attachments?: Message['attachments'];
-   reactions?: Message['reactions'];
 }
 
 export interface ComponentConversation {
@@ -57,24 +56,19 @@ export function mapStoreMessageToComponent(
    currentUserId?: string
 ): ComponentMessage {
    return {
-      id: message.id,
+      id: message._id,
       content: message.content,
-      timestamp: message.timestamp,
-      isOwn: message.senderId === currentUserId,
+      timestamp: message.createdAt,
+      isOwn: message.sender._id === currentUserId,
       sender: {
-         id: message.senderId,
-         name: message.senderId, // This should be resolved from participants
+         id: message.sender._id,
+         name: message.sender.email, // Use email as name for now
          avatar: undefined, // This should be resolved from participants
       },
       type: message.type,
-      status: message.status,
-      replyTo: message.replyTo ? {
-         id: message.replyTo,
-         content: '', // This should be resolved from the referenced message
-         sender: '', // This should be resolved from the referenced message
-      } : undefined,
-      attachments: message.attachments,
-      reactions: message.reactions,
+      status: message.isRead ? 'read' : 'sent',
+      replyTo: undefined, // Not supported in new API
+      attachments: message.attachments
    };
 }
 
@@ -94,36 +88,32 @@ export function mapStoreConversationToComponent(
    conversation: Conversation
 ): ComponentConversation {
    // Determine conversation name based on type and participants
-   let name = conversation.name;
-   if (!name && conversation.type === 'direct' && conversation.participants.length === 2) {
-      // For direct messages, use the other participant's name
-      name = conversation.participants.find(p => p.id !== 'current-user')?.name || 'Unknown User';
-   } else if (!name && conversation.type === 'group') {
-      // For groups without names, create one from participants
-      const participantNames = conversation.participants.slice(0, 3).map(p => p.name);
-      name = participantNames.length > 3
-         ? `${participantNames.join(', ')} and ${conversation.participants.length - 3} others`
-         : participantNames.join(', ');
+   let name = 'Unknown User';
+   if (conversation.type === 'direct' && conversation.participants.length === 2) {
+      // For direct messages, use the other participant's email
+      const otherParticipant = conversation.participants.find(p => p._id !== 'current-user');
+      name = otherParticipant?.email || 'Unknown User';
    }
 
    // Get avatar for direct messages (other participant's avatar)
-   let avatar = conversation.avatar;
-   if (!avatar && conversation.type === 'direct' && conversation.participants.length === 2) {
-      avatar = conversation.participants.find(p => p.id !== 'current-user')?.avatar;
+   let avatar = undefined;
+   if (conversation.type === 'direct' && conversation.participants.length === 2) {
+      const otherParticipant = conversation.participants.find(p => p._id !== 'current-user');
+      avatar = otherParticipant?.avatar;
    }
 
    return {
-      id: conversation.id,
-      name: name || 'Unknown Conversation',
+      id: conversation._id,
+      name: name,
       lastMessage: conversation.lastMessage?.content,
-      timestamp: conversation.lastMessageAt,
+      timestamp: conversation.lastActivity,
       unreadCount: conversation.unreadCount,
       avatar,
       participants: conversation.participants.map(p => ({
-         id: p.id,
-         name: p.name,
+         id: p._id,
+         name: p.email, // Use email as name for now
          avatar: p.avatar,
-         status: p.status,
+         status: p.status || 'offline',
       })),
       type: conversation.type,
       isTyping: false, // This should be determined from typing indicators

@@ -11,6 +11,10 @@ interface ChatMessagesProps {
    loading?: boolean;
    typingUsers?: string[];
    onMessageReact?: (messageId: string, emoji: string) => void;
+   onMessageDelete?: (messageId: string) => void;
+   onLoadMore?: () => void;
+   hasMoreMessages?: boolean;
+   loadingMore?: boolean;
 }
 
 export const ChatMessages: React.FC<ChatMessagesProps> = ({
@@ -18,6 +22,10 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
    loading = false,
    typingUsers = [],
    onMessageReact,
+   onMessageDelete,
+   onLoadMore,
+   hasMoreMessages = false,
+   loadingMore = false,
 }) => {
    const messagesEndRef = useRef<HTMLDivElement>(null);
    const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -140,6 +148,19 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
                               {message.content && (
                                  <p className="text-sm leading-relaxed">{message.content}</p>
                               )}
+
+                              {/* Message actions */}
+                              {isOwn && onMessageDelete && (
+                                 <div className="flex justify-end mt-2">
+                                    <button
+                                       onClick={() => onMessageDelete(message.id)}
+                                       className="opacity-0 group-hover/message:opacity-100 p-1 text-gray-400 hover:text-red-500 transition-all duration-200"
+                                       title="Delete message"
+                                    >
+                                       <X className="w-3 h-3" />
+                                    </button>
+                                 </div>
+                              )}
                               {message.attachments && message.attachments.length > 0 && (
                                  <>
                                     {message.attachments.filter(att => att.type === 'image').map((attachment) => (
@@ -193,9 +214,9 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
                         ) : message.type === 'file' ? (
                            <div className="space-y-2">
                               <p className="text-sm leading-relaxed">{message.content}</p>
-                              {message.attachments?.map((attachment) => (
+                              {message.attachments?.map((attachment, index) => (
                                  <div
-                                    key={attachment.id}
+                                    key={`${attachment.filename}-${index}`}
                                     className="flex gap-3 items-center p-3 rounded-lg transition-colors cursor-pointer bg-white/10 hover:bg-white/20"
                                     onClick={() => window.open(attachment.url, '_blank')}
                                  >
@@ -325,6 +346,26 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
                </div>
             ) : (
                <div className="space-y-4">
+                  {/* Load More Messages Button */}
+                  {hasMoreMessages && onLoadMore && (
+                     <div className="flex justify-center py-4">
+                        <button
+                           onClick={onLoadMore}
+                           disabled={loadingMore}
+                           className="px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30"
+                        >
+                           {loadingMore ? (
+                              <div className="flex items-center space-x-2">
+                                 <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                                 <span>Loading...</span>
+                              </div>
+                           ) : (
+                              'Load older messages'
+                           )}
+                        </button>
+                     </div>
+                  )}
+
                   {messages.map(renderMessage)}
 
                   {/* Typing indicator */}

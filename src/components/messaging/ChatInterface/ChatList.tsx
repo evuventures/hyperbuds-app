@@ -2,9 +2,10 @@
 
 import React, { useState } from 'react';
 import Image from 'next/image';
-import { Search, Plus, Filter, MoreHorizontal } from 'lucide-react';
-import { Conversation } from '@/types/messaging.types';
+import { Search, Plus, Filter, MoreHorizontal, MessageSquare } from 'lucide-react';
+import { Conversation, MessageSearchResult } from '@/types/messaging.types';
 import { formatConversationTimestamp, getInitials, truncateMessageContent } from '@/lib/utils/messageMappers';
+import { MessageSearch } from './MessageSearch';
 
 interface ChatListProps {
    conversations: Conversation[];
@@ -12,6 +13,7 @@ interface ChatListProps {
    onSelect: (conversationId: string) => void;
    onCreateNew?: () => void;
    loading?: boolean;
+   onSearchMessages?: (query: string) => Promise<MessageSearchResult[]>;
 }
 
 export const ChatList: React.FC<ChatListProps> = ({
@@ -20,51 +22,44 @@ export const ChatList: React.FC<ChatListProps> = ({
    onSelect,
    onCreateNew,
    loading = false,
+   onSearchMessages,
 }) => {
    const [searchQuery, setSearchQuery] = useState('');
    const [activeTab, setActiveTab] = useState<'all' | 'unread' | 'archived'>('all');
+   const [showMessageSearch, setShowMessageSearch] = useState(false);
 
    // Filter conversations based on search and tab
    const filteredConversations = conversations.filter(conversation => {
       const matchesSearch = searchQuery === '' ||
-         conversation.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-         conversation.participants.some(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()));
+         conversation.participants.some(p => p.email.toLowerCase().includes(searchQuery.toLowerCase()));
 
       const matchesTab =
-         (activeTab === 'all' && !conversation.isArchived) ||
-         (activeTab === 'unread' && !conversation.isArchived && conversation.unreadCount > 0) ||
-         (activeTab === 'archived' && conversation.isArchived);
+         (activeTab === 'all') ||
+         (activeTab === 'unread' && conversation.unreadCount > 0) ||
+         (activeTab === 'archived'); // Note: archived not supported in current API
 
       return matchesSearch && matchesTab;
    });
 
    // Sort conversations by last message time
    const sortedConversations = [...filteredConversations].sort((a, b) => {
-      const timeA = new Date(a.lastMessageAt || a.createdAt).getTime();
-      const timeB = new Date(b.lastMessageAt || b.createdAt).getTime();
+      const timeA = new Date(a.lastActivity).getTime();
+      const timeB = new Date(b.lastActivity).getTime();
       return timeB - timeA;
    });
 
    const getConversationDisplayName = (conversation: Conversation) => {
-      if (conversation.name) return conversation.name;
-
       if (conversation.type === 'direct' && conversation.participants.length === 2) {
-         // For direct messages, show the other participant's name
-         return conversation.participants.find(p => p.id !== 'current-user')?.name || 'Unknown User';
+         // For direct messages, show the other participant's email
+         return conversation.participants.find(p => p._id !== 'current-user')?.email || 'Unknown User';
       }
 
-      // For groups without names, create one from participants
-      const participantNames = conversation.participants.slice(0, 3).map(p => p.name);
-      return participantNames.length > 3
-         ? `${participantNames.join(', ')} and ${conversation.participants.length - 3} others`
-         : participantNames.join(', ');
+      return 'Unknown Conversation';
    };
 
    const getConversationAvatar = (conversation: Conversation) => {
-      if (conversation.avatar) return conversation.avatar;
-
       if (conversation.type === 'direct' && conversation.participants.length === 2) {
-         return conversation.participants.find(p => p.id !== 'current-user')?.avatar;
+         return conversation.participants.find(p => p._id !== 'current-user')?.avatar;
       }
 
       return null;
@@ -120,11 +115,20 @@ export const ChatList: React.FC<ChatListProps> = ({
                   placeholder="Search conversations..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="py-2 pr-10 pl-10 w-full text-sm placeholder-gray-500 text-gray-900 bg-gray-50 rounded-lg border border-gray-200 transition-all duration-200 dark:bg-gray-800 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:bg-white dark:focus:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400"
+                  className="py-2 pr-20 pl-10 w-full text-sm placeholder-gray-500 text-gray-900 bg-gray-50 rounded-lg border border-gray-200 transition-all duration-200 dark:bg-gray-800 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:bg-white dark:focus:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400"
                />
-               <button className="absolute right-3 top-1/2 text-gray-400 transform -translate-y-1/2 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300">
-                  <Filter className="w-4 h-4" />
-               </button>
+               <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex space-x-1">
+                  <button
+                     onClick={() => setShowMessageSearch(true)}
+                     className="p-1 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                     title="Search messages"
+                  >
+                     <MessageSquare className="w-4 h-4" />
+                  </button>
+                  <button className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                     <Filter className="w-4 h-4" />
+                  </button>
+               </div>
             </div>
 
             {/* Tabs */}
@@ -176,7 +180,7 @@ export const ChatList: React.FC<ChatListProps> = ({
             ) : (
                <div className="divide-y divide-gray-200 dark:divide-gray-700">
                   {sortedConversations.map((conversation) => {
-                     const isSelected = conversation.id === selectedConversationId;
+                     const isSelected = conversation._id === selectedConversationId;
                      const displayName = getConversationDisplayName(conversation);
                      const avatar = getConversationAvatar(conversation);
                      const onlineCount = getOnlineParticipantsCount(conversation);
@@ -184,8 +188,8 @@ export const ChatList: React.FC<ChatListProps> = ({
 
                      return (
                         <div
-                           key={conversation.id}
-                           onClick={() => onSelect(conversation.id)}
+                           key={conversation._id}
+                           onClick={() => onSelect(conversation._id)}
                            className={`flex items-center gap-3 p-4 cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-gray-800 ${isSelected ? 'bg-blue-50 border-r-2 border-blue-500 dark:bg-blue-900/20' : ''}`}
                         >
                            {/* Avatar */}
@@ -212,7 +216,7 @@ export const ChatList: React.FC<ChatListProps> = ({
                               )}
 
                               {/* Online count for group chats */}
-                              {conversation.type === 'group' && onlineCount > 0 && (
+                              {conversation.type === 'direct' && onlineCount > 0 && (
                                  <div className="flex absolute -right-1 -bottom-1 justify-center items-center w-4 h-4 bg-green-500 rounded-full border-2 border-white dark:border-gray-900">
                                     <span className="text-[10px] font-medium text-white">{onlineCount}
                                     </span>
@@ -232,7 +236,7 @@ export const ChatList: React.FC<ChatListProps> = ({
                                        <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                                     )}
                                     <span className="text-xs text-gray-500 dark:text-gray-400">
-                                       {formatConversationTimestamp(conversation.lastMessageAt)}
+                                       {formatConversationTimestamp(conversation.lastActivity)}
                                     </span>
                                  </div>
                               </div>
@@ -244,7 +248,7 @@ export const ChatList: React.FC<ChatListProps> = ({
                               {conversation.unreadCount > 0 && (
                                  <div className="flex justify-between items-center mt-1">
                                     <span className="text-xs text-gray-500 dark:text-gray-400">
-                                       {conversation.type === 'group' ? 'Group' : 'Direct'}
+                                       {conversation.type === 'direct' ? 'Direct' : 'Group'}
                                     </span>
                                     <div className="bg-blue-500 text-white text-xs rounded-full px-2 py-1 min-w-[20px] text-center">
                                        {conversation.unreadCount > 99 ? '99+' : conversation.unreadCount}
@@ -268,6 +272,18 @@ export const ChatList: React.FC<ChatListProps> = ({
                </div>
             )}
          </div>
+
+         {/* Message Search Modal */}
+         {showMessageSearch && onSearchMessages && (
+            <MessageSearch
+               onSearch={onSearchMessages}
+               onClose={() => setShowMessageSearch(false)}
+               onMessageClick={(conversationId) => {
+                  onSelect(conversationId);
+                  // TODO: Scroll to specific message
+               }}
+            />
+         )}
       </div>
    );
 };

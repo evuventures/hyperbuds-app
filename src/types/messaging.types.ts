@@ -1,34 +1,34 @@
 export interface User {
-   id: string;
-   name: string;
+   _id: string;
    email: string;
+   name?: string;
    avatar?: string;
-   status: 'online' | 'offline' | 'away';
+   status?: 'online' | 'offline' | 'away';
    lastSeen?: string;
 }
 
 export interface Message {
-   id: string;
+   _id: string;
    conversationId: string;
-   senderId: string;
+   sender: {
+      _id: string;
+      email: string;
+   };
    content: string;
-   type: 'text' | 'image' | 'file' | 'system';
-   timestamp: string;
-   editedAt?: string;
-   replyTo?: string;
-   attachments?: MessageAttachment[];
-   reactions?: MessageReaction[];
-   status: 'sending' | 'sent' | 'delivered' | 'read' | 'failed';
+   type: 'text' | 'image' | 'file' | 'collab_invite';
+   attachments: MessageAttachment[];
+   isRead: boolean;
+   readAt?: string;
+   createdAt: string;
+   updatedAt: string;
+   metadata?: Record<string, unknown>;
 }
 
 export interface MessageAttachment {
-   id: string;
-   type: 'image' | 'file' | 'video' | 'audio';
    url: string;
    filename: string;
-   size: number;
    mimeType: string;
-   thumbnailUrl?: string;
+   size: number;
 }
 
 export interface MessageReaction {
@@ -39,21 +39,17 @@ export interface MessageReaction {
 }
 
 export interface Conversation {
-   id: string;
-   type: 'direct' | 'group';
-   name?: string;
-   description?: string;
-   avatar?: string;
+   _id: string;
    participants: User[];
-   lastMessage?: Message;
-   lastMessageAt?: string;
+   type: 'direct';
+   lastMessage?: {
+      _id: string;
+      content: string;
+      createdAt: string;
+   };
+   lastActivity: string;
    unreadCount: number;
-   isArchived: boolean;
-   isMuted: boolean;
    createdAt: string;
-   updatedAt: string;
-   createdBy?: string;
-   admins?: string[];
 }
 
 export interface TypingUser {
@@ -96,18 +92,14 @@ export interface ConversationFilters {
 }
 
 export interface SendMessageRequest {
-   conversationId: string;
    content: string;
-   type: Message['type'];
-   replyTo?: string;
-   attachments?: File[];
+   type?: Message['type'];
+   attachments?: MessageAttachment[];
+   metadata?: Record<string, unknown>;
 }
 
 export interface CreateConversationRequest {
-   type: Conversation['type'];
-   participantIds: string[];
-   name?: string;
-   description?: string;
+   participantId: string;
 }
 
 export interface UpdateConversationRequest {
@@ -117,37 +109,67 @@ export interface UpdateConversationRequest {
 }
 
 export interface MessageSearchResult {
-   message: Message;
+   _id: string;
+   content: string;
+   sender: {
+      _id: string;
+      email: string;
+   };
+   conversationId: {
+      _id: string;
+      participants: string[];
+   };
+   createdAt: string;
+}
+
+// API Response Types
+export interface ConversationsResponse {
+   conversations: Conversation[];
+}
+
+export interface ConversationResponse {
    conversation: Conversation;
-   highlightedContent: string;
+}
+
+export interface MessagesResponse {
+   messages: Message[];
+}
+
+export interface MessageResponse {
+   message: Message;
+}
+
+export interface SearchResponse {
+   messages: Array<{
+      _id: string;
+      content: string;
+      sender: {
+         _id: string;
+         email: string;
+      };
+      conversationId: {
+         _id: string;
+         participants: string[];
+      };
+      createdAt: string;
+   }>;
 }
 
 // Socket event types
 export interface SocketEvents {
    // Message events
-   'message:sent': Message;
-   'message:received': Message;
-   'message:edited': { messageId: string; content: string; editedAt: string };
-   'message:deleted': { messageId: string; conversationId: string };
-   'message:reaction': { messageId: string; reaction: MessageReaction };
-   'message:status': { messageId: string; status: Message['status'] };
+   'new-message': { conversationId: string; message: Message };
+   'message-read': { conversationId: string; readBy: string; messageIds: string[]; readAt: string };
+   'message-deleted': { conversationId: string; messageId: string; deletedBy: string };
 
    // Typing events
-   'typing:start': { conversationId: string; userId: string };
-   'typing:stop': { conversationId: string; userId: string };
+   'typing': { conversationId: string; userId: string; isTyping: boolean };
 
    // Conversation events
    'conversation:created': Conversation;
    'conversation:updated': Conversation;
    'conversation:deleted': { conversationId: string };
-   'conversation:participant_added': { conversationId: string; user: User };
-   'conversation:participant_removed': { conversationId: string; userId: string };
 
    // User events
    'user:status': { userId: string; status: User['status'] };
-   'user:typing': { conversationId: string; userId: string; isTyping: boolean };
-
-   // Notification events
-   'notification:new': MessageNotification;
-   'notification:read': { notificationId: string };
 }

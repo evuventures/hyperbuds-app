@@ -3,11 +3,11 @@ import {
    Conversation,
    SendMessageRequest,
    CreateConversationRequest,
-   UpdateConversationRequest,
-   MessageFilters,
-   ConversationFilters,
-   MessageSearchResult,
-   MessageNotification
+   ConversationsResponse,
+   ConversationResponse,
+   MessagesResponse,
+   MessageResponse,
+   SearchResponse
 } from '@/types/messaging.types';
 
 const BASE_URL = 'https://api-hyperbuds-backend.onrender.com';
@@ -29,20 +29,15 @@ class MessagingAPI {
    // Conversations
    async getConversations(
       token: string,
-      filters?: ConversationFilters,
       page: number = 1,
-      limit: number = 50
-   ): Promise<{ conversations: Conversation[]; total: number; hasMore: boolean }> {
+      limit: number = 20
+   ): Promise<ConversationsResponse> {
       const params = new URLSearchParams({
          page: page.toString(),
          limit: limit.toString(),
-         ...(filters && Object.entries(filters).reduce((acc, [key, value]) => {
-            if (value !== undefined) acc[key] = value.toString();
-            return acc;
-         }, {} as Record<string, string>))
       });
 
-      const response = await fetch(`${BASE_URL}/api/v1/messages/conversations?${params}`, {
+      const response = await fetch(`${BASE_URL}/api/v1/messaging/conversations?${params}`, {
          headers: this.getAuthHeaders(token),
       });
 
@@ -54,7 +49,7 @@ class MessagingAPI {
    }
 
    async getConversation(token: string, conversationId: string): Promise<Conversation> {
-      const response = await fetch(`${BASE_URL}/api/v1/messages/conversations/${conversationId}`, {
+      const response = await fetch(`${BASE_URL}/api/v1/messaging/conversations/${conversationId}`, {
          headers: this.getAuthHeaders(token),
       });
 
@@ -62,11 +57,12 @@ class MessagingAPI {
          throw new Error(`Failed to fetch conversation: ${response.statusText}`);
       }
 
-      return response.json();
+      const data: ConversationResponse = await response.json();
+      return data.conversation;
    }
 
    async createConversation(token: string, data: CreateConversationRequest): Promise<Conversation> {
-      const response = await fetch(`${BASE_URL}/api/v1/messages/conversations`, {
+      const response = await fetch(`${BASE_URL}/api/v1/messaging/conversations`, {
          method: 'POST',
          headers: this.getAuthHeaders(token),
          body: JSON.stringify(data),
@@ -76,47 +72,13 @@ class MessagingAPI {
          throw new Error(`Failed to create conversation: ${response.statusText}`);
       }
 
-      return response.json();
-   }
-
-   async updateConversation(
-      token: string,
-      conversationId: string,
-      data: UpdateConversationRequest
-   ): Promise<Conversation> {
-      const formData = new FormData();
-
-      if (data.name) formData.append('name', data.name);
-      if (data.description) formData.append('description', data.description);
-      if (data.avatar) formData.append('avatar', data.avatar);
-
-      const response = await fetch(`${BASE_URL}/api/v1/messages/conversations/${conversationId}`, {
-         method: 'PUT',
-         headers: this.getFormDataHeaders(token),
-         body: formData,
-      });
-
-      if (!response.ok) {
-         throw new Error(`Failed to update conversation: ${response.statusText}`);
-      }
-
-      return response.json();
-   }
-
-   async deleteConversation(token: string, conversationId: string): Promise<void> {
-      const response = await fetch(`${BASE_URL}/api/v1/messages/conversations/${conversationId}`, {
-         method: 'DELETE',
-         headers: this.getAuthHeaders(token),
-      });
-
-      if (!response.ok) {
-         throw new Error(`Failed to delete conversation: ${response.statusText}`);
-      }
+      const result: ConversationResponse = await response.json();
+      return result.conversation;
    }
 
    async archiveConversation(token: string, conversationId: string): Promise<void> {
-      const response = await fetch(`${BASE_URL}/api/v1/messages/conversations/${conversationId}/archive`, {
-         method: 'POST',
+      const response = await fetch(`${BASE_URL}/api/v1/messaging/conversations/${conversationId}/archive`, {
+         method: 'DELETE',
          headers: this.getAuthHeaders(token),
       });
 
@@ -125,57 +87,19 @@ class MessagingAPI {
       }
    }
 
-   async unarchiveConversation(token: string, conversationId: string): Promise<void> {
-      const response = await fetch(`${BASE_URL}/api/v1/messages/conversations/${conversationId}/unarchive`, {
-         method: 'POST',
-         headers: this.getAuthHeaders(token),
-      });
-
-      if (!response.ok) {
-         throw new Error(`Failed to unarchive conversation: ${response.statusText}`);
-      }
-   }
-
-   async muteConversation(token: string, conversationId: string): Promise<void> {
-      const response = await fetch(`${BASE_URL}/api/v1/messages/conversations/${conversationId}/mute`, {
-         method: 'POST',
-         headers: this.getAuthHeaders(token),
-      });
-
-      if (!response.ok) {
-         throw new Error(`Failed to mute conversation: ${response.statusText}`);
-      }
-   }
-
-   async unmuteConversation(token: string, conversationId: string): Promise<void> {
-      const response = await fetch(`${BASE_URL}/api/v1/messages/conversations/${conversationId}/unmute`, {
-         method: 'POST',
-         headers: this.getAuthHeaders(token),
-      });
-
-      if (!response.ok) {
-         throw new Error(`Failed to unmute conversation: ${response.statusText}`);
-      }
-   }
-
    // Messages
    async getMessages(
       token: string,
       conversationId: string,
-      filters?: MessageFilters,
       page: number = 1,
       limit: number = 50
-   ): Promise<{ messages: Message[]; total: number; hasMore: boolean }> {
+   ): Promise<MessagesResponse> {
       const params = new URLSearchParams({
          page: page.toString(),
          limit: limit.toString(),
-         ...(filters && Object.entries(filters).reduce((acc, [key, value]) => {
-            if (value !== undefined) acc[key] = value.toString();
-            return acc;
-         }, {} as Record<string, string>))
       });
 
-      const response = await fetch(`${BASE_URL}/api/v1/messages/conversations/${conversationId}/messages?${params}`, {
+      const response = await fetch(`${BASE_URL}/api/v1/messaging/conversations/${conversationId}/messages?${params}`, {
          headers: this.getAuthHeaders(token),
       });
 
@@ -186,52 +110,23 @@ class MessagingAPI {
       return response.json();
    }
 
-   async sendMessage(token: string, data: SendMessageRequest): Promise<Message> {
-      const formData = new FormData();
-      formData.append('content', data.content);
-      formData.append('type', data.type);
-      if (data.replyTo) formData.append('replyTo', data.replyTo);
-
-      if (data.attachments && data.attachments.length > 0) {
-         data.attachments.forEach((file, index) => {
-            formData.append(`attachments[${index}]`, file);
-         });
-      }
-
-      const response = await fetch(`${BASE_URL}/api/v1/messages/conversations/${data.conversationId}/messages`, {
+   async sendMessage(token: string, conversationId: string, data: SendMessageRequest): Promise<Message> {
+      const response = await fetch(`${BASE_URL}/api/v1/messaging/conversations/${conversationId}/messages`, {
          method: 'POST',
-         headers: this.getFormDataHeaders(token),
-         body: formData,
+         headers: this.getAuthHeaders(token),
+         body: JSON.stringify(data),
       });
 
       if (!response.ok) {
          throw new Error(`Failed to send message: ${response.statusText}`);
       }
 
-      return response.json();
+      const result: MessageResponse = await response.json();
+      return result.message;
    }
 
-   async editMessage(
-      token: string,
-      conversationId: string,
-      messageId: string,
-      content: string
-   ): Promise<Message> {
-      const response = await fetch(`${BASE_URL}/api/v1/messages/conversations/${conversationId}/messages/${messageId}`, {
-         method: 'PUT',
-         headers: this.getAuthHeaders(token),
-         body: JSON.stringify({ content }),
-      });
-
-      if (!response.ok) {
-         throw new Error(`Failed to edit message: ${response.statusText}`);
-      }
-
-      return response.json();
-   }
-
-   async deleteMessage(token: string, conversationId: string, messageId: string): Promise<void> {
-      const response = await fetch(`${BASE_URL}/api/v1/messages/conversations/${conversationId}/messages/${messageId}`, {
+   async deleteMessage(token: string, messageId: string): Promise<void> {
+      const response = await fetch(`${BASE_URL}/api/v1/messaging/messages/${messageId}`, {
          method: 'DELETE',
          headers: this.getAuthHeaders(token),
       });
@@ -241,59 +136,15 @@ class MessagingAPI {
       }
    }
 
-   async markMessageAsRead(token: string, conversationId: string, messageId: string): Promise<void> {
-      const response = await fetch(`${BASE_URL}/api/v1/messages/conversations/${conversationId}/messages/${messageId}/read`, {
-         method: 'POST',
+   async markMessagesAsRead(token: string, conversationId: string, messageIds?: string[]): Promise<void> {
+      const response = await fetch(`${BASE_URL}/api/v1/messaging/conversations/${conversationId}/read`, {
+         method: 'PUT',
          headers: this.getAuthHeaders(token),
+         body: JSON.stringify({ messageIds: messageIds || [] }),
       });
 
       if (!response.ok) {
-         throw new Error(`Failed to mark message as read: ${response.statusText}`);
-      }
-   }
-
-   async markConversationAsRead(token: string, conversationId: string): Promise<void> {
-      const response = await fetch(`${BASE_URL}/api/v1/messages/conversations/${conversationId}/read`, {
-         method: 'POST',
-         headers: this.getAuthHeaders(token),
-      });
-
-      if (!response.ok) {
-         throw new Error(`Failed to mark conversation as read: ${response.statusText}`);
-      }
-   }
-
-   // Message Reactions
-   async addReaction(
-      token: string,
-      conversationId: string,
-      messageId: string,
-      emoji: string
-   ): Promise<void> {
-      const response = await fetch(`${BASE_URL}/api/v1/messages/conversations/${conversationId}/messages/${messageId}/reactions`, {
-         method: 'POST',
-         headers: this.getAuthHeaders(token),
-         body: JSON.stringify({ emoji }),
-      });
-
-      if (!response.ok) {
-         throw new Error(`Failed to add reaction: ${response.statusText}`);
-      }
-   }
-
-   async removeReaction(
-      token: string,
-      conversationId: string,
-      messageId: string,
-      emoji: string
-   ): Promise<void> {
-      const response = await fetch(`${BASE_URL}/api/v1/messages/conversations/${conversationId}/messages/${messageId}/reactions/${emoji}`, {
-         method: 'DELETE',
-         headers: this.getAuthHeaders(token),
-      });
-
-      if (!response.ok) {
-         throw new Error(`Failed to remove reaction: ${response.statusText}`);
+         throw new Error(`Failed to mark messages as read: ${response.statusText}`);
       }
    }
 
@@ -301,21 +152,16 @@ class MessagingAPI {
    async searchMessages(
       token: string,
       query: string,
-      filters?: MessageFilters,
       page: number = 1,
       limit: number = 20
-   ): Promise<{ results: MessageSearchResult[]; total: number; hasMore: boolean }> {
+   ): Promise<SearchResponse> {
       const params = new URLSearchParams({
          q: query,
          page: page.toString(),
          limit: limit.toString(),
-         ...(filters && Object.entries(filters).reduce((acc, [key, value]) => {
-            if (value !== undefined) acc[key] = value.toString();
-            return acc;
-         }, {} as Record<string, string>))
       });
 
-      const response = await fetch(`${BASE_URL}/api/v1/messages/search?${params}`, {
+      const response = await fetch(`${BASE_URL}/api/v1/messaging/search?${params}`, {
          headers: this.getAuthHeaders(token),
       });
 
@@ -326,66 +172,27 @@ class MessagingAPI {
       return response.json();
    }
 
-   // Notifications
-   async getNotifications(
-      token: string,
-      page: number = 1,
-      limit: number = 50
-   ): Promise<{ notifications: MessageNotification[]; total: number; hasMore: boolean }> {
-      const params = new URLSearchParams({
-         page: page.toString(),
-         limit: limit.toString(),
-      });
-
-      const response = await fetch(`${BASE_URL}/api/v1/messages/notifications?${params}`, {
-         headers: this.getAuthHeaders(token),
-      });
-
-      if (!response.ok) {
-         throw new Error(`Failed to fetch notifications: ${response.statusText}`);
-      }
-
-      return response.json();
-   }
-
-   async markNotificationAsRead(token: string, notificationId: string): Promise<void> {
-      const response = await fetch(`${BASE_URL}/api/v1/messages/notifications/${notificationId}/read`, {
+   // Typing indicators
+   async startTyping(token: string, conversationId: string): Promise<void> {
+      const response = await fetch(`${BASE_URL}/api/v1/messaging/conversations/${conversationId}/typing/start`, {
          method: 'POST',
          headers: this.getAuthHeaders(token),
       });
 
       if (!response.ok) {
-         throw new Error(`Failed to mark notification as read: ${response.statusText}`);
+         throw new Error(`Failed to start typing: ${response.statusText}`);
       }
    }
 
-   async markAllNotificationsAsRead(token: string): Promise<void> {
-      const response = await fetch(`${BASE_URL}/api/v1/messages/notifications/read-all`, {
+   async stopTyping(token: string, conversationId: string): Promise<void> {
+      const response = await fetch(`${BASE_URL}/api/v1/messaging/conversations/${conversationId}/typing/stop`, {
          method: 'POST',
          headers: this.getAuthHeaders(token),
       });
 
       if (!response.ok) {
-         throw new Error(`Failed to mark all notifications as read: ${response.statusText}`);
+         throw new Error(`Failed to stop typing: ${response.statusText}`);
       }
-   }
-
-   // File Upload
-   async uploadFile(token: string, file: File): Promise<{ url: string; filename: string; size: number; mimeType: string }> {
-      const formData = new FormData();
-      formData.append('file', file);
-
-      const response = await fetch(`${BASE_URL}/api/v1/messages/upload`, {
-         method: 'POST',
-         headers: this.getFormDataHeaders(token),
-         body: formData,
-      });
-
-      if (!response.ok) {
-         throw new Error(`Failed to upload file: ${response.statusText}`);
-      }
-
-      return response.json();
    }
 }
 
