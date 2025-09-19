@@ -19,12 +19,16 @@ export const MessagesContent: React.FC = () => {
       typingUsers,
       loadingConversations,
       loadingMessages,
+      loadingMoreMessages,
+      hasMoreMessages,
       isConnected,
       error,
       selectConversation,
       sendMessage,
       sendMessageWithAttachments,
       archiveConversation,
+      deleteMessage,
+      loadMoreMessages,
       searchMessages,
       handleTypingStart,
       handleTypingStop,
@@ -88,13 +92,10 @@ export const MessagesContent: React.FC = () => {
                   Please log in to access messages
                </div>
                <button
-                  onClick={() => {
-                     localStorage.setItem('accessToken', 'demo-token-12345');
-                     window.location.reload();
-                  }}
+                  onClick={() => window.location.href = '/login'}
                   className="px-4 py-2 text-white bg-blue-500 rounded-lg transition-colors hover:bg-blue-600"
                >
-                  Use Demo Mode
+                  Go to Login
                </button>
             </div>
          </div>
@@ -138,40 +139,36 @@ export const MessagesContent: React.FC = () => {
 
          {/* Chat Interface */}
          <div className="flex flex-col flex-1">
-            {currentConversation ? (
-               <>
-                  <ChatHeader
-                     conversation={currentConversation}
-                     onArchive={handleArchiveConversation}
-                     onVideoCall={() => console.log("Video call clicked")}
-                     onVoiceCall={() => console.log("Voice call clicked")}
-                     onInfoClick={() => console.log("Info clicked")}
-                  />
-                  <ChatMessages
-                     messages={mapStoreMessagesToComponents(messages, user?.id)}
-                     loading={loadingMessages}
-                     typingUsers={(typingUsers[currentConversation._id] || []).map(user => user.name)}
-                  />
-                  <ChatInput
-                     onSendMessage={handleSendMessage}
-                     onAttachment={handleSendMessageWithAttachments}
-                     onTypingStart={() => handleTypingStart(currentConversation._id)}
-                     onTypingStop={() => handleTypingStop(currentConversation._id)}
-                     typingIndicator={{
-                        users: (typingUsers[currentConversation._id] || []).map(user => user.name),
-                        isTyping: (typingUsers[currentConversation._id] || []).length > 0
-                     }}
-                  />
-               </>
-            ) : (
-               <div className="flex justify-center items-center h-full text-gray-500 dark:text-gray-400">
-                  <div className="text-center">
-                     <div className="mb-4 text-6xl">💬</div>
-                     <h3 className="mb-2 text-xl font-semibold">No conversation selected</h3>
-                     <p className="text-sm">Choose a conversation from the sidebar to start chatting</p>
-                  </div>
-               </div>
-            )}
+            {/* Always show ChatHeader, ChatMessages, and ChatInput */}
+            <ChatHeader
+               conversation={currentConversation}
+               onArchive={handleArchiveConversation}
+               onVideoCall={() => {/* TODO: Implement video call */}}
+               onVoiceCall={() => {/* TODO: Implement voice call */}}
+               onInfoClick={() => {/* TODO: Implement info modal */}}
+            />
+            <ChatMessages
+               messages={currentConversation ? mapStoreMessagesToComponents(messages, user?.id) : []}
+               loading={loadingMessages}
+               typingUsers={(currentConversation ? typingUsers[currentConversation._id] || [] : []).map(user => user.name)}
+               onMessageDelete={currentConversation ? deleteMessage : undefined}
+               onLoadMore={currentConversation ? loadMoreMessages : undefined}
+               hasMoreMessages={currentConversation ? hasMoreMessages : false}
+               loadingMore={currentConversation ? loadingMoreMessages : false}
+               noConversationSelected={!currentConversation}
+            />
+            <ChatInput
+               onSendMessage={handleSendMessage}
+               onAttachment={handleSendMessageWithAttachments}
+               onTypingStart={() => currentConversation && handleTypingStart(currentConversation._id)}
+               onTypingStop={() => currentConversation && handleTypingStop(currentConversation._id)}
+               typingIndicator={{
+                  users: (currentConversation ? typingUsers[currentConversation._id] || [] : []).map(user => user.name),
+                  isTyping: (currentConversation ? typingUsers[currentConversation._id] || [] : []).length > 0
+               }}
+               disabled={!currentConversation}
+               placeholder={currentConversation ? "Type a message..." : "Select a conversation to start chatting"}
+            />
          </div>
       </div>
    );

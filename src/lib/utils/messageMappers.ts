@@ -189,6 +189,7 @@ export function getInitials(name: string): string {
 /**
  * Gets count of online participants in a conversation
  */
-export function getOnlineParticipantsCount(conversation: Conversation): number {
+export function getOnlineParticipantsCount(conversation: Conversation | null): number {
+   if (!conversation) return 0;
    return conversation.participants.filter(p => p.status === 'online').length;
 }

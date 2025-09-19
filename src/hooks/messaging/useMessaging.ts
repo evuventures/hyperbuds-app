@@ -78,9 +78,8 @@ export function useMessaging(accessToken: string): UseMessagingReturn {
             await loadConversations();
 
             // Try to connect to socket, but don't fail if it doesn't work
-            // In development mode, try socket connection but don't block if it fails
+            // Try to connect to socket
             if (process.env.NODE_ENV === 'development') {
-               console.log('Development mode: Attempting socket connection');
                try {
                   if (!isTokenValid(accessToken)) {
                      console.warn('Invalid token, skipping socket connection');
@@ -89,14 +88,8 @@ export function useMessaging(accessToken: string): UseMessagingReturn {
                   const socket = messagingSocketService.connect(accessToken);
                   setupSocketListeners();
 
-                  const handleConnect = () => {
-                     console.log('✅ Socket connected successfully in development mode');
-                     setIsConnected(true);
-                  };
-                  const handleDisconnect = () => {
-                     console.log('❌ Socket disconnected in development mode');
-                     setIsConnected(false);
-                  };
+                  const handleConnect = () => setIsConnected(true);
+                  const handleDisconnect = () => setIsConnected(false);
 
                   socket.on('connect', handleConnect);
                   socket.on('disconnect', handleDisconnect);
@@ -106,12 +99,12 @@ export function useMessaging(accessToken: string): UseMessagingReturn {
                   // Quick timeout for development
                   setTimeout(() => {
                      if (!socket.connected) {
-                        console.warn('Socket connection timeout in development mode');
+                        console.warn('Socket connection timeout');
                         setIsConnected(false);
                      }
                   }, 3000);
                } catch (socketError) {
-                  console.warn('Socket connection failed in development mode:', socketError);
+                  console.warn('Socket connection failed:', socketError);
                   setIsConnected(false);
                }
             } else {
@@ -275,9 +268,7 @@ export function useMessaging(accessToken: string): UseMessagingReturn {
       }
 
       try {
-         console.log('Loading conversations...');
          const result = await messagingAPI.getConversations(accessToken);
-         console.log('Conversations loaded:', result);
          setConversations(result.conversations);
          setError(null);
       } catch (err) {
@@ -317,8 +308,6 @@ export function useMessaging(accessToken: string): UseMessagingReturn {
       }
 
       try {
-         console.log('Selecting conversation:', conversationId);
-
          // Load conversation details from API
          const conversation = await messagingAPI.getConversation(accessToken, conversationId);
          setCurrentConversation(conversation);
@@ -548,7 +537,6 @@ export function useMessaging(accessToken: string): UseMessagingReturn {
 
       try {
          const result = await messagingAPI.searchMessages(accessToken, query);
-         console.log('Search results:', result);
          return result.messages;
       } catch (err) {
          setError(err instanceof Error ? err.message : 'Failed to search messages');

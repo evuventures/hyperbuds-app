@@ -91,6 +91,25 @@ export const ConversationContent: React.FC<ConversationContentProps> = ({ conver
       );
    }
 
+   // Show conversation not found state
+   if (!currentConversation) {
+      return (
+         <div className="flex justify-center items-center h-full text-gray-500 dark:text-gray-400">
+            <div className="text-center">
+               <div className="mb-4 text-6xl">💬</div>
+               <h3 className="mb-2 text-xl font-semibold">Conversation not found</h3>
+               <p className="text-sm">This conversation may have been deleted or you don&apos;t have access to it</p>
+               <button
+                  onClick={() => window.history.back()}
+                  className="px-4 py-2 mt-4 text-white bg-blue-500 rounded-lg transition-colors hover:bg-blue-600"
+               >
+                  Go Back
+               </button>
+            </div>
+         </div>
+      );
+   }
+
    // Show no access token state
    if (!accessToken) {
       return (
@@ -153,9 +172,9 @@ export const ConversationContent: React.FC<ConversationContentProps> = ({ conver
          <ChatHeader
             conversation={currentConversation}
             onArchive={handleArchiveConversation}
-            onVideoCall={() => console.log("Video call clicked")}
-            onVoiceCall={() => console.log("Voice call clicked")}
-            onInfoClick={() => console.log("Info clicked")}
+            onVideoCall={() => {/* TODO: Implement video call */ }}
+            onVoiceCall={() => {/* TODO: Implement voice call */ }}
+            onInfoClick={() => {/* TODO: Implement info modal */ }}
          />
          <ChatMessages
             messages={mapStoreMessagesToComponents(messages, user?.id)}

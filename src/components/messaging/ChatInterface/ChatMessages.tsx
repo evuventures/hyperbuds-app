@@ -10,22 +10,22 @@ interface ChatMessagesProps {
    messages: ComponentMessage[];
    loading?: boolean;
    typingUsers?: string[];
-   onMessageReact?: (messageId: string, emoji: string) => void;
    onMessageDelete?: (messageId: string) => void;
    onLoadMore?: () => void;
    hasMoreMessages?: boolean;
    loadingMore?: boolean;
+   noConversationSelected?: boolean;
 }
 
 export const ChatMessages: React.FC<ChatMessagesProps> = ({
    messages,
    loading = false,
    typingUsers = [],
-   onMessageReact,
    onMessageDelete,
    onLoadMore,
    hasMoreMessages = false,
    loadingMore = false,
+   noConversationSelected = false,
 }) => {
    const messagesEndRef = useRef<HTMLDivElement>(null);
    const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -154,7 +154,7 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
                                  <div className="flex justify-end mt-2">
                                     <button
                                        onClick={() => onMessageDelete(message.id)}
-                                       className="opacity-0 group-hover/message:opacity-100 p-1 text-gray-400 hover:text-red-500 transition-all duration-200"
+                                       className="p-1 text-gray-400 opacity-0 transition-all duration-200 group-hover/message:opacity-100 hover:text-red-500"
                                        title="Delete message"
                                     >
                                        <X className="w-3 h-3" />
@@ -163,9 +163,9 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
                               )}
                               {message.attachments && message.attachments.length > 0 && (
                                  <>
-                                    {message.attachments.filter(att => att.type === 'image').map((attachment) => (
+                                    {message.attachments.filter(att => att.mimeType.startsWith('image/')).map((attachment, index) => (
                                        <Image
-                                          key={attachment.id}
+                                          key={`${attachment.filename}-${index}`}
                                           src={attachment.url}
                                           alt={attachment.filename}
                                           width={300}
@@ -174,9 +174,9 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
                                           onClick={() => handleImageClick(attachment.url, attachment.filename)}
                                        />
                                     ))}
-                                    {message.attachments.filter(att => att.type === 'file').map((attachment) => (
+                                    {message.attachments.filter(att => !att.mimeType.startsWith('image/')).map((attachment, index) => (
                                        <div
-                                          key={attachment.id}
+                                          key={`${attachment.filename}-${index}`}
                                           className="flex gap-3 items-center p-3 rounded-lg transition-colors cursor-pointer bg-white/10 hover:bg-white/20"
                                           onClick={() => window.open(attachment.url, '_blank')}
                                        >
@@ -199,9 +199,9 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
                         ) : message.type === 'image' ? (
                            <div className="space-y-2">
                               <p className="text-sm leading-relaxed">{message.content}</p>
-                              {message.attachments?.map((attachment) => (
+                              {message.attachments?.map((attachment, index) => (
                                  <Image
-                                    key={attachment.id}
+                                    key={`${attachment.filename}-${index}`}
                                     src={attachment.url}
                                     alt={attachment.filename}
                                     width={300}
@@ -239,21 +239,6 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
                         )}
                      </div>
 
-                     {/* Message reactions */}
-                     {message.reactions && message.reactions.length > 0 && (
-                        <div className="flex flex-wrap gap-1 mt-2">
-                           {message.reactions.map((reaction) => (
-                              <button
-                                 key={`${reaction.emoji}-${reaction.userId}`}
-                                 className="flex gap-1 items-center px-2 py-1 text-xs rounded-full transition-colors bg-white/20 hover:bg-white/30"
-                                 onClick={() => onMessageReact?.(message.id, reaction.emoji)}
-                              >
-                                 <span>{reaction.emoji}</span>
-                                 <span className="text-xs opacity-75">1</span>
-                              </button>
-                           ))}
-                        </div>
-                     )}
 
                      {/* Message status (for own messages) */}
                      {isOwn && (
@@ -332,7 +317,15 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
             ref={messagesContainerRef}
             className="overflow-y-auto flex-1 p-6 bg-gray-50 dark:bg-gray-900 scrollbar-hide hover:scrollbar-thin hover:scrollbar-thumb-gray-300 hover:dark:scrollbar-thumb-gray-600"
          >
-            {messages.length === 0 ? (
+            {noConversationSelected ? (
+               <div className="flex flex-col justify-center items-center h-full text-gray-500 dark:text-gray-400">
+                  <div className="text-center">
+                     <div className="mb-4 text-6xl">💬</div>
+                     <h3 className="mb-2 text-xl font-semibold">No conversation selected</h3>
+                     <p className="text-sm">Choose a conversation from the sidebar to start chatting</p>
+                  </div>
+               </div>
+            ) : messages.length === 0 ? (
                <div className="flex flex-col justify-center items-center h-full text-gray-500 dark:text-gray-400">
                   <div className="text-center">
                      <div className="flex justify-center items-center mx-auto mb-4 w-16 h-16 bg-gray-200 rounded-full dark:bg-gray-700">
@@ -356,7 +349,7 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
                         >
                            {loadingMore ? (
                               <div className="flex items-center space-x-2">
-                                 <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                                 <div className="w-4 h-4 rounded-full border-2 border-blue-600 animate-spin border-t-transparent"></div>
                                  <span>Loading...</span>
                               </div>
                            ) : (

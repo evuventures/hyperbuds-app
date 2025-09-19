@@ -7,7 +7,7 @@ import { Conversation } from '@/types/messaging.types';
 import { getInitials, getOnlineParticipantsCount } from '@/lib/utils/messageMappers';
 
 interface ChatHeaderProps {
-   conversation: Conversation;
+   conversation: Conversation | null;
    onArchive?: (conversationId: string) => void;
    onVideoCall?: () => void;
    onVoiceCall?: () => void;
@@ -28,31 +28,34 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
    const [showMenu, setShowMenu] = useState(false);
 
    const getDisplayName = () => {
-      if (conversation.name) return conversation.name;
+      if (!conversation) return 'No conversation selected';
 
       if (conversation.type === 'direct' && conversation.participants.length === 2) {
-         return conversation.participants.find(p => p.id !== 'current-user')?.name || 'Unknown User';
+         const otherParticipant = conversation.participants.find(p => p._id !== 'current-user');
+         return otherParticipant?.name || otherParticipant?.email || 'Unknown User';
       }
 
-      const participantNames = conversation.participants.slice(0, 3).map(p => p.name);
+      const participantNames = conversation.participants.slice(0, 3).map(p => p.name || p.email);
       return participantNames.length > 3
          ? `${participantNames.join(', ')} and ${conversation.participants.length - 3} others`
          : participantNames.join(', ');
    };
 
    const getAvatar = () => {
-      if (conversation.avatar) return conversation.avatar;
+      if (!conversation) return null;
 
       if (conversation.type === 'direct' && conversation.participants.length === 2) {
-         return conversation.participants.find(p => p.id !== 'current-user')?.avatar;
+         return conversation.participants.find(p => p._id !== 'current-user')?.avatar;
       }
 
       return null;
    };
 
    const getSubtitle = () => {
+      if (!conversation) return 'Choose a conversation to start chatting';
+
       if (conversation.type === 'direct') {
-         const otherParticipant = conversation.participants.find(p => p.id !== 'current-user');
+         const otherParticipant = conversation.participants.find(p => p._id !== 'current-user');
          if (otherParticipant) {
             const statusText = otherParticipant.status === 'online' ? 'Online' :
                otherParticipant.status === 'away' ? 'Away' : 'Offline';
@@ -70,7 +73,9 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
       setShowMenu(false);
       switch (action) {
          case 'archive':
-            onArchive?.(conversation.id);
+            if (conversation) {
+               onArchive?.(conversation._id);
+            }
             break;
          case 'video':
             onVideoCall?.();
@@ -121,7 +126,7 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
                )}
 
                {/* Online indicator */}
-               {conversation.type === 'direct' && conversation.participants.length === 2 && (
+               {conversation && conversation.type === 'direct' && conversation.participants.length === 2 && (
                   <div className="absolute -right-1 -bottom-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white dark:border-gray-900"></div>
                )}
             </div>
