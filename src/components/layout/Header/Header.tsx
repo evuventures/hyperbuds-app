@@ -196,9 +196,12 @@ export const Header: React.FC<HeaderProps> = ({ user, onMenuClick }) => {
                     <Settings className="w-4 h-4 text-gray-500 dark:text-gray-400" />
                     <span className="text-sm text-gray-700 cursor-pointer dark:text-gray-300">Account Settings</span>
                   </button>
-                  <button className="flex gap-3 items-center px-4 py-2 w-full text-left transition-colors hover:bg-gray-50 dark:hover:bg-gray-700">
+                  <button
+                    onClick={() => window.location.href = '/payments/subscription'}
+                    className="flex gap-3 items-center px-4 py-2 w-full text-left transition-colors hover:bg-gray-50 dark:hover:bg-gray-700"
+                  >
                     <CreditCard className="w-4 h-4 text-gray-500 dark:text-gray-400" />
-                    <span className="text-sm text-gray-700 cursor-pointer dark:text-gray-300">Billing</span>
+                    <span className="text-sm text-gray-700 cursor-pointer dark:text-gray-300">Billing & Payments</span>
                   </button>
                 </div>
 

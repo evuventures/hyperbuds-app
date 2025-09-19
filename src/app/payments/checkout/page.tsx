@@ -5,10 +5,8 @@ import { FaApple } from "react-icons/fa";
 import { Header } from "@/components/layout/Header/Header";
 import { PaymentProvider, usePayment } from "@/context/PaymentContext";
 import { PricingPlans } from "@/components/payments/PricingPlans";
-import { PaymentMethods } from "@/components/payments/PaymentForm/PaymentMethods";
 import { StripeForm } from "@/components/payments/PaymentForm/StripeForm";
 import { PricingPlan } from "@/types/payment.types";
-import { stripeService } from "@/lib/stripe/stripe";
 
 // Pricing plans configuration
 const plans: PricingPlan[] = [
@@ -54,8 +52,6 @@ const plans: PricingPlan[] = [
 function CheckoutContent() {
    const { state, createSubscription } = usePayment();
    const [selectedPlan, setSelectedPlan] = useState<string>("premium"); // default selected
-   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string | null>(null);
-   const [showNewPaymentForm, setShowNewPaymentForm] = useState(false);
    const [isProcessing, setIsProcessing] = useState(false);
    const [success, setSuccess] = useState(false);
 
@@ -73,20 +69,6 @@ function CheckoutContent() {
    // Handle plan selection
    const handlePlanSelect = (planId: string) => {
       setSelectedPlan(planId);
-      setSelectedPaymentMethod(null);
-      setShowNewPaymentForm(false);
-   };
-
-   // Handle payment method selection
-   const handlePaymentMethodSelect = (methodId: string) => {
-      setSelectedPaymentMethod(methodId);
-      setShowNewPaymentForm(false);
-   };
-
-   // Handle new payment method
-   const handleAddNewPayment = () => {
-      setShowNewPaymentForm(true);
-      setSelectedPaymentMethod(null);
    };
 
    // Handle payment submission
@@ -111,57 +93,9 @@ function CheckoutContent() {
       }
    };
 
-   // Handle Apple Pay
+   // Handle Apple Pay (Currently Disabled)
    const handleApplePay = async () => {
-      if (!selectedPlanDetails) return;
-
-      try {
-         setIsProcessing(true);
-
-         // Check if Apple Pay is available
-         const isAvailable = await stripeService.isApplePayAvailable();
-         if (!isAvailable) {
-            alert('Apple Pay is not available on this device');
-            return;
-         }
-
-         // Create Apple Pay button
-         const applePayButton = await stripeService.createApplePayButton({
-            amount: selectedPlanDetails.price,
-            currency: selectedPlanDetails.currency,
-            label: `${selectedPlanDetails.name} Plan`,
-            onSuccess: async (paymentMethod: { id: string }) => {
-               try {
-                  // Create subscription with Apple Pay payment method
-                  await createSubscription(
-                     selectedPlanDetails.priceId,
-                     selectedPlanDetails.tier,
-                     paymentMethod.id
-                  );
-                  setSuccess(true);
-               } catch (error) {
-                  console.error('Apple Pay payment failed:', error);
-                  alert('Payment failed. Please try again.');
-               }
-            },
-            onError: (error: Error) => {
-               console.error('Apple Pay error:', error);
-               alert('Apple Pay failed. Please try again.');
-            }
-         });
-
-         // Mount the button (this will replace the current button)
-         const buttonContainer = document.getElementById('apple-pay-button-container');
-         if (buttonContainer && applePayButton) {
-            buttonContainer.innerHTML = '';
-            applePayButton.mount(buttonContainer);
-         }
-      } catch (error) {
-         console.error('Apple Pay setup failed:', error);
-         alert('Apple Pay is not available. Please use a card instead.');
-      } finally {
-         setIsProcessing(false);
-      }
+      alert('Apple Pay is currently disabled. Please use a card instead.');
    };
 
    // Success state
@@ -233,15 +167,16 @@ function CheckoutContent() {
                      </div>
                   )}
 
-                  {/* Apple Pay */}
+                  {/* Apple Pay - Currently Disabled */}
                   <div id="apple-pay-button-container" className="mb-6">
                      <button
                         onClick={handleApplePay}
-                        disabled={isProcessing || state.isLoading}
-                        className="flex gap-2 justify-center items-center py-3 w-full font-medium text-white bg-black rounded-lg transition cursor-pointer hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+                        disabled={true}
+                        className="flex gap-2 justify-center items-center py-3 w-full font-medium text-white bg-gray-400 rounded-lg opacity-50 transition cursor-not-allowed"
+                        title="Apple Pay is currently disabled"
                      >
                         <FaApple size={20} />
-                        Pay with Apple Pay
+                        Pay with Apple Pay (Disabled)
                      </button>
                   </div>
 
@@ -251,41 +186,12 @@ function CheckoutContent() {
                      <hr className="flex-grow border-gray-300 dark:border-gray-600" />
                   </div>
 
-                  {/* Payment Methods or New Payment Form */}
-                  {!showNewPaymentForm ? (
-                     <PaymentMethods
-                        selectedMethod={selectedPaymentMethod}
-                        onMethodSelect={handlePaymentMethodSelect}
-                        onAddNew={handleAddNewPayment}
-                     />
-                  ) : (
-                     <StripeForm
-                        onSubmit={handlePaymentSubmit}
-                        isLoading={isProcessing}
-                        error={state.error}
-                     />
-                  )}
-
-                  {/* Pay with Selected Method Button */}
-                  {selectedPaymentMethod && !showNewPaymentForm && (
-                     <button
-                        onClick={() => handlePaymentSubmit(selectedPaymentMethod)}
-                        disabled={isProcessing || state.isLoading}
-                        className="py-3 mt-6 w-full font-semibold text-white bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg shadow-md transition cursor-pointer hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
-                     >
-                        {isProcessing || state.isLoading ? 'Processing...' : `Pay $${selectedPlanDetails ? (selectedPlanDetails.price / 100).toFixed(2) : '0.00'}`}
-                     </button>
-                  )}
-
-                  {/* Back to Payment Methods */}
-                  {showNewPaymentForm && (
-                     <button
-                        onClick={() => setShowNewPaymentForm(false)}
-                        className="py-3 mt-4 w-full font-medium text-gray-600 bg-gray-100 rounded-lg transition dark:text-gray-400 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600"
-                     >
-                        Back to Saved Methods
-                     </button>
-                  )}
+                  {/* Payment Form - Always Visible */}
+                  <StripeForm
+                     onSubmit={handlePaymentSubmit}
+                     isLoading={isProcessing}
+                     error={state.error}
+                  />
                </div>
             </div>
          </div>

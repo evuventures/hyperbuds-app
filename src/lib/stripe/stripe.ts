@@ -220,18 +220,25 @@ class StripeService {
    async isApplePayAvailable(): Promise<boolean> {
       if (typeof window === 'undefined') return false;
 
-      const stripe = await this.initialize();
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { error } = await (stripe as any).paymentRequest({
-         country: 'US',
-         currency: 'usd',
-         total: {
-            label: 'Test',
-            amount: 0,
-         },
-      });
+      try {
+         const stripe = await this.initialize();
+         // eslint-disable-next-line @typescript-eslint/no-explicit-any
+         const paymentRequest = (stripe as any).paymentRequest({
+            country: 'US',
+            currency: 'usd',
+            total: {
+               label: 'Test',
+               amount: 100, // Use minimum amount for testing
+            },
+         });
 
-      return !error;
+         // Check if Apple Pay is available
+         const canMakePayment = await paymentRequest.canMakePayment();
+         return canMakePayment && canMakePayment.applePay === true;
+      } catch (error) {
+         console.warn('Apple Pay availability check failed:', error);
+         return false;
+      }
    }
 
    async createApplePayButton(options: {
@@ -246,6 +253,13 @@ class StripeService {
    }): Promise<any> {
       try {
          const stripe = await this.initialize();
+
+         // Check if Apple Pay is available first
+         const isAvailable = await this.isApplePayAvailable();
+         if (!isAvailable) {
+            throw new Error('Apple Pay is not available on this device');
+         }
+
          // eslint-disable-next-line @typescript-eslint/no-explicit-any
          const paymentRequest = (stripe as any).paymentRequest({
             country: 'US',
@@ -283,6 +297,7 @@ class StripeService {
          return prButton;
       } catch (error) {
          console.error('Apple Pay setup failed:', error);
+         options.onError(error);
          return null;
       }
    }

@@ -1,132 +1,139 @@
 import {
-   PaymentIntent,
+   PaymentIntentRequest,
    PaymentIntentResponse,
-   PaymentConfirmation,
-   PaymentConfirmationResponse,
-   Subscription,
+   ConfirmPaymentRequest,
+   ConfirmPaymentResponse,
+   CreateSubscriptionRequest,
+   UpdateSubscriptionRequest,
+   CancelSubscriptionRequest,
    SubscriptionResponse,
-   SubscriptionUpdate,
-   SubscriptionCancel,
    PaymentMethodsResponse,
    PaymentHistoryQuery,
    PaymentHistoryResponse,
-   PayoutSetup,
+   PayoutSetupRequest,
    PayoutSetupResponse,
-   PayoutAccountStatus,
+   PayoutAccountStatusResponse,
    PayoutRequest,
-   PayoutRequestResponse,
+   PayoutResponse,
    PayoutHistoryQuery,
    PayoutHistoryResponse,
-   EarningsSummary,
+   EarningsResponse,
    RefundRequest,
    RefundResponse,
-   PaymentError
+   PaymentErrorResponse
 } from '@/types/payment.types';
 
-const API_BASE_URL = 'https://api.hyperbuds.com/api/v1/payments';
+const BASE_URL = 'https://api.hyperbuds.com/api/v1/payments';
 
 class PaymentAPI {
-   private async getAuthHeaders(): Promise<HeadersInit> {
-      // Get token from auth store or localStorage
-      const token = typeof window !== 'undefined'
-         ? localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token')
-         : null;
+   private async request<T>(
+      endpoint: string,
+      options: RequestInit = {}
+   ): Promise<T> {
+      const url = `${BASE_URL}${endpoint}`;
 
-      if (!token) {
-         // Return headers without auth for now - backend will handle auth
-         return {
+      const response = await fetch(url, {
+         headers: {
             'Content-Type': 'application/json',
-         };
-      }
+            ...options.headers,
+         },
+         ...options,
+      });
 
-      return {
-         'Authorization': `Bearer ${token}`,
-         'Content-Type': 'application/json',
-      };
-   }
-
-   private async handleResponse<T>(response: Response): Promise<T> {
       if (!response.ok) {
-         const errorData: PaymentError = await response.json();
+         const errorData: PaymentErrorResponse = await response.json();
          throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
       }
 
       return response.json();
    }
 
-   // Payment Intents & Processing
-   async createPaymentIntent(intent: PaymentIntent): Promise<PaymentIntentResponse> {
-      const response = await fetch(`${API_BASE_URL}/setup-intent`, {
-         method: 'POST',
-         headers: await this.getAuthHeaders(),
-         body: JSON.stringify(intent),
-      });
-
-      return this.handleResponse<PaymentIntentResponse>(response);
+   private getAuthHeaders(token: string) {
+      return {
+         'Authorization': `Bearer ${token}`,
+      };
    }
 
-   async confirmPayment(confirmation: PaymentConfirmation): Promise<PaymentConfirmationResponse> {
-      const response = await fetch(`${API_BASE_URL}/confirm`, {
+   // Payment Intent & Processing
+   async createPaymentIntent(
+      token: string,
+      data: PaymentIntentRequest
+   ): Promise<PaymentIntentResponse> {
+      return this.request<PaymentIntentResponse>('/setup-intent', {
          method: 'POST',
-         headers: await this.getAuthHeaders(),
-         body: JSON.stringify(confirmation),
+         headers: this.getAuthHeaders(token),
+         body: JSON.stringify(data),
       });
+   }
 
-      return this.handleResponse<PaymentConfirmationResponse>(response);
+   async confirmPayment(
+      token: string,
+      data: ConfirmPaymentRequest
+   ): Promise<ConfirmPaymentResponse> {
+      return this.request<ConfirmPaymentResponse>('/confirm', {
+         method: 'POST',
+         headers: this.getAuthHeaders(token),
+         body: JSON.stringify(data),
+      });
    }
 
    // Subscriptions
-   async createSubscription(subscription: Subscription): Promise<SubscriptionResponse> {
-      const response = await fetch(`${API_BASE_URL}/subscriptions`, {
+   async createSubscription(
+      token: string,
+      data: CreateSubscriptionRequest
+   ): Promise<SubscriptionResponse> {
+      return this.request<SubscriptionResponse>('/subscriptions', {
          method: 'POST',
-         headers: await this.getAuthHeaders(),
-         body: JSON.stringify(subscription),
+         headers: this.getAuthHeaders(token),
+         body: JSON.stringify(data),
       });
-
-      return this.handleResponse<SubscriptionResponse>(response);
    }
 
-   async updateSubscription(update: SubscriptionUpdate): Promise<SubscriptionResponse> {
-      const response = await fetch(`${API_BASE_URL}/subscriptions`, {
+   async updateSubscription(
+      token: string,
+      data: UpdateSubscriptionRequest
+   ): Promise<SubscriptionResponse> {
+      return this.request<SubscriptionResponse>('/subscriptions', {
          method: 'PUT',
-         headers: await this.getAuthHeaders(),
-         body: JSON.stringify(update),
+         headers: this.getAuthHeaders(token),
+         body: JSON.stringify(data),
       });
-
-      return this.handleResponse<SubscriptionResponse>(response);
    }
 
-   async cancelSubscription(cancel: SubscriptionCancel): Promise<SubscriptionResponse> {
-      const response = await fetch(`${API_BASE_URL}/subscriptions`, {
+   async cancelSubscription(
+      token: string,
+      data: CancelSubscriptionRequest
+   ): Promise<SubscriptionResponse> {
+      return this.request<SubscriptionResponse>('/subscriptions', {
          method: 'DELETE',
-         headers: await this.getAuthHeaders(),
-         body: JSON.stringify(cancel),
+         headers: this.getAuthHeaders(token),
+         body: JSON.stringify(data),
       });
-
-      return this.handleResponse<SubscriptionResponse>(response);
    }
 
    // Payment Methods
-   async getPaymentMethods(): Promise<PaymentMethodsResponse> {
-      const response = await fetch(`${API_BASE_URL}/methods`, {
+   async getPaymentMethods(token: string): Promise<PaymentMethodsResponse> {
+      return this.request<PaymentMethodsResponse>('/methods', {
          method: 'GET',
-         headers: await this.getAuthHeaders(),
+         headers: this.getAuthHeaders(token),
       });
-
-      return this.handleResponse<PaymentMethodsResponse>(response);
    }
 
-   async deletePaymentMethod(paymentMethodId: string): Promise<{ success: boolean; message: string }> {
-      const response = await fetch(`${API_BASE_URL}/methods/${paymentMethodId}`, {
+   async deletePaymentMethod(
+      token: string,
+      paymentMethodId: string
+   ): Promise<{ success: boolean; message: string }> {
+      return this.request<{ success: boolean; message: string }>(`/methods/${paymentMethodId}`, {
          method: 'DELETE',
-         headers: await this.getAuthHeaders(),
+         headers: this.getAuthHeaders(token),
       });
-
-      return this.handleResponse<{ success: boolean; message: string }>(response);
    }
 
    // Payment History
-   async getPaymentHistory(query: PaymentHistoryQuery = {}): Promise<PaymentHistoryResponse> {
+   async getPaymentHistory(
+      token: string,
+      query: PaymentHistoryQuery = {}
+   ): Promise<PaymentHistoryResponse> {
       const params = new URLSearchParams();
 
       if (query.page) params.append('page', query.page.toString());
@@ -134,100 +141,83 @@ class PaymentAPI {
       if (query.status) params.append('status', query.status);
       if (query.paymentType) params.append('paymentType', query.paymentType);
 
-      const response = await fetch(`${API_BASE_URL}/history?${params.toString()}`, {
-         method: 'GET',
-         headers: await this.getAuthHeaders(),
-      });
+      const queryString = params.toString();
+      const endpoint = queryString ? `/history?${queryString}` : '/history';
 
-      return this.handleResponse<PaymentHistoryResponse>(response);
+      return this.request<PaymentHistoryResponse>(endpoint, {
+         method: 'GET',
+         headers: this.getAuthHeaders(token),
+      });
    }
 
    // Creator Payouts
-   async setupPayoutAccount(setup: PayoutSetup): Promise<PayoutSetupResponse> {
-      const response = await fetch(`${API_BASE_URL}/payouts/setup`, {
+   async setupPayoutAccount(
+      token: string,
+      data: PayoutSetupRequest
+   ): Promise<PayoutSetupResponse> {
+      return this.request<PayoutSetupResponse>('/payouts/setup', {
          method: 'POST',
-         headers: await this.getAuthHeaders(),
-         body: JSON.stringify(setup),
+         headers: this.getAuthHeaders(token),
+         body: JSON.stringify(data),
       });
-
-      return this.handleResponse<PayoutSetupResponse>(response);
    }
 
-   async getPayoutAccountStatus(): Promise<PayoutAccountStatus> {
-      const response = await fetch(`${API_BASE_URL}/payouts/account-status`, {
+   async getPayoutAccountStatus(token: string): Promise<PayoutAccountStatusResponse> {
+      return this.request<PayoutAccountStatusResponse>('/payouts/account-status', {
          method: 'GET',
-         headers: await this.getAuthHeaders(),
+         headers: this.getAuthHeaders(token),
       });
-
-      return this.handleResponse<PayoutAccountStatus>(response);
    }
 
-   async requestPayout(payout: PayoutRequest): Promise<PayoutRequestResponse> {
-      const response = await fetch(`${API_BASE_URL}/payouts`, {
+   async requestPayout(
+      token: string,
+      data: PayoutRequest
+   ): Promise<PayoutResponse> {
+      return this.request<PayoutResponse>('/payouts', {
          method: 'POST',
-         headers: await this.getAuthHeaders(),
-         body: JSON.stringify(payout),
+         headers: this.getAuthHeaders(token),
+         body: JSON.stringify(data),
       });
-
-      return this.handleResponse<PayoutRequestResponse>(response);
    }
 
-   async getPayoutHistory(query: PayoutHistoryQuery = {}): Promise<PayoutHistoryResponse> {
+   async getPayoutHistory(
+      token: string,
+      query: PayoutHistoryQuery = {}
+   ): Promise<PayoutHistoryResponse> {
       const params = new URLSearchParams();
 
       if (query.page) params.append('page', query.page.toString());
       if (query.limit) params.append('limit', query.limit.toString());
       if (query.status) params.append('status', query.status);
 
-      const response = await fetch(`${API_BASE_URL}/payouts/history?${params.toString()}`, {
-         method: 'GET',
-         headers: await this.getAuthHeaders(),
-      });
+      const queryString = params.toString();
+      const endpoint = queryString ? `/payouts/history?${queryString}` : '/payouts/history';
 
-      return this.handleResponse<PayoutHistoryResponse>(response);
+      return this.request<PayoutHistoryResponse>(endpoint, {
+         method: 'GET',
+         headers: this.getAuthHeaders(token),
+      });
    }
 
    // Earnings & Analytics
-   async getEarnings(): Promise<EarningsSummary> {
-      const response = await fetch(`${API_BASE_URL}/earnings`, {
+   async getEarnings(token: string): Promise<EarningsResponse> {
+      return this.request<EarningsResponse>('/earnings', {
          method: 'GET',
-         headers: await this.getAuthHeaders(),
+         headers: this.getAuthHeaders(token),
       });
-
-      return this.handleResponse<EarningsSummary>(response);
    }
 
    // Admin Operations
-   async refundPayment(refund: RefundRequest): Promise<RefundResponse> {
-      const response = await fetch(`${API_BASE_URL}/refund`, {
+   async refundPayment(
+      token: string,
+      data: RefundRequest
+   ): Promise<RefundResponse> {
+      return this.request<RefundResponse>('/refund', {
          method: 'POST',
-         headers: await this.getAuthHeaders(),
-         body: JSON.stringify(refund),
+         headers: this.getAuthHeaders(token),
+         body: JSON.stringify(data),
       });
-
-      return this.handleResponse<RefundResponse>(response);
-   }
-
-   // Utility Methods
-   formatAmount(amount: number): string {
-      return (amount / 100).toFixed(2);
-   }
-
-   parseAmount(amount: string): number {
-      return Math.round(parseFloat(amount) * 100);
-   }
-
-   getCurrencySymbol(currency: string): string {
-      const symbols: { [key: string]: string } = {
-         usd: '$',
-         eur: '€',
-         gbp: '£',
-         cad: 'C$',
-         aud: 'A$',
-      };
-      return symbols[currency.toLowerCase()] || currency.toUpperCase();
    }
 }
 
 export const paymentAPI = new PaymentAPI();
-export default paymentAPI;
