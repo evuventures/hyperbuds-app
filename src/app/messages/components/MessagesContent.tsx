@@ -143,9 +143,9 @@ export const MessagesContent: React.FC = () => {
             <ChatHeader
                conversation={currentConversation}
                onArchive={handleArchiveConversation}
-               onVideoCall={() => {/* TODO: Implement video call */}}
-               onVoiceCall={() => {/* TODO: Implement voice call */}}
-               onInfoClick={() => {/* TODO: Implement info modal */}}
+               onVideoCall={() => {/* TODO: Implement video call */ }}
+               onVoiceCall={() => {/* TODO: Implement voice call */ }}
+               onInfoClick={() => {/* TODO: Implement info modal */ }}
             />
             <ChatMessages
                messages={currentConversation ? mapStoreMessagesToComponents(messages, user?.id) : []}
