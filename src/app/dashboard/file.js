@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Bell, Settings, Phone, Mail, MapPin, Eye, MessageCircle, Calendar, TrendingUp, Users, FileText, DollarSign } from 'lucide-react';
+import { Search, Bell, Settings, Phone, Mail, MapPin, Eye, MessageCircle, TrendingUp, Users, FileText } from 'lucide-react';
 
 // Mock data
 const mockData = {

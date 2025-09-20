@@ -8,7 +8,7 @@ import { Avatar } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { MatchSuggestion, CreatorProfile } from "@/types/matching.types";
-
+import Image from "next/image";
 interface MatchingInterfaceProps {
   userProfile: CreatorProfile;
   matches: MatchSuggestion[];
@@ -20,9 +20,9 @@ interface MatchingInterfaceProps {
 const MatchingInterface: React.FC<MatchingInterfaceProps> = ({
   // userProfile, // not used yet but kept for future header/profile panel
   matches,
-  history,
+  
   handleAction,
-  handleBlock,
+  
 }) => {
   const [currentMatchIndex, setCurrentMatchIndex] = useState(0);
   const [showFilters, setShowFilters] = useState(false);
@@ -124,9 +124,11 @@ const MatchingInterface: React.FC<MatchingInterfaceProps> = ({
               <div className="relative h-64 bg-gradient-to-br from-purple-400 to-pink-400">
                 <div className="absolute inset-0 bg-black/20" />
                 <Avatar className="absolute top-4 left-4 w-16 h-16 border-4 border-white">
-                  <img
+                  <Image
                     src={profile.avatar || "/placeholder-avatar.png"}
                     alt={profile.displayName}
+                    width={64}
+                    height={64}
                     className="object-cover"
                   />
                 </Avatar>

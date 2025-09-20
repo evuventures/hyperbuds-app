@@ -10,11 +10,10 @@ import type {
   CompatibilityQuery,
   MatchAction,
   MatchFeedback,
-  RizzScore,
-  LeaderboardQuery,
+  
   MatchFilters,
   SwipeResult,
-  MatchHistoryFilters
+  
 } from '../../types/matching.types';
 
 // Query Keys

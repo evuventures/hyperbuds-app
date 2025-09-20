@@ -9,323 +9,327 @@ import { TaxDocuments } from '@/components/payments/EarningsBoard/TaxDocuments';
 
 // Mock user data
 const mockUser = {
-   id: '1',
-   name: 'John Doe',
-   email: 'john@example.com',
-   avatar: '/images/user1.png',
+  id: '1',
+  name: 'John Doe',
+  email: 'john@example.com',
+  avatar: '/images/user1.png',
 };
 
 function EarningsDashboard() {
-   const { state, loadEarnings, requestPayout, setupPayoutAccount, getPayoutAccountStatus } = usePayment();
-   const [payoutAmount, setPayoutAmount] = useState<string>('');
-   const [payoutDescription, setPayoutDescription] = useState<string>('');
-   const [showPayoutForm, setShowPayoutForm] = useState(false);
-   const [isProcessing, setIsProcessing] = useState(false);
-   const [payoutAccountStatus, setPayoutAccountStatus] = useState<any>(null);
+  const { state, loadEarnings, requestPayout, setupPayoutAccount, getPayoutAccountStatus } = usePayment();
+  const [payoutAmount, setPayoutAmount] = useState<string>('');
+  const [payoutDescription, setPayoutDescription] = useState<string>('');
+  const [showPayoutForm, setShowPayoutForm] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [payoutAccountStatus, setPayoutAccountStatus] = useState<any>(null);
 
-   const loadPayoutAccountStatus = async () => {
-      try {
-         // Skip API calls in development mode to prevent failed fetch errors
-         if (process.env.NODE_ENV === 'development') {
-            console.log('Development mode: Skipping payout account status API call');
-            setPayoutAccountStatus({
-               detailsSubmitted: false,
-               chargesEnabled: false,
-               transfersEnabled: false,
-               requiresAction: true
-            });
-            return;
-         }
+  // Define mock earnings here, in a higher scope, so both the component and the handler can access it
+  const mockEarnings = process.env.NODE_ENV === 'development' ? {
+    totalEarnings: 125050,
+    availableForPayout: 85025,
+    pendingPayouts: 20000,
+    completedPayouts: 20025,
+    thisMonthEarnings: 42575
+  } : null;
 
-         const status = await getPayoutAccountStatus();
-         setPayoutAccountStatus(status);
-      } catch (error) {
-         console.error('Failed to load payout account status:', error);
-         // Set default status for development
-         setPayoutAccountStatus({
-            detailsSubmitted: false,
-            chargesEnabled: false,
-            transfersEnabled: false,
-            requiresAction: true
-         });
-      }
-   };
+  // Combine state.earnings and mockEarnings into a single variable for easier access
+  const currentEarnings = state.earnings || mockEarnings;
 
-   useEffect(() => {
-      loadEarnings();
-      loadPayoutAccountStatus();
-   }, []); // Empty dependency array to run only once
+  const loadPayoutAccountStatus = async () => {
+    try {
+      // Skip API calls in development mode to prevent failed fetch errors
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Development mode: Skipping payout account status API call');
+        setPayoutAccountStatus({
+          detailsSubmitted: false,
+          chargesEnabled: false,
+          transfersEnabled: false,
+          requiresAction: true
+        });
+        return;
+      }
 
-   // Mock earnings data for development
-   const mockEarnings = process.env.NODE_ENV === 'development' ? {
-      totalEarnings: 1250.50,
-      availableForPayout: 850.25,
-      pendingPayouts: 200.00,
-      completedPayouts: 200.25,
-      thisMonthEarnings: 425.75
-   } : null;
+      const status = await getPayoutAccountStatus();
+      setPayoutAccountStatus(status);
+    } catch (error) {
+      console.error('Failed to load payout account status:', error);
+      // Set default status for development
+      setPayoutAccountStatus({
+        detailsSubmitted: false,
+        chargesEnabled: false,
+        transfersEnabled: false,
+        requiresAction: true
+      });
+    }
+  };
 
-   const handleRequestPayout = async (e: React.FormEvent) => {
-      e.preventDefault();
+  useEffect(() => {
+    loadEarnings();
+    loadPayoutAccountStatus();
+  }, []); // Empty dependency array to run only once
 
-      if (!payoutAmount || !payoutDescription) {
-         alert('Please fill in all fields');
-         return;
-      }
+  const handleRequestPayout = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-      const amount = parseFloat(payoutAmount) * 100; // Convert to cents
+    if (!payoutAmount || !payoutDescription) {
+      alert('Please fill in all fields');
+      return;
+    }
 
-      if (amount <= 0) {
-         alert('Payout amount must be greater than 0');
-         return;
-      }
+    // The amount should be in dollars for the parseFloat function
+    const amount = parseFloat(payoutAmount);
 
-      const currentEarnings = state.earnings || mockEarnings;
-      if (currentEarnings && amount > currentEarnings.availableForPayout) {
-         alert('Payout amount cannot exceed available balance');
-         return;
-      }
+    if (isNaN(amount) || amount <= 0) {
+      alert('Payout amount must be a valid number greater than 0');
+      return;
+    }
+   
+    // Use the combined currentEarnings variable
+    if (!currentEarnings || amount * 100 > currentEarnings.availableForPayout) {
+      alert('Payout amount cannot exceed available balance');
+      return;
+    }
 
-      try {
-         setIsProcessing(true);
-         await requestPayout({
-            amount: Math.round(amount),
-            payoutType: 'marketplace_earnings',
-            description: payoutDescription,
-         });
-         alert('Payout request submitted successfully!');
-         setPayoutAmount('');
-         setPayoutDescription('');
-         setShowPayoutForm(false);
-         loadEarnings(); // Refresh earnings data
-      } catch (error) {
-         console.error('Failed to request payout:', error);
-         alert('Failed to request payout. Please try again.');
-      } finally {
-         setIsProcessing(false);
-      }
-   };
+    try {
+      setIsProcessing(true);
+      await requestPayout({
+        amount: Math.round(amount * 100), // Convert to cents before sending
+        payoutType: 'marketplace_earnings',
+        description: payoutDescription,
+      });
+      alert('Payout request submitted successfully!');
+      setPayoutAmount('');
+      setPayoutDescription('');
+      setShowPayoutForm(false);
+      loadEarnings(); // Refresh earnings data
+    } catch (error) {
+      console.error('Failed to request payout:', error);
+      alert('Failed to request payout. Please try again.');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
-   const handleSetupPayoutAccount = () => {
-      // In a real implementation, this would redirect to Stripe Connect setup
-      alert('Redirecting to payout account setup...');
-   };
+  const handleSetupPayoutAccount = () => {
+    // In a real implementation, this would redirect to Stripe Connect setup
+    alert('Redirecting to payout account setup...');
+  };
 
-   if (state.isLoading) {
-      return (
-         <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-            <Header user={mockUser} onMenuClick={() => { }} />
-            <div className="flex justify-center items-center h-64">
-               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500"></div>
-            </div>
-         </div>
-      );
-   }
+  if (state.isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+        <Header user={mockUser} onMenuClick={() => {}} />
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500"></div>
+        </div>
+      </div>
+    );
+  }
 
-   return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-         <Header user={mockUser} onMenuClick={() => { }} />
+  return (
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <Header user={mockUser} onMenuClick={() => {}} />
 
-         <div className="max-w-7xl mx-auto px-6 py-12">
-            <div className="mb-8">
-               <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-                  Creator Earnings
-               </h1>
-               <p className="text-gray-600 dark:text-gray-400">
-                  Track your earnings and manage payouts
-               </p>
-            </div>
+      <div className="max-w-7xl mx-auto px-6 py-12">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+            Creator Earnings
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400">
+            Track your earnings and manage payouts
+          </p>
+        </div>
 
-            {/* Payout Account Status */}
-            {!payoutAccountStatus?.detailsSubmitted && (
-               <div className="mb-8 p-6 bg-yellow-50 dark:bg-yellow-900 border border-yellow-200 dark:border-yellow-700 rounded-lg">
-                  <div className="flex items-start space-x-3">
-                     <svg className="w-6 h-6 text-yellow-500 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                     </svg>
-                     <div>
-                        <h3 className="text-lg font-medium text-yellow-800 dark:text-yellow-200">
-                           Payout Account Setup Required
-                        </h3>
-                        <p className="text-yellow-700 dark:text-yellow-300 mt-1">
-                           You need to set up your payout account before you can receive payments.
-                           This is a one-time setup process.
-                        </p>
-                        <button
-                           onClick={handleSetupPayoutAccount}
-                           className="mt-3 px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors"
-                        >
-                           Set Up Payout Account
-                        </button>
-                     </div>
-                  </div>
-               </div>
-            )}
+        {/* Payout Account Status */}
+        {!payoutAccountStatus?.detailsSubmitted && (
+          <div className="mb-8 p-6 bg-yellow-50 dark:bg-yellow-900 border border-yellow-200 dark:border-yellow-700 rounded-lg">
+            <div className="flex items-start space-x-3">
+              <svg className="w-6 h-6 text-yellow-500 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+              </svg>
+              <div>
+                <h3 className="text-lg font-medium text-yellow-800 dark:text-yellow-200">
+                  Payout Account Setup Required
+                </h3>
+                <p className="text-yellow-700 dark:text-yellow-300 mt-1">
+                  You need to set up your payout account before you can receive payments.
+                  This is a one-time setup process.
+                </p>
+                <button
+                  onClick={handleSetupPayoutAccount}
+                  className="mt-3 px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors"
+                >
+                  Set Up Payout Account
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-               {/* Earnings Overview */}
-               <div className="lg:col-span-2">
-                  <EarningsOverview
-                     earnings={state.earnings || mockEarnings}
-                     isLoading={state.isLoading}
-                  />
-               </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Earnings Overview */}
+          <div className="lg:col-span-2">
+            <EarningsOverview
+              earnings={currentEarnings}
+              isLoading={state.isLoading}
+            />
+          </div>
 
-               {/* Quick Actions */}
-               <div className="space-y-6">
-                  <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-700">
-                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                        Quick Actions
-                     </h3>
+          {/* Quick Actions */}
+          <div className="space-y-6">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-700">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                Quick Actions
+              </h3>
 
-                     {payoutAccountStatus?.detailsSubmitted ? (
-                        <div className="space-y-3">
-                           <button
-                              onClick={() => setShowPayoutForm(true)}
-                              disabled={!state.earnings || state.earnings.availableForPayout <= 0}
-                              className="w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                           >
-                              Request Payout
-                           </button>
+              {payoutAccountStatus?.detailsSubmitted ? (
+                <div className="space-y-3">
+                  <button
+                    onClick={() => setShowPayoutForm(true)}
+                    disabled={!currentEarnings || currentEarnings.availableForPayout <= 0}
+                    className="w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Request Payout
+                  </button>
 
-                           <button
-                              onClick={() => window.location.href = '/payments/history'}
-                              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-                           >
-                              View Payment History
-                           </button>
-                        </div>
-                     ) : (
-                        <div className="text-center py-4">
-                           <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
-                              Set up your payout account to start receiving payments
-                           </p>
-                           <button
-                              onClick={handleSetupPayoutAccount}
-                              className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
-                           >
-                              Set Up Account
-                           </button>
-                        </div>
-                     )}
-                  </div>
+                  <button
+                    onClick={() => window.location.href = '/payments/history'}
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                  >
+                    View Payment History
+                  </button>
+                </div>
+              ) : (
+                <div className="text-center py-4">
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                    Set up your payout account to start receiving payments
+                  </p>
+                  <button
+                    onClick={handleSetupPayoutAccount}
+                    className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                  >
+                    Set Up Account
+                  </button>
+                </div>
+              )}
+            </div>
 
-                  {/* Available Balance */}
-                  {(state.earnings || mockEarnings) && (
-                     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-700">
-                        <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                           Available Balance
-                        </h4>
-                        <p className="text-3xl font-bold text-green-600 dark:text-green-400">
-                           ${((state.earnings || mockEarnings)!.availableForPayout / 100).toFixed(2)}
-                        </p>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                           Ready for payout
-                        </p>
-                     </div>
-                  )}
-               </div>
-            </div>
+            {/* Available Balance */}
+            {currentEarnings && (
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-700">
+                <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                  Available Balance
+                </h4>
+                <p className="text-3xl font-bold text-green-600 dark:text-green-400">
+                  ${(currentEarnings.availableForPayout / 100).toFixed(2)}
+                </p>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                  Ready for payout
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
 
-            {/* Payout Schedule and Tax Documents */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
-               <PayoutSchedule />
-               <TaxDocuments />
-            </div>
+        {/* Payout Schedule and Tax Documents */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
+          <PayoutSchedule />
+          <TaxDocuments />
+        </div>
 
-            {/* Payout Request Modal */}
-            {showPayoutForm && (
-               <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                  <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full mx-4">
-                     <div className="p-6">
-                        <div className="flex items-center justify-between mb-4">
-                           <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                              Request Payout
-                           </h3>
-                           <button
-                              onClick={() => setShowPayoutForm(false)}
-                              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                           >
-                              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                              </svg>
-                           </button>
-                        </div>
+        {/* Payout Request Modal */}
+        {showPayoutForm && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full mx-4">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    Request Payout
+                  </h3>
+                  <button
+                    onClick={() => setShowPayoutForm(false)}
+                    className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
 
-                        <form onSubmit={handleRequestPayout} className="space-y-4">
-                           <div>
-                              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                 Amount (USD)
-                              </label>
-                              <input
-                                 type="number"
-                                 step="0.01"
-                                 min="0.01"
-                                 max={currentEarnings ? (currentEarnings.availableForPayout / 100).toFixed(2) : '0'}
-                                 value={payoutAmount}
-                                 onChange={(e) => setPayoutAmount(e.target.value)}
-                                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-                                 placeholder="0.00"
-                                 required
-                              />
-                              {currentEarnings && (
-                                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                    Maximum: ${(currentEarnings.availableForPayout / 100).toFixed(2)}
-                                 </p>
-                              )}
-                           </div>
+                <form onSubmit={handleRequestPayout} className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Amount (USD)
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0.01"
+                      max={currentEarnings ? (currentEarnings.availableForPayout / 100).toFixed(2) : '0'}
+                      value={payoutAmount}
+                      onChange={(e) => setPayoutAmount(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      placeholder="0.00"
+                      required
+                    />
+                    {currentEarnings && (
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        Maximum: ${(currentEarnings.availableForPayout / 100).toFixed(2)}
+                      </p>
+                    )}
+                  </div>
 
-                           <div>
-                              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                 Description
-                              </label>
-                              <input
-                                 type="text"
-                                 value={payoutDescription}
-                                 onChange={(e) => setPayoutDescription(e.target.value)}
-                                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-                                 placeholder="e.g., Weekly earnings payout"
-                                 required
-                              />
-                           </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Description
+                    </label>
+                    <input
+                      type="text"
+                      value={payoutDescription}
+                      onChange={(e) => setPayoutDescription(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      placeholder="e.g., Weekly earnings payout"
+                      required
+                    />
+                  </div>
 
-                           <div className="flex space-x-3 pt-4">
-                              <button
-                                 type="button"
-                                 onClick={() => setShowPayoutForm(false)}
-                                 className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-                              >
-                                 Cancel
-                              </button>
-                              <button
-                                 type="submit"
-                                 disabled={isProcessing}
-                                 className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                              >
-                                 {isProcessing ? 'Processing...' : 'Request Payout'}
-                              </button>
-                           </div>
-                        </form>
-                     </div>
-                  </div>
-               </div>
-            )}
+                  <div className="flex space-x-3 pt-4">
+                    <button
+                      type="button"
+                      onClick={() => setShowPayoutForm(false)}
+                      className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={isProcessing}
+                      className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isProcessing ? 'Processing...' : 'Request Payout'}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        )}
 
-            {/* Error Display */}
-            {state.error && (
-               <div className="mt-6 p-4 bg-red-50 dark:bg-red-900 border border-red-200 dark:border-red-700 rounded-lg">
-                  <p className="text-red-600 dark:text-red-400">{state.error}</p>
-               </div>
-            )}
-         </div>
-      </div>
-   );
+        {/* Error Display */}
+        {state.error && (
+          <div className="mt-6 p-4 bg-red-50 dark:bg-red-900 border border-red-200 dark:border-red-700 rounded-lg">
+            <p className="text-red-600 dark:text-red-400">{state.error}</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }
 
 export default function EarningsPage() {
-   return (
-      <PaymentProvider>
-         <EarningsDashboard />
-      </PaymentProvider>
-   );
+  return (
+    <PaymentProvider>
+      <EarningsDashboard />
+    </PaymentProvider>
+  );
 }
