@@ -40,9 +40,9 @@ const MatchmakingPage: React.FC = () => {
         setRecommendations(mockRecommendations);
 
         setError(null);
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error("Error loading data:", err);
-        setError(err.message || "Failed to load matching data");
+        setError(err instanceof Error ? err.message : "Failed to load matching data");
       } finally {
         setDataLoaded(true);
       }

@@ -30,13 +30,13 @@ export default function VerifyEmail() {
           throw new Error(error.message || "Verification failed");
         }
 
-       // ✅ Correct way to parse response
+        // ✅ Correct way to parse response
         const data = await res.json();
 
         setStatus(`✅ ${data.message} Redirecting to login...`);
         setTimeout(() => router.push("/auth/signin"), 2000);
-      } catch (error: any) {
-        setStatus(`❌ Email verification failed: ${error.message}`);
+      } catch (error: unknown) {
+        setStatus(`❌ Email verification failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     };
 

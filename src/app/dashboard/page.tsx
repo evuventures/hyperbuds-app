@@ -54,28 +54,28 @@ export const MainContent: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-gray-50 via-white to-purple-50/10 dark:from-gray-900 dark:via-gray-900 dark:to-purple-900/10 p-4 lg:p-6 transition-colors duration-200">
-      <div className="max-w-full mx-auto space-y-8">
+    <div className="p-4 w-full min-h-screen bg-gradient-to-br from-gray-50 via-white transition-colors duration-200 to-purple-50/10 dark:from-gray-900 dark:via-gray-900 dark:to-purple-900/10 lg:p-6">
+      <div className="mx-auto space-y-8 max-w-full">
         {/* Welcome Header */}
-        <div className="relative overflow-hidden bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 dark:from-purple-700 dark:via-blue-700 dark:to-indigo-700 rounded-3xl p-8 text-white shadow-xl">
+        <div className="overflow-hidden relative p-8 text-white bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 rounded-3xl shadow-xl dark:from-purple-700 dark:via-blue-700 dark:to-indigo-700">
           <div className="absolute inset-0 bg-black/10 dark:bg-black/20"></div>
           <div className="relative z-10">
-            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+            <div className="flex flex-col gap-6 justify-between items-start lg:flex-row lg:items-center">
               <div className="flex-1">
-                <div className="flex items-center gap-2 mb-3">
+                <div className="flex gap-2 items-center mb-3">
                   <Zap className="w-6 h-6 text-yellow-300 dark:text-yellow-400" />
                   <span className="text-lg font-semibold">
                     Good morning, Creator!
                   </span>
                 </div>
-                <h1 className="text-3xl lg:text-4xl font-bold mb-3 leading-tight">
+                <h1 className="mb-3 text-3xl font-bold leading-tight lg:text-4xl">
                   Ready to create something
                   <br />
-                  <span className="bg-gradient-to-r from-yellow-300 to-pink-300 dark:from-yellow-400 dark:to-pink-400 bg-clip-text text-transparent">
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-pink-300 dark:from-yellow-400 dark:to-pink-400">
                     amazing today?
                   </span>
                 </h1>
-                <p className="text-lg text-white/90 dark:text-white/80 mb-6 max-w-xl">
+                <p className="mb-6 max-w-xl text-lg text-white/90 dark:text-white/80">
                   You have {mockStats.newMatches} new matches and{" "}
                   {mockStats.pendingInvites} collaboration invites waiting for
                   you.
@@ -83,11 +83,11 @@ export const MainContent: React.FC = () => {
 
                 {/* Quick Action Buttons */}
                 <div className="flex flex-wrap gap-3">
-                  <button className="bg-white dark:bg-gray-100 text-purple-600 dark:text-purple-700 px-6 py-3 rounded-xl font-semibold hover:bg-gray-100 dark:hover:bg-gray-200 transition-all duration-200 transform hover:scale-105 shadow-lg flex items-center gap-2">
+                  <button className="flex gap-2 items-center px-6 py-3 font-semibold text-purple-600 bg-white rounded-xl shadow-lg transition-all duration-200 transform dark:bg-gray-100 dark:text-purple-700 hover:bg-gray-100 dark:hover:bg-gray-200 hover:scale-105">
                     <Video className="w-4 h-4" />
                     Go Live
                   </button>
-                  <button className="border-2 border-white/30 dark:border-white/40 text-white px-6 py-3 rounded-xl font-semibold hover:bg-white/10 dark:hover:bg-white/20 transition-all duration-200 backdrop-blur-sm flex items-center gap-2">
+                  <button className="flex gap-2 items-center px-6 py-3 font-semibold text-white rounded-xl border-2 backdrop-blur-sm transition-all duration-200 border-white/30 dark:border-white/40 hover:bg-white/10 dark:hover:bg-white/20">
                     <Plus className="w-4 h-4" />
                     New Collab
                   </button>
@@ -97,28 +97,28 @@ export const MainContent: React.FC = () => {
           </div>
 
           {/* Decorative elements */}
-          <div className="absolute top-8 right-8 w-20 h-20 bg-white/10 dark:bg-white/5 rounded-full blur-xl"></div>
-          <div className="absolute bottom-8 left-8 w-32 h-32 bg-yellow-300/20 dark:bg-yellow-400/10 rounded-full blur-2xl"></div>
+          <div className="absolute top-8 right-8 w-20 h-20 rounded-full blur-xl bg-white/10 dark:bg-white/5"></div>
+          <div className="absolute bottom-8 left-8 w-32 h-32 rounded-full blur-2xl bg-yellow-300/20 dark:bg-yellow-400/10"></div>
         </div>
-        
+
         <Trending />
 
         <Recommended />
 
         {/* Call to Action */}
-        <div className="bg-gradient-to-r from-purple-600 to-indigo-600 dark:from-purple-700 dark:to-indigo-700 rounded-2xl p-8 text-white text-center shadow-lg">
-          <h3 className="text-2xl font-bold mb-4">
+        <div className="p-8 text-center text-white bg-gradient-to-r from-purple-600 to-indigo-600 rounded-2xl shadow-lg dark:from-purple-700 dark:to-indigo-700">
+          <h3 className="mb-4 text-2xl font-bold">
             Ready to Start Your Next Collaboration?
           </h3>
-          <p className="text-purple-100 dark:text-purple-200 mb-6 max-w-2xl mx-auto">
+          <p className="mx-auto mb-6 max-w-2xl text-purple-100 dark:text-purple-200">
             Join thousands of creators who`&apos;`ve found their perfect collaboration
             partners through HyperBuds.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button className="bg-white dark:bg-gray-100 text-purple-600 dark:text-purple-700 px-8 py-3 rounded-xl font-semibold hover:bg-gray-100 dark:hover:bg-gray-200 transition-all duration-200 transform hover:scale-105">
+          <div className="flex flex-col gap-4 justify-center sm:flex-row">
+            <button className="px-8 py-3 font-semibold text-purple-600 bg-white rounded-xl transition-all duration-200 transform cursor-pointer dark:bg-gray-100 dark:text-purple-700 hover:bg-gray-100 dark:hover:bg-gray-200 hover:scale-105">
               Browse Creators
             </button>
-            <button className="border-2 border-white/30 dark:border-white/40 text-white px-8 py-3 rounded-xl font-semibold hover:bg-white/10 dark:hover:bg-white/20 transition-all duration-200">
+            <button className="px-8 py-3 font-semibold text-white rounded-xl border-2 transition-all duration-200 cursor-pointer border-white/30 dark:border-white/40 hover:bg-white/10 dark:hover:bg-white/20">
               Create Profile
             </button>
           </div>

@@ -15,7 +15,7 @@ const getAuthHeaders = (): Record<string, string> => {
 };
 
 // Get AI-generated match suggestions
-export const getSuggestions = async (): Promise<any> => {
+export const getSuggestions = async (): Promise<{ suggestions: Array<{ id: string; name: string; age: number; bio: string; photos: string[]; interests: string[]; location: string; compatibility: number }> }> => {
     const headers = getAuthHeaders();
     const res = await fetch(`${BASE_URL}/api/v1/matching/suggestions`, { method: "GET", headers });
     if (!res.ok) {
@@ -26,7 +26,7 @@ export const getSuggestions = async (): Promise<any> => {
 };
 
 // Set matching preferences
-export const setPreferences = async (preferences: any): Promise<any> => {
+export const setPreferences = async (preferences: Record<string, unknown>): Promise<{ success: boolean; message: string }> => {
     const headers = getAuthHeaders();
     const res = await fetch(`${BASE_URL}/api/v1/matching/preferences`, {
         method: "POST",
@@ -41,7 +41,7 @@ export const setPreferences = async (preferences: any): Promise<any> => {
 };
 
 // Get compatibility with a specific user
-export const getCompatibility = async (userId: string | number): Promise<any> => {
+export const getCompatibility = async (userId: string | number): Promise<{ compatibility: number; reasons: string[] }> => {
     const headers = getAuthHeaders();
     const res = await fetch(`${BASE_URL}/api/v1/matching/compatibility/${userId}`, { method: "GET", headers });
     if (!res.ok) {
@@ -52,7 +52,7 @@ export const getCompatibility = async (userId: string | number): Promise<any> =>
 };
 
 // Take action on a match (like, dislike)
-export const takeAction = async (matchId: string | number, action: string): Promise<any> => {
+export const takeAction = async (matchId: string | number, action: string): Promise<{ success: boolean; message: string }> => {
     const headers = getAuthHeaders();
     const res = await fetch(`${BASE_URL}/api/v1/matching/matches/${matchId}/action`, {
         method: "PUT",
@@ -67,7 +67,7 @@ export const takeAction = async (matchId: string | number, action: string): Prom
 };
 
 // Get match history
-export const getHistory = async (): Promise<any> => {
+export const getHistory = async (): Promise<{ history: Array<{ id: string; name: string; matchedAt: string; status: string }> }> => {
     const headers = getAuthHeaders();
     const res = await fetch(`${BASE_URL}/api/v1/matching/history`, { method: "GET", headers });
     if (!res.ok) {
@@ -78,7 +78,7 @@ export const getHistory = async (): Promise<any> => {
 };
 
 // Block a user
-export const blockUser = async (userId: string | number): Promise<any> => {
+export const blockUser = async (userId: string | number): Promise<{ success: boolean; message: string }> => {
     const headers = getAuthHeaders();
     const res = await fetch(`${BASE_URL}/api/v1/matching/block`, {
         method: "POST",

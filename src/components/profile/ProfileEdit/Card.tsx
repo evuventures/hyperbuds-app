@@ -22,13 +22,13 @@ const MOCK_NICHES = [
 export default function EditProfilePage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-  const [profile, setProfile] = useState<any>(null);
+  const [profile, setProfile] = useState<{ id: string; name: string; bio: string; avatar?: string } | null>(null);
 
   const [displayName, setDisplayName] = useState("");
   const [bio, setBio] = useState("");
   const [niches, setNiches] = useState<string[]>([]);
   const [location, setLocation] = useState({ city: "", state: "", country: "" });
-  const [socialLinks, setSocialLinks] = useState<any>({});
+  const [socialLinks, setSocialLinks] = useState<Record<string, string>>({});
   const [avatar, setAvatar] = useState<string | null>(null);
 
   const [message, setMessage] = useState("");
@@ -54,7 +54,7 @@ export default function EditProfilePage() {
         if (response.status === 200) {
           const data = await response.json();
           setProfile(data.profile);
-         
+
           setDisplayName(data.displayName || "");
           setBio(data.bio || "");
           setNiches(data.niche || []);
@@ -81,7 +81,7 @@ export default function EditProfilePage() {
   };
 
   const handleSocialChange = (platformId: string, value: string) => {
-    setSocialLinks((prev: any) => ({ ...prev, [platformId]: value }));
+    setSocialLinks((prev: Record<string, string>) => ({ ...prev, [platformId]: value }));
   };
 
   const handleAvatarUpload = async (file: File) => {
@@ -114,7 +114,7 @@ export default function EditProfilePage() {
     try {
       const token = localStorage.getItem("accessToken");
 
-      const cleanedProfile: any = {
+      const cleanedProfile: Record<string, unknown> = {
         displayName,
         bio,
         niche: niches,
@@ -235,11 +235,10 @@ export default function EditProfilePage() {
                 type="button"
                 onClick={() => handleNicheToggle(niche)}
                 disabled={!niches.includes(niche) && niches.length >= 5}
-                className={`px-4 py-2 text-sm font-medium rounded-full transition ${
-                  niches.includes(niche)
+                className={`px-4 py-2 text-sm font-medium rounded-full transition ${niches.includes(niche)
                     ? "bg-gradient-to-r from-purple-500 to-blue-500 text-white shadow-lg"
                     : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
-                }`}
+                  }`}
               >
                 {niche}
               </button>
