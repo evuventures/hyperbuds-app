@@ -24,7 +24,7 @@ function PaymentTestPage() {
                   Payment System Test Page
                </h1>
                <p className="text-gray-600 dark:text-gray-400">
-                  Test all the payment pages and components we've created
+                  Test all the payment pages and components we&39;ve created
                </p>
             </div>
 

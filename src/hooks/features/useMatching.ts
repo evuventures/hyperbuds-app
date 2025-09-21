@@ -75,7 +75,7 @@ export const useRefreshMatches = () => {
         description: `Found ${data.matches.length} new potential collaborators`,
       });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => { // Type fixed here
       toast({
         title: "Failed to refresh matches",
         description: error.message,
@@ -153,7 +153,7 @@ export const useMatchAction = () => {
         });
       }
     },
-    onError: (error: any) => {
+    onError: (error: Error) => { // Type fixed here
       toast({
         title: "Action failed",
         description: error.message,
@@ -216,7 +216,7 @@ export const useMatchFeedback = () => {
         description: "Thank you for helping us improve our matching algorithm!",
       });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => { // Type fixed here
       toast({
         title: "Failed to submit feedback",
         description: error.message,
@@ -242,7 +242,7 @@ export const useMatchPreferences = () => {
         description: "Your match suggestions will be updated based on your new preferences.",
       });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => { // Type fixed here
       toast({
         title: "Failed to update preferences",
         description: error.message,
@@ -281,7 +281,7 @@ export const useBlockUser = () => {
         description: "You won't see this user in your matches anymore.",
       });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => { // Type fixed here
       toast({
         title: "Failed to block user",
         description: error.message,

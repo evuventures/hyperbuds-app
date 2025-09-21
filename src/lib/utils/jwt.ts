@@ -52,9 +52,12 @@ export function getUserIdFromToken(token: string): string | null {
   const payload = decodeJWT(token);
   if (!payload) return null;
 
-  // Type assertion to ensure that `payload` has the required keys.
-  // This is safe because we defined `JWTPayload` to include them.
-  return (payload as JWTPayload).userId || (payload as any).sub || (payload as any).id || (payload as any).user_id || null;
+  const id = payload.userId ||
+             payload.sub ||
+             payload.id ||
+             payload.user_id;
+
+  return typeof id === 'string' ? id : null;
 }
 
 /**
@@ -64,7 +67,9 @@ export function getUserEmailFromToken(token: string): string | null {
   const payload = decodeJWT(token);
   if (!payload) return null;
 
-  return (payload as JWTPayload).email || (payload as any).email_address || null;
+  const email = payload.email || payload.email_address;
+
+  return typeof email === 'string' ? email : null;
 }
 
 /**

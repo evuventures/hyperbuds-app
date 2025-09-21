@@ -68,7 +68,7 @@ const Header = () => (
 );
 
 // Sidebar Component
-const Sidebar = ({ activeTab, onTabChange }) => {
+const Sidebar = ({  }) => {
   const menuItems = [
     { id: 'activity', icon: TrendingUp, label: 'My Activity' },
     { id: 'stats', icon: FileText, label: 'My Stats' },

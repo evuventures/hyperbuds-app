@@ -79,19 +79,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ user, activeTab, collapsed, on
     { id: 'networking', icon: UserPlus, label: 'Network' }
   ];
 
-  const getRizzScoreColor = (score: number) => {
-    if (score >= 80) return 'from-green-400 to-emerald-500';
-    if (score >= 60) return 'from-yellow-400 to-orange-500';
-    return 'from-red-400 to-pink-500';
-  };
+ 
 
-  const getSubscriptionBadge = (tier: string) => {
-    switch (tier) {
-      case 'premium': return '👑';
-      case 'pro': return '💎';
-      default: return '';
-    }
-  };
+ 
 
   const Tooltip = ({ children, content }: { children: React.ReactNode; content: string }) => (
     <div className="relative group">

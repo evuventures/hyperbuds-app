@@ -106,13 +106,9 @@ const Trending: React.FC = () => {
     return () => clearInterval(interval);
   }, [isAutoPlaying, filteredItems.length]);
 
-  const nextSlide = () => {
-    setCurrentSlide((prev) => (prev + 1) % filteredItems.length);
-  };
+  
 
-  const prevSlide = () => {
-    setCurrentSlide((prev) => (prev - 1 + filteredItems.length) % filteredItems.length);
-  };
+  
 
   const goToSlide = (index: number) => {
     setCurrentSlide(index);

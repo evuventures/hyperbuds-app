@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence, Variants } from "framer-motion";
-
+import Image from "next/image";
 interface LoaderAnimationProps {
     onComplete?: () => void;
 }
@@ -188,7 +188,7 @@ const LoaderAnimation: React.FC<LoaderAnimationProps> = ({ onComplete }) => {
                                             <div
                                                 className="w-16 h-16 rounded-full overflow-hidden border-2 border-white shadow-lg"
                                             >
-                                                <img src={avatar.imageUrl} alt={`Profile ${avatar.id}`} className="w-full h-full object-cover" />
+                                                <Image src={avatar.imageUrl} alt={`Profile ${avatar.id}`} width={200} height={200} className="w-full h-full object-cover" />
                                             </div>
                                             <motion.span
                                                 className="mt-2 font-bold text-lg text-white"

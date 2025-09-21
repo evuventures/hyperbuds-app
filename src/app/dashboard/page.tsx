@@ -20,38 +20,10 @@ const mockStats = {
 };
 
 // Mock data for recent activity
-const mockActivity = [
-  {
-    id: 1,
-    type: "match",
-    title: "New Match Found!",
-    description: "Sarah Kim wants to collaborate",
-    time: "2m ago",
-    avatar: "SK",
-    unread: true,
-  },
-  {
-    id: 2,
-    type: "collaboration",
-    title: "Collaboration Request",
-    description: "Gaming content proposal from Alex",
-    time: "15m ago",
-    avatar: "AR",
-    unread: true,
-  },
-  {
-    id: 3,
-    type: "message",
-    title: "New Message",
-    description: "Emma Chen sent you a message",
-    time: "1h ago",
-    avatar: "EC",
-    unread: false,
-  },
-];
+
 
 export const MainContent: React.FC = () => {
-  const [searchQuery, setSearchQuery] = useState("");
+  
 
   return (
     <div className="p-4 w-full min-h-screen bg-gradient-to-br from-gray-50 via-white transition-colors duration-200 to-purple-50/10 dark:from-gray-900 dark:via-gray-900 dark:to-purple-900/10 lg:p-6">

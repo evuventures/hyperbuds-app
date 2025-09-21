@@ -13,6 +13,12 @@ import type {
   ApiResponse
 } from '../../types/matching.types';
 
+// New interface to replace 'any'
+export interface UserStats {
+  totalFollowers?: number;
+  [key: string]: unknown; // Allows for other unknown properties
+}
+
 export const matchingApi = {
   // Get match suggestions
   getSuggestions: async (params?: {
@@ -47,7 +53,7 @@ export const matchingApi = {
       displayName: string;
       avatar?: string;
       niche: string[];
-      stats: Record<string, any>;
+      stats: UserStats; // Type fixed here
     };
   }> => {
     const searchParams = new URLSearchParams();

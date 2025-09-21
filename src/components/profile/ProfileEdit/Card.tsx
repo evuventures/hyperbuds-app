@@ -5,6 +5,25 @@ import { FaCamera, FaCheckCircle, FaSpinner } from "react-icons/fa";
 import { BASE_URL } from "@/config/baseUrl";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+
+// Define a type for a social media link
+interface SocialLinks {
+  [key: string]: string;
+}
+
+// Define the full user profile type based on the API response structure
+interface UserProfile {
+  username: string;
+  displayName: string;
+  bio: string;
+  niche: string[];
+  location: { city: string; state: string; country: string };
+  socialLinks: SocialLinks;
+  avatar: string | null;
+  // Allows for other properties not explicitly defined
+  [key: string]: unknown;
+}
+
 const SOCIAL_PLATFORMS = [
   { id: "tiktok", name: "TikTok", placeholder: "https://tiktok.com/@username" },
   { id: "instagram", name: "Instagram", placeholder: "https://instagram.com/username" },
@@ -23,13 +42,13 @@ const MOCK_NICHES = [
 export default function EditProfilePage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-  const [profile, setProfile] = useState<any>(null);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
 
   const [displayName, setDisplayName] = useState("");
   const [bio, setBio] = useState("");
   const [niches, setNiches] = useState<string[]>([]);
   const [location, setLocation] = useState({ city: "", state: "", country: "" });
-  const [socialLinks, setSocialLinks] = useState<any>({});
+  const [socialLinks, setSocialLinks] = useState<SocialLinks>({});
   const [avatar, setAvatar] = useState<string | null>(null);
 
   const [message, setMessage] = useState("");
@@ -53,9 +72,9 @@ export default function EditProfilePage() {
         });
 
         if (response.status === 200) {
-          const data = await response.json();
-          setProfile(data.profile);
-         
+          const data: UserProfile = await response.json();
+          setProfile(data);
+          
           setDisplayName(data.displayName || "");
           setBio(data.bio || "");
           setNiches(data.niche || []);
@@ -82,7 +101,7 @@ export default function EditProfilePage() {
   };
 
   const handleSocialChange = (platformId: string, value: string) => {
-    setSocialLinks((prev: any) => ({ ...prev, [platformId]: value }));
+    setSocialLinks((prev: SocialLinks) => ({ ...prev, [platformId]: value }));
   };
 
   const handleAvatarUpload = async (file: File) => {
@@ -115,7 +134,7 @@ export default function EditProfilePage() {
     try {
       const token = localStorage.getItem("accessToken");
 
-      const cleanedProfile: any = {
+      const cleanedProfile: Partial<UserProfile> = {
         displayName,
         bio,
         niche: niches,
@@ -145,7 +164,7 @@ export default function EditProfilePage() {
         const data = await response.json();
         setError(data.message || "Failed to update profile");
       }
-    } catch  {
+    } catch {
       setError("Network error. Try again.");
     } finally {
       setIsLoading(false);
