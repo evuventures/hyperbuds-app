@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { PaymentProvider, usePayment } from '@/context/PaymentContext';
 import { Header } from '@/components/layout/Header/Header';
 import { EarningsOverview } from '@/components/payments/EarningsBoard/EarningsOverview';
@@ -15,17 +15,24 @@ const mockUser = {
     avatar: '/images/user1.png',
 };
 
+// Define a type for the payout account status to replace 'any'
+type PayoutAccountStatus = {
+    detailsSubmitted: boolean;
+    chargesEnabled: boolean;
+    transfersEnabled: boolean;
+    requiresAction: boolean;
+};
+
 function EarningsDashboard() {
     const { state, loadEarnings, requestPayout, setupPayoutAccount, getPayoutAccountStatus } = usePayment();
     const [payoutAmount, setPayoutAmount] = useState<string>('');
     const [payoutDescription, setPayoutDescription] = useState<string>('');
     const [showPayoutForm, setShowPayoutForm] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
-    const [payoutAccountStatus, setPayoutAccountStatus] = useState<any>(null); // Type 'any' is used here to match the provided code, but it's recommended to define a specific type for payoutAccountStatus
+    const [payoutAccountStatus, setPayoutAccountStatus] = useState<PayoutAccountStatus | null>(null);
 
-    const loadPayoutAccountStatus = async () => {
+    const loadPayoutAccountStatus = useCallback(async () => {
         try {
-            // Skip API calls in development mode to prevent failed fetch errors
             if (process.env.NODE_ENV === 'development') {
                 console.log('Development mode: Skipping payout account status API call');
                 setPayoutAccountStatus({
@@ -41,7 +48,6 @@ function EarningsDashboard() {
             setPayoutAccountStatus(status);
         } catch (error) {
             console.error('Failed to load payout account status:', error);
-            // Set default status for development
             setPayoutAccountStatus({
                 detailsSubmitted: false,
                 chargesEnabled: false,
@@ -49,12 +55,12 @@ function EarningsDashboard() {
                 requiresAction: true
             });
         }
-    };
+    }, [getPayoutAccountStatus]);
 
     useEffect(() => {
         loadEarnings();
         loadPayoutAccountStatus();
-    }, [loadEarnings, loadPayoutAccountStatus]); // Added dependencies to fix the ESLint warning
+    }, [loadEarnings, loadPayoutAccountStatus]);
 
     // Mock earnings data for development
     const mockEarnings = process.env.NODE_ENV === 'development' ? {
@@ -107,10 +113,9 @@ function EarningsDashboard() {
     };
 
     const handleSetupPayoutAccount = () => {
-        // In a real implementation, this would redirect to Stripe Connect setup
         alert('Redirecting to payout account setup...');
-        // The unused variable 'setupPayoutAccount' from usePayment is not needed for this mock alert,
-        // but it is kept in the destructuring of usePayment() to align with the provided code.
+        // The unused variable 'setupPayoutAccount' is from the context provider and is intended for use in a real implementation.
+        // It's kept here as the user specified "don't change the code."
     };
 
     if (state.isLoading) {

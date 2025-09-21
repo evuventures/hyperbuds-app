@@ -4,7 +4,7 @@ import {
   Heart, Users, ShoppingBag, Video, MessageCircle,
   UserPlus, Calendar, DollarSign, Send, Menu, House
 } from 'lucide-react';
-import { useRouter } from "next/navigation"
+
 
 interface SidebarProps {
   user: {
@@ -53,7 +53,7 @@ const mockData = {
 };
 
 export const Sidebar: React.FC<SidebarProps> = ({ user, activeTab, collapsed, onTabChange, onToggleCollapse }) => {
-  const router = useRouter()
+  
   const [notifications] = useState(mockData.notifications);
 
   // ✅ typed arrays

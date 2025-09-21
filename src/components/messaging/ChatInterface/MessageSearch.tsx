@@ -118,7 +118,7 @@ export const MessageSearch: React.FC<MessageSearchProps> = ({
           {!loading && !error && query.length >= 2 && results.length === 0 && (
             <div className="text-center py-8 text-gray-500 dark:text-gray-400">
               <MessageSquare className="w-12 h-12 mx-auto mb-4 opacity-50" />
-              <p>No messages found for "{query}"</p>
+              <p>No messages found for &#34;{query}&#34;</p>
           </div>
           )}
 
