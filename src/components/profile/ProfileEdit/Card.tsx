@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { FaCamera, FaCheckCircle, FaSpinner } from "react-icons/fa";
 import { BASE_URL } from "@/config/baseUrl";
 import { useRouter } from "next/navigation";
-
+import Image from "next/image";
 const SOCIAL_PLATFORMS = [
   { id: "tiktok", name: "TikTok", placeholder: "https://tiktok.com/@username" },
   { id: "instagram", name: "Instagram", placeholder: "https://instagram.com/username" },
@@ -18,6 +18,7 @@ const MOCK_NICHES = [
   "beauty", "gaming", "music", "fitness", "food", "travel", "fashion", "tech",
   "comedy", "education", "lifestyle", "art", "dance", "sports", "business", "health", "other"
 ];
+
 
 export default function EditProfilePage() {
   const router = useRouter();
@@ -144,7 +145,7 @@ export default function EditProfilePage() {
         const data = await response.json();
         setError(data.message || "Failed to update profile");
       }
-    } catch (err) {
+    } catch  {
       setError("Network error. Try again.");
     } finally {
       setIsLoading(false);
@@ -175,7 +176,7 @@ export default function EditProfilePage() {
           <div className="flex items-center gap-4">
             <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-100 dark:bg-gray-700 flex items-center justify-center shadow-lg">
               {avatar ? (
-                <img src={avatar} alt="avatar" className="w-full h-full object-cover" />
+                <Image src={avatar} alt="avatar" className="w-full h-full object-cover" />
               ) : (
                 <FaCamera className="text-gray-400 w-8 h-8" />
               )}

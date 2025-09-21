@@ -254,14 +254,17 @@ export function EmptyState({
    );
 }
 
-export default {
-   PaymentFormSkeleton,
-   PaymentMethodsSkeleton,
-   PricingPlansSkeleton,
-   BillingHistorySkeleton,
-   SubscriptionCardSkeleton,
-   LoadingSpinner,
-   LoadingButton,
-   ErrorState,
-   EmptyState,
+const LoadingStates = {
+  PaymentFormSkeleton,
+  PaymentMethodsSkeleton,
+  PricingPlansSkeleton,
+  BillingHistorySkeleton,
+  SubscriptionCardSkeleton,
+  LoadingSpinner,
+  LoadingButton,
+  ErrorState,
+  EmptyState,
 };
+
+
+export default LoadingStates;

@@ -7,9 +7,7 @@ import type {
   MatchFilters, 
   RizzScore,
   SwipeAction,
-  MatchPreferences,
-  MatchNotification,
-  CreatorProfile
+  
 } from '../types/matching.types';
 
 interface MatchingState {

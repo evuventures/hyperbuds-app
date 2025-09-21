@@ -4,11 +4,9 @@ import React from 'react';
 import Link from 'next/link';
 import {
    CreditCard,
-   DollarSign,
    History,
    Settings,
    TrendingUp,
-   FileText
 } from 'lucide-react';
 
 export function PaymentNavigation() {

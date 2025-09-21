@@ -41,7 +41,7 @@ class TokenRefreshService {
    private async checkTokenStatus() {
       if (!this.options) return;
 
-      const { refreshToken, onTokenRefresh, onTokenExpired } = this.options;
+      const { refreshToken, onTokenExpired } = this.options;
 
       try {
          // Check if current token is valid

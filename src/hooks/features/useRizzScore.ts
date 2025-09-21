@@ -3,7 +3,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { matchingApi } from '../../lib/api/matching.api';
 import { useToast } from '../ui/useToast';
-import type { RizzScore, LeaderboardQuery } from '../../types/matching.types';
+import type {LeaderboardQuery} from '../../types/matching.types';
 
 
 
@@ -181,7 +181,7 @@ export const useRizzScoreAnalytics = () => {
 };
 
 // Hook for comparing Rizz Scores
-export const useRizzScoreComparison = (targetUserId?: string) => {
+export const useRizzScoreComparison = () => {
   const { data: myScore } = useRizzScore();
   
   // In a real app, you'd fetch the target user's public score

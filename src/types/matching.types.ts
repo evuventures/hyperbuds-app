@@ -272,7 +272,6 @@ export interface LocationFilter {
 
 // Score history entry for analytics
 export interface ScoreHistoryEntry {
-    
   score: number;
   date: string;
   factors: {
@@ -311,7 +310,6 @@ export interface RizzFactors {
     originality: number;
   };
 }
-
 
 
 // Match metadata for AI algorithm insights
@@ -429,7 +427,7 @@ export interface MatchActionResponse extends ApiResponse {
 export interface MatchingError {
   code: string;
   message: string;
-  details?: Record<string, any>;
+  details?: Record<string, unknown>; // FIXED: Replaced 'any' with 'unknown'
   timestamp: string;
 }
 
@@ -451,7 +449,7 @@ export interface AlgorithmPreferences {
 // Types for real-time features
 export interface RealtimeMatchEvent {
   type: 'new-match' | 'mutual-match' | 'match-expired' | 'profile-updated';
-  data: any;
+  data: unknown; // FIXED: Replaced 'any' with 'unknown'
   timestamp: string;
 }
 

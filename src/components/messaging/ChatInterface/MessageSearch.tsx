@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { Search, X, MessageSquare, User, Calendar } from 'lucide-react';
+import { Search, X, MessageSquare, User} from 'lucide-react';
 import { MessageSearchResult } from '@/types/messaging.types';
 import { formatMessageTimestamp } from '@/lib/utils/messageMappers';
 
@@ -53,7 +53,7 @@ export const MessageSearch: React.FC<MessageSearchProps> = ({
       onMessageClick(conversationId, messageId);
       onClose();
    };
-
+   
    const getConversationName = (conversation: any) => {
       if (conversation.participants && conversation.participants.length > 0) {
          return conversation.participants[0].email || 'Unknown User';
@@ -111,7 +111,7 @@ export const MessageSearch: React.FC<MessageSearchProps> = ({
                {!loading && !error && query.length >= 2 && results.length === 0 && (
                   <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                      <MessageSquare className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                     <p>No messages found for "{query}"</p>
+                     <p>No messages found for &34;{query}&34;</p>
                   </div>
                )}
 

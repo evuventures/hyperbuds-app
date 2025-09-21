@@ -10,7 +10,7 @@ interface BillingHistoryProps {
 }
 
 export function BillingHistory({ className = '' }: BillingHistoryProps) {
-   const { state } = usePayment();
+  
    const [payments, setPayments] = useState<PaymentHistoryItem[]>([]);
    const [pagination, setPagination] = useState({
       total: 0,

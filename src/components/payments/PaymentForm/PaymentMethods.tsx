@@ -2,7 +2,7 @@
 
 import React, { useEffect } from 'react';
 import { usePayment } from '@/context/PaymentContext';
-import { PaymentMethod } from '@/types/payment.types';
+
 
 interface PaymentMethodsProps {
    selectedMethod: string | null;

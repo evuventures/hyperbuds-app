@@ -1,6 +1,6 @@
 // src/hooks/features/useMatching.ts
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { matchingApi } from '../../lib/api/matching.api';
 import { useToast } from '../ui/useToast';
@@ -10,11 +10,19 @@ import type {
   CompatibilityQuery,
   MatchAction,
   MatchFeedback,
-  
   MatchFilters,
   SwipeResult,
-  
 } from '../../types/matching.types';
+
+// Define a type for the data returned by the suggestions API
+type SuggestionsData = {
+  matches: MatchSuggestion[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+  };
+};
 
 // Query Keys
 const MATCHING_KEYS = {
@@ -32,8 +40,8 @@ export const useMatchSuggestions = (params?: {
   enabled?: boolean;
 }) => {
   const { page = 1, limit = 10, enabled = true } = params || {};
-  
-  return useQuery({
+
+  return useQuery<SuggestionsData>({
     queryKey: [...MATCHING_KEYS.suggestions, page, limit],
     queryFn: () => matchingApi.getSuggestions({ page, limit }),
     enabled,
@@ -51,14 +59,23 @@ export const useRefreshMatches = () => {
     mutationFn: (params?: { limit?: number }) =>
       matchingApi.getSuggestions({ ...params, refresh: true }),
     onSuccess: (data) => {
-      // Update the cache with new suggestions
-      queryClient.setQueryData(MATCHING_KEYS.suggestions, data);
+      // Update the cache with new suggestions, using the correct type
+      queryClient.setQueryData(
+        MATCHING_KEYS.suggestions,
+        (old: SuggestionsData | undefined) => {
+          if (!old) return data;
+          return {
+            ...old,
+            matches: [...old.matches, ...data.matches],
+          };
+        }
+      );
       toast({
         title: "Matches refreshed!",
         description: `Found ${data.matches.length} new potential collaborators`,
       });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast({
         title: "Failed to refresh matches",
         description: error.message,
@@ -107,15 +124,18 @@ export const useMatchAction = () => {
       matchingApi.updateMatchStatus(matchId, action),
     onSuccess: (data, variables) => {
       // Update suggestions cache by removing the acted-upon match
-      queryClient.setQueryData(MATCHING_KEYS.suggestions, (old: any) => {
-        if (!old) return old;
-        return {
-          ...old,
-          matches: old.matches.filter((match: MatchSuggestion) => 
-            match._id !== variables.matchId
-          ),
-        };
-      });
+      queryClient.setQueryData(
+        MATCHING_KEYS.suggestions,
+        (old: SuggestionsData | undefined) => {
+          if (!old) return old;
+          return {
+            ...old,
+            matches: old.matches.filter(
+              (match: MatchSuggestion) => match._id !== variables.matchId
+            ),
+          };
+        }
+      );
 
       // Invalidate history to show updated status
       queryClient.invalidateQueries({ queryKey: MATCHING_KEYS.history });
@@ -133,7 +153,7 @@ export const useMatchAction = () => {
         });
       }
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast({
         title: "Action failed",
         description: error.message,
@@ -148,29 +168,32 @@ export const useSwipeActions = () => {
   const matchAction = useMatchAction();
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const handleSwipe = useCallback(async (
-    matchId: string, 
-    action: 'like' | 'pass' | 'super-like'
-  ): Promise<SwipeResult> => {
-    setIsProcessing(true);
-    
-    try {
-      const apiAction: MatchAction = {
-        action: action === 'super-like' ? 'like' : action,
-        feedback: action === 'super-like' ? { rating: 5 } : undefined,
-      };
+  const handleSwipe = useCallback(
+    async (
+      matchId: string,
+      action: 'like' | 'pass' | 'super-like'
+    ): Promise<SwipeResult> => {
+      setIsProcessing(true);
 
-      const result = await matchAction.mutateAsync({ matchId, action: apiAction });
-      
-      return {
-        action,
-        matchId,
-        isMutual: result.isMutual,
-      };
-    } finally {
-      setIsProcessing(false);
-    }
-  }, [matchAction]);
+      try {
+        const apiAction: MatchAction = {
+          action: action === 'super-like' ? 'like' : action,
+          feedback: action === 'super-like' ? { rating: 5 } : undefined,
+        };
+
+        const result = await matchAction.mutateAsync({ matchId, action: apiAction });
+
+        return {
+          action,
+          matchId,
+          isMutual: result.isMutual,
+        };
+      } finally {
+        setIsProcessing(false);
+      }
+    },
+    [matchAction]
+  );
 
   return {
     handleSwipe,
@@ -193,7 +216,7 @@ export const useMatchFeedback = () => {
         description: "Thank you for helping us improve our matching algorithm!",
       });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast({
         title: "Failed to submit feedback",
         description: error.message,
@@ -219,7 +242,7 @@ export const useMatchPreferences = () => {
         description: "Your match suggestions will be updated based on your new preferences.",
       });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast({
         title: "Failed to update preferences",
         description: error.message,
@@ -237,25 +260,28 @@ export const useBlockUser = () => {
   return useMutation({
     mutationFn: (userId: string) => matchingApi.blockUser(userId),
     onSuccess: (_, userId) => {
-      // Remove blocked user from all cached data
-      queryClient.setQueryData(MATCHING_KEYS.suggestions, (old: any) => {
-        if (!old) return old;
-        return {
-          ...old,
-          matches: old.matches.filter((match: MatchSuggestion) => 
-            match.targetUserId !== userId
-          ),
-        };
-      });
+      // Remove blocked user from all cached data, using the correct type
+      queryClient.setQueryData(
+        MATCHING_KEYS.suggestions,
+        (old: SuggestionsData | undefined) => {
+          if (!old) return old;
+          return {
+            ...old,
+            matches: old.matches.filter(
+              (match: MatchSuggestion) => match._id !== userId
+            ),
+          };
+        }
+      );
 
       queryClient.invalidateQueries({ queryKey: MATCHING_KEYS.history });
-      
+
       toast({
         title: "User blocked",
         description: "You won't see this user in your matches anymore.",
       });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast({
         title: "Failed to block user",
         description: error.message,
@@ -280,53 +306,52 @@ export const useMatchFilters = (initialFilters: MatchFilters = {}) => {
 
   // Enhanced active filters detection
   const hasActiveFilters = useCallback(() => {
-    return Object.entries(filters).some(([key, value]) => {
+    return Object.values(filters).some(value => {
       if (!value) return false;
-      
+
       if (Array.isArray(value)) {
         return value.length > 0;
       }
-      
+
       if (typeof value === 'object' && value !== null) {
         if ('min' in value && 'max' in value) {
-          // For range filters, check if they differ from defaults
-          return true; // You might want to compare against initial values
+          return true;
         }
         return Object.keys(value).length > 0;
       }
-      
+
       if (typeof value === 'boolean') {
         return value === true;
       }
-      
+
       if (typeof value === 'string') {
         return value !== '' && value !== 'any';
       }
-      
+
       return false;
     });
   }, [filters]);
 
   const getActiveFilterCount = useCallback(() => {
-    return Object.entries(filters).reduce((count, [key, value]) => {
+    return Object.values(filters).reduce((count, value) => {
       if (!value) return count;
-      
+
       if (Array.isArray(value)) {
         return count + (value.length > 0 ? 1 : 0);
       }
-      
+
       if (typeof value === 'object' && value !== null) {
         return count + (Object.keys(value).length > 0 ? 1 : 0);
       }
-      
+
       if (typeof value === 'boolean') {
         return count + (value ? 1 : 0);
       }
-      
+
       if (typeof value === 'string') {
         return count + (value !== '' && value !== 'any' ? 1 : 0);
       }
-      
+
       return count;
     }, 0);
   }, [filters]);
@@ -357,7 +382,7 @@ export const useMatching = () => {
     isLoading: suggestions.isLoading,
     error: suggestions.error,
     pagination: suggestions.data?.pagination,
-    
+
     // Actions
     refreshMatches: refreshMatches.mutate,
     isRefreshing: refreshMatches.isPending,
@@ -365,10 +390,10 @@ export const useMatching = () => {
     handleSwipe: swipeActions.handleSwipe,
     isProcessingSwipe: swipeActions.isProcessing,
     blockUser: blockUser.mutate,
-    
+
     // Filters
     ...matchFilters,
-    
+
     // Refetch
     refetch: suggestions.refetch,
   };
