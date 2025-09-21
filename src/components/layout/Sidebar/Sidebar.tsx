@@ -94,9 +94,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ user, activeTab, collapsed, on
     </div>
   );
 
-  function handleClick(link: string) {
-    router.push(link)
-  }
+  
 
   return (
     <div className={`${collapsed ? 'w-16' : 'w-60'} border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 h-[90vh] overflow-y-auto [&::-webkit-scrollbar]:hidden transition-all duration-300 relative  `}>

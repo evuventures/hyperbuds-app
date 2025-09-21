@@ -20,9 +20,7 @@ interface MatchingInterfaceProps {
 const MatchingInterface: React.FC<MatchingInterfaceProps> = ({
   // userProfile, // not used yet but kept for future header/profile panel
   matches,
-  
   handleAction,
-  
 }) => {
   const [currentMatchIndex, setCurrentMatchIndex] = useState(0);
   const [showFilters, setShowFilters] = useState(false);
@@ -31,7 +29,7 @@ const MatchingInterface: React.FC<MatchingInterfaceProps> = ({
   const cardRef = useRef<HTMLDivElement | null>(null);
   const currentMatch = matches[currentMatchIndex];
 
-  const advanceIndex = (removedId?: string) => {
+  const advanceIndex = () => {
     // Keep index in range after parent removes a match
     setCurrentMatchIndex((prev) => {
       const nextLen = matches.length > 0 ? matches.length : 1;
@@ -44,7 +42,7 @@ const MatchingInterface: React.FC<MatchingInterfaceProps> = ({
     if (!currentMatch) return;
     const action = direction === "right" ? "like" : "pass";
     await handleAction(currentMatch._id, action);
-    advanceIndex(currentMatch._id);
+    advanceIndex();
   };
 
   const handleDragEnd = (_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {

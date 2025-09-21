@@ -21,7 +21,7 @@ function EarningsDashboard() {
     const [payoutDescription, setPayoutDescription] = useState<string>('');
     const [showPayoutForm, setShowPayoutForm] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
-    const [payoutAccountStatus, setPayoutAccountStatus] = useState<any>(null);
+    const [payoutAccountStatus, setPayoutAccountStatus] = useState<any>(null); // Type 'any' is used here to match the provided code, but it's recommended to define a specific type for payoutAccountStatus
 
     const loadPayoutAccountStatus = async () => {
         try {
@@ -54,7 +54,7 @@ function EarningsDashboard() {
     useEffect(() => {
         loadEarnings();
         loadPayoutAccountStatus();
-    }, []); // Empty dependency array to run only once
+    }, [loadEarnings, loadPayoutAccountStatus]); // Added dependencies to fix the ESLint warning
 
     // Mock earnings data for development
     const mockEarnings = process.env.NODE_ENV === 'development' ? {
@@ -109,6 +109,8 @@ function EarningsDashboard() {
     const handleSetupPayoutAccount = () => {
         // In a real implementation, this would redirect to Stripe Connect setup
         alert('Redirecting to payout account setup...');
+        // The unused variable 'setupPayoutAccount' from usePayment is not needed for this mock alert,
+        // but it is kept in the destructuring of usePayment() to align with the provided code.
     };
 
     if (state.isLoading) {

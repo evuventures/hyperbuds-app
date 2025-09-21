@@ -1,7 +1,7 @@
 'use client'
 
 import DashboardLayout from "@/components/layout/Dashboard/Dashboard";
-import { useState} from "react";
+import React from "react";
 import Card from "@/components/profile/ProfileEdit/Card"; 
 
 export default function EditProfilePage() {
