@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { usePayment } from '@/context/PaymentContext';
-import { PayoutHistoryItem } from '@/types/payment.types';
+import { PayoutItem } from '@/types/payment.types';
 
 interface PayoutScheduleProps {
    className?: string;
@@ -10,7 +10,7 @@ interface PayoutScheduleProps {
 
 export function PayoutSchedule({ className = '' }: PayoutScheduleProps) {
    const { loadPayoutHistory } = usePayment();
-   const [payouts, setPayouts] = useState<PayoutHistoryItem[]>([]);
+   const [payouts, setPayouts] = useState<PayoutItem[]>([]);
    const [isLoading, setIsLoading] = useState(false);
    const [error, setError] = useState<string | null>(null);
 

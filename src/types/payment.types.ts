@@ -164,7 +164,7 @@ export interface PayoutItem {
     _id: string;
     amount: number;
     currency: string;
-    status: 'processing' | 'paid' | 'failed' | 'canceled';
+    status: 'processing' | 'paid' | 'failed' | 'canceled'| 'pending';
     type: string;
     createdAt: string;
     estimatedArrival?: string;
