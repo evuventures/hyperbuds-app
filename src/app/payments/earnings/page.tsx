@@ -24,7 +24,7 @@ type PayoutAccountStatus = {
 };
 
 function EarningsDashboard() {
-    const { state, loadEarnings, requestPayout, setupPayoutAccount, getPayoutAccountStatus } = usePayment();
+    const { state, loadEarnings, requestPayout,  getPayoutAccountStatus } = usePayment();
     const [payoutAmount, setPayoutAmount] = useState<string>('');
     const [payoutDescription, setPayoutDescription] = useState<string>('');
     const [showPayoutForm, setShowPayoutForm] = useState(false);
