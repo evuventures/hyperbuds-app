@@ -90,7 +90,7 @@ class StripeService {
    }
 
    
-   async createPaymentMethod(cardElement: StripeCardElement, billingDetails?: any) {
+   async createPaymentMethod(cardElement: StripeCardElement, billingDetails?: unknown) {
       const stripe = await this.initialize();
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return (stripe as any).createPaymentMethod({
