@@ -1,6 +1,6 @@
 import React from 'react'
 import DashboardLayout from '@/components/layout/Dashboard/Dashboard';
-import { MainContent } from "@/app/dashboard/page";
+import MainContent  from "@/app/dashboard/page";
 const page = () => {
   return (
     <div >
