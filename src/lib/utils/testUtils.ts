@@ -39,6 +39,7 @@ export const mockPricingPlans: PricingPlan[] = [
       interval: 'month',
       priceId: 'price_basic_monthly',
       description: 'Best for individuals getting started.',
+      desc: 'Best for individuals getting started.',
       features: ['✔ 5 Projects', '✔ Basic Support', '✔ Limited Features'],
       tier: 'basic',
    },
@@ -50,6 +51,7 @@ export const mockPricingPlans: PricingPlan[] = [
       interval: 'month',
       priceId: 'price_premium_monthly',
       description: 'Perfect for growing teams.',
+      desc: 'Perfect for growing teams.',
       features: ['✔ Unlimited Projects', '✔ Priority Support', '✔ Advanced Features'],
       tier: 'premium',
       popular: true,
@@ -62,6 +64,7 @@ export const mockPricingPlans: PricingPlan[] = [
       interval: 'month',
       priceId: 'price_enterprise_monthly',
       description: 'Tailored solutions for businesses.',
+      desc: 'Tailored solutions for businesses.',
       features: ['✔ Dedicated Support', '✔ Custom Integrations', '✔ SLA & Compliance'],
       tier: 'enterprise',
    },
@@ -274,28 +277,28 @@ export class PaymentTestUtils {
    // Mock Stripe Elements
    static createMockStripeElement() {
       return {
-         mount: jest.fn(),
-         on: jest.fn(),
-         destroy: jest.fn(),
-         createToken: jest.fn().mockResolvedValue({ token: { id: 'tok_test' } }),
+         mount: () => { },
+         on: () => { },
+         destroy: () => { },
+         createToken: () => Promise.resolve({ token: { id: 'tok_test' } }),
       };
    }
 
    // Mock Stripe instance
    static createMockStripe() {
       return {
-         elements: jest.fn().mockReturnValue({
-            create: jest.fn().mockReturnValue(this.createMockStripeElement()),
+         elements: () => ({
+            create: () => this.createMockStripeElement(),
          }),
-         createPaymentMethod: jest.fn().mockResolvedValue({
+         createPaymentMethod: () => Promise.resolve({
             paymentMethod: { id: 'pm_test' },
             error: null,
          }),
-         confirmPayment: jest.fn().mockResolvedValue({
+         confirmPayment: () => Promise.resolve({
             paymentIntent: { status: 'succeeded' },
             error: null,
          }),
-         retrievePaymentIntent: jest.fn().mockResolvedValue({
+         retrievePaymentIntent: () => Promise.resolve({
             paymentIntent: { status: 'succeeded' },
             error: null,
          }),
@@ -315,17 +318,17 @@ export const useMockPaymentContext = () => {
          subscription: null,
          earnings: null,
       },
-      createPaymentIntent: jest.fn().mockResolvedValue(undefined),
-      confirmPayment: jest.fn().mockResolvedValue(undefined),
-      createSubscription: jest.fn().mockResolvedValue(undefined),
-      updateSubscription: jest.fn().mockResolvedValue(undefined),
-      cancelSubscription: jest.fn().mockResolvedValue(undefined),
-      loadPaymentMethods: jest.fn().mockResolvedValue(undefined),
-      deletePaymentMethod: jest.fn().mockResolvedValue(undefined),
-      loadEarnings: jest.fn().mockResolvedValue(undefined),
-      clearError: jest.fn(),
-      clearPaymentIntent: jest.fn(),
-      resetState: jest.fn(),
+      createPaymentIntent: () => Promise.resolve(undefined),
+      confirmPayment: () => Promise.resolve(undefined),
+      createSubscription: () => Promise.resolve(undefined),
+      updateSubscription: () => Promise.resolve(undefined),
+      cancelSubscription: () => Promise.resolve(undefined),
+      loadPaymentMethods: () => Promise.resolve(undefined),
+      deletePaymentMethod: () => Promise.resolve(undefined),
+      loadEarnings: () => Promise.resolve(undefined),
+      clearError: () => { },
+      clearPaymentIntent: () => { },
+      resetState: () => { },
    };
 };
 
