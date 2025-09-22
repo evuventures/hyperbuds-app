@@ -22,7 +22,7 @@ const mockStats = {
 // Mock data for recent activity
 
 
-export const MainContent: React.FC = () => {
+ const MainContent: React.FC = () => {
   
 
   return (
@@ -99,3 +99,4 @@ export const MainContent: React.FC = () => {
     </div>
   );
 };
+export default MainContent;
