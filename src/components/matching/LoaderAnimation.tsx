@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence, Variants } from "framer-motion";
-
+import Image from "next/image";
 interface LoaderAnimationProps {
     onComplete?: () => void;
 }
@@ -100,10 +100,10 @@ const LoaderAnimation: React.FC<LoaderAnimationProps> = ({ onComplete }) => {
 
     // Updated mock data with image URLs
     const mockAvatars = [
-        { id: 1, score: 88, imageUrl: "https://placehold.co/64x64/E0E7FF/000000?text=AI" },
-        { id: 2, score: 92, imageUrl: "https://placehold.co/64x64/BFBFBF/000000?text=BT" },
-        { id: 3, score: 95, imageUrl: "https://placehold.co/64x64/E0A0E0/000000?text=MK" },
-        { id: 4, score: 79, imageUrl: "https://placehold.co/64x64/A0E0A0/000000?text=AE" },
+        { id: 1, score: 88, imageUrl: "/images/animation/Ellipse 1.png" },
+        { id: 2, score: 92, imageUrl: "/images/animation/Ellipse 2.png" },
+        { id: 3, score: 95, imageUrl: "/images/animation/Ellipse 3.png" },
+        { id: 4, score: 79, imageUrl: "/images/animation/Ellipse 5.png" },
     ];
 
     return (
@@ -188,7 +188,7 @@ const LoaderAnimation: React.FC<LoaderAnimationProps> = ({ onComplete }) => {
                                             <div
                                                 className="w-16 h-16 rounded-full overflow-hidden border-2 border-white shadow-lg"
                                             >
-                                                <img src={avatar.imageUrl} alt={`Profile ${avatar.id}`} className="w-full h-full object-cover" />
+                                                <Image src={avatar.imageUrl} alt={`Profile ${avatar.id}`} width={40} height={40} className="w-full h-full object-cover" />
                                             </div>
                                             <motion.span
                                                 className="mt-2 font-bold text-lg text-white"
