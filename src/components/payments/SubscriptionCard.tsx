@@ -64,7 +64,7 @@ export function SubscriptionCard({ subscription, onUpdate, onCancel, isLoading =
          <div className="flex items-center justify-between mb-4">
             <div>
                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  {getTierDisplayName(subscription.subscription.tier)} Subscription
+                  {getTierDisplayName(subscription.subscription?.tier ?? '')} Subscription
                </h3>
                <p className="text-sm text-gray-600 dark:text-gray-400">
                   Subscription ID: {subscription.subscriptionId}
@@ -81,14 +81,14 @@ export function SubscriptionCard({ subscription, onUpdate, onCancel, isLoading =
             <div className="flex justify-between items-center">
                <span className="text-sm text-gray-600 dark:text-gray-400">Current Period End:</span>
                <span className="text-sm font-medium text-gray-900 dark:text-white">
-                  {formatDate(subscription.subscription.currentPeriodEnd)}
+                  {subscription.subscription?.currentPeriodEnd ? formatDate(subscription.subscription.currentPeriodEnd) : 'N/A'}
                </span>
             </div>
 
             <div className="flex justify-between items-center">
                <span className="text-sm text-gray-600 dark:text-gray-400">Tier:</span>
                <span className="text-sm font-medium text-gray-900 dark:text-white">
-                  {getTierDisplayName(subscription.subscription.tier)}
+                  {getTierDisplayName(subscription.subscription?.tier ?? '')}
                </span>
             </div>
          </div>

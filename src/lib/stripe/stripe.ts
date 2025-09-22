@@ -1,10 +1,6 @@
 import { Stripe, StripeElements, StripeCardElement } from '@/types/payment.types';
 
-declare global {
-   interface Window {
-      Stripe: Stripe;
-   }
-}
+
 
 class StripeService {
    private stripe: Stripe | null = null;
@@ -70,7 +66,7 @@ class StripeService {
             },
          },
          ...options,
-      });
+      }) as StripeCardElement;
    }
 
    async confirmPayment(options: {
@@ -81,19 +77,19 @@ class StripeService {
             billing_details?: {
                name?: string;
                email?: string;
-               // eslint-disable-next-line @typescript-eslint/no-explicit-any
-               address?: any;
+               
+               address?: Record<string, unknown>;
             };
          };
       };
       redirect: string;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-   }): Promise<{ error?: any; paymentIntent?: any }> {
+      
+   }): Promise<{ error?: unknown; paymentIntent?: unknown }> {
       const stripe = await this.initialize();
-      return stripe.confirmPayment(options);
+      return stripe.confirmPayment(options) as { error?: unknown; paymentIntent?: unknown};
    }
 
-   // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
    async createPaymentMethod(cardElement: StripeCardElement, billingDetails?: any) {
       const stripe = await this.initialize();
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
