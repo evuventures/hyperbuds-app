@@ -81,7 +81,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <ThemeProvider>
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 transition-colors duration-200 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 transition-colors duration-200 overflow-y-clip dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
         {/* Mobile Header */}
         <div className="fixed top-0 right-0 left-0 z-50 border-b shadow-sm backdrop-blur-lg lg:hidden bg-white/95 dark:bg-gray-900/95 border-gray-200/50 dark:border-gray-700/50">
           <div className="flex justify-between items-center px-4 py-3">
@@ -121,7 +121,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
 
         {/* Main Dashboard Container */}
-        <div className="flex overflow-hidden pt-16 h-[90vh] lg:pt-0">
+        <div className="flex overflow-hidden pt-16 lg:h-[90vh] lg:pt-0">
           {/* Sidebar */}
           <div
             className={`
@@ -159,7 +159,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           {/* Content */}
           <div className="flex flex-col w-full min-w-0">
             <div className="flex overflow-hidden">
-              <main className="flex-1 overflow-y-auto [&::-webkit-scrollbar]:hidden transition-colors duration-200">
+              <main className="flex-1 overflow-auto [&::-webkit-scrollbar]:hidden transition-colors duration-200">
                 <div className=" max-w-full h-[90vh]">
                   <div className="w-full min-h-full">
                     {children}
@@ -205,6 +205,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           />
         )}
       </div>
-    </ThemeProvider>
+    </ThemeProvider >
   );
 }

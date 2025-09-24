@@ -83,9 +83,9 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
       return (
          <div
             key={message.id}
-            className={`flex ${isOwn ? 'justify-end' : 'justify-start'} mb-4 group`}
+            className={`flex ${isOwn ? 'justify-end' : 'justify-start'} mb-3 md:mb-4 group`}
          >
-            <div className={`flex gap-3  ${isOwn ? 'flex-row-reverse' : 'flex-row'}`}>
+            <div className={`flex gap-2 md:gap-3 max-w-[85%] md:max-w-[70%] ${isOwn ? 'flex-row-reverse' : 'flex-row'}`}>
                {/* Avatar (only for other messages) */}
                {!isOwn && (
                   <div className="flex-shrink-0">
@@ -95,10 +95,10 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
                            alt={message.sender.name}
                            width={32}
                            height={32}
-                           className="object-cover w-8 h-8 rounded-full"
+                           className="object-cover w-6 h-6 rounded-full md:w-8 md:h-8"
                         />
                      ) : (
-                        <div className="flex justify-center items-center w-8 h-8 bg-gradient-to-br from-gray-400 to-gray-600 rounded-full">
+                        <div className="flex justify-center items-center w-6 h-6 bg-gradient-to-br from-gray-400 to-gray-600 rounded-full md:w-8 md:h-8">
                            <span className="text-xs font-medium text-white">
                               {message.sender.name.split(' ').map(n => n[0]).join('').substring(0, 2)}
                            </span>
@@ -123,7 +123,7 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
 
                   {/* Message bubble */}
                   <div
-                     className={`px-4 py-2 rounded-2xl relative group/message ${isOwn
+                     className={`px-3 py-2 md:px-4 md:py-2 rounded-2xl relative group/message ${isOwn
                         ? 'text-white bg-gradient-to-r from-blue-500 to-purple-600'
                         : 'text-gray-900 bg-gray-100 dark:bg-gray-800 dark:text-white'
                         }`}
@@ -282,30 +282,32 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
             </div>
          </div>
       );
-   };
+   }
 
    if (loading) {
       return (
-         <div className="overflow-y-auto flex-1 p-6 bg-gray-50 dark:bg-gray-900">
-            <div className="space-y-4">
-               {[...Array(5)].map((_, i) => (
-                  <div key={i} className={`flex ${i % 2 === 0 ? 'justify-start' : 'justify-end'}`}>
-                     <div className="flex gap-3 max-w-[70%]">
-                        {i % 2 === 0 && (
-                           <div className="w-8 h-8 bg-gray-300 rounded-full animate-pulse dark:bg-gray-700"></div>
-                        )}
-                        <div className="flex-1">
-                           <div className={`px-4 py-3 rounded-2xl ${i % 2 === 0
-                              ? 'bg-gray-200 dark:bg-gray-800'
-                              : 'bg-blue-200 dark:bg-blue-800'
-                              } animate-pulse`}>
-                              <div className="mb-2 h-4 bg-gray-300 rounded dark:bg-gray-600"></div>
-                              <div className="w-3/4 h-3 bg-gray-300 rounded dark:bg-gray-600"></div>
+         <div className="flex flex-col p-6 h-full bg-gray-50 dark:bg-gray-900">
+            <div className="overflow-y-auto flex-1">
+               <div className="space-y-4">
+                  {[...Array(5)].map((_, i) => (
+                     <div key={i} className={`flex ${i % 2 === 0 ? 'justify-start' : 'justify-end'}`}>
+                        <div className="flex gap-3 max-w-[70%]">
+                           {i % 2 === 0 && (
+                              <div className="w-8 h-8 bg-gray-300 rounded-full animate-pulse dark:bg-gray-700"></div>
+                           )}
+                           <div className="flex-1">
+                              <div className={`px-4 py-3 rounded-2xl ${i % 2 === 0
+                                 ? 'bg-gray-200 dark:bg-gray-800'
+                                 : 'bg-blue-200 dark:bg-blue-800'
+                                 } animate-pulse`}>
+                                 <div className="mb-2 h-4 bg-gray-300 rounded dark:bg-gray-600"></div>
+                                 <div className="w-3/4 h-3 bg-gray-300 rounded dark:bg-gray-600"></div>
+                              </div>
                            </div>
                         </div>
                      </div>
-                  </div>
-               ))}
+                  ))}
+               </div>
             </div>
          </div>
       );
@@ -315,7 +317,7 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
       <>
          <div
             ref={messagesContainerRef}
-            className="overflow-y-auto flex-1 p-6 bg-gray-50 dark:bg-gray-900 scrollbar-hide hover:scrollbar-thin hover:scrollbar-thumb-gray-300 hover:dark:scrollbar-thumb-gray-600"
+            className="flex flex-col p-3 h-full bg-gray-50 md:p-6 dark:bg-gray-900"
          >
             {noConversationSelected ? (
                <div className="flex flex-col justify-center items-center h-full text-gray-500 dark:text-gray-400">
@@ -338,54 +340,56 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
                   </div>
                </div>
             ) : (
-               <div className="space-y-4">
-                  {/* Load More Messages Button */}
-                  {hasMoreMessages && onLoadMore && (
-                     <div className="flex justify-center py-4">
-                        <button
-                           onClick={onLoadMore}
-                           disabled={loadingMore}
-                           className="px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30"
-                        >
-                           {loadingMore ? (
-                              <div className="flex items-center space-x-2">
-                                 <div className="w-4 h-4 rounded-full border-2 border-blue-600 animate-spin border-t-transparent"></div>
-                                 <span>Loading...</span>
+               <div className="overflow-y-auto flex-1 scrollbar-hide hover:scrollbar-thin hover:scrollbar-thumb-gray-300 hover:dark:scrollbar-thumb-gray-600">
+                  <div className="space-y-4">
+                     {/* Load More Messages Button */}
+                     {hasMoreMessages && onLoadMore && (
+                        <div className="flex justify-center py-4">
+                           <button
+                              onClick={onLoadMore}
+                              disabled={loadingMore}
+                              className="px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30"
+                           >
+                              {loadingMore ? (
+                                 <div className="flex items-center space-x-2">
+                                    <div className="w-4 h-4 rounded-full border-2 border-blue-600 animate-spin border-t-transparent"></div>
+                                    <span>Loading...</span>
+                                 </div>
+                              ) : (
+                                 'Load older messages'
+                              )}
+                           </button>
+                        </div>
+                     )}
+
+                     {messages.map(renderMessage)}
+
+                     {/* Typing indicator */}
+                     {typingUsers.length > 0 && (
+                        <div className="flex justify-start mb-4">
+                           <div className="flex gap-3">
+                              <div className="flex justify-center items-center w-8 h-8 bg-gray-300 rounded-full dark:bg-gray-600">
+                                 <span className="text-xs text-white">T</span>
                               </div>
-                           ) : (
-                              'Load older messages'
-                           )}
-                        </button>
-                     </div>
-                  )}
-
-                  {messages.map(renderMessage)}
-
-                  {/* Typing indicator */}
-                  {typingUsers.length > 0 && (
-                     <div className="flex justify-start mb-4">
-                        <div className="flex gap-3">
-                           <div className="flex justify-center items-center w-8 h-8 bg-gray-300 rounded-full dark:bg-gray-600">
-                              <span className="text-xs text-white">T</span>
-                           </div>
-                           <div className="px-4 py-2 bg-gray-100 rounded-2xl dark:bg-gray-800">
-                              <div className="flex items-center space-x-1">
-                                 <span className="text-sm text-gray-600 dark:text-gray-400">
-                                    {typingUsers.join(', ')} {typingUsers.length === 1 ? 'is' : 'are'} typing
-                                 </span>
-                                 <div className="flex space-x-1">
-                                    <div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce"></div>
-                                    <div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                                    <div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                              <div className="px-4 py-2 bg-gray-100 rounded-2xl dark:bg-gray-800">
+                                 <div className="flex items-center space-x-1">
+                                    <span className="text-sm text-gray-600 dark:text-gray-400">
+                                       {typingUsers.join(', ')} {typingUsers.length === 1 ? 'is' : 'are'} typing
+                                    </span>
+                                    <div className="flex space-x-1">
+                                       <div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce"></div>
+                                       <div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                                       <div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                                    </div>
                                  </div>
                               </div>
                            </div>
                         </div>
-                     </div>
-                  )}
+                     )}
 
-                  {/* Scroll anchor */}
-                  <div ref={messagesEndRef} />
+                     {/* Scroll anchor */}
+                     <div ref={messagesEndRef} />
+                  </div>
                </div>
             )}
          </div>

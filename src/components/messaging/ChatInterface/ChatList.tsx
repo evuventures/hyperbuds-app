@@ -94,28 +94,28 @@ export const ChatList: React.FC<ChatListProps> = ({
    return (
       <div className="flex flex-col h-full bg-white dark:bg-gray-900">
          {/* Header */}
-         <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-            <div className="flex justify-between items-center mb-4">
-               <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+         <div className="p-3 md:p-4 border-b border-gray-200 dark:border-gray-700">
+            <div className="flex justify-between items-center mb-3 md:mb-4">
+               <h1 className="text-lg md:text-xl font-bold text-gray-900 dark:text-white">
                   Messages
                </h1>
                <button
                   onClick={onCreateNew}
-                  className="p-2 text-gray-500 rounded-lg transition-colors hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
+                  className="p-1.5 md:p-2 text-gray-500 rounded-lg transition-colors hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
                >
-                  <Plus className="w-5 h-5" />
+                  <Plus className="w-4 h-4 md:w-5 md:h-5" />
                </button>
             </div>
 
             {/* Search Bar */}
-            <div className="relative mb-4">
+            <div className="relative mb-3 md:mb-4">
                <Search className="absolute left-3 top-1/2 w-4 h-4 text-gray-400 transform -translate-y-1/2 dark:text-gray-500" />
                <input
                   type="text"
                   placeholder="Search conversations..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="py-2 pr-20 pl-10 w-full text-sm placeholder-gray-500 text-gray-900 bg-gray-50 rounded-lg border border-gray-200 transition-all duration-200 dark:bg-gray-800 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:bg-white dark:focus:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400"
+                  className="py-2 pr-16 md:pr-20 pl-10 w-full text-sm placeholder-gray-500 text-gray-900 bg-gray-50 rounded-lg border border-gray-200 transition-all duration-200 dark:bg-gray-800 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:bg-white dark:focus:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400"
                />
                <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex space-x-1">
                   <button
@@ -135,7 +135,7 @@ export const ChatList: React.FC<ChatListProps> = ({
             <div className="flex p-1 bg-gray-100 rounded-lg dark:bg-gray-800">
                <button
                   onClick={() => setActiveTab('all')}
-                  className={`flex-1 cursor-pointer py-2 px-3 text-sm font-medium rounded-md transition-colors ${activeTab === 'all'
+                  className={`flex-1 cursor-pointer py-1.5 md:py-2 px-2 md:px-3 text-xs md:text-sm font-medium rounded-md transition-colors ${activeTab === 'all'
                      ? 'bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm'
                      : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
                      }`}
@@ -144,7 +144,7 @@ export const ChatList: React.FC<ChatListProps> = ({
                </button>
                <button
                   onClick={() => setActiveTab('unread')}
-                  className={`flex-1 cursor-pointer py-2 px-3 text-sm font-medium rounded-md transition-colors ${activeTab === 'unread'
+                  className={`flex-1 cursor-pointer py-1.5 md:py-2 px-2 md:px-3 text-xs md:text-sm font-medium rounded-md transition-colors ${activeTab === 'unread'
                      ? 'bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm'
                      : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
                      }`}
@@ -153,7 +153,7 @@ export const ChatList: React.FC<ChatListProps> = ({
                </button>
                <button
                   onClick={() => setActiveTab('archived')}
-                  className={`flex-1 cursor-pointer py-2 px-3 text-sm font-medium rounded-md transition-colors ${activeTab === 'archived'
+                  className={`flex-1 cursor-pointer py-1.5 md:py-2 px-2 md:px-3 text-xs md:text-sm font-medium rounded-md transition-colors ${activeTab === 'archived'
                      ? 'bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm'
                      : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
                      }`}
@@ -190,7 +190,7 @@ export const ChatList: React.FC<ChatListProps> = ({
                         <div
                            key={conversation._id}
                            onClick={() => onSelect(conversation._id)}
-                           className={`flex items-center gap-3 p-4 cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-gray-800 ${isSelected ? 'bg-blue-50 border-r-2 border-blue-500 dark:bg-blue-900/20' : ''}`}
+                           className={`flex items-center gap-2 md:gap-3 p-3 md:p-4 cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-gray-800 ${isSelected ? 'bg-blue-50 border-r-2 border-blue-500 dark:bg-blue-900/20' : ''}`}
                         >
                            {/* Avatar */}
                            <div className="relative flex-shrink-0">
@@ -200,11 +200,11 @@ export const ChatList: React.FC<ChatListProps> = ({
                                     alt={displayName}
                                     width={48}
                                     height={48}
-                                    className="object-cover w-12 h-12 rounded-full"
+                                    className="object-cover w-10 h-10 md:w-12 md:h-12 rounded-full"
                                  />
                               ) : (
-                                 <div className="flex justify-center items-center w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full">
-                                    <span className="text-sm font-medium text-white">
+                                 <div className="flex justify-center items-center w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full">
+                                    <span className="text-xs md:text-sm font-medium text-white">
                                        {getInitials(displayName)}
                                     </span>
                                  </div>
@@ -212,13 +212,13 @@ export const ChatList: React.FC<ChatListProps> = ({
 
                               {/* Online indicator for direct messages */}
                               {conversation.type === 'direct' && conversation.participants.length === 2 && (
-                                 <div className="absolute -right-1 -bottom-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white dark:border-gray-900"></div>
+                                 <div className="absolute -right-1 -bottom-1 w-3 h-3 md:w-4 md:h-4 bg-green-500 rounded-full border-2 border-white dark:border-gray-900"></div>
                               )}
 
                               {/* Online count for group chats */}
                               {conversation.type === 'direct' && onlineCount > 0 && (
-                                 <div className="flex absolute -right-1 -bottom-1 justify-center items-center w-4 h-4 bg-green-500 rounded-full border-2 border-white dark:border-gray-900">
-                                    <span className="text-[10px] font-medium text-white">{onlineCount}
+                                 <div className="flex absolute -right-1 -bottom-1 justify-center items-center w-3 h-3 md:w-4 md:h-4 bg-green-500 rounded-full border-2 border-white dark:border-gray-900">
+                                    <span className="text-[8px] md:text-[10px] font-medium text-white">{onlineCount}
                                     </span>
                                  </div>
                               )}
@@ -231,9 +231,9 @@ export const ChatList: React.FC<ChatListProps> = ({
                                     }`}>
                                     {displayName}
                                  </h3>
-                                 <div className="flex gap-2 items-center">
+                                 <div className="flex gap-1 md:gap-2 items-center">
                                     {conversation.unreadCount > 0 && (
-                                       <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                                       <div className="w-1.5 h-1.5 md:w-2 md:h-2 bg-blue-500 rounded-full"></div>
                                     )}
                                     <span className="text-xs text-gray-500 dark:text-gray-400">
                                        {formatConversationTimestamp(conversation.lastActivity)}
@@ -241,7 +241,7 @@ export const ChatList: React.FC<ChatListProps> = ({
                                  </div>
                               </div>
 
-                              <p className="text-sm text-gray-600 truncate dark:text-gray-400">
+                              <p className="text-xs md:text-sm text-gray-600 truncate dark:text-gray-400">
                                  {truncateMessageContent(lastMessage)}
                               </p>
 
@@ -250,20 +250,20 @@ export const ChatList: React.FC<ChatListProps> = ({
                                     <span className="text-xs text-gray-500 dark:text-gray-400">
                                        {conversation.type === 'direct' ? 'Direct' : 'Group'}
                                     </span>
-                                    <div className="bg-blue-500 text-white text-xs rounded-full px-2 py-1 min-w-[20px] text-center">
+                                    <div className="bg-blue-500 text-white text-xs rounded-full px-1.5 md:px-2 py-0.5 md:py-1 min-w-[16px] md:min-w-[20px] text-center">
                                        {conversation.unreadCount > 99 ? '99+' : conversation.unreadCount}
                                     </div>
                                  </div>
                               )}
                            </div>
 
-                           {/* More options */}
+                           {/* More options - Hidden on mobile */}
                            <button
                               onClick={(e) => {
                                  e.stopPropagation();
                                  // Handle more options
                               }}
-                              className="p-1 text-gray-400 rounded-full cursor-pointer group-hover:opacity-100 hover:text-gray-700 dark:hover:text-gray-100 hover:bg-gray-200 dark:hover:bg-gray-600">
+                              className="hidden md:block p-1 text-gray-400 rounded-full cursor-pointer group-hover:opacity-100 hover:text-gray-700 dark:hover:text-gray-100 hover:bg-gray-200 dark:hover:bg-gray-600">
                               <MoreHorizontal className="w-4 h-4 rounded-full" />
                            </button>
                         </div>

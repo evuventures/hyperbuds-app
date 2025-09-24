@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { ChatList } from "@/components/messaging/ChatInterface/ChatList";
 import { ChatHeader } from "@/components/messaging/ChatInterface/ChatHeader";
 import { ChatMessages } from "@/components/messaging/ChatInterface/ChatMessages";
@@ -11,6 +11,7 @@ import { useMessaging } from "@/hooks/messaging/useMessaging";
 import { mapStoreMessagesToComponents } from "@/lib/utils/messageMappers";
 
 export const MessagesContent: React.FC = () => {
+   const [showSidebar, setShowSidebar] = useState(false);
    const { user, accessToken, loading: authLoading } = useAuth();
    const {
       conversations,
@@ -53,11 +54,26 @@ export const MessagesContent: React.FC = () => {
 
    const handleSelectConversation = (conversationId: string) => {
       selectConversation(conversationId);
+      // Close sidebar on mobile after selecting a conversation
+      setShowSidebar(false);
    };
 
    const handleArchiveConversation = (conversationId: string) => {
       archiveConversation(conversationId);
    };
+
+   const handleBackToSidebar = () => {
+      setShowSidebar(true);
+   };
+
+   // Show sidebar by default on mobile when no conversation is selected
+   useEffect(() => {
+      if (!currentConversation && window.innerWidth < 768) {
+         setShowSidebar(true);
+      } else if (currentConversation && window.innerWidth < 768) {
+         setShowSidebar(false);
+      }
+   }, [currentConversation]);
 
    // Show skeleton while loading
    if (authLoading || loadingConversations) {
@@ -106,7 +122,9 @@ export const MessagesContent: React.FC = () => {
    const showConnectionWarning = !isConnected && !loadingConversations && process.env.NODE_ENV === 'production';
 
    return (
-      <div className="flex h-[90vh] bg-gray-100 dark:bg-gray-900">
+      <div
+         className="flex bg-gray-100 dark:bg-gray-900"
+      >
          {/* Connection Warning */}
          {showConnectionWarning && (
             <div className="absolute top-4 right-4 z-50 p-3 max-w-sm bg-yellow-100 rounded-lg border border-yellow-300 dark:bg-yellow-900 dark:border-yellow-700">
@@ -125,8 +143,16 @@ export const MessagesContent: React.FC = () => {
             </div>
          )}
 
-         {/* Chat List Sidebar */}
-         <div className="w-1/3 bg-white border-r border-gray-200 dark:border-gray-700 dark:bg-gray-800">
+         {/* Mobile Sidebar Overlay */}
+         {showSidebar && (
+            <div
+               className="fixed inset-0 z-40 bg-black bg-opacity-50 md:hidden"
+               onClick={() => setShowSidebar(false)}
+            />
+         )}
+
+         {/* Chat List Sidebar - Mobile overlay or desktop sidebar */}
+         <div className={`${showSidebar ? 'fixed inset-y-0 left-0 z-50 w-80' : 'hidden'} md:flex md:w-1/3 bg-white border-r border-gray-200 dark:border-gray-700 dark:bg-gray-800`}>
             <ChatList
                conversations={conversations}
                selectedConversationId={currentConversation?._id}
@@ -138,37 +164,45 @@ export const MessagesContent: React.FC = () => {
          </div>
 
          {/* Chat Interface */}
-         <div className="flex flex-col flex-1">
+         <div className="flex flex-col flex-1 w-full h-[90vh] md:w-2/3">
             {/* Always show ChatHeader, ChatMessages, and ChatInput */}
-            <ChatHeader
-               conversation={currentConversation}
-               onArchive={handleArchiveConversation}
-               onVideoCall={() => {/* TODO: Implement video call */ }}
-               onVoiceCall={() => {/* TODO: Implement voice call */ }}
-               onInfoClick={() => {/* TODO: Implement info modal */ }}
-            />
-            <ChatMessages
-               messages={currentConversation ? mapStoreMessagesToComponents(messages, user?.id) : []}
-               loading={loadingMessages}
-               typingUsers={(currentConversation ? typingUsers[currentConversation._id] || [] : []).map(user => user.name)}
-               onMessageDelete={currentConversation ? deleteMessage : undefined}
-               onLoadMore={currentConversation ? loadMoreMessages : undefined}
-               hasMoreMessages={currentConversation ? hasMoreMessages : false}
-               loadingMore={currentConversation ? loadingMoreMessages : false}
-               noConversationSelected={!currentConversation}
-            />
-            <ChatInput
-               onSendMessage={handleSendMessage}
-               onAttachment={handleSendMessageWithAttachments}
-               onTypingStart={() => currentConversation && handleTypingStart(currentConversation._id)}
-               onTypingStop={() => currentConversation && handleTypingStop(currentConversation._id)}
-               typingIndicator={{
-                  users: (currentConversation ? typingUsers[currentConversation._id] || [] : []).map(user => user.name),
-                  isTyping: (currentConversation ? typingUsers[currentConversation._id] || [] : []).length > 0
-               }}
-               disabled={!currentConversation}
-               placeholder={currentConversation ? "Type a message..." : "Select a conversation to start chatting"}
-            />
+            <div className="flex-shrink-0">
+               <ChatHeader
+                  conversation={currentConversation}
+                  onArchive={handleArchiveConversation}
+                  onVideoCall={() => {/* TODO: Implement video call */ }}
+                  onVoiceCall={() => {/* TODO: Implement voice call */ }}
+                  onInfoClick={() => {/* TODO: Implement info modal */ }}
+                  showBackButton={true}
+                  onBack={handleBackToSidebar}
+               />
+            </div>
+            <div className="overflow-hidden flex-1 min-h-0">
+               <ChatMessages
+                  messages={currentConversation ? mapStoreMessagesToComponents(messages, user?.id) : []}
+                  loading={loadingMessages}
+                  typingUsers={(currentConversation ? typingUsers[currentConversation._id] || [] : []).map(user => user.name)}
+                  onMessageDelete={currentConversation ? deleteMessage : undefined}
+                  onLoadMore={currentConversation ? loadMoreMessages : undefined}
+                  hasMoreMessages={currentConversation ? hasMoreMessages : false}
+                  loadingMore={currentConversation ? loadingMoreMessages : false}
+                  noConversationSelected={!currentConversation}
+               />
+            </div>
+            <div className="flex-shrink-0">
+               <ChatInput
+                  onSendMessage={handleSendMessage}
+                  onAttachment={handleSendMessageWithAttachments}
+                  onTypingStart={() => currentConversation && handleTypingStart(currentConversation._id)}
+                  onTypingStop={() => currentConversation && handleTypingStop(currentConversation._id)}
+                  typingIndicator={{
+                     users: (currentConversation ? typingUsers[currentConversation._id] || [] : []).map(user => user.name),
+                     isTyping: (currentConversation ? typingUsers[currentConversation._id] || [] : []).length > 0
+                  }}
+                  disabled={!currentConversation}
+                  placeholder={currentConversation ? "Type a message..." : "Select a conversation to start chatting"}
+               />
+            </div>
          </div>
       </div>
    );

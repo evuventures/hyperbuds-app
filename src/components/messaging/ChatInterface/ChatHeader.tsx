@@ -94,16 +94,16 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
    const subtitle = getSubtitle();
 
    return (
-      <div className="flex justify-between items-center p-4 bg-white border-b border-gray-200 dark:bg-gray-900 dark:border-gray-700">
+      <div className="flex justify-between items-center p-3 bg-white border-b border-gray-200 md:p-4 dark:bg-gray-900 dark:border-gray-700">
          {/* Left side - User info */}
-         <div className="flex flex-1 gap-3 items-center min-w-0">
+         <div className="flex flex-1 gap-2 items-center min-w-0 md:gap-3">
             {/* Back button for mobile */}
             {showBackButton && (
                <button
                   onClick={onBack}
-                  className="flex-shrink-0 p-2 text-gray-500 rounded-lg transition-colors dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
+                  className="flex-shrink-0 p-1.5 md:p-2 text-gray-500 rounded-lg transition-colors dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 md:hidden"
                >
-                  <ArrowLeft className="w-5 h-5" />
+                  <ArrowLeft className="w-4 h-4 md:w-5 md:h-5" />
                </button>
             )}
 
@@ -115,11 +115,11 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
                      alt={displayName}
                      width={40}
                      height={40}
-                     className="object-cover w-10 h-10 rounded-full"
+                     className="object-cover w-8 h-8 rounded-full md:w-10 md:h-10"
                   />
                ) : (
-                  <div className="flex justify-center items-center w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full">
-                     <span className="text-sm font-medium text-white">
+                  <div className="flex justify-center items-center w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full md:w-10 md:h-10">
+                     <span className="text-xs font-medium text-white md:text-sm">
                         {getInitials(displayName)}
                      </span>
                   </div>
@@ -127,17 +127,17 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
 
                {/* Online indicator */}
                {conversation && conversation.type === 'direct' && conversation.participants.length === 2 && (
-                  <div className="absolute -right-1 -bottom-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white dark:border-gray-900"></div>
+                  <div className="absolute -right-1 -bottom-1 w-2.5 h-2.5 md:w-3 md:h-3 bg-green-500 rounded-full border-2 border-white dark:border-gray-900"></div>
                )}
             </div>
 
             {/* Name and status */}
             <div className="flex-1 min-w-0">
-               <h2 className="text-lg font-semibold text-gray-900 truncate dark:text-white">
+               <h2 className="text-base font-semibold text-gray-900 truncate md:text-lg dark:text-white">
                   {displayName}
                </h2>
                {subtitle && (
-                  <p className="text-sm text-gray-500 truncate dark:text-gray-400">
+                  <p className="text-xs text-gray-500 truncate md:text-sm dark:text-gray-400">
                      {subtitle}
                   </p>
                )}
@@ -145,29 +145,29 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
          </div>
 
          {/* Right side - Actions */}
-         <div className="flex gap-1 items-center">
-            {/* Voice call */}
+         <div className="flex gap-0.5 md:gap-1 items-center">
+            {/* Voice call - Hidden on mobile */}
             <button
                onClick={() => handleMenuAction('voice')}
-               className="p-2 text-gray-500 rounded-lg transition-colors cursor-pointer dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
+               className="hidden p-2 text-gray-500 rounded-lg transition-colors cursor-pointer md:flex dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
                title="Voice call"
             >
                <Phone className="w-5 h-5" />
             </button>
 
-            {/* Video call */}
+            {/* Video call - Hidden on mobile */}
             <button
                onClick={() => handleMenuAction('video')}
-               className="p-2 text-gray-500 rounded-lg transition-colors cursor-pointer dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
+               className="hidden p-2 text-gray-500 rounded-lg transition-colors cursor-pointer md:flex dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
                title="Video call"
             >
                <Video className="w-5 h-5" />
             </button>
 
-            {/* Info */}
+            {/* Info - Hidden on mobile */}
             <button
                onClick={() => handleMenuAction('info')}
-               className="p-2 text-gray-500 rounded-lg transition-colors cursor-pointer dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
+               className="hidden p-2 text-gray-500 rounded-lg transition-colors cursor-pointer md:flex dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
                title="Conversation info"
             >
                <Info className="w-5 h-5" />
@@ -177,10 +177,10 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
             <div className="relative">
                <button
                   onClick={() => setShowMenu(!showMenu)}
-                  className="p-2 text-gray-500 rounded-lg transition-colors cursor-pointer dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
+                  className="p-1.5 md:p-2 text-gray-500 rounded-lg transition-colors cursor-pointer dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
                   title="More options"
                >
-                  <MoreHorizontal className="w-5 h-5" />
+                  <MoreHorizontal className="w-4 h-4 md:w-5 md:h-5" />
                </button>
 
                {/* Dropdown menu */}
