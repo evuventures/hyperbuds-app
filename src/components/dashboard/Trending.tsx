@@ -18,9 +18,9 @@ const Trending: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
-  
+
   const categories = ['All', 'Gaming', 'Beauty', 'Tech', 'Food', 'Music', 'Lifestyle'];
-  
+
   const trendingItems: TrendingItem[] = [
     {
       id: 1,
@@ -91,14 +91,14 @@ const Trending: React.FC = () => {
     }
   ];
 
-  const filteredItems = selectedCategory === 'All' 
-    ? trendingItems 
+  const filteredItems = selectedCategory === 'All'
+    ? trendingItems
     : trendingItems.filter(item => item.category === selectedCategory);
 
   // Auto-play functionality
   useEffect(() => {
     if (!isAutoPlaying || filteredItems.length <= 1) return;
-    
+
     const interval = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % filteredItems.length);
     }, 4000);
@@ -106,9 +106,9 @@ const Trending: React.FC = () => {
     return () => clearInterval(interval);
   }, [isAutoPlaying, filteredItems.length]);
 
-  
 
-  
+
+
 
   const goToSlide = (index: number) => {
     setCurrentSlide(index);
@@ -121,7 +121,7 @@ const Trending: React.FC = () => {
 
   if (filteredItems.length === 0) {
     return (
-      <div className="text-center py-12">
+      <div className="py-12 text-center">
         <p className="text-gray-500 dark:text-gray-400">No trending content found in this category.</p>
       </div>
     );
@@ -130,8 +130,8 @@ const Trending: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col items-start sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
+      <div className="flex flex-col gap-4 justify-between items-start sm:items-center">
+        <div className="flex gap-3 items-center">
           <div className="p-2 bg-gradient-to-r from-orange-500 to-red-500 rounded-xl">
             <TrendingUp className="w-5 h-5 text-white" />
           </div>
@@ -140,67 +140,68 @@ const Trending: React.FC = () => {
             <p className="text-gray-600 dark:text-gray-400">Most watched content this week</p>
           </div>
         </div>
-        
+
         {/* Category Filter */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0">
-          {categories.map((category) => (
-            <button
-              key={category}
-              onClick={() => {
-                setSelectedCategory(category);
-                setCurrentSlide(0);
-              }}
-              className={`px-4 py-2 rounded-full font-medium transition-all duration-200 whitespace-nowrap ${
-                selectedCategory === category
+        <div className="w-full max-w-full">
+          <div className="flex overflow-x-scroll gap-2 items-center pb-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 dark:scrollbar-thumb-gray-600 dark:scrollbar-track-gray-800 sm:pb-0 md:overflow-x-visible md:scrollbar-none md:flex-wrap">
+            {categories.map((category) => (
+              <button
+                key={category}
+                onClick={() => {
+                  setSelectedCategory(category);
+                  setCurrentSlide(0);
+                }}
+                className={`px-4 py-2 rounded-full font-medium transition-all duration-200 whitespace-nowrap flex-shrink-0 ${selectedCategory === category
                   ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg'
                   : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
-              }`}
-            >
-              {category}
-            </button>
-          ))}
+                  }`}
+              >
+                {category}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
       {/* Swiper Container */}
-      <div 
-        className="relative bg-background rounded-2xl shadow-lg border border-gray-100 dark:border-gray-800 overflow-hidden theme-transition"
+      <div
+        className="overflow-hidden relative rounded-2xl border border-gray-100 shadow-lg bg-background dark:border-gray-800 theme-transition"
         onMouseEnter={() => setIsAutoPlaying(false)}
         onMouseLeave={() => setIsAutoPlaying(true)}
       >
         {/* Auto-play indicator */}
-        <div className="absolute top-4 right-4 z-20 flex items-center gap-2 bg-black/20 backdrop-blur-sm rounded-full px-3 py-1">
+        <div className="flex absolute top-4 right-4 z-20 gap-2 items-center px-3 py-1 rounded-full backdrop-blur-sm bg-black/20">
           <div className={`w-2 h-2 rounded-full ${isAutoPlaying ? 'bg-green-400 animate-pulse' : 'bg-gray-400'}`}></div>
-          <span className="text-white text-xs font-medium">AUTO</span>
+          <span className="text-xs font-medium text-white">AUTO</span>
         </div>
 
         {/* Main Swiper */}
-        <div className="relative h-full overflow-hidden">
-          <div 
-            className="flex transition-transform duration-500 ease-in-out h-full"
+        <div className="overflow-hidden relative h-full">
+          <div
+            className="flex h-full transition-transform duration-500 ease-in-out"
             style={{ transform: `translateX(-${currentSlide * 100}%)` }}
           >
             {filteredItems.map((item, index) => (
-              <div key={item.id} className="w-full flex-shrink-0 relative">
+              <div key={item.id} className="relative flex-shrink-0 w-full">
                 {/* Background Gradient */}
                 <div className="absolute inset-0 bg-gradient-to-br from-purple-600 via-indigo-600 to-blue-700"></div>
-                
+
                 {/* Content */}
-                <div className="relative h-full flex items-center p-8 text-white">
+                <div className="flex relative items-center p-8 h-full text-white">
                   <div className="flex-1 space-y-4">
                     {/* Rank Badge */}
-                    <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-4 py-2">
+                    <div className="inline-flex gap-2 items-center px-4 py-2 rounded-full backdrop-blur-sm bg-white/20">
                       <span className="text-2xl">{getTrendingRank(index)}</span>
                       <span className="font-bold">#{index + 1} Trending</span>
                     </div>
 
                     {/* Category & Live Badge */}
-                    <div className="flex items-center gap-3">
-                      <span className="bg-white/30 backdrop-blur-sm text-white px-3 py-1 rounded-full font-medium">
+                    <div className="flex gap-3 items-center">
+                      <span className="px-3 py-1 font-medium text-white rounded-full backdrop-blur-sm bg-white/30">
                         {item.category}
                       </span>
                       {item.live && (
-                        <div className="bg-red-500 text-white px-3 py-1 rounded-full font-medium flex items-center gap-2">
+                        <div className="flex gap-2 items-center px-3 py-1 font-medium text-white bg-red-500 rounded-full">
                           <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
                           LIVE
                         </div>
@@ -208,47 +209,47 @@ const Trending: React.FC = () => {
                     </div>
 
                     {/* Title */}
-                    <h3 className="text-3xl font-bold leading-tight mb-2">
+                    <h3 className="mb-2 text-3xl font-bold leading-tight">
                       {item.title}
                     </h3>
 
                     {/* Description */}
-                    <p className="text-white/90 text-lg leading-relaxed mb-4">
+                    <p className="mb-4 text-lg leading-relaxed text-white/90">
                       {item.description}
                     </p>
 
                     {/* Creators */}
-                    <div className="flex items-center gap-2 text-white/90 mb-4">
+                    <div className="flex gap-2 items-center mb-4 text-white/90">
                       <Users className="w-5 h-5" />
                       <span className="font-medium">{item.creators.join(' & ')}</span>
                     </div>
 
                     {/* Stats */}
-                    <div className="flex items-center gap-6 text-white/90">
-                      <div className="flex items-center gap-2">
+                    <div className="flex gap-6 items-center text-white/90">
+                      <div className="flex gap-2 items-center">
                         <Eye className="w-5 h-5" />
                         <span className="font-semibold">{item.viewers} viewers</span>
                       </div>
-                      <div className="flex items-center gap-2 text-green-300">
+                      <div className="flex gap-2 items-center text-green-300">
                         <TrendingUp className="w-5 h-5" />
                         <span className="font-semibold">{item.growth}</span>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex gap-2 items-center">
                         <Clock className="w-5 h-5" />
                         <span>{item.duration}</span>
                       </div>
                     </div>
 
                     {/* Action Button */}
-                    <button className="inline-flex items-center gap-3 bg-white text-purple-600 px-6 py-3 rounded-full font-semibold hover:bg-white/90 transition-all duration-200 mt-4">
+                    <button className="inline-flex gap-3 items-center px-6 py-3 mt-4 font-semibold text-purple-600 bg-white rounded-full transition-all duration-200 hover:bg-white/90">
                       <Play className="w-5 h-5" />
                       Watch Now
                     </button>
                   </div>
 
                   {/* Thumbnail Display */}
-                  <div className="hidden lg:flex items-center justify-center">
-                    <div className="w-32 h-32 bg-white/20 backdrop-blur-sm rounded-3xl flex items-center justify-center text-6xl">
+                  <div className="hidden justify-center items-center lg:flex">
+                    <div className="flex justify-center items-center w-32 h-32 text-6xl rounded-3xl backdrop-blur-sm bg-white/20">
                       {item.thumbnail}
                     </div>
                   </div>
@@ -259,16 +260,15 @@ const Trending: React.FC = () => {
         </div>
 
         {/* Dots Indicator */}
-        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex items-center gap-2 z-10">
+        <div className="flex absolute bottom-4 left-1/2 z-10 gap-2 items-center transform -translate-x-1/2">
           {filteredItems.map((_, index) => (
             <button
               key={index}
               onClick={() => goToSlide(index)}
-              className={`w-3 h-3 rounded-full transition-all duration-200 ${
-                currentSlide === index 
-                  ? 'bg-white scale-110' 
-                  : 'bg-white/50 hover:bg-white/70'
-              }`}
+              className={`w-3 h-3 rounded-full transition-all duration-200 ${currentSlide === index
+                ? 'bg-white scale-110'
+                : 'bg-white/50 hover:bg-white/70'
+                }`}
             />
           ))}
         </div>

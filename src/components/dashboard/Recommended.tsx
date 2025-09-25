@@ -211,7 +211,8 @@ const Recommended: React.FC = () => {
         >
           {cards.map((card) => (
             <SwiperSlide key={card.id}>
-              <div className="bg-card text-foreground rounded-3xl shadow-sm border border-border overflow-hidden hover:shadow-xl transition-all duration-500 transform hover:scale-[1.02] h-[680px] group">
+              <div className="bg-card text-foreground rounded-3xl shadow-sm border border-border overflow-hidden hover:shadow-xl transition-all duration-500 transform 
+              hover:scale-[1.02] h-[680px] group m-5">
                 {/* Image Container */}
                 <div className="overflow-hidden relative">
                   <Image
