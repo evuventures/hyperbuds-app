@@ -27,6 +27,18 @@ const LoadingSpinner = () => (
   </svg>
 );
 
+const handleGoogleLogin = () => {
+  const clientId = "265404811439-3a6feinek5pckg02bjg7mfrva4esuqh0.apps.googleusercontent.com";
+  const redirectUri = "http://localhost:3000"; 
+  const scope = "email profile";
+  const responseType = "code";
+  
+  const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=${responseType}&scope=${scope}&access_type=offline&prompt=consent`;
+
+  window.location.href = googleAuthUrl;
+};
+
+
 export default function App() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -35,7 +47,7 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  // ✅ type for input change event
+
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setEmail(e.target.value);
   };
@@ -132,7 +144,9 @@ export default function App() {
                 </div>
                 <span className="text-sm font-medium text-gray-700">Facebook</span>
               </button>
-              <button className="flex flex-1 gap-3 justify-center items-center h-12 rounded-xl border backdrop-blur-sm transition-colors duration-300 bg-white/60 border-white/30 hover:bg-white/80">
+              <button 
+                 onClick={handleGoogleLogin}
+                className="flex flex-1 cursor-pointer gap-3 justify-center items-center h-12 rounded-xl border backdrop-blur-sm transition-colors duration-300 bg-white/60 border-white/30 hover:bg-white/80">
                 <Chrome className="w-5 h-5 text-red-500" />
                 <span className="text-sm font-medium text-gray-700">Google</span>
               </button>
