@@ -531,7 +531,7 @@ export default function EditProfilePage() {
                       type="button"
                       onClick={() => handleNicheToggle(niche)}
                       disabled={!isSelected && niches.length >= 5}
-                      className={`px-4 py-2 text-sm font-medium rounded-full transition ${isSelected
+                      className={`px-4 cursor-pointer py-2 text-sm font-medium rounded-full transition ${isSelected
                         ? "text-white bg-gradient-to-r from-purple-500 to-blue-500 shadow-lg"
                         : "text-gray-700 bg-gray-100 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
                         }`}
