@@ -192,7 +192,7 @@ export default function UserProfileHeader({
                 {user.bio && (
                   <div className="max-w-2xl">
                     <p
-                      className={`text-lg leading-relaxed text-gray-600 dark:text-gray-300 transition-all ${showFullBio ? "":"line-clamp-2"}`}
+                      className={`text-lg leading-relaxed text-gray-600 dark:text-gray-300 transition-all ${showFullBio ? "" : "line-clamp-2"}`}
                     >
                       {user.bio}
                     </p>
@@ -214,7 +214,7 @@ export default function UserProfileHeader({
             <div className="flex gap-2 justify-end items-center w-full">
               <button
                 onClick={copyProfileUrl}
-                className="p-3 text-gray-600 rounded-xl border shadow-md transition-all hover:scale-105 bg-gray-100/80 dark:bg-gray-700/60 hover:bg-gray-200 dark:hover:bg-gray-600/80 dark:text-gray-300 border-gray-200/50 dark:border-gray-600/50 group"
+                className="p-3 text-gray-600 rounded-xl border shadow-md transition-all cursor-pointer hover:scale-105 bg-gray-100/80 dark:bg-gray-700/60 hover:bg-gray-200 dark:hover:bg-gray-600/80 dark:text-gray-300 border-gray-200/50 dark:border-gray-600/50 group"
                 title="Copy profile URL"
               >
                 {copied ? (
@@ -224,7 +224,7 @@ export default function UserProfileHeader({
                 )}
               </button>
 
-              <button className="p-3 text-gray-600 rounded-xl border shadow-md transition-all hover:scale-105 bg-gray-100/80 dark:bg-gray-700/60 hover:bg-gray-200 dark:hover:bg-gray-600/80 dark:text-gray-300 border-gray-200/50 dark:border-gray-600/50">
+              <button className="p-3 text-gray-600 rounded-xl border shadow-md transition-all cursor-pointer hover:scale-105 bg-gray-100/80 dark:bg-gray-700/60 hover:bg-gray-200 dark:hover:bg-gray-600/80 dark:text-gray-300 border-gray-200/50 dark:border-gray-600/50">
                 <Share2 size={18} />
               </button>
 
@@ -232,7 +232,7 @@ export default function UserProfileHeader({
                 {/* Trigger button */}
                 <button
                   onClick={() => setOpen(!open)}
-                  className="p-3 text-gray-600 rounded-xl border shadow-md transition-all hover:scale-105 bg-gray-100/80 dark:bg-gray-700/60 hover:bg-gray-200 dark:hover:bg-gray-600/80 dark:text-gray-300 border-gray-200/50 dark:border-gray-600/50"
+                  className="p-3 text-gray-600 rounded-xl border shadow-md transition-all cursor-pointer hover:scale-105 bg-gray-100/80 dark:bg-gray-700/60 hover:bg-gray-200 dark:hover:bg-gray-600/80 dark:text-gray-300 border-gray-200/50 dark:border-gray-600/50"
                 >
                   <MoreHorizontal size={18} />
                 </button>
@@ -240,12 +240,12 @@ export default function UserProfileHeader({
                 {/* Dropdown menu */}
                 {open && (
                   <div className="absolute right-0 mt-2 w-40 bg-white rounded-md ring-1 shadow-lg dark:bg-gray-800 ring-black/5">
-                    {/* <Link
+                    <Link
                       href="/profile/edit"
-                      className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+                      className="block px-4 py-2 text-sm text-gray-700 rounded-md cursor-pointer dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
                     >
                       Edit Profile
-                    </Link> */}
+                    </Link>
                   </div>
                 )}
               </div>
@@ -546,6 +546,57 @@ export default function UserProfileHeader({
             ))}
         </div>
       </div>
+
+      {/* Social Media Links */}
+      {user.socialLinks && Object.keys(user.socialLinks).length > 0 && (
+        <div className="p-6 bg-white rounded-2xl border shadow-lg backdrop-blur-sm dark:bg-gray-800/50 border-gray-200/60 dark:border-gray-700/60">
+          <h3 className="flex gap-3 items-center mb-6 text-xl font-bold text-gray-900 dark:text-gray-100">
+            <div className="p-2 bg-gradient-to-br from-pink-100 to-purple-100 rounded-lg dark:from-pink-500/20 dark:to-purple-500/20">
+              <Share2 size={24} className="text-pink-600 dark:text-pink-400" />
+            </div>
+            Social Media
+          </h3>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {Object.entries(user.socialLinks).map(([platform, url]) => {
+              const platformInfo = {
+                tiktok: { name: "TikTok", color: "from-black to-gray-800", icon: "🎵" },
+                instagram: { name: "Instagram", color: "from-pink-500 to-purple-600", icon: "📷" },
+                youtube: { name: "YouTube", color: "from-red-500 to-red-700", icon: "📺" },
+                twitch: { name: "Twitch", color: "from-purple-500 to-purple-700", icon: "🎮" },
+                twitter: { name: "Twitter", color: "from-blue-400 to-blue-600", icon: "🐦" },
+                linkedin: { name: "LinkedIn", color: "from-blue-600 to-blue-800", icon: "💼" },
+              };
+
+              const info = platformInfo[platform] || { name: platform, color: "from-gray-500 to-gray-700", icon: "🔗" };
+
+              return (
+                <a
+                  key={platform}
+                  href={url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group p-4 rounded-xl transition-all hover:scale-[1.02] bg-gray-50/80 dark:bg-gray-700/40 border border-gray-200 dark:border-gray-600/50 hover:border-gray-300 dark:hover:border-gray-500/70 hover:shadow-lg"
+                >
+                  <div className="flex gap-3 items-center">
+                    <div className={`p-3 rounded-xl bg-gradient-to-br ${info.color} group-hover:scale-110 transition-transform`}>
+                      <span className="text-white text-lg">{info.icon}</span>
+                    </div>
+                    <div className="flex-1">
+                      <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                        {info.name}
+                      </div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                        {url.replace('https://', '').replace('http://', '')}
+                      </div>
+                    </div>
+                    <ExternalLink size={16} className="text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300" />
+                  </div>
+                </a>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Enhanced Platform Performance */}
       {
