@@ -21,6 +21,14 @@ Real-time messaging system documentation including Socket.IO integration and cha
 - **Frontend Guide** - Component implementation and usage
 - **Socket.IO Integration** - Real-time communication setup
 
+### ⭐ [Rizz Score System](./rizz-score/)
+Complete Rizz Score integration documentation including API integration, UI components, and testing.
+
+- **Implementation Summary** - Complete overview of the Rizz Score integration
+- **Integration Guide** - Detailed technical implementation specifications
+- **Testing Guide** - Comprehensive testing documentation and procedures
+- **API Testing Script** - Demo script for manual API endpoint testing
+
 ### 🏗️ [General Documentation](./general/)
 Project architecture, development setup, and general guidelines.
 
@@ -53,6 +61,7 @@ Project architecture, development setup, and general guidelines.
 ### ✅ Completed Features
 - **💳 Payment System** - Complete frontend with Stripe + Apple Pay
 - **💬 Messaging System** - Complete frontend with Socket.IO integration
+- **⭐ Rizz Score System** - Complete integration with API, UI, and testing
 - **🏗️ Component Library** - Comprehensive UI component system
 - **📚 Documentation** - Complete API specifications and guides
 
@@ -92,6 +101,7 @@ Project architecture, development setup, and general guidelines.
 - **Frontend Payment Integration** - Complete with all components and services
 - **Payment API Service Layer** - Full integration with all required endpoints
 - **Stripe Integration** - Secure, PCI-compliant payment processing
+- **Rizz Score Integration** - Complete API integration with responsive UI and comprehensive testing
 - **Documentation** - Comprehensive backend and frontend documentation
 
 ### 🚧 In Progress
@@ -135,6 +145,6 @@ For questions or issues with the documentation, please refer to the specific imp
 
 ---
 
-**Last Updated**: December 2024  
-**Version**: 1.0.0  
+**Last Updated**: September 27, 2025  
+**Version**: 1.1.0  
 **Status**: Ready for Backend Implementation

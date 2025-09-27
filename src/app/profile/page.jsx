@@ -4,6 +4,7 @@ import DashboardLayout from "@/components/layout/Dashboard/Dashboard";
 import { useState, useEffect } from "react";
 import { apiFetch } from "@/lib/utils/api";
 import UserProfileHeader from "@/components/profile/ProfileCard";
+import RizzScoreDisplay from "@/components/profile/RizzScoreDisplay";
 
 export default function ProfilePage() {
   // Initialize as null instead of array
@@ -17,7 +18,7 @@ export default function ProfilePage() {
         setIsLoading(true);
         const data = await apiFetch("/api/v1/profiles/me");
         console.log("API Response:", data);
-        
+
         // Set the entire response data - the component will handle extracting profile
         setUser(data);
         setError(null);
@@ -28,7 +29,7 @@ export default function ProfilePage() {
         setIsLoading(false);
       }
     }
-    
+
     loadProfile();
   }, []);
 
@@ -39,8 +40,8 @@ export default function ProfilePage() {
         <div className="p-6">
           <div className="">
             <p className="text-red-400">Error loading profile: {error}</p>
-            <button 
-              onClick={() => window.location.reload()} 
+            <button
+              onClick={() => window.location.reload()}
               className="mt-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
             >
               Retry
@@ -53,11 +54,17 @@ export default function ProfilePage() {
 
   return (
     <DashboardLayout>
-      <div className="p-6">
-        <UserProfileHeader 
-          userData={user} 
+      <div className="p-6 space-y-6">
+        <UserProfileHeader
+          userData={user}
           isDark={true}
           isLoading={isLoading}
+        />
+
+        {/* Rizz Score Section */}
+        <RizzScoreDisplay
+          userId={user?.profile?.userId}
+          showDetails={true}
         />
       </div>
     </DashboardLayout>

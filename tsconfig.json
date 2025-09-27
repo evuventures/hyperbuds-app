@@ -22,6 +22,6 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/app/profile/complete-profile/page.jsx", "src/components/profile/ProfileCard.jsx", "src/app/profile/page.jsx"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/app/profile/complete-profile/page.jsx", "src/components/profile/ProfileCard.jsx", "src/app/profile/page.jsx", "src/types/jest-dom.d.ts"],
   "exclude": ["node_modules"]
 }
