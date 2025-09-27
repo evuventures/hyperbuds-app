@@ -48,19 +48,6 @@ export const RizzScoreDisplay: React.FC<RizzScoreDisplayProps> = ({
       }
    };
 
-   const scoreVariants = {
-      hidden: { scale: 0.8, opacity: 0 },
-      visible: {
-         scale: 1,
-         opacity: 1,
-         transition: {
-            type: "spring" as const,
-            stiffness: 200,
-            damping: 15,
-            duration: 0.6
-         }
-      }
-   };
 
    const buttonVariants = {
       hover: { scale: 1.05, transition: { duration: 0.2 } },
