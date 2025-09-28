@@ -172,7 +172,7 @@ const LoaderAnimation: React.FC<LoaderAnimationProps> = ({ onComplete }) => {
     ];
 
     return (
-        <div className="overflow-hidden relative  max-h-[80vh] bg-gradient-to-br via-purple-900 from-slate-900 to-slate-900 dark:from-slate-900 dark:via-purple-900 dark:to-slate-900 light:from-slate-100 light:via-purple-50 light:to-slate-100 rounded-3xl lg:mb-20">
+        <div className="overflow-hidden relative via-purple-900 rounded-3xl from-slate-900 to-slate-900 dark:from-slate-900 dark:via-purple-900 dark:to-slate-900 light:from-slate-100 light:via-purple-50 light:to-slate-100 lg:mb-20">
             {/* Animated background particles */}
             <div className="overflow-hidden absolute inset-0">
                 {[...Array(20)].map((_, i) => (
