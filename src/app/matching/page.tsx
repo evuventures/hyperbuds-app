@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import DashboardLayout from "@/components/layout/Dashboard/Dashboard";
+import HeaderOnlyLayout from "@/components/layout/HeaderOnly/HeaderOnly";
 import LoaderAnimation from "@/components/matching/LoaderAnimation";
 // ⬇️ FIX: import the correct component
 import MatchingInterface from "@/components/matching/MatchCard/MatchCard";
@@ -75,36 +75,38 @@ const MatchmakingPage: React.FC = () => {
 
   if (!dataLoaded || !animationComplete) {
     return (
-      <DashboardLayout>
-        <div className="min-h-screen flex flex-col items-center justify-center bg-white text-black dark:bg-black dark:text-white">
+      <HeaderOnlyLayout>
+        <div className="flex flex-col justify-center items-center min-h-screen text-black bg-white dark:bg-black dark:text-white">
           <LoaderAnimation onComplete={() => setAnimationComplete(true)} />
         </div>
-      </DashboardLayout>
+      </HeaderOnlyLayout>
     );
   }
 
   if (error) {
     return (
-      <DashboardLayout>
+      <HeaderOnlyLayout>
         <div className="flex justify-center items-center h-screen text-red-500">
           <p>{error}</p>
         </div>
-      </DashboardLayout>
+      </HeaderOnlyLayout>
     );
   }
 
   return (
-    <DashboardLayout>
-      {userProfile && (
-        <MatchingInterface
-          userProfile={userProfile}
-          matches={matches}
-          history={history}
-          handleAction={handleAction}
-          handleBlock={handleBlock}
-        />
-      )}
-    </DashboardLayout>
+    <HeaderOnlyLayout>
+      <div className="min-h-screen bg-white dark:bg-black">
+        {userProfile && (
+          <MatchingInterface
+            userProfile={userProfile}
+            matches={matches}
+            history={history}
+            handleAction={handleAction}
+            handleBlock={handleBlock}
+          />
+        )}
+      </div>
+    </HeaderOnlyLayout>
   );
 };
 
