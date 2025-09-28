@@ -29,7 +29,7 @@ import {
   Award,
   
 } from 'lucide-react';
-
+import Link from 'next/link'
 type RecentActivity = {
   id: string;
   icon: React.ReactNode;
@@ -288,7 +288,7 @@ export const RightSidebar = () => {
         {/* Animated Background Elements */}
         <div className="absolute top-4 right-4 w-20 h-20 rounded-full blur-xl animate-pulse bg-white/10"></div>
         <div className="absolute bottom-8 left-8 w-16 h-16 rounded-full blur-lg delay-1000 animate-pulse bg-white/5"></div>
-
+     {/*live now
         <div className="relative p-6">
           <div className="flex justify-between items-start mb-4">
             <div className="space-y-2">
@@ -332,6 +332,7 @@ export const RightSidebar = () => {
             </button>
           </div>
         </div>
+        */}
       </div>
 
       {/* Recent Activities */}
@@ -456,7 +457,7 @@ export const RightSidebar = () => {
         )}
       </div>
 
-      {/*  Upcoming Collaborations */}
+      {/*  Upcoming Collaborations 
       <div className="p-5 bg-white rounded-3xl border shadow-lg backdrop-blur-sm dark:bg-gray-800/50 border-gray-200/60 dark:border-gray-700/60">
 
         <div className="flex flex-col items-center mb-6">
@@ -484,8 +485,8 @@ export const RightSidebar = () => {
               <div
                 key={session.id}
                 className="relative p-5 rounded-2xl border border-gray-200 transition-all cursor-pointer group dark:border-gray-600/50 hover:border-blue-300 dark:hover:border-blue-500/50 hover:shadow-lg bg-gray-50/50 dark:bg-gray-700/30 hover:bg-white dark:hover:bg-gray-700/50"
-              >
-                {/* Popular Badge */}
+              >*/}
+                {/* Popular Badge 
                 {session.isPopular && (
                   <div className="flex absolute -top-2 -right-2 gap-1 items-center px-3 py-1 text-xs font-bold text-white bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full shadow-lg">
                     <Flame size={12} />
@@ -493,7 +494,7 @@ export const RightSidebar = () => {
                   </div>
                 )}
 
-                {/* Header */}
+                {/* Header 
                 <div className="flex flex-col gap-3 justify-between items-start mb-4">
 
                   <div className="flex-1 space-y-4">
@@ -534,7 +535,7 @@ export const RightSidebar = () => {
                 </div>
 
                 {/* Participants and Stats */}
-                <div className="flex flex-col gap-3 items-start mb-4">
+               {/* <div className="flex flex-col gap-3 items-start mb-4">
 
                   <div className="flex gap-3 justify-between items-center w-full">
 
@@ -568,7 +569,7 @@ export const RightSidebar = () => {
 
                 </div>
 
-                {/* Enhanced Quick Actions */}
+                {/* Enhanced Quick Actions 
                 <div className="flex gap-2">
                   {session.status === 'starting-soon' || session.status === 'live' ? (
                     <>
@@ -595,9 +596,9 @@ export const RightSidebar = () => {
               </div>
             );
           })}
-        </div>
+        </div>*/}
 
-        {/* Enhanced CTA Button */}
+        {/* Enhanced CTA Button 
         <div className="pt-4 mt-6 border-t border-gray-200 dark:border-gray-700">
           <button className="w-full bg-gradient-to-r from-purple-600 via-blue-600 to-purple-600 bg-size-200 bg-pos-0 hover:bg-pos-100 text-white font-bold py-4 px-6 rounded-2xl transition-all duration-500 shadow-lg hover:shadow-xl transform hover:scale-[1.02] flex items-center justify-center gap-3 cursor-pointer">
             <Sparkles className="w-5 h-5" />
@@ -605,7 +606,7 @@ export const RightSidebar = () => {
             <Zap className="w-5 h-5" />
           </button>
         </div>
-      </div>
+      </div> */}
 
       {/* Enhanced Quick Stats Dashboard */}
       <div className="p-6 bg-gradient-to-br from-gray-50 via-white rounded-3xl border shadow-lg backdrop-blur-sm to-blue-50/30 dark:from-gray-900 dark:via-gray-800 dark:to-blue-950/30 border-gray-200/60 dark:border-gray-700/60">
@@ -657,10 +658,10 @@ export const RightSidebar = () => {
 
         {/* Quick Action Buttons */}
         <div className="flex justify-center mt-6">
-          <button className="flex gap-2 justify-center items-center px-4 py-3 font-semibold text-gray-700 bg-white rounded-xl border border-gray-200 shadow-sm transition-all cursor-pointer dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500">
+          <Link href="/matching" className="flex gap-2 justify-center items-center px-4 py-3 font-semibold text-gray-700 bg-white rounded-xl border border-gray-200 shadow-sm transition-all cursor-pointer dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500">
             <UserPlus size={16} />
             Find Friends
-          </button>
+          </Link>
         </div>
 
       </div>

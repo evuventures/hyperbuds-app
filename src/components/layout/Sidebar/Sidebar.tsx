@@ -1,8 +1,8 @@
 "use client"
 import React, { useState } from 'react';
 import {
-  Heart, Users, ShoppingBag, Video, MessageCircle,
-  UserPlus, Calendar, DollarSign, Send, Menu, House
+  Heart, Users, ShoppingBag, MessageCircle, Currency, User2,
+  Menu, House
 } from 'lucide-react';
 
 
@@ -48,7 +48,9 @@ const mockData = {
     matches: 3,
     collaborations: 2,
     marketplace: 1,
-    messages: 5
+    messages: 5,
+  
+    
   }
 };
 
@@ -59,15 +61,16 @@ export const Sidebar: React.FC<SidebarProps> = ({ user, activeTab, collapsed, on
   // ✅ typed arrays
   const mainMenuItems: MenuItem[] = [
     { id: 'home', icon: House, label: 'Home', count: notifications.matches, path: '/dashboard' },
+    { id: 'profile', icon: User2, label: 'Profile', path: '/profile' },
     { id: 'matches', icon: Heart, label: 'AI Matches', count: notifications.matches },
     { id: 'collaborations', icon: Users, label: 'Collaborations', count: notifications.collaborations },
-    { id: 'streaming', icon: Video, label: 'Live Streaming' }
+    
   ];
 
   const businessItems: MenuItem[] = [
     { id: 'marketplace', icon: ShoppingBag, label: 'Marketplace', count: notifications.marketplace },
-    { id: 'bookings', icon: Calendar, label: 'Bookings' },
-    { id: 'earnings', icon: DollarSign, label: 'Earnings' }
+     { id: 'Subscription', icon: Currency, label: 'Subscription', path:'/payments/checkout' },
+   
   ];
 
   const commItems: MenuItem[] = [
@@ -75,8 +78,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ user, activeTab, collapsed, on
       id: 'messages', icon: MessageCircle, label: 'Messages', count: notifications.messages,
       path: '/messages'
     },
-    { id: 'invites', icon: Send, label: 'Invites' },
-    { id: 'networking', icon: UserPlus, label: 'Network' }
+    
   ];
 
  

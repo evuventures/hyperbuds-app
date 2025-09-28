@@ -462,7 +462,7 @@ export default function UserProfileHeader({
         )
       }
 
-      {/* Enhanced Contact Information */}
+      {/* Enhanced Contact Information 
       <div className="p-6 bg-white rounded-2xl border shadow-lg backdrop-blur-sm dark:bg-gray-800/50 border-gray-200/60 dark:border-gray-700/60">
         <h3 className="flex gap-3 items-center mb-6 text-xl font-bold text-gray-900 dark:text-gray-100">
           <div className="p-2 bg-gradient-to-br from-green-100 to-blue-100 rounded-lg dark:from-green-500/20 dark:to-blue-500/20">
@@ -545,7 +545,7 @@ export default function UserProfileHeader({
               </div>
             ))}
         </div>
-      </div>
+      </div>*/}
 
       {/* Social Media Links */}
       {user.socialLinks && Object.keys(user.socialLinks).length > 0 && (
