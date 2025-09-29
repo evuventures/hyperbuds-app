@@ -1,4 +1,5 @@
-import { useState, useEffect, useRouter } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import {
   User,
   Phone,
@@ -60,10 +61,15 @@ export default function UserProfileHeader({
   onConnect,
   onMessage,
 }) {
+  const router = useRouter();
   const [copied, setCopied] = useState(false);
   const [isFollowing, setIsFollowing] = useState(false);
   const [showFullBio, setShowFullBio] = useState(false);
   const [open, setOpen] = useState(false);
+
+  const handleNavigateToRizzScore = () => {
+    router.push("/profile/rizz-score");
+  };
 
   // Show loading skeleton if no userData or isLoading is true
   if (isLoading || !userData || !userData.profile) {
@@ -192,7 +198,7 @@ export default function UserProfileHeader({
                 {user.bio && (
                   <div className="max-w-2xl">
                     <p
-                      className={`text-lg leading-relaxed text-gray-600 dark:text-gray-300 transition-all ${showFullBio ? "" : "line-clamp-2"}`}
+                      className={`text-lg leading-relaxed text-gray-600 dark:text-gray-300 transition-all ${showFullBio ? "":"line-clamp-2"}`}
                     >
                       {user.bio}
                     </p>
@@ -372,7 +378,9 @@ export default function UserProfileHeader({
             ].map((stat, index) => (
               <div
                 key={stat.label}
-                className="group relative overflow-hidden rounded-2xl bg-white dark:bg-gray-800/50 border border-gray-200/60 dark:border-gray-700/60 p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] backdrop-blur-sm"
+                className={`group relative overflow-hidden rounded-2xl bg-white dark:bg-gray-800/50 border border-gray-200/60 dark:border-gray-700/60 p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] backdrop-blur-sm ${stat.label === "Rizz Score" ? "cursor-pointer" : ""
+                  }`}
+                onClick={stat.label === "Rizz Score" ? handleNavigateToRizzScore : undefined}
               >
                 <div className="flex justify-between items-center mb-4">
                   <div
@@ -415,8 +423,17 @@ export default function UserProfileHeader({
                 >
                   {stat.value}
                 </div>
-                <div className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                  {stat.label}
+                <div className="flex flex-col gap-2 justify-between">
+                  <div className="self-start text-sm font-medium text-gray-500 dark:text-gray-400">
+                    {stat.label}
+                  </div>
+                  {stat.label === "Rizz Score" && (
+                    <div className="flex self-end">
+                      <div className="flex items-center text-xs font-medium text-purple-500 opacity-0 transition-opacity duration-200 dark:text-purple-400 group-hover:opacity-100">
+                        View Details →
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Hover Effect Background */}
@@ -579,13 +596,13 @@ export default function UserProfileHeader({
                 >
                   <div className="flex gap-3 items-center">
                     <div className={`p-3 rounded-xl bg-gradient-to-br ${info.color} group-hover:scale-110 transition-transform`}>
-                      <span className="text-white text-lg">{info.icon}</span>
+                      <span className="text-lg text-white">{info.icon}</span>
                     </div>
                     <div className="flex-1">
                       <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">
                         {info.name}
                       </div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                      <div className="text-xs text-gray-500 truncate dark:text-gray-400">
                         {url.replace('https://', '').replace('http://', '')}
                       </div>
                     </div>

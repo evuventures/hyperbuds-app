@@ -4,7 +4,6 @@ import DashboardLayout from "@/components/layout/Dashboard/Dashboard";
 import { useState, useEffect } from "react";
 import { apiFetch } from "@/lib/utils/api";
 import UserProfileHeader from "@/components/profile/ProfileCard";
-import RizzScoreDisplay from "@/components/profile/RizzScoreDisplay";
 
 export default function ProfilePage() {
   // Initialize as null instead of array
@@ -83,11 +82,6 @@ export default function ProfilePage() {
           isLoading={isLoading}
         />
 
-        {/* Rizz Score Section */}
-        <RizzScoreDisplay
-          userId={user?.profile?.userId}
-          showDetails={true}
-        />
       </div>
     </DashboardLayout>
   );
