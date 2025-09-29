@@ -6,24 +6,12 @@ import {
   Users,
   Radio,
   AtSign,
-  Video,
-  Clock,
   Bell,
   ChevronDown,
   ChevronUp,
-  Eye,
-  Play,
-  Calendar,
-  Star,
- 
   Flame,
-  Zap,
-  Heart,
-  MessageCircle,
-  Share2,
   X,
   Check,
-  
   Sparkles,
   TrendingUp,
   Award,
@@ -225,7 +213,7 @@ export const RightSidebar = () => {
     }
   };
 
-  const getStatusConfig = (status: string) => {
+{/*  const getStatusConfig = (status: string) => {
     switch (status) {
       case 'live':
         return {
@@ -248,7 +236,7 @@ export const RightSidebar = () => {
           icon: <Clock size={12} />
         };
     }
-  };
+  }; 
 
   const getTypeIcon = (type: string) => {
     switch (type) {
@@ -257,7 +245,7 @@ export const RightSidebar = () => {
       case 'workshop': return <Star size={16} className="text-purple-500" />;
       default: return <Video size={16} className="text-blue-500" />;
     }
-  };
+  }; */}
 
   const filteredActivities = recentActivities
     .filter(activity => !dismissedActivities.has(activity.id))
@@ -284,8 +272,8 @@ export const RightSidebar = () => {
       <div className="overflow-hidden relative rounded-3xl shadow-xl backdrop-blur-sm group">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 opacity-90"></div>
         <div className="absolute inset-0 bg-gradient-to-t via-transparent to-transparent from-black/40"></div>
-
-        {/* Animated Background Elements */}
+      </div>
+        {/* Animated Background Elements 
         <div className="absolute top-4 right-4 w-20 h-20 rounded-full blur-xl animate-pulse bg-white/10"></div>
         <div className="absolute bottom-8 left-8 w-16 h-16 rounded-full blur-lg delay-1000 animate-pulse bg-white/5"></div>
      {/*live now
@@ -332,7 +320,7 @@ export const RightSidebar = () => {
             </button>
           </div>
         </div>
-        */}
+        
       </div>
 
       {/* Recent Activities */}
