@@ -342,9 +342,9 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
                               onAction(profile.userId, "pass");
                               onClose();
                            }}
-                           className="flex-1 h-9 rounded-lg bg-white/10 border border-red-400/30 text-red-300 hover:bg-red-500/20 hover:border-red-400/50 hover:text-red-200 cursor-pointer transition-all duration-200 font-medium shadow-sm hover:shadow-md hover:shadow-red-500/20"
+                           className="flex-1 h-9 font-medium text-red-300 rounded-lg border shadow-sm transition-all duration-200 cursor-pointer bg-white/10 border-red-400/30 hover:bg-red-500/20 hover:border-red-400/50 hover:text-red-200 hover:shadow-md hover:shadow-red-500/20"
                         >
-                           <X className="w-4 h-4 mr-1" />
+                           <X className="mr-1 w-4 h-4" />
                            Pass
                         </Button>
 
@@ -369,9 +369,9 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
                         <Button
                            size="sm"
                            onClick={() => onCollaboration(profile.userId)}
-                           className="flex-1 h-10 rounded-lg text-white bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 cursor-pointer transition-all duration-200 font-medium shadow-sm hover:shadow-md hover:shadow-purple-500/30"
+                           className="flex-1 h-10 font-medium text-white bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg shadow-sm transition-all duration-200 cursor-pointer hover:from-purple-600 hover:to-pink-600 hover:shadow-md hover:shadow-purple-500/30"
                         >
-                           <Zap className="w-4 h-4 mr-1" />
+                           <Zap className="mr-1 w-4 h-4" />
                            Collab
                         </Button>
                      </div>

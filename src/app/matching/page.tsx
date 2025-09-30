@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import HeaderOnlyLayout from "@/components/layout/HeaderOnly/HeaderOnly";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -12,7 +11,9 @@ import type { MatchSuggestion, CreatorProfile } from "@/types/matching.types";
 import PreferencesForm from "@/components/matching/PreferencesForm";
 import MatchCard from "@/components/matching/MatchCard";
 import ProfileModal from "@/components/matching/ProfileModal";
+import CompatibilityModal from "@/components/matching/CompatibilityModal";
 import FunLoader from "@/components/matching/FunLoader";
+import DashboardLayout from "@/components/layout/Dashboard/Dashboard";
 
 // Mock data for demonstration - moved outside component to prevent infinite loop
 const mockMatches: MatchSuggestion[] = [
@@ -181,14 +182,17 @@ const MatchmakingPage: React.FC = () => {
   const [userProfile, setUserProfile] = useState<CreatorProfile | null>(null);
   const [matches, setMatches] = useState<MatchSuggestion[]>([]);
   const [dataLoaded, setDataLoaded] = useState(false);
-  const [animationComplete, setAnimationComplete] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("ai-matches");
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [selectedProfile, setSelectedProfile] = useState<CreatorProfile | null>(null);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [selectedMatch, setSelectedMatch] = useState<MatchSuggestion | null>(null);
+  const [isCompatibilityModalOpen, setIsCompatibilityModalOpen] = useState(false);
   const [isSubmittingPreferences, setIsSubmittingPreferences] = useState(false);
   const [likedMatches, setLikedMatches] = useState<Set<string>>(new Set());
+  const [showAILoader, setShowAILoader] = useState(false);
+
 
   useEffect(() => {
     async function loadData() {
@@ -375,9 +379,10 @@ const MatchmakingPage: React.FC = () => {
 
       if (action === "view") {
         const match = matches.find(m => m.targetProfile?.userId === matchId);
-        if (match?.targetProfile) {
+        if (match && match.targetProfile) {
+          setSelectedMatch(match);
           setSelectedProfile(match.targetProfile);
-          setIsProfileModalOpen(true);
+          setIsCompatibilityModalOpen(true);
         }
       } else if (action === "pass") {
         // Only remove the card when passing, not when liking
@@ -438,6 +443,7 @@ const MatchmakingPage: React.FC = () => {
   /*******  524a4fcd-6779-4312-bb77-6b52ac339bec  *******/
   const handlePreferencesSubmit = async (preferences: Record<string, unknown>) => {
     setIsSubmittingPreferences(true);
+    setShowAILoader(true); // Show AI loader when processing preferences
 
     try {
       const accessToken = localStorage.getItem("accessToken");
@@ -452,24 +458,27 @@ const MatchmakingPage: React.FC = () => {
         });
       }
 
-      // Simulate processing time
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
       // Switch to AI matches tab
       setActiveTab("ai-matches");
 
-      // Refresh matches
+      // Refresh matches with AI processing
       await refreshMatches();
     } catch (err) {
       console.error("Preferences update failed:", err);
     } finally {
       setIsSubmittingPreferences(false);
+      setShowAILoader(false); // Hide AI loader when done
     }
   };
 
   const refreshMatches = async () => {
     setIsRefreshing(true);
+    setShowAILoader(true); // Show AI loader when refreshing matches
+
     try {
+      // Simulate AI processing time for better UX
+      await new Promise(resolve => setTimeout(resolve, 3000));
+
       const accessToken = localStorage.getItem("accessToken");
       if (accessToken) {
         const response = await fetch(`${BASE_URL}/api/v1/matching/suggestions?limit=10`, {
@@ -499,125 +508,46 @@ const MatchmakingPage: React.FC = () => {
       console.error("Refresh failed:", err);
     } finally {
       setIsRefreshing(false);
+      setShowAILoader(false); // Hide AI loader when done
     }
   };
 
-  if (!dataLoaded || !animationComplete) {
+  if (!dataLoaded) {
     return (
-      <HeaderOnlyLayout>
-        <div className="flex overflow-hidden relative flex-col justify-center items-center min-h-screen bg-gradient-to-br via-purple-900 from-slate-900 to-slate-900 dark:from-slate-900 dark:via-purple-900 dark:to-slate-900 light:from-slate-100 light:via-purple-50 light:to-slate-100">
-          {/* Animated background elements */}
-          <div className="overflow-hidden absolute inset-0">
-            {/* Floating orbs */}
-            {[...Array(8)].map((_, i) => (
-              <motion.div
-                key={`orb-${i}`}
-                className="absolute w-32 h-32 rounded-full opacity-20"
-                style={{
-                  background: `radial-gradient(circle, ${['#8B5CF6', '#EC4899', '#F59E0B', '#10B981', '#3B82F6', '#EF4444'][i % 6]
-                    } 0%, transparent 70%)`,
-                  left: `${Math.random() * 100}%`,
-                  top: `${Math.random() * 100}%`,
-                }}
-                animate={{
-                  x: [0, 100, -50, 0],
-                  y: [0, -80, 60, 0],
-                  scale: [1, 1.2, 0.8, 1],
-                  opacity: [0.1, 0.3, 0.2, 0.1],
-                }}
-                transition={{
-                  duration: 15 + Math.random() * 10,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                  delay: Math.random() * 5,
-                }}
-              />
-            ))}
-
-            {/* Grid pattern */}
-            <div
-              className="absolute inset-0 opacity-5"
-              style={{
-                backgroundImage: `
-                  linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
-                  linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)
-                `,
-                backgroundSize: '50px 50px'
-              }}
-            />
-
-            {/* Gradient overlays */}
-            <div className="absolute inset-0 bg-gradient-to-t via-transparent from-slate-900/50 to-slate-900/30 dark:from-slate-900/50 dark:to-slate-900/30 light:from-slate-100/50 light:to-slate-100/30" />
-            <div className="absolute inset-0 bg-gradient-to-r via-transparent from-purple-900/20 to-pink-900/20 dark:from-purple-900/20 dark:to-pink-900/20 light:from-purple-500/20 light:to-pink-500/20" />
-          </div>
-
-          <div className="relative z-10">
-            <FunLoader onComplete={() => setAnimationComplete(true)} />
+      <DashboardLayout>
+        <div className="flex justify-center items-center min-h-screen">
+          <div className="text-center">
+            <div className="mx-auto mb-4 w-8 h-8 rounded-full border-4 border-purple-500 animate-spin border-t-transparent"></div>
+            <p className="text-gray-600 dark:text-gray-400">Loading...</p>
           </div>
         </div>
-      </HeaderOnlyLayout>
+      </DashboardLayout>
     );
   }
 
   if (error) {
     return (
-      <HeaderOnlyLayout>
+      <DashboardLayout>
         <div className="flex justify-center items-center h-screen text-red-500">
           <p>{error}</p>
         </div>
-      </HeaderOnlyLayout>
+      </DashboardLayout>
+    );
+  }
+
+  // Show AI loader when processing
+  if (showAILoader) {
+    return (
+      <DashboardLayout>
+        <FunLoader onComplete={() => setShowAILoader(false)} />
+      </DashboardLayout>
     );
   }
 
   return (
-    <HeaderOnlyLayout>
-      <div className="flex overflow-hidden relative flex-col min-h-screen bg-gradient-to-br via-purple-900 from-slate-900 to-slate-900 dark:from-slate-900 dark:via-purple-900 dark:to-slate-900 light:from-slate-100 light:via-purple-50 light:to-slate-100">
-        {/* Animated background elements */}
-        <div className="overflow-hidden absolute inset-0">
-          {/* Floating orbs */}
-          {[...Array(8)].map((_, i) => (
-            <motion.div
-              key={`orb-${i}`}
-              className="absolute w-32 h-32 rounded-full opacity-20"
-              style={{
-                background: `radial-gradient(circle, ${['#8B5CF6', '#EC4899', '#F59E0B', '#10B981', '#3B82F6', '#EF4444'][i % 6]
-                  } 0%, transparent 70%)`,
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-              }}
-              animate={{
-                x: [0, 100, -50, 0],
-                y: [0, -80, 60, 0],
-                scale: [1, 1.2, 0.8, 1],
-                opacity: [0.1, 0.3, 0.2, 0.1],
-              }}
-              transition={{
-                duration: 15 + Math.random() * 10,
-                repeat: Infinity,
-                ease: "easeInOut",
-                delay: Math.random() * 5,
-              }}
-            />
-          ))}
-
-          {/* Grid pattern */}
-          <div
-            className="absolute inset-0 opacity-5"
-            style={{
-              backgroundImage: `
-                linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)
-              `,
-              backgroundSize: '50px 50px'
-            }}
-          />
-
-          {/* Gradient overlays */}
-          <div className="absolute inset-0 bg-gradient-to-t via-transparent from-slate-900/50 to-slate-900/30 dark:from-slate-900/50 dark:to-slate-900/30 light:from-slate-100/50 light:to-slate-100/30" />
-          <div className="absolute inset-0 bg-gradient-to-r via-transparent from-purple-900/20 to-pink-900/20 dark:from-purple-900/20 dark:to-pink-900/20 light:from-purple-500/20 light:to-pink-500/20" />
-        </div>
-
-        <div className="relative z-10 flex-1 p-4 md:p-6 lg:p-8">
+    <DashboardLayout>
+      <div className="flex flex-col min-h-screen bg-white dark:bg-[#0f172a]">
+        <div className="flex-1 p-4 md:p-6 lg:p-8">
           <div className="mx-auto max-w-7xl">
             {/* Header Section */}
             <motion.div
@@ -626,21 +556,60 @@ const MatchmakingPage: React.FC = () => {
               transition={{ duration: 0.6 }}
               className="mb-8"
             >
-              <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+              <div className="flex gap-4 justify-between items-center">
                 <div className="flex gap-4 items-center">
-                  <Avatar className="w-16 h-16 border-4 border-white/20">
-                    <AvatarImage src={userProfile?.avatar} alt={userProfile?.displayName} />
-                    <AvatarFallback className="text-lg font-bold">
-                      {userProfile?.displayName?.charAt(0) || "U"}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <h1 className="text-2xl font-bold text-white md:text-3xl">
+                  <motion.div
+                    whileTap={{ scale: 0.95 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                    className="relative"
+                  >
+                    {/* Glowing Ring Effect */}
+                    <motion.div
+                      animate={{
+                        scale: [1, 1.15, 1],
+                        opacity: [0.4, 0.7, 0.4]
+                      }}
+                      transition={{
+                        duration: 3,
+                        repeat: Infinity,
+                        ease: "easeInOut"
+                      }}
+                      className="absolute inset-0 bg-gradient-to-r rounded-full blur-md from-purple-400/40 to-pink-400/40"
+                    />
+
+                    {/* Enhanced Avatar */}
+                    <Avatar className="relative w-16 h-16 border-4 shadow-md border-white/30 shadow-purple-500/30">
+                      <AvatarImage
+                        src={userProfile?.avatar}
+                        alt={userProfile?.displayName}
+                        className="object-cover"
+                      />
+                      <AvatarFallback className="text-lg font-bold bg-gradient-to-br from-purple-500 to-pink-500">
+                        {userProfile?.displayName?.charAt(0) || "U"}
+                      </AvatarFallback>
+                    </Avatar>
+                  </motion.div>
+
+                  <div className="flex-1">
+                    <motion.h1
+                      className="text-2xl font-bold text-gray-900 dark:text-white md:text-3xl"
+                      initial={{ opacity: 0, y: -20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.6, delay: 0.2 }}
+                      whileHover={{ scale: 1.05 }}
+                    >
                       {userProfile?.displayName || "Creator"}
-                    </h1>
-                    <p className="text-sm text-purple-200 md:text-base">
+                    </motion.h1>
+
+                    <motion.p
+                      className="text-sm text-gray-600 dark:text-purple-200 md:text-base"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.6, delay: 0.4 }}
+                      whileHover={{ scale: 1.02 }}
+                    >
                       {userProfile?.bio || "Find your perfect collaboration matches!"}
-                    </p>
+                    </motion.p>
                   </div>
                 </div>
 
@@ -650,7 +619,7 @@ const MatchmakingPage: React.FC = () => {
                     size="sm"
                     onClick={refreshMatches}
                     disabled={isRefreshing}
-                    className="text-white cursor-pointer bg-white/10 border-white/20 hover:bg-white/20 hover:text-white"
+                    className="text-gray-900 bg-gray-100 border-gray-300 cursor-pointer dark:text-white dark:bg-white/10 dark:border-white/20 hover:bg-gray-200 dark:hover:bg-white/20 dark:hover:text-white"
                   >
                     <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? "animate-spin" : ""}`} />
                     Refresh
@@ -667,24 +636,25 @@ const MatchmakingPage: React.FC = () => {
               className="mb-8"
             >
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="grid grid-cols-2 w-full border bg-white/10 border-white/20">
+                <TabsList className={`grid grid-cols-2 w-full mx-auto p-1 bg-gray-100 dark:bg-gray-800 rounded-xl transition-all duration-300 shadow-md border border-gray-200 dark:border-gray-700 ${activeTab === "preferences" ? "max-w-4xl" : "max-w-7xl"
+                  }`}>
                   <TabsTrigger
                     value="ai-matches"
-                    className="data-[state=active]:bg-white/20 data-[state=active]:text-white text-white/80 cursor-pointer"
+                    className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:font-semibold data-[state=active]:dark:text-white text-gray-600 dark:text-gray-300 cursor-pointer rounded-lg transition-all duration-200 hover:text-gray-900 dark:hover:text-white"
                   >
                     AI Matches
                   </TabsTrigger>
                   <TabsTrigger
                     value="preferences"
-                    className="data-[state=active]:bg-white/20 data-[state=active]:text-white text-white/80 cursor-pointer"
+                    className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:font-semibold data-[state=active]:dark:text-white text-gray-600 dark:text-gray-300 cursor-pointer rounded-lg transition-all duration-200 hover:text-gray-900 dark:hover:text-white"
                   >
                     Preferences
                   </TabsTrigger>
                 </TabsList>
 
-                <TabsContent value="ai-matches" className="mt-6">
+                <TabsContent value="ai-matches" className="mt-8">
                   {matches.length > 0 ? (
-                    <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    <div className="grid grid-cols-1 gap-8 py-4 md:grid-cols-2 lg:grid-cols-3">
                       {matches.map((match, index) => (
                         <motion.div
                           key={match._id}
@@ -703,11 +673,11 @@ const MatchmakingPage: React.FC = () => {
                     </div>
                   ) : (
                     <div className="flex flex-col justify-center items-center py-12 text-center">
-                      <div className="flex justify-center items-center mb-4 w-24 h-24 rounded-full bg-white/10">
-                        <Heart className="w-12 h-12 text-white/60" />
+                      <div className="flex justify-center items-center mb-4 w-24 h-24 bg-gray-100 rounded-full dark:bg-white/10">
+                        <Heart className="w-12 h-12 text-gray-400 dark:text-white/60" />
                       </div>
-                      <h3 className="mb-2 text-xl font-semibold text-white">No matches found</h3>
-                      <p className="mb-4 text-white/60">Try adjusting your preferences or check back later!</p>
+                      <h3 className="mb-2 text-xl font-semibold text-gray-900 dark:text-white">No matches found</h3>
+                      <p className="mb-4 text-gray-600 dark:text-white/60">Try adjusting your preferences or check back later!</p>
                       <Button
                         onClick={() => setActiveTab("preferences")}
                         className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
@@ -741,9 +711,23 @@ const MatchmakingPage: React.FC = () => {
           onCollaboration={handleCollaboration}
           isLiked={selectedProfile ? likedMatches.has(selectedProfile.userId) : false}
         />
+
+        {/* Compatibility Modal */}
+        <CompatibilityModal
+          match={selectedMatch}
+          profile={selectedProfile}
+          isOpen={isCompatibilityModalOpen}
+          onClose={() => {
+            setIsCompatibilityModalOpen(false);
+            setSelectedMatch(null);
+            setSelectedProfile(null);
+          }}
+          onCollaboration={handleCollaboration}
+        />
       </div>
-    </HeaderOnlyLayout>
+    </DashboardLayout>
   );
 };
 
 export default MatchmakingPage;
+

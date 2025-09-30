@@ -106,12 +106,12 @@ const PreferencesForm: React.FC<PreferencesFormProps> = ({ onSubmit, isSubmittin
          transition={{ duration: 0.6 }}
          className="mx-auto max-w-4xl"
       >
-         <Card className="border backdrop-blur-sm bg-white/10 border-white/20">
+         <Card className="border border-gray-200 backdrop-blur-sm bg-white/80 dark:bg-white/10 dark:border-white/20">
             <CardHeader>
-               <CardTitle className="text-2xl font-bold text-center text-white">
+               <CardTitle className="text-2xl font-bold text-center text-gray-900 dark:text-white">
                   Collaboration Preferences
                </CardTitle>
-               <p className="text-center text-white/70">
+               <p className="text-center text-gray-600 dark:text-white/70">
                   Tell us about your ideal collaboration partners and we&apos;ll find the perfect matches!
                </p>
             </CardHeader>
@@ -120,10 +120,10 @@ const PreferencesForm: React.FC<PreferencesFormProps> = ({ onSubmit, isSubmittin
                <form onSubmit={handleSubmit} className="space-y-8">
                   {/* Collaboration Types */}
                   <div className="space-y-4">
-                     <Label className="text-lg font-semibold text-white">
+                     <Label className="text-lg font-semibold text-gray-900 dark:text-white">
                         Collaboration Types
                      </Label>
-                     <p className="text-sm text-white/70">
+                     <p className="text-sm text-gray-600 dark:text-white/70">
                         What types of collaborations are you interested in?
                      </p>
                      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -134,7 +134,7 @@ const PreferencesForm: React.FC<PreferencesFormProps> = ({ onSubmit, isSubmittin
                                  key={type.id}
                                  className={`flex items-start space-x-3 p-4 rounded-lg border transition-all duration-200 hover:scale-105 ${isSelected
                                     ? 'bg-gradient-to-r from-purple-500/20 to-pink-500/20 border-purple-400/50 hover:from-purple-500/30 hover:to-pink-500/30'
-                                    : 'bg-white/5 border-white/10 hover:bg-white/10'
+                                    : 'bg-gray-50 border-gray-200 dark:bg-white/5 dark:border-white/10 hover:bg-gray-100 dark:hover:bg-white/10'
                                     }`}
                               >
                                  <Checkbox
@@ -143,20 +143,20 @@ const PreferencesForm: React.FC<PreferencesFormProps> = ({ onSubmit, isSubmittin
                                     onCheckedChange={(checked) =>
                                        handleCollaborationTypeChange(type.id, checked as boolean)
                                     }
-                                    className={`mt-1 ${isSelected
-                                       ? 'data-[state=checked]:bg-purple-600 data-[state=checked]:border-purple-600'
+                                    className={`mt-1 cursor-pointer ${isSelected
+                                       ? 'data-[state=checked]:bg-purple-600 data-[state=checked]:border-purple-600 '
                                        : ''
                                        }`}
                                  />
                                  <div className="flex-1">
                                     <Label
                                        htmlFor={type.id}
-                                       className={`font-medium cursor-pointer transition-colors ${isSelected ? 'text-white' : 'text-white'
+                                       className={`font-medium cursor-pointer transition-colors ${isSelected ? 'text-gray-900 dark:text-white' : 'text-gray-900 dark:text-white'
                                           }`}
                                     >
                                        {type.label}
                                     </Label>
-                                    <p className={`text-sm mt-1 transition-colors ${isSelected ? 'text-white/80' : 'text-white/60'
+                                    <p className={`text-sm mt-1 transition-colors ${isSelected ? 'text-gray-600 dark:text-white/80' : 'text-gray-500 dark:text-white/60'
                                        }`}>
                                        {type.description}
                                     </p>
@@ -169,16 +169,16 @@ const PreferencesForm: React.FC<PreferencesFormProps> = ({ onSubmit, isSubmittin
 
                   {/* Audience Size */}
                   <div className="space-y-4">
-                     <Label className="text-lg font-semibold text-white">
+                     <Label className="text-lg font-semibold text-gray-900 dark:text-white">
                         Preferred Audience Size
                      </Label>
-                     <p className="text-sm text-white/70">
+                     <p className="text-sm text-gray-600 dark:text-white/70">
                         What audience size range are you looking for in collaborators?
                      </p>
                      <div className="space-y-4">
                         <div className="grid grid-cols-2 gap-4">
                            <div>
-                              <Label className="text-sm text-white/80">Minimum Followers</Label>
+                              <Label className="text-sm text-gray-600 dark:text-white/80">Minimum Followers</Label>
                               <Input
                                  type="number"
                                  value={preferences.audienceSize.min}
@@ -186,12 +186,12 @@ const PreferencesForm: React.FC<PreferencesFormProps> = ({ onSubmit, isSubmittin
                                     ...prev,
                                     audienceSize: { ...prev.audienceSize, min: parseInt(e.target.value) || 0 }
                                  }))}
-                                 className="text-white bg-white/10 border-white/20 placeholder-white/50 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [-moz-appearance:textfield]"
+                                 className="text-gray-900 dark:text-white bg-gray-100 dark:bg-white/10 border-gray-300 dark:border-white/20 placeholder-gray-500 dark:placeholder-white/50 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [-moz-appearance:textfield]"
                                  placeholder="1000"
                               />
                            </div>
                            <div>
-                              <Label className="text-sm text-white/80">Maximum Followers</Label>
+                              <Label className="text-sm text-gray-600 dark:text-white/80">Maximum Followers</Label>
                               <Input
                                  type="number"
                                  value={preferences.audienceSize.max}
@@ -199,12 +199,12 @@ const PreferencesForm: React.FC<PreferencesFormProps> = ({ onSubmit, isSubmittin
                                     ...prev,
                                     audienceSize: { ...prev.audienceSize, max: parseInt(e.target.value) || 1000000 }
                                  }))}
-                                 className="text-white bg-white/10 border-white/20 placeholder-white/50 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [-moz-appearance:textfield]"
+                                 className="text-gray-900 dark:text-white bg-gray-100 dark:bg-white/10 border-gray-300 dark:border-white/20 placeholder-gray-500 dark:placeholder-white/50 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [-moz-appearance:textfield]"
                                  placeholder="1000000"
                               />
                            </div>
                         </div>
-                        <div className="text-sm text-center text-white/60">
+                        <div className="text-sm text-center text-gray-500 dark:text-white/60">
                            {preferences.audienceSize.min.toLocaleString()} - {preferences.audienceSize.max.toLocaleString()} followers
                         </div>
                      </div>
@@ -212,10 +212,10 @@ const PreferencesForm: React.FC<PreferencesFormProps> = ({ onSubmit, isSubmittin
 
                   {/* Locations */}
                   <div className="space-y-4">
-                     <Label className="text-lg font-semibold text-white">
+                     <Label className="text-lg font-semibold text-gray-900 dark:text-white">
                         Preferred Locations
                      </Label>
-                     <p className="text-sm text-white/70">
+                     <p className="text-sm text-gray-600 dark:text-white/70">
                         Where would you like your collaborators to be located?
                      </p>
 
@@ -226,7 +226,7 @@ const PreferencesForm: React.FC<PreferencesFormProps> = ({ onSubmit, isSubmittin
                               <Badge
                                  key={location}
                                  variant="outline"
-                                 className="text-white bg-white/10 border-white/20 hover:bg-white/20"
+                                 className="text-gray-900 bg-gray-100 border-gray-300 dark:text-white dark:bg-white/10 dark:border-white/20 hover:bg-gray-200 dark:hover:bg-white/20"
                               >
                                  {location}
                                  <button
@@ -244,15 +244,15 @@ const PreferencesForm: React.FC<PreferencesFormProps> = ({ onSubmit, isSubmittin
                      {/* Add Location */}
                      <div className="flex gap-2">
                         <Select onValueChange={handleLocationAdd}>
-                           <SelectTrigger className="flex-1 text-white bg-white/10 border-white/20 [&>svg]:text-white cursor-pointer">
+                           <SelectTrigger className="flex-1 text-gray-900 dark:text-white bg-gray-100 dark:bg-white/10 border-gray-300 dark:border-white/20 [&>svg]:text-gray-900 dark:[&>svg]:text-white cursor-pointer focus:border-gray-400 dark:focus:border-white/30 focus:ring-0">
                               <SelectValue placeholder="Select a location" />
                            </SelectTrigger>
-                           <SelectContent className="bg-slate-800 border-slate-700 [&>*]:text-white [&>*:hover]:text-white [&>*:focus]:text-white">
+                           <SelectContent className="bg-white border-gray-200 dark:bg-slate-800 dark:border-slate-700">
                               {locations.map((location) => (
                                  <SelectItem
                                     key={location}
                                     value={location}
-                                    className="text-white cursor-pointer hover:bg-slate-700 hover:text-white focus:bg-slate-700 focus:text-white"
+                                    className="text-gray-900 cursor-pointer dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 focus:bg-gray-100 dark:focus:bg-slate-700"
                                  >
                                     {location}
                                  </SelectItem>
@@ -263,7 +263,7 @@ const PreferencesForm: React.FC<PreferencesFormProps> = ({ onSubmit, isSubmittin
                            type="button"
                            onClick={() => handleLocationAdd(customLocation)}
                            disabled={!customLocation}
-                           className="text-white bg-white/10 border-white/20 hover:bg-white/20"
+                           className="text-gray-900 dark:text-white bg-white/10 border-white/20 hover:bg-white/20"
                         >
                            <Plus className="w-4 h-4" />
                         </Button> */}
@@ -272,10 +272,10 @@ const PreferencesForm: React.FC<PreferencesFormProps> = ({ onSubmit, isSubmittin
 
                   {/* Niches */}
                   <div className="space-y-4">
-                     <Label className="text-lg font-semibold text-white">
+                     <Label className="text-lg font-semibold text-gray-900 dark:text-white">
                         Preferred Niches
                      </Label>
-                     <p className="text-sm text-white/70">
+                     <p className="text-sm text-gray-600 dark:text-white/70">
                         What content niches are you most interested in collaborating on?
                      </p>
 
@@ -286,7 +286,7 @@ const PreferencesForm: React.FC<PreferencesFormProps> = ({ onSubmit, isSubmittin
                               <Badge
                                  key={niche}
                                  variant="outline"
-                                 className="text-white bg-white/10 border-white/20 hover:bg-white/20"
+                                 className="text-gray-900 bg-gray-100 border-gray-300 dark:text-white dark:bg-white/10 dark:border-white/20 hover:bg-gray-200 dark:hover:bg-white/20"
                               >
                                  #{niche}
                                  <button
@@ -304,15 +304,15 @@ const PreferencesForm: React.FC<PreferencesFormProps> = ({ onSubmit, isSubmittin
                      {/* Add Niche */}
                      <div className="flex gap-2">
                         <Select onValueChange={handleNicheAdd}>
-                           <SelectTrigger className="flex-1 text-white bg-white/10 border-white/20 [&>svg]:text-white cursor-pointer">
+                           <SelectTrigger className="flex-1 text-gray-900 dark:text-white bg-gray-100 dark:bg-white/10 border-gray-300 dark:border-white/20 [&>svg]:text-gray-900 dark:[&>svg]:text-white cursor-pointer focus:border-gray-400 dark:focus:border-white/30 focus:ring-0">
                               <SelectValue placeholder="Select a niche" />
                            </SelectTrigger>
-                           <SelectContent className="bg-slate-800 border-slate-700 [&>*]:text-white [&>*:hover]:text-white [&>*:focus]:text-white">
+                           <SelectContent className="bg-white border-gray-200 dark:bg-slate-800 dark:border-slate-700">
                               {niches.map((niche) => (
                                  <SelectItem
                                     key={niche}
                                     value={niche}
-                                    className="text-white cursor-pointer hover:bg-slate-700 hover:text-white focus:bg-slate-700 focus:text-white"
+                                    className="text-gray-900 cursor-pointer dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 focus:bg-gray-100 dark:focus:bg-slate-700"
                                  >
                                     #{niche}
                                  </SelectItem>
@@ -326,18 +326,18 @@ const PreferencesForm: React.FC<PreferencesFormProps> = ({ onSubmit, isSubmittin
                   <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                      <div className="space-y-6">
                         <div className="space-y-2">
-                           <Label className="flex gap-3 items-center text-xl font-bold text-white">
+                           <Label className="flex gap-3 items-center text-xl font-bold text-gray-900 dark:text-white">
                               <div className="flex relative justify-center items-center w-10 h-10 bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500 rounded-full shadow-lg transition-all duration-300 animate-pulse hover:shadow-xl hover:scale-110">
                                  <div className="absolute inset-0 bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500 rounded-full opacity-20 animate-spin"></div>
                                  <div className="absolute inset-1 bg-gradient-to-r from-pink-500 via-blue-500 to-purple-500 rounded-full opacity-30 animate-ping"></div>
-                                 <svg className="relative z-10 w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                 <svg className="relative z-10 w-5 h-5 text-gray-900 dark:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                                  </svg>
                               </div>
                               Maximum Distance
                            </Label>
-                           <p className="ml-11 text-sm font-medium text-white/80">
+                           <p className="ml-11 text-sm font-medium text-gray-600 dark:text-white/80">
                               How far are you willing to travel for collaborations?
                            </p>
                         </div>
@@ -364,11 +364,11 @@ const PreferencesForm: React.FC<PreferencesFormProps> = ({ onSubmit, isSubmittin
                                        }}
                                        className={`p-3 cursor-pointer rounded-lg text-center transition-all duration-300 border ${preferences.maxDistance === option.value
                                           ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white border-purple-400/30 hover:from-purple-600 hover:to-pink-600'
-                                          : 'bg-slate-800/50 text-slate-300 border-slate-600/30 hover:bg-slate-700/50 hover:text-white hover:border-slate-500/50'
+                                          : 'bg-gray-100 dark:bg-slate-800/50 text-gray-700 dark:text-slate-300 border-gray-300 dark:border-slate-600/30 hover:bg-gray-200 dark:hover:bg-slate-700/50 hover:border-gray-400 dark:hover:border-slate-500/50'
                                           }`}
                                     >
                                        <div className="text-sm font-bold">{option.label}</div>
-                                       <div className={`text-xs ${preferences.maxDistance === option.value ? 'text-white/80' : 'text-slate-400'}`}>
+                                       <div className={`text-xs ${preferences.maxDistance === option.value ? 'text-white/80' : 'text-gray-500 dark:text-slate-400'}`}>
                                           {option.desc}
                                        </div>
                                     </button>
@@ -379,7 +379,7 @@ const PreferencesForm: React.FC<PreferencesFormProps> = ({ onSubmit, isSubmittin
                               <div className="text-center">
                                  <div className="inline-flex gap-2 items-center px-4 py-2 bg-gradient-to-r rounded-full border backdrop-blur-sm from-purple-500/20 to-pink-500/20 border-purple-500/30">
                                     <div className="w-2 h-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full animate-pulse"></div>
-                                    <span className="text-lg font-bold text-white">
+                                    <span className="text-lg font-bold text-gray-900 dark:text-white">
                                        {preferences.maxDistance} km
                                     </span>
                                     <div className="w-2 h-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full animate-pulse"></div>
@@ -391,17 +391,17 @@ const PreferencesForm: React.FC<PreferencesFormProps> = ({ onSubmit, isSubmittin
 
                      <div className="space-y-4">
                         <div className="space-y-2">
-                           <Label className="flex gap-3 items-center text-xl font-bold text-white">
+                           <Label className="flex gap-3 items-center text-xl font-bold text-gray-900 dark:text-white">
                               <div className="flex relative justify-center items-center w-10 h-10 bg-gradient-to-r from-blue-500 via-cyan-500 to-teal-500 rounded-full shadow-lg transition-all duration-300 animate-pulse hover:shadow-xl hover:scale-110">
                                  <div className="absolute inset-0 bg-gradient-to-r from-blue-500 via-cyan-500 to-teal-500 rounded-full opacity-20 animate-spin"></div>
                                  <div className="absolute inset-1 bg-gradient-to-r from-cyan-500 via-teal-500 to-blue-500 rounded-full opacity-30 animate-ping"></div>
-                                 <svg className="relative z-10 w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                 <svg className="relative z-10 w-5 h-5 text-gray-900 dark:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                  </svg>
                               </div>
                               Content Frequency
                            </Label>
-                           <p className="ml-11 text-sm font-medium text-white/80">
+                           <p className="ml-11 text-sm font-medium text-gray-600 dark:text-white/80">
                               How often do you create content?
                            </p>
                         </div>
@@ -409,44 +409,42 @@ const PreferencesForm: React.FC<PreferencesFormProps> = ({ onSubmit, isSubmittin
                            value={preferences.contentFrequency}
                            onValueChange={(value) => setPreferences(prev => ({ ...prev, contentFrequency: value }))}
                         >
-                           <SelectTrigger className="text-white bg-white/10 border-white/20 [&>svg]:text-white cursor-pointer">
+                           <SelectTrigger className="text-gray-900 dark:text-white bg-gray-100 dark:bg-white/10 border-gray-300 dark:border-white/20 [&>svg]:text-gray-900 dark:[&>svg]:text-white cursor-pointer focus:border-gray-400 dark:focus:border-white/30 focus:ring-0">
                               <SelectValue />
                            </SelectTrigger>
-                           <SelectContent className="bg-slate-800 border-slate-700 [&>*]:text-white [&>*:hover]:text-white [&>*:focus]:text-white">
-                              <SelectItem value="daily" className="text-white cursor-pointer hover:bg-slate-700 hover:text-white focus:bg-slate-700 focus:text-white">Daily</SelectItem>
-                              <SelectItem value="weekly" className="text-white cursor-pointer hover:bg-slate-700 hover:text-white focus:bg-slate-700 focus:text-white">Weekly</SelectItem>
-                              <SelectItem value="bi-weekly" className="text-white cursor-pointer hover:bg-slate-700 hover:text-white focus:bg-slate-700 focus:text-white">Bi-weekly</SelectItem>
-                              <SelectItem value="monthly" className="text-white cursor-pointer hover:bg-slate-700 hover:text-white focus:bg-slate-700 focus:text-white">Monthly</SelectItem>
-                              <SelectItem value="flexible" className="text-white cursor-pointer hover:bg-slate-700 hover:text-white focus:bg-slate-700 focus:text-white">Flexible</SelectItem>
+                           <SelectContent className="bg-white border-gray-200 dark:bg-slate-800 dark:border-slate-700">
+                              <SelectItem value="daily" className="text-gray-900 cursor-pointer dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 focus:bg-gray-100 dark:focus:bg-slate-700">Daily</SelectItem>
+                              <SelectItem value="weekly" className="text-gray-900 cursor-pointer dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 focus:bg-gray-100 dark:focus:bg-slate-700">Weekly</SelectItem>
+                              <SelectItem value="bi-weekly" className="text-gray-900 cursor-pointer dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 focus:bg-gray-100 dark:focus:bg-slate-700">Bi-weekly</SelectItem>
+                              <SelectItem value="monthly" className="text-gray-900 cursor-pointer dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 focus:bg-gray-100 dark:focus:bg-slate-700">Monthly</SelectItem>
+                              <SelectItem value="flexible" className="text-gray-900 cursor-pointer dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 focus:bg-gray-100 dark:focus:bg-slate-700">Flexible</SelectItem>
                            </SelectContent>
                         </Select>
                      </div>
                   </div>
 
                   {/* Submit Button */}
-                  <motion.div
-                     whileHover={{ scale: 1.02 }}
-                     whileTap={{ scale: 0.98 }}
-                     className="flex justify-center pt-6"
-                  >
+                  <div className="flex justify-center px-2 pt-6">
                      <Button
                         type="submit"
                         disabled={isSubmitting}
-                        className="px-8 py-3 text-lg font-semibold text-white bg-gradient-to-r from-purple-500 to-pink-500 cursor-pointer hover:from-purple-600 hover:to-pink-600"
+                        className="w-full max-w-md px-4 sm:px-8 py-3 text-sm sm:text-lg font-semibold text-white bg-gradient-to-r from-purple-500 to-pink-500 cursor-pointer hover:from-purple-600 hover:to-pink-600 transition-all duration-200 hover:scale-[1.02]"
                      >
                         {isSubmitting ? (
                            <>
-                              <div className="mr-2 w-5 h-5 rounded-full border-2 animate-spin border-white/30 border-t-white" />
-                              Finding Matches...
+                              <div className="mr-2 w-4 h-4 rounded-full border-2 animate-spin sm:w-5 sm:h-5 border-white/30 border-t-white" />
+                              <span className="hidden sm:inline">Finding Matches...</span>
+                              <span className="sm:hidden">Finding...</span>
                            </>
                         ) : (
                            <>
-                              <Save className="mr-2 w-5 h-5" />
-                              Save Preferences & Find Matches
+                              <Save className="mr-2 w-4 h-4 sm:w-5 sm:h-5" />
+                              <span className="hidden sm:inline">Save Preferences & Find Matches</span>
+                              <span className="sm:hidden">Save & Find Matches</span>
                            </>
                         )}
                      </Button>
-                  </motion.div>
+                  </div>
                </form>
             </CardContent>
          </Card>
