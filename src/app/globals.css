@@ -1475,3 +1475,46 @@ textarea:focus-visible {
 .dark .hover\:scrollbar-thin:hover {
   scrollbar-color: rgba(75, 85, 99, 0.4) transparent;
 }
+
+/* Profile Modal Scrollbar Styles */
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: rgba(30, 41, 59, 0.3);
+  border-radius: 3px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: rgba(71, 85, 105, 0.6);
+  border-radius: 3px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.8);
+}
+
+.scrollbar-track-slate-800::-webkit-scrollbar-track {
+  background: rgba(30, 41, 59, 0.8);
+}
+
+.scrollbar-thumb-slate-600::-webkit-scrollbar-thumb {
+  background: rgba(71, 85, 105, 0.8);
+}
+
+.hover\:scrollbar-thumb-slate-500:hover::-webkit-scrollbar-thumb {
+  background: rgba(100, 116, 139, 0.9);
+}
+
+/* Floating animation for stats cards */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px) scale(1);
+    opacity: 0.7;
+  }
+  50% {
+    transform: translateY(-10px) scale(1.1);
+    opacity: 1;
+  }
+}

@@ -232,7 +232,7 @@ export default function LoginForm() {
             </form>
 
             <div className="mt-8 text-sm text-center text-gray-600">
-              Don`&apos;`t have an account?{' '}
+              Don&apos;t have an account?{' '}
               <a
                 href="/auth/register"
                 onClick={handleSignUpClick}
