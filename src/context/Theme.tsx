@@ -23,26 +23,29 @@ interface ThemeProviderProps {
 }
 
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    // Initialize from the class that was set by the inline script
+    if (typeof window !== 'undefined') {
+      return document.documentElement.classList.contains('dark');
+    }
+    return false;
+  });
   const [isLoaded, setIsLoaded] = useState(false);
 
   // Load theme preference from localStorage on mount
   useEffect(() => {
     const savedTheme = localStorage.getItem('hyperbuds-theme');
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    
-    if (savedTheme) {
-      setIsDarkMode(savedTheme === 'dark');
-    } else {
-      setIsDarkMode(prefersDark);
-    }
+
+    const shouldBeDark = savedTheme ? savedTheme === 'dark' : prefersDark;
+    setIsDarkMode(shouldBeDark);
     setIsLoaded(true);
   }, []);
 
   // Update document class and localStorage when theme changes
   useEffect(() => {
     if (!isLoaded) return;
-    
+
     if (isDarkMode) {
       document.documentElement.classList.add('dark');
       localStorage.setItem('hyperbuds-theme', 'dark');
@@ -55,7 +58,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   // Listen for system theme changes
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    
+
     const handleChange = (e: MediaQueryListEvent) => {
       // Only follow system preference if user hasn't manually set a preference
       const savedTheme = localStorage.getItem('hyperbuds-theme');
@@ -75,11 +78,6 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   const setDarkMode = (isDark: boolean) => {
     setIsDarkMode(isDark);
   };
-
-  // Prevent flash of unstyled content
-  if (!isLoaded) {
-    return <div className="min-h-screen bg-white dark:bg-gray-900" />;
-  }
 
   return (
     <ThemeContext.Provider value={{ isDarkMode, toggleDarkMode, setDarkMode }}>

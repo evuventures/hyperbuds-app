@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "../providers/AuthProvider";
 import { ThemeProvider } from "../providers/ThemeProvider";
+import { SidebarProvider } from "../context/SidebarContext";
 import { Toaster } from "sonner";
 
 const inter = Inter({
@@ -23,12 +24,38 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${inter.variable} antialiased`}>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              try {
+                const savedTheme = localStorage.getItem('hyperbuds-theme');
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                const shouldBeDark = savedTheme ? savedTheme === 'dark' : prefersDark;
+                
+                if (shouldBeDark) {
+                  document.documentElement.classList.add('dark');
+                } else {
+                  document.documentElement.classList.remove('dark');
+                }
+              } catch (e) {
+                // Fallback to system preference if localStorage is not available
+                if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                  document.documentElement.classList.add('dark');
+                }
+              }
+            `,
+          }}
+        />
+      </head>
+      <body className={`${inter.variable} antialiased bg-white dark:bg-gray-900`}>
         <ThemeProvider>
-          <AuthProvider>
-            {children}
-            <Toaster richColors position="top-right" />
-          </AuthProvider>
+          <SidebarProvider>
+            <AuthProvider>
+              {children}
+              <Toaster richColors position="top-right" />
+            </AuthProvider>
+          </SidebarProvider>
         </ThemeProvider>
       </body>
     </html>

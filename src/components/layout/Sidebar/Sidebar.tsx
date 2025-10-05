@@ -52,8 +52,8 @@ const mockData = {
     collaborations: 2,
     marketplace: 1,
     messages: 5,
-  
-    
+
+
   }
 };
 
@@ -64,17 +64,19 @@ export const Sidebar: React.FC<SidebarProps> = ({ user, activeTab, collapsed, on
   const getActiveTabFromPath = () => {
     // Main menu items
     if (pathname === '/dashboard') return 'home';
+    if (pathname.startsWith('/profile')) return 'profile'; // Handle all profile routes
     if (pathname === '/ai-matches') return 'matches';
     if (pathname === '/matching') return 'matching';
     if (pathname === '/streaming') return 'streaming';
 
     // Business items
     if (pathname === '/marketplace') return 'marketplace';
+    if (pathname.startsWith('/payments')) return 'Subscription'; // Handle payment routes
     if (pathname === '/bookings') return 'bookings';
     if (pathname === '/earnings') return 'earnings';
 
     // Communication items
-    if (pathname === '/messages') return 'messages';
+    if (pathname.startsWith('/messages')) return 'messages'; // Handle all message routes
     if (pathname === '/invites') return 'invites';
     if (pathname === '/networking') return 'networking';
 
@@ -100,7 +102,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ user, activeTab, collapsed, on
 
   const businessItems: MenuItem[] = [
     { id: 'marketplace', icon: ShoppingBag, label: 'Marketplace', count: notifications.marketplace, path: '/marketplace' },
-    { id: 'Subscription', icon: Currency, label: 'Subscription', path:'/payments/checkout' },
+    { id: 'Subscription', icon: Currency, label: 'Subscription', path: '/payments/checkout' },
     { id: 'bookings', icon: Users, label: 'Bookings', path: '/bookings' },
     { id: 'earnings', icon: Currency, label: 'Earnings', path: '/earnings' }
   ];

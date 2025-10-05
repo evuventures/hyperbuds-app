@@ -2,6 +2,18 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Prevent theme flash */
+html {
+  background-color: #ffffff;
+}
+
+html.dark {
+  background-color: #111827;
+}
+
+body {
+  background-color: inherit;
+}
 
 :root {
   --background: #ffffff;
@@ -10,11 +22,7 @@
 
 /* Dark theme CSS variables */
 :root.dark {
-  --background: linear-gradient(to bottom right,
-      rgba(249, 250, 251, 1) 0%,
-      rgba(255, 255, 255, 1) 50%,
-      rgba(243, 244, 246, 1) 100%);
-  ;
+  --background: #111827;
   --foreground: #ededed;
 }
 
@@ -947,7 +955,7 @@
 }
 
 .custom-bullet {
-  @apply bg-purple-300 dark:bg-purple-600 w-3 h-3 rounded-full;
+  @apply w-3 h-3 bg-purple-300 rounded-full dark:bg-purple-600;
 }
 
 .custom-bullet-active {
@@ -1401,6 +1409,13 @@ textarea:focus-visible {
   animation: skeleton-loading 1.4s ease infinite;
 }
 
+/* Dark mode skeleton */
+.dark .skeleton {
+  background: linear-gradient(90deg, #374151 25%, transparent 37%, #374151 63%);
+  background-size: 400% 100%;
+  animation: skeleton-loading 1.4s ease infinite;
+}
+
 @keyframes skeleton-loading {
   0% {
     background-position: 100% 50%;
@@ -1509,10 +1524,13 @@ textarea:focus-visible {
 
 /* Floating animation for stats cards */
 @keyframes float {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: translateY(0px) scale(1);
     opacity: 0.7;
   }
+
   50% {
     transform: translateY(-10px) scale(1.1);
     opacity: 1;
