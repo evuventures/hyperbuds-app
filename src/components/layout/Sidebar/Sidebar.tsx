@@ -97,14 +97,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ user, activeTab, collapsed, on
     { id: 'profile', icon: User2, label: 'Profile', path: '/profile' },
     { id: 'matches', icon: Heart, label: 'AI Matches', count: notifications.matches, path: '/ai-matches' },
     { id: 'matching', icon: Users, label: 'Collaborations', count: notifications.collaborations, path: '/matching' },
-    { id: 'streaming', icon: Users, label: 'Live Streaming', path: '/streaming' }
+    //{ id: 'streaming', icon: Users, label: 'Live Streaming', path: '/streaming' }
   ];
 
   const businessItems: MenuItem[] = [
     { id: 'marketplace', icon: ShoppingBag, label: 'Marketplace', count: notifications.marketplace, path: '/marketplace' },
     { id: 'Subscription', icon: Currency, label: 'Subscription', path: '/payments/checkout' },
-    { id: 'bookings', icon: Users, label: 'Bookings', path: '/bookings' },
-    { id: 'earnings', icon: Currency, label: 'Earnings', path: '/earnings' }
+   // { id: 'bookings', icon: Users, label: 'Bookings', path: '/bookings' },
+    //{ id: 'earnings', icon: Currency, label: 'Earnings', path: '/earnings' }
   ];
 
   const commItems: MenuItem[] = [
@@ -112,8 +112,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ user, activeTab, collapsed, on
       id: 'messages', icon: MessageCircle, label: 'Messages', count: notifications.messages,
       path: '/messages'
     },
-    { id: 'invites', icon: MessageCircle, label: 'Invites', path: '/invites' },
-    { id: 'networking', icon: Users, label: 'Network', path: '/networking' }
+  //  { id: 'invites', icon: MessageCircle, label: 'Invites', path: '/invites' },
+   // { id: 'networking', icon: Users, label: 'Network', path: '/networking' }
   ];
 
 
