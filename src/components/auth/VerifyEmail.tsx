@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-
+import { BASE_URL } from '@/config/baseUrl';
 export default function VerifyEmail() {
   const [status, setStatus] = useState("Verifying your email...");
   const router = useRouter();
@@ -19,7 +19,7 @@ export default function VerifyEmail() {
     const verify = async () => {
       try {
         const res = await fetch(
-          `https://api-hyperbuds-backend.onrender.com/api/v1/auth/verify-email?token=${token}`,
+          `${BASE_URL}/api/v1/auth/verify-email?token=${token}`,
           {
             method: "GET",
           }
