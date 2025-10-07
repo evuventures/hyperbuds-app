@@ -8,6 +8,7 @@
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
+import { useRouter } from 'next/navigation';
 import {
    TrendingUp,
    Users,
@@ -25,6 +26,7 @@ interface PlatformStatsProps {
    platformCredentials: PlatformCredentials;
    showCombinedMetrics?: boolean;
    compact?: boolean;
+   clickable?: boolean;
 }
 
 const platformIcons: Record<PlatformType, string> = {
@@ -42,9 +44,17 @@ const platformColors: Record<PlatformType, string> = {
 export function PlatformStats({
    platformCredentials,
    showCombinedMetrics = true,
-   compact = false
+   compact = false,
+   clickable = false
 }: PlatformStatsProps) {
    const [platforms, setPlatforms] = useState<Array<{ type: PlatformType; username: string }>>([]);
+   const router = useRouter();
+
+   const handlePlatformClick = (platform: PlatformType) => {
+      if (clickable) {
+         router.push(`/profile/platform-analytics?platform=${platform}`);
+      }
+   };
 
    useEffect(() => {
       const platformList: Array<{ type: PlatformType; username: string }> = [];
@@ -182,7 +192,8 @@ export function PlatformStats({
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
                         whileHover={{ scale: 1.02 }}
-                        className="group p-5 rounded-xl transition-all hover:scale-[1.02] bg-gray-50/80 dark:bg-gray-700/40 border border-gray-200 dark:border-gray-600/50 hover:border-gray-300 dark:hover:border-gray-500/70 hover:shadow-lg"
+                        className={`group p-5 rounded-xl transition-all hover:scale-[1.02] bg-gray-50/80 dark:bg-gray-700/40 border border-gray-200 dark:border-gray-600/50 hover:border-gray-300 dark:hover:border-gray-500/70 hover:shadow-lg ${clickable ? 'cursor-pointer' : ''}`}
+                        onClick={() => handlePlatformClick(platform)}
                      >
                         <div className="flex justify-between items-center mb-4">
                            <div

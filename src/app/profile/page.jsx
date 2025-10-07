@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import { apiFetch } from "@/lib/utils/api";
 import UserProfileHeader from "@/components/profile/ProfileCard";
 import { PlatformStats } from "@/components/collaboration/PlatformStats";
+import { TrendingUp } from "lucide-react";
 
 export default function ProfilePage() {
   // Initialize as null instead of array
@@ -83,7 +84,7 @@ export default function ProfilePage() {
           isLoading={isLoading}
         />
 
-        {/* Platform Stats Section */}
+        {/* Platform Performance Section */}
         {user?.profile?.socialLinks && (() => {
           // Extract usernames from social links URLs for connected platforms only
           const platformCreds = {};
@@ -129,14 +130,21 @@ export default function ProfilePage() {
           const hasPlatforms = Object.values(platformCreds).some(v => v);
 
           return hasPlatforms && (
-            <div className="mt-6">
-              <h2 className="mb-4 text-2xl font-bold text-gray-900 dark:text-white">
-                Platform Analytics
-              </h2>
+            <div className="p-6 bg-white rounded-2xl border shadow-lg backdrop-blur-sm dark:bg-gray-800/50 border-gray-200/60 dark:border-gray-700/60">
+              <h3 className="flex gap-3 items-center mb-6 text-xl font-bold text-gray-900 dark:text-gray-100">
+                <div className="p-2 bg-gradient-to-br from-purple-100 to-pink-100 rounded-lg dark:from-purple-500/20 dark:to-pink-500/20">
+                  <TrendingUp
+                    size={24}
+                    className="text-purple-600 dark:text-purple-400"
+                  />
+                </div>
+                Platform Performance
+              </h3>
               <PlatformStats
                 platformCredentials={platformCreds}
-                showCombinedMetrics={true}
-                compact={false}
+                showCombinedMetrics={false}
+                compact={true}
+                clickable={true}
               />
             </div>
           );
