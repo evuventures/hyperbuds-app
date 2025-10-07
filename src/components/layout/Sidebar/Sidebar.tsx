@@ -13,7 +13,7 @@ interface SidebarProps {
   user: {
     username?: string;
     email: string;
-    displayName?: string;
+    displayName?: string; 
     avatar?: string;
     rizzScore?: number;
     subscription?: 'free' | 'premium' | 'pro';
