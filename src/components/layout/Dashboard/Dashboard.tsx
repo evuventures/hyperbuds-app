@@ -31,6 +31,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     toggleRightSidebarOpen,
   } = useSidebar();
 
+  // Debug logging
+  console.log('Dashboard - sidebarCollapsed:', sidebarCollapsed);
+  console.log('Dashboard - sidebarInitialized:', sidebarInitialized);
+
 
   useEffect(() => {
     const fetchUser = async () => {

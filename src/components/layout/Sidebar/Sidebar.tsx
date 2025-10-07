@@ -58,6 +58,11 @@ const mockData = {
 };
 
 export const Sidebar: React.FC<SidebarProps> = ({ user, activeTab, collapsed, onTabChange, onToggleCollapse }) => {
+  console.log('Sidebar rendered with collapsed:', collapsed);
+
+  // Use the actual collapsed prop
+  const isCollapsed = Boolean(collapsed);
+  console.log('isCollapsed:', isCollapsed);
   const pathname = usePathname();
   const [notifications] = useState(mockData.notifications);
   // Determine active tab based on current route
@@ -103,7 +108,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ user, activeTab, collapsed, on
   const businessItems: MenuItem[] = [
     { id: 'marketplace', icon: ShoppingBag, label: 'Marketplace', count: notifications.marketplace, path: '/marketplace' },
     { id: 'Subscription', icon: Currency, label: 'Subscription', path: '/payments/checkout' },
-   // { id: 'bookings', icon: Users, label: 'Bookings', path: '/bookings' },
+    // { id: 'bookings', icon: Users, label: 'Bookings', path: '/bookings' },
     //{ id: 'earnings', icon: Currency, label: 'Earnings', path: '/earnings' }
   ];
 
@@ -112,8 +117,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ user, activeTab, collapsed, on
       id: 'messages', icon: MessageCircle, label: 'Messages', count: notifications.messages,
       path: '/messages'
     },
-  //  { id: 'invites', icon: MessageCircle, label: 'Invites', path: '/invites' },
-   // { id: 'networking', icon: Users, label: 'Network', path: '/networking' }
+    //  { id: 'invites', icon: MessageCircle, label: 'Invites', path: '/invites' },
+    // { id: 'networking', icon: Users, label: 'Network', path: '/networking' }
   ];
 
 
@@ -141,49 +146,105 @@ export const Sidebar: React.FC<SidebarProps> = ({ user, activeTab, collapsed, on
 
 
 
-  return (
-    <div className={`${collapsed ? 'w-16' : 'w-60'} border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 h-[90vh] overflow-y-auto [&::-webkit-scrollbar]:hidden transition-all duration-300 relative  `}>
 
-      {/* Collapse Toggle */}
-      <motion.button
-        onClick={onToggleCollapse}
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.9 }}
-        transition={{ duration: 0.2 }}
-        className={`hidden absolute z-10 w-6 h-6 rounded-full border shadow-sm transition-all duration-200 cursor-pointer lg:flex
-          ${collapsed
-            ? 'top-4 left-1/2 bg-gray-200 -translate-x-1/2 dark:bg-gray-700'
-            : 'right-3 top-4 bg-gray-100 dark:bg-gray-800'
-          }
+  return (
+    <>
+      <style jsx>{`
+        .sidebar-collapsed * {
+          visibility: hidden !important;
+        }
+        .sidebar-collapsed .icon-container,
+        .sidebar-collapsed svg,
+        .sidebar-collapsed .avatar,
+        .sidebar-collapsed .avatar span,
+        .sidebar-collapsed .active-indicator,
+        .sidebar-collapsed .gradient-bg {
+          visibility: visible !important;
+        }
+      `}</style>
+      <div className={`${isCollapsed ? 'w-16' : 'w-60'} flex flex-col border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 h-[90vh] overflow-y-auto [&::-webkit-scrollbar]:hidden transition-all duration-300 relative ${isCollapsed ? 'sidebar-collapsed' : ''}`}>
+
+        {/* Collapse Toggle */}
+        <motion.button
+          onClick={onToggleCollapse}
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          transition={{ duration: 0.2 }}
+          className={`hidden absolute z-20 w-6 h-6 rounded-full border shadow-sm transition-all duration-200 cursor-pointer lg:flex
+          ${isCollapsed
+              ? 'top-4 left-1/2 bg-gray-200 -translate-x-1/2 dark:bg-gray-700'
+              : 'right-3 top-4 bg-gray-100 dark:bg-gray-800'
+            }
             justify-center items-center border-gray-300 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-700 hover:shadow-md
             `}>
-        <motion.div
-          animate={{ rotate: collapsed ? 180 : 0 }}
-          transition={{ duration: 0.3, ease: "easeInOut" }}
-        >
-          <Menu className="w-3 h-3 text-gray-600 dark:text-gray-300" />
-        </motion.div>
-      </motion.button>
+          <motion.div
+            animate={{ rotate: isCollapsed ? 180 : 0 }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
+          >
+            <Menu className="w-3 h-3 text-gray-600 dark:text-gray-300" />
+          </motion.div>
+        </motion.button>
 
 
-      {/* Header */}
-      {/* … unchanged header code … */}
+        {/* Header */}
+        {/* … unchanged header code … */}
 
-      {/* Navigation */}
-      <div className={`${collapsed ? 'p-2' : 'p-4'} space-y-6`}>
-        {[mainMenuItems, businessItems, commItems].map((section, idx) => (
-          <div key={idx}>
-            {!collapsed && (
-              <h3 className="px-3 mb-3 text-xs font-semibold tracking-wider text-gray-500 uppercase dark:text-gray-400">
-                {idx === 0 ? "Main" : idx === 1 ? "Business" : "Communication"}
-              </h3>
-            )}
-            {/* icons and labels */}
-            <div className={`${collapsed ? 'mt-10' : 'mt-0'} space-y-1`}>
-              {section.map((item) => (
-                <Tooltip key={item.id} content={item.label} >
-                  {item.path ? (
-                    <Link href={item.path}>
+        {/* Navigation */}
+        <div className={`${isCollapsed ? 'p-2 pt-12' : 'p-4 pt-12'} space-y-3 flex-1 overflow-y-auto`}>
+          {[mainMenuItems, businessItems, commItems].map((section, idx) => (
+            <div key={idx}>
+              {!isCollapsed && (
+                <h3 className="px-3 mb-1 text-xs font-semibold tracking-wider text-gray-500 uppercase dark:text-gray-400">
+                  {idx === 0 ? "Main" : idx === 1 ? "Business" : "Communication"}
+                </h3>
+              )}
+              {/* icons and labels */}
+              <div className={`${isCollapsed ? 'mt-2' : 'mt-0'} space-y-1`}>
+                {section.map((item) => (
+                  <Tooltip key={item.id} content={item.label} >
+                    {item.path ? (
+                      <Link href={item.path}>
+                        <motion.div
+                          onClick={() => handleNavigation(item.id)}
+                          whileHover={{
+                            scale: 1.02,
+                            x: 4,
+                            transition: { duration: 0.2, ease: "easeOut" }
+                          }}
+                          whileTap={{
+                            scale: 0.98,
+                            transition: { duration: 0.1 }
+                          }}
+                          className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-300 group relative overflow-hidden ${currentActiveTab === item.id
+                            ? 'bg-purple-50 dark:bg-purple-900 border-l-4 border-purple-500 text-purple-700 dark:text-purple-300 shadow-sm gradient-bg'
+                            : 'hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-200 hover:text-purple-600 dark:hover:text-purple-400'
+                            }`}
+                        >
+                          {/* Active indicator */}
+                          {currentActiveTab === item.id && (
+                            <div className="active-indicator absolute inset-0 bg-gradient-to-r rounded-lg from-purple-500/10 to-pink-500/10" />
+                          )}
+
+                          <div className={`relative flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'}`}>
+                            <div className="icon-container">
+                              <item.icon className="w-5 h-5 transition-all duration-300 group-hover:scale-110 group-hover:text-purple-600 dark:group-hover:text-purple-400" />
+                            </div>
+                            {!isCollapsed && (
+                              <span className="text-sm font-medium whitespace-nowrap overflow-hidden">
+                                {item.label}
+                              </span>
+                            )}
+                          </div>
+                          {
+                            !isCollapsed && item.count && item.count > 0 && (
+                              <div className="flex justify-center items-center w-5 h-5 text-xs font-bold text-white bg-red-500 rounded-full">
+                                {item.count > 9 ? '9+' : item.count}
+                              </div>
+                            )
+                          }
+                        </motion.div>
+                      </Link>
+                    ) : (
                       <motion.div
                         onClick={() => handleNavigation(item.id)}
                         whileHover={{
@@ -195,115 +256,75 @@ export const Sidebar: React.FC<SidebarProps> = ({ user, activeTab, collapsed, on
                           scale: 0.98,
                           transition: { duration: 0.1 }
                         }}
-                        className={`flex items-center ${collapsed ? 'justify-center' : 'justify-between'} px-3 py-3 rounded-lg cursor-pointer transition-all duration-300 group relative overflow-hidden ${currentActiveTab === item.id
-                          ? 'bg-purple-50 dark:bg-purple-900 border-l-4 border-purple-500 text-purple-700 dark:text-purple-300 shadow-sm'
+                        className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-300 group relative overflow-hidden ${currentActiveTab === item.id
+                          ? 'bg-purple-50 dark:bg-purple-900 border-l-4 border-purple-500 text-purple-700 dark:text-purple-300 shadow-sm gradient-bg'
                           : 'hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-200 hover:text-purple-600 dark:hover:text-purple-400'
                           }`}
                       >
                         {/* Active indicator */}
                         {currentActiveTab === item.id && (
-                          <div className="absolute inset-0 bg-gradient-to-r rounded-lg from-purple-500/10 to-pink-500/10" />
+                          <div className="active-indicator absolute inset-0 bg-gradient-to-r rounded-lg from-purple-500/10 to-pink-500/10" />
                         )}
 
-                        <div className={`relative flex items-center ${collapsed ? 'justify-center' : 'gap-3'}`}>
-                          <div>
+                        <div className={`relative flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'}`}>
+                          <div className="icon-container">
                             <item.icon className="w-5 h-5 transition-all duration-300 group-hover:scale-110 group-hover:text-purple-600 dark:group-hover:text-purple-400" />
                           </div>
-                          {!collapsed && (
-                            <span className="text-sm font-medium">
+                          {!isCollapsed && (
+                            <span className="text-sm font-medium whitespace-nowrap overflow-hidden">
                               {item.label}
                             </span>
                           )}
                         </div>
                         {
-                          !collapsed && item.count && item.count > 0 && (
+                          !isCollapsed && item.count && item.count > 0 && (
                             <div className="flex justify-center items-center w-5 h-5 text-xs font-bold text-white bg-red-500 rounded-full">
                               {item.count > 9 ? '9+' : item.count}
                             </div>
                           )
                         }
                       </motion.div>
-                    </Link>
-                  ) : (
-                    <motion.div
-                      onClick={() => handleNavigation(item.id)}
-                      whileHover={{
-                        scale: 1.02,
-                        x: 4,
-                        transition: { duration: 0.2, ease: "easeOut" }
-                      }}
-                      whileTap={{
-                        scale: 0.98,
-                        transition: { duration: 0.1 }
-                      }}
-                      className={`flex items-center ${collapsed ? 'justify-center' : 'justify-between'} px-3 py-3 rounded-lg cursor-pointer transition-all duration-300 group relative overflow-hidden ${currentActiveTab === item.id
-                        ? 'bg-purple-50 dark:bg-purple-900 border-l-4 border-purple-500 text-purple-700 dark:text-purple-300 shadow-sm'
-                        : 'hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-200 hover:text-purple-600 dark:hover:text-purple-400'
-                        }`}
-                    >
-                      {/* Active indicator */}
-                      {currentActiveTab === item.id && (
-                        <div className="absolute inset-0 bg-gradient-to-r rounded-lg from-purple-500/10 to-pink-500/10" />
-                      )}
-
-                      <div className={`relative flex items-center ${collapsed ? 'justify-center' : 'gap-3'}`}>
-                        <div>
-                          <item.icon className="w-5 h-5 transition-all duration-300 group-hover:scale-110 group-hover:text-purple-600 dark:group-hover:text-purple-400" />
-                        </div>
-                        {!collapsed && (
-                          <span className="text-sm font-medium">
-                            {item.label}
-                          </span>
-                        )}
-                      </div>
-                      {
-                        !collapsed && item.count && item.count > 0 && (
-                          <div className="flex justify-center items-center w-5 h-5 text-xs font-bold text-white bg-red-500 rounded-full">
-                            {item.count > 9 ? '9+' : item.count}
-                          </div>
-                        )
-                      }
-                    </motion.div>
-                  )}
-                </Tooltip >
-              ))}
+                    )}
+                  </Tooltip >
+                ))}
+              </div >
             </div >
-          </div >
-        ))}
-      </div >
+          ))}
+        </div >
 
-      {/* Footer */}
-      <div className={`mt-auto ${collapsed ? 'p-2' : 'p-4'} border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800`}>
-        {!collapsed ? (
-          <>
-            <div className='flex flex-col gap-3'>
-              <div className="flex gap-2 items-center">
-                <div className="flex justify-center items-center w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full">
-                  <span className="text-sm font-medium text-white">
-                    {user.username?.[0]?.toUpperCase() || user.email[0].toUpperCase()}
-                  </span>
-                </div>
-                <div className='max-w-[150px]'>
-                  <div className="mb-1 text-xs font-medium text-gray-900 truncate dark:text-gray-100">
-                    {user.username || user.email}
+        {/* Footer */}
+        <div className={`mt-auto ${isCollapsed ? 'p-2' : 'p-4'} border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800`}>
+          {!isCollapsed ? (
+            <>
+              <div className='flex flex-col gap-3'>
+                <div className="flex gap-2 items-center">
+                  <div className="avatar flex justify-center items-center w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full">
+                    <span className="text-sm font-medium text-white">
+                      {user.username?.[0]?.toUpperCase() || user.email[0].toUpperCase()}
+                    </span>
                   </div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">
-                    {mockData.creator.niche.join(', ')}
+                  <div className='max-w-[150px]'>
+                    <div className="mb-1 text-xs font-medium text-gray-900 truncate dark:text-gray-100">
+                      {user.username || user.email}
+                    </div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400">
+                      {mockData.creator.niche.join(', ')}
+                    </div>
                   </div>
                 </div>
               </div>
+            </>
+          ) : (
+            <div className="flex justify-center">
+              <div className="avatar flex justify-center items-center w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full">
+                <span className="text-xs font-medium text-white">
+                  {user.username?.[0]?.toUpperCase() || user.email[0].toUpperCase()}
+                </span>
+              </div>
             </div>
-          </>
-        ) : (
-          <div className="flex justify-center">
-            <div className="flex justify-center items-center w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full">
-              <span className="text-xs font-medium text-white">
-                {user.username?.[0]?.toUpperCase() || user.email[0].toUpperCase()}
-              </span>
-            </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
-    </div >
+    </>
   );
 };

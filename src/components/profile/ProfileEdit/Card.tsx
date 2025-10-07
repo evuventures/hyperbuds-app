@@ -7,10 +7,18 @@ import { BASE_URL } from "@/config/baseUrl";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
+import { PlatformUsernameGroup } from "@/components/profile/PlatformUsernameInput";
 
 // Define a type for a social media link
 interface SocialLinks {
   [key: string]: string;
+}
+
+// Define platform credentials type
+interface PlatformCredentials {
+  tiktok?: string;
+  twitter?: string;
+  twitch?: string;
 }
 
 // Define the full user profile type based on the API response structure
@@ -21,11 +29,13 @@ interface UserProfile {
   niche: string[];
   location: { city: string; state: string; country: string };
   socialLinks: SocialLinks;
+  platformCredentials?: PlatformCredentials;
   avatar: string | null;
   // Allows for other properties not explicitly defined
   [key: string]: unknown;
 }
 
+// Only platforms that backend accepts (based on backend validation)
 const SOCIAL_PLATFORMS = [
   { id: "tiktok", name: "TikTok", placeholder: "https://tiktok.com/@username" },
   { id: "instagram", name: "Instagram", placeholder: "https://instagram.com/username" },
@@ -69,9 +79,33 @@ const isValidSocialUrl = (url: string, platform: string): boolean => {
         domains: ['twitter.com', 'www.twitter.com', 'x.com', 'www.x.com'],
         pathPattern: /^\/[a-zA-Z0-9._-]+$/
       },
+      facebook: {
+        domains: ['facebook.com', 'www.facebook.com', 'fb.com', 'www.fb.com'],
+        pathPattern: /^\/[a-zA-Z0-9._-]+$/
+      },
       linkedin: {
         domains: ['linkedin.com', 'www.linkedin.com'],
         pathPattern: /^\/in\/[a-zA-Z0-9._-]+$/
+      },
+      snapchat: {
+        domains: ['snapchat.com', 'www.snapchat.com'],
+        pathPattern: /^\/add\/[a-zA-Z0-9._-]+$/
+      },
+      discord: {
+        domains: ['discord.gg', 'www.discord.gg', 'discord.com'],
+        pathPattern: /^\/[a-zA-Z0-9_-]+$|^\/invite\/[a-zA-Z0-9_-]+$/
+      },
+      telegram: {
+        domains: ['t.me', 'telegram.me', 'www.telegram.me'],
+        pathPattern: /^\/[a-zA-Z0-9._-]+$/
+      },
+      reddit: {
+        domains: ['reddit.com', 'www.reddit.com'],
+        pathPattern: /^\/u\/[a-zA-Z0-9._-]+$|^\/user\/[a-zA-Z0-9._-]+$/
+      },
+      pinterest: {
+        domains: ['pinterest.com', 'www.pinterest.com'],
+        pathPattern: /^\/[a-zA-Z0-9._-]+$/
       }
     };
 
@@ -106,6 +140,7 @@ export default function EditProfilePage() {
   const [niches, setNiches] = useState<string[]>([]);
   const [location, setLocation] = useState({ city: "", state: "", country: "" });
   const [socialLinks, setSocialLinks] = useState<SocialLinks>({});
+  const [platformCredentials, setPlatformCredentials] = useState<PlatformCredentials>({});
   const [avatar, setAvatar] = useState<string | null>(null);
 
   const [message, setMessage] = useState("");
@@ -160,7 +195,34 @@ export default function EditProfilePage() {
           setNiches(nicheArray);
 
           setLocation(data.location || { city: "", state: "", country: "" });
-          setSocialLinks(data.socialLinks || {});
+
+          // Extract usernames from social links for platform credentials
+          const socialLinksData = data.socialLinks || {};
+          const platformCreds: PlatformCredentials = {};
+
+          // Extract username from TikTok URL
+          if (socialLinksData.tiktok) {
+            const tiktokUrl = socialLinksData.tiktok as string;
+            const match = tiktokUrl.match(/tiktok\.com\/@?([^/?]+)/);
+            if (match) platformCreds.tiktok = match[1];
+          }
+
+          // Extract username from Twitter URL
+          if (socialLinksData.twitter) {
+            const twitterUrl = socialLinksData.twitter as string;
+            const match = twitterUrl.match(/(?:twitter|x)\.com\/([^/?]+)/);
+            if (match) platformCreds.twitter = match[1];
+          }
+
+          // Extract username from Twitch URL
+          if (socialLinksData.twitch) {
+            const twitchUrl = socialLinksData.twitch as string;
+            const match = twitchUrl.match(/twitch\.tv\/([^/?]+)/);
+            if (match) platformCreds.twitch = match[1];
+          }
+
+          setSocialLinks(socialLinksData);
+          setPlatformCredentials(platformCreds);
           setAvatar(data.avatar || null);
 
         } else if (response.status === 401) {
@@ -255,9 +317,17 @@ export default function EditProfilePage() {
   };
 
   const handleSubmit = async () => {
-    setIsLoading(true);
+    // Clear previous messages
     setMessage("");
     setError("");
+
+    // Scroll to top FIRST (before setting loading state)
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    // Small delay to ensure scroll completes before showing loading
+    await new Promise(resolve => setTimeout(resolve, 100));
+
+    setIsLoading(true);
 
     try {
       const token = localStorage.getItem("accessToken");
@@ -270,12 +340,38 @@ export default function EditProfilePage() {
         }
       });
 
+      // WORKAROUND: Convert platform usernames to URLs for backend compatibility
+      // Backend expects URLs in socialLinks, so we construct them from usernames
+      const cleanedSocialLinksWithPlatforms = { ...cleanedSocialLinks };
+
+      // Always use platform credentials if entered, or REMOVE if empty
+      if (platformCredentials.tiktok?.trim()) {
+        cleanedSocialLinksWithPlatforms.tiktok = `https://tiktok.com/@${platformCredentials.tiktok.trim()}`;
+      } else {
+        // User cleared TikTok, remove it from socialLinks
+        delete cleanedSocialLinksWithPlatforms.tiktok;
+      }
+
+      if (platformCredentials.twitter?.trim()) {
+        cleanedSocialLinksWithPlatforms.twitter = `https://twitter.com/${platformCredentials.twitter.trim()}`;
+      } else {
+        // User cleared Twitter, remove it from socialLinks
+        delete cleanedSocialLinksWithPlatforms.twitter;
+      }
+
+      if (platformCredentials.twitch?.trim()) {
+        cleanedSocialLinksWithPlatforms.twitch = `https://twitch.tv/${platformCredentials.twitch.trim()}`;
+      } else {
+        // User cleared Twitch, remove it from socialLinks
+        delete cleanedSocialLinksWithPlatforms.twitch;
+      }
+
       const cleanedProfile: Partial<UserProfile> = {
         displayName,
         bio,
         niche: niches,
         location,
-        socialLinks: cleanedSocialLinks, // Always include social links
+        socialLinks: cleanedSocialLinksWithPlatforms, // Include platform URLs
       };
 
 
@@ -300,14 +396,38 @@ export default function EditProfilePage() {
         // Set flag to trigger profile refresh
         localStorage.setItem('profileUpdated', 'true');
 
+        // Scroll to top to show success message
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+
         // Use smooth navigation
-        handleNavigation("/profile");
+        setTimeout(() => {
+          handleNavigation("/profile");
+        }, 1500);
       } else {
         const data = await response.json();
-        setError(data.message || "Failed to update profile");
+        const errorMessage = data.message || "Failed to update profile";
+
+        // Handle token expiration
+        if (response.status === 401 || errorMessage.includes('token') || errorMessage.includes('expired')) {
+          setError("Your session has expired. Please log in again.");
+          // Scroll to top to show error
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+
+          // Redirect to login after 2 seconds
+          setTimeout(() => {
+            localStorage.removeItem('accessToken');
+            router.push("/auth/signin");
+          }, 2000);
+        } else {
+          setError(errorMessage);
+          // Scroll to top to show error
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
       }
     } catch {
-      setError("Network error. Try again.");
+      setError("Network error. Please try again.");
+      // Scroll to top to show error
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } finally {
       setIsLoading(false);
     }
@@ -318,13 +438,13 @@ export default function EditProfilePage() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: isNavigating ? 0.7 : 1, y: 0 }}
       transition={{ duration: 0.3, ease: "easeOut" }}
-      className="flex justify-center items-center w-full min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-950 dark:to-gray-900 md:p-6"
+      className="relative w-full"
     >
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.4, ease: "easeOut" }}
-        className="p-5 w-full max-w-3xl rounded-3xl border shadow-lg bg-white/80 dark:bg-black md:p-10 border-white/50 dark:border-gray-700"
+        className="relative z-10 p-6 mx-auto w-full max-w-4xl bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-3xl border shadow-2xl md:p-10 border-gray-200/50 dark:border-gray-700/50"
       >
         {/* Header with Enhanced Back Button */}
         <motion.div
@@ -574,16 +694,25 @@ export default function EditProfilePage() {
               />
             </div>
 
+            {/* Platform Usernames for AI Collaboration */}
+            <div className="mb-8">
+              <PlatformUsernameGroup
+                values={platformCredentials}
+                onChange={setPlatformCredentials}
+                showPreviews={true}
+              />
+            </div>
+
             {/* Social Links */}
             <div className="mb-8">
               <h3 className="mb-4 text-lg font-semibold text-gray-700 dark:text-gray-300">
-                Social Media Links (Optional)
+                Other Social Media Links (Optional)
               </h3>
               <p className="mb-4 text-sm text-gray-500 dark:text-gray-400">
-                Add your social media profiles. Leave empty if you don&apos;t have an account.
+                Add links to Instagram, YouTube, and LinkedIn.
               </p>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                {SOCIAL_PLATFORMS.map((platform) => {
+                {SOCIAL_PLATFORMS.filter(p => ['instagram', 'youtube', 'linkedin'].includes(p.id)).map((platform) => {
                   const currentValue = socialLinks[platform.id] || "";
                   const isValid = !currentValue || isValidSocialUrl(currentValue, platform.id);
 
@@ -608,11 +737,21 @@ export default function EditProfilePage() {
                           <div className="mt-2 text-xs font-medium text-red-500">
                             {platform.id === 'linkedin'
                               ? 'Must be: linkedin.com/in/username'
-                              : platform.id === 'tiktok'
-                                ? 'Must be: tiktok.com/@username'
-                                : platform.id === 'youtube'
-                                  ? 'Must be: youtube.com/@username or youtube.com/c/username'
-                                  : `Must be a valid ${platform.name} URL (e.g., ${platform.placeholder})`
+                              : platform.id === 'youtube'
+                                ? 'Must be: youtube.com/@username or youtube.com/c/username'
+                                : platform.id === 'facebook'
+                                  ? 'Must be: facebook.com/username'
+                                  : platform.id === 'snapchat'
+                                    ? 'Must be: snapchat.com/add/username'
+                                    : platform.id === 'discord'
+                                      ? 'Must be: discord.gg/servername or discord.com/invite/code'
+                                      : platform.id === 'telegram'
+                                        ? 'Must be: t.me/username'
+                                        : platform.id === 'reddit'
+                                          ? 'Must be: reddit.com/u/username'
+                                          : platform.id === 'pinterest'
+                                            ? 'Must be: pinterest.com/username'
+                                            : `Must be a valid ${platform.name} URL (e.g., ${platform.placeholder})`
                             }
                           </div>
                         )}
