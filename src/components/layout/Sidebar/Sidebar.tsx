@@ -103,7 +103,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ user, activeTab, collapsed, on
   const businessItems: MenuItem[] = [
     { id: 'marketplace', icon: ShoppingBag, label: 'Marketplace', count: notifications.marketplace, path: '/marketplace' },
     { id: 'Subscription', icon: Currency, label: 'Subscription', path: '/payments/checkout' },
-   // { id: 'bookings', icon: Users, label: 'Bookings', path: '/bookings' },
+    // { id: 'bookings', icon: Users, label: 'Bookings', path: '/bookings' },
     //{ id: 'earnings', icon: Currency, label: 'Earnings', path: '/earnings' }
   ];
 
@@ -112,8 +112,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ user, activeTab, collapsed, on
       id: 'messages', icon: MessageCircle, label: 'Messages', count: notifications.messages,
       path: '/messages'
     },
-  //  { id: 'invites', icon: MessageCircle, label: 'Invites', path: '/invites' },
-   // { id: 'networking', icon: Users, label: 'Network', path: '/networking' }
+    //  { id: 'invites', icon: MessageCircle, label: 'Invites', path: '/invites' },
+    // { id: 'networking', icon: Users, label: 'Network', path: '/networking' }
   ];
 
 
@@ -142,7 +142,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ user, activeTab, collapsed, on
 
 
   return (
-    <div className={`${collapsed ? 'w-16' : 'w-60'} border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 h-[90vh] overflow-y-auto [&::-webkit-scrollbar]:hidden transition-all duration-300 relative  `}>
+    <div className={`${collapsed ? 'w-16' : 'w-60'} flex flex-col border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 h-[90vh] overflow-y-auto [&::-webkit-scrollbar]:hidden transition-all duration-300 relative  `}>
 
       {/* Collapse Toggle */}
       <motion.button
@@ -170,7 +170,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ user, activeTab, collapsed, on
       {/* … unchanged header code … */}
 
       {/* Navigation */}
-      <div className={`${collapsed ? 'p-2' : 'p-4'} space-y-6`}>
+      <div className={`${collapsed ? 'p-2' : 'p-4'} space-y-6 flex-1 overflow-y-auto`}>
         {[mainMenuItems, businessItems, commItems].map((section, idx) => (
           <div key={idx}>
             {!collapsed && (

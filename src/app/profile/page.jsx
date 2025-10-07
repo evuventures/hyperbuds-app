@@ -4,6 +4,7 @@ import DashboardLayout from "@/components/layout/Dashboard/Dashboard";
 import { useState, useEffect } from "react";
 import { apiFetch } from "@/lib/utils/api";
 import UserProfileHeader from "@/components/profile/ProfileCard";
+import { PlatformStats } from "@/components/collaboration/PlatformStats";
 
 export default function ProfilePage() {
   // Initialize as null instead of array
@@ -81,6 +82,65 @@ export default function ProfilePage() {
           isDark={true}
           isLoading={isLoading}
         />
+
+        {/* Platform Stats Section */}
+        {user?.profile?.socialLinks && (() => {
+          // Extract usernames from social links URLs for connected platforms only
+          const platformCreds = {};
+          const socialLinks = user.profile.socialLinks;
+
+          console.log('📊 Social Links:', socialLinks);
+
+          // Extract TikTok username from URL
+          if (socialLinks.tiktok) {
+            const match = socialLinks.tiktok.match(/tiktok\.com\/@?([^/?]+)/);
+            if (match) {
+              platformCreds.tiktok = match[1];
+              console.log('✅ TikTok username extracted:', match[1]);
+            } else {
+              console.warn('⚠️ TikTok URL found but username extraction failed:', socialLinks.tiktok);
+            }
+          }
+
+          // Extract Twitter username from URL
+          if (socialLinks.twitter) {
+            const match = socialLinks.twitter.match(/(?:twitter|x)\.com\/([^/?]+)/);
+            if (match) {
+              platformCreds.twitter = match[1];
+              console.log('✅ Twitter username extracted:', match[1]);
+            } else {
+              console.warn('⚠️ Twitter URL found but username extraction failed:', socialLinks.twitter);
+            }
+          }
+
+          // Extract Twitch username from URL
+          if (socialLinks.twitch) {
+            const match = socialLinks.twitch.match(/twitch\.tv\/([^/?]+)/);
+            if (match) {
+              platformCreds.twitch = match[1];
+              console.log('✅ Twitch username extracted:', match[1]);
+            } else {
+              console.warn('⚠️ Twitch URL found but username extraction failed:', socialLinks.twitch);
+            }
+          }
+
+          console.log('🎯 Platform Credentials to fetch:', platformCreds);
+
+          const hasPlatforms = Object.values(platformCreds).some(v => v);
+
+          return hasPlatforms && (
+            <div className="mt-6">
+              <h2 className="mb-4 text-2xl font-bold text-gray-900 dark:text-white">
+                Platform Analytics
+              </h2>
+              <PlatformStats
+                platformCredentials={platformCreds}
+                showCombinedMetrics={true}
+                compact={false}
+              />
+            </div>
+          );
+        })()}
 
       </div>
     </DashboardLayout>
