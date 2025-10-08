@@ -283,27 +283,29 @@ export default function UserProfileHeader({
                 <Share2 size={18} />
               </button>
 
-              <div className="relative">
-                {/* Trigger button */}
-                <button
-                  onClick={() => setOpen(!open)}
-                  className="p-3 text-gray-600 rounded-xl border shadow-md transition-all cursor-pointer hover:scale-105 bg-gray-100/80 dark:bg-gray-700/60 hover:bg-gray-200 dark:hover:bg-gray-600/80 dark:text-gray-300 border-gray-200/50 dark:border-gray-600/50"
-                >
-                  <MoreHorizontal size={18} />
-                </button>
+              {isOwnProfile && (
+                <div className="relative">
+                  {/* Trigger button */}
+                  <button
+                    onClick={() => setOpen(!open)}
+                    className="p-3 text-gray-600 rounded-xl border shadow-md transition-all cursor-pointer hover:scale-105 bg-gray-100/80 dark:bg-gray-700/60 hover:bg-gray-200 dark:hover:bg-gray-600/80 dark:text-gray-300 border-gray-200/50 dark:border-gray-600/50"
+                  >
+                    <MoreHorizontal size={18} />
+                  </button>
 
-                {/* Dropdown menu */}
-                {open && (
-                  <div className="absolute right-0 mt-2 w-40 bg-white rounded-md ring-1 shadow-lg dark:bg-gray-800 ring-black/5">
-                    <Link
-                      href="/profile/edit"
-                      className="block px-4 py-2 text-sm text-gray-700 rounded-md cursor-pointer dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
-                    >
-                      Edit Profile
-                    </Link>
-                  </div>
-                )}
-              </div>
+                  {/* Dropdown menu */}
+                  {open && (
+                    <div className="absolute right-0 mt-2 w-40 bg-white rounded-md ring-1 shadow-lg dark:bg-gray-800 ring-black/5">
+                      <Link
+                        href="/profile/edit"
+                        className="block px-4 py-2 text-sm text-gray-700 rounded-md cursor-pointer dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+                      >
+                        Edit Profile
+                      </Link>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
           </div>
@@ -332,62 +334,51 @@ export default function UserProfileHeader({
 
 
           {/* Enhanced Action Buttons */}
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
-            {isOwnProfile ? (
+          {isOwnProfile ? (
+            <div className="flex justify-start">
+              <Link href="/matching">
+                <button className="flex gap-2 items-center justify-center px-6 py-3 text-sm font-semibold text-white bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg shadow-lg transition-all transform hover:scale-105 hover:from-purple-600 hover:to-pink-600 dark:from-purple-600 dark:to-pink-600 dark:hover:from-purple-700 dark:hover:to-pink-700 hover:shadow-xl">
+                  <Heart size={18} />
+                  Get Match
+                </button>
+              </Link>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               <button
-                onClick={onEditProfile}
-                className="flex gap-3 items-center px-8 py-4 font-semibold text-white bg-gradient-to-r from-gray-700 to-gray-900 rounded-xl shadow-xl transition-all transform hover:scale-105 dark:from-gray-600 dark:to-gray-800 hover:from-gray-800 hover:to-gray-900 dark:hover:from-gray-500 dark:hover:to-gray-700 hover:shadow-2xl"
+                onClick={handleConnect}
+                className={`px-8 py-4 rounded-xl font-semibold transition-all transform hover:scale-105 shadow-xl hover:shadow-2xl flex items-center gap-3 justify-center ${isFollowing
+                  ? "text-gray-700 bg-gray-200 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
+                  : "text-white bg-gradient-to-r from-blue-500 to-purple-500 dark:from-blue-600 dark:to-purple-600 hover:from-blue-600 hover:to-purple-600 dark:hover:from-blue-700 dark:hover:to-purple-700"
+                  }`}
               >
-                <Edit3 size={20} />
-                Edit Profile
+                {isFollowing ? (
+                  <>
+                    <Check size={20} />
+                    Following
+                  </>
+                ) : (
+                  <>
+                    <User size={20} />
+                    Connect
+                  </>
+                )}
               </button>
-            ) : (
-              <>
-                <button
-                  onClick={handleConnect}
-                  className={`px-8 py-4 rounded-xl font-semibold transition-all transform hover:scale-105 shadow-xl hover:shadow-2xl flex items-center gap-3 ${isFollowing
-                    ? "text-gray-700 bg-gray-200 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
-                    : "text-white bg-gradient-to-r from-blue-500 to-purple-500 dark:from-blue-600 dark:to-purple-600 hover:from-blue-600 hover:to-purple-600 dark:hover:from-blue-700 dark:hover:to-purple-700"
-                    }`}
-                >
-                  {isFollowing ? (
-                    <>
-                      <Check size={20} />
-                      Following
-                    </>
-                  ) : (
-                    <>
-                      <User size={20} />
-                      Connect
-                    </>
-                  )}
-                </button>
 
-                <button
-                  onClick={() => onMessage?.(user.id)}
-                  className="flex gap-3 items-center px-6 py-4 font-semibold text-gray-700 bg-white rounded-xl border-2 border-gray-200 shadow-lg transition-all hover:scale-105 dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500"
-                >
-                  <MessageCircle size={20} />
-                  Message
-                </button>
-              </>
-            )}
-
-            <button className="flex gap-3 items-center px-6 py-4 font-semibold text-gray-700 bg-white rounded-xl border-2 border-gray-200 shadow-lg transition-all hover:scale-105 dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500">
-              <Phone size={20} />
-              Call
-            </button>
-
-            <button className="flex gap-3 items-center px-6 py-4 font-semibold text-gray-700 bg-white rounded-xl border-2 border-gray-200 shadow-lg transition-all hover:scale-105 dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500">
-              <Mail size={20} />
-              Email
-            </button>
-            {/* <Link href="/matching">
-              <button className="flex gap-3 items-center px-6 py-4 font-semibold text-white bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl shadow-xl transition row hover:bg-pink-600">
-                <Heart size={20} /> Match
+              <button
+                onClick={() => onMessage?.(user.id)}
+                className="flex gap-3 items-center justify-center px-6 py-4 font-semibold text-gray-700 bg-white rounded-xl border-2 border-gray-200 shadow-lg transition-all hover:scale-105 dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500"
+              >
+                <MessageCircle size={20} />
+                Message
               </button>
-            </Link> */}
-          </div>
+
+              <button className="flex gap-3 items-center justify-center px-6 py-4 font-semibold text-gray-700 bg-white rounded-xl border-2 border-gray-200 shadow-lg transition-all hover:scale-105 dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500">
+                <Mail size={20} />
+                Email
+              </button>
+            </div>
+          )}
         </div>
       </div >
 
@@ -427,9 +418,9 @@ export default function UserProfileHeader({
             ].map((stat, index) => (
               <div
                 key={stat.label}
-                className={`group relative overflow-hidden rounded-2xl bg-white dark:bg-gray-800/50 border border-gray-200/60 dark:border-gray-700/60 p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] backdrop-blur-sm ${stat.label === "Rizz Score" ? "cursor-pointer" : ""
+                className={`group relative overflow-hidden rounded-2xl bg-white dark:bg-gray-800/50 border border-gray-200/60 dark:border-gray-700/60 p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] backdrop-blur-sm ${stat.label === "Rizz Score" && isOwnProfile ? "cursor-pointer" : ""
                   }`}
-                onClick={stat.label === "Rizz Score" ? handleNavigateToRizzScore : undefined}
+                onClick={stat.label === "Rizz Score" && isOwnProfile ? handleNavigateToRizzScore : undefined}
               >
                 <div className="flex justify-between items-center mb-4">
                   <div
@@ -476,7 +467,7 @@ export default function UserProfileHeader({
                   <div className="self-start text-sm font-medium text-gray-500 dark:text-gray-400">
                     {stat.label}
                   </div>
-                  {stat.label === "Rizz Score" && (
+                  {stat.label === "Rizz Score" && isOwnProfile && (
                     <div className="flex self-end">
                       <div className="flex items-center text-xs font-medium text-purple-500 opacity-0 transition-opacity duration-200 dark:text-purple-400 group-hover:opacity-100">
                         View Details →

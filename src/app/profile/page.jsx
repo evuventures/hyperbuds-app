@@ -82,6 +82,7 @@ export default function ProfilePage() {
           userData={user}
           isDark={true}
           isLoading={isLoading}
+          isOwnProfile={true}
         />
 
         {/* Platform Performance Section */}
