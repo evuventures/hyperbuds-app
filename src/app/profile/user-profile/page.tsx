@@ -1,135 +1,160 @@
 'use client'
 
-import { useEffect, useState } from "react";
-import Image from "next/image";
-import { useRouter } from "next/navigation";
+import DashboardLayout from "@/components/layout/Dashboard/Dashboard";
+import { useState, useEffect } from "react";
+import { apiFetch } from "@/lib/utils/api";
+import UserProfileHeader from "@/components/profile/ProfileCard";
+import { PlatformStats } from "@/components/collaboration/PlatformStats";
+import { TrendingUp } from "lucide-react";
 
-type UserProfileHeaderProps = {
-  userData: {
-    name?: string;
-    email?: string;
-    avatar?: string;
-    role?: string;
-    bio?: string;
-  } | null;
-  isDark: boolean;
-  isLoading: boolean;
-};
+export default function UserProfilePage() {
+  // Initialize as null instead of array
+  const [user, setUser] = useState<Record<string, unknown> | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-export default function UserProfileHeader({ userData, isDark, isLoading }: UserProfileHeaderProps) {
-  const router = useRouter();
-  const [currentUserEmail, setCurrentUserEmail] = useState(null);
+  const loadProfile = async () => {
+    try {
+      setIsLoading(true);
+      const data = await apiFetch("/api/v1/profiles/me");
+      console.log("API Response:", data);
+
+      // Set the entire response data - the component will handle extracting profile
+      setUser(data);
+      setError(null);
+    } catch (err) {
+      console.error("Error loading profile:", err);
+      setError((err as Error).message || "Failed to load profile");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    // Get logged-in user email from localStorage or context
-    const authUser = localStorage.getItem('user');
-    if (authUser) {
-      const parsedUser = JSON.parse(authUser);
-      setCurrentUserEmail(parsedUser?.email);
+    loadProfile();
+  }, [refreshTrigger]);
+
+  // Listen for storage events to refresh when profile is updated
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'profileUpdated') {
+        setRefreshTrigger(prev => prev + 1);
+        localStorage.removeItem('profileUpdated');
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
+  // Check for profile update flag on component mount
+  useEffect(() => {
+    if (localStorage.getItem('profileUpdated')) {
+      setRefreshTrigger(prev => prev + 1);
+      localStorage.removeItem('profileUpdated');
     }
   }, []);
 
-  if (isLoading) {
+  // Handle error state
+  if (error) {
     return (
-      <div className="p-6 bg-white/60 rounded-2xl shadow animate-pulse">
-        <div className="flex items-center space-x-4">
-          <div className="w-20 h-20 bg-gray-200 rounded-full" />
-          <div className="space-y-2">
-            <div className="w-40 h-4 bg-gray-200 rounded" />
-            <div className="w-28 h-3 bg-gray-200 rounded" />
+      <DashboardLayout>
+        <div className="p-6">
+          <div className="">
+            <p className="text-red-400">Error loading profile: {error}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 mt-2 text-white bg-red-600 rounded-lg transition-colors hover:bg-red-700"
+            >
+              Retry
+            </button>
           </div>
         </div>
-      </div>
+      </DashboardLayout>
     );
   }
-
-  if (!userData) {
-    return (
-      <div className="p-6 bg-white/80 rounded-2xl shadow text-center text-gray-500">
-        No profile data found.
-      </div>
-    );
-  }
-
-  const isOwnProfile = userData?.email === currentUserEmail;
 
   return (
-    <div
-      className={`p-6 rounded-3xl border ${
-        isDark ? "bg-gradient-to-br from-gray-900 to-gray-800 border-gray-700" : "bg-white/70 border-gray-200"
-      } shadow-lg`}
-    >
-      {/* Header Section */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
-        {/* Profile Image + Info */}
-        <div className="flex items-center space-x-4">
-          <div className="relative w-20 h-20 rounded-full overflow-hidden ring-4 ring-indigo-500/30">
-            <Image
-              src={userData?.avatar || "/assets/avatar-placeholder.png"}
-              alt={`${userData?.name || "User"}'s avatar`}
-              fill
-              className="object-cover"
-            />
-          </div>
-          <div>
-            <h2
-              className={`text-2xl font-semibold ${
-                isDark ? "text-white" : "text-gray-800"
-              }`}
-            >
-              {userData?.name || "Unnamed User"}
-            </h2>
-            <p
-              className={`text-sm ${
-                isDark ? "text-gray-300" : "text-gray-600"
-              }`}
-            >
-              {userData?.email}
-            </p>
-            <p className="text-sm text-indigo-500 mt-1">
-              {userData?.role || "User"}
-            </p>
-          </div>
-        </div>
+    <DashboardLayout>
+      <div className="p-6 space-y-6">
+        <UserProfileHeader
+          userData={user}
+          isLoading={isLoading}
+          isOwnProfile={false}
+          onEditProfile={() => { }}
+          onConnect={() => { }}
+          onMessage={() => { }}
+        />
 
-        {/* Action Buttons */}
-        <div className="flex gap-3">
-          {isOwnProfile ? (
-            <button
-              onClick={() => router.push("/profile/edit")}
-              className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-xl hover:bg-indigo-700 transition-all"
-            >
-              Edit Profile
-            </button>
-          ) : (
-            <>
-              <button
-                onClick={() => alert(`Messaging ${userData?.name}`)}
-                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-xl hover:bg-blue-700 transition-all"
-              >
-                Message
-              </button>
-              <button
-                onClick={() => alert(`Followed ${userData?.name}`)}
-                className="px-4 py-2 text-sm font-medium text-indigo-600 bg-indigo-50 rounded-xl hover:bg-indigo-100 transition-all"
-              >
-                Follow
-              </button>
-            </>
-          )}
-        </div>
+        {/* Platform Performance Section */}
+        {user && (user as { profile?: { socialLinks?: Record<string, string> } }).profile?.socialLinks && (() => {
+          // Extract usernames from social links URLs for connected platforms only
+          const platformCreds: Record<string, string> = {};
+          const userTyped = user as { profile: { socialLinks: Record<string, string> } };
+          const socialLinks = userTyped.profile.socialLinks;
+
+          console.log('📊 Social Links:', socialLinks);
+
+          // Extract TikTok username from URL
+          if (socialLinks.tiktok) {
+            const match = socialLinks.tiktok.match(/tiktok\.com\/@?([^/?]+)/);
+            if (match) {
+              platformCreds.tiktok = match[1];
+              console.log('✅ TikTok username extracted:', match[1]);
+            } else {
+              console.warn('⚠️ TikTok URL found but username extraction failed:', socialLinks.tiktok);
+            }
+          }
+
+          // Extract Twitter username from URL
+          if (socialLinks.twitter) {
+            const match = socialLinks.twitter.match(/(?:twitter|x)\.com\/([^/?]+)/);
+            if (match) {
+              platformCreds.twitter = match[1];
+              console.log('✅ Twitter username extracted:', match[1]);
+            } else {
+              console.warn('⚠️ Twitter URL found but username extraction failed:', socialLinks.twitter);
+            }
+          }
+
+          // Extract Twitch username from URL
+          if (socialLinks.twitch) {
+            const match = socialLinks.twitch.match(/twitch\.tv\/([^/?]+)/);
+            if (match) {
+              platformCreds.twitch = match[1];
+              console.log('✅ Twitch username extracted:', match[1]);
+            } else {
+              console.warn('⚠️ Twitch URL found but username extraction failed:', socialLinks.twitch);
+            }
+          }
+
+          console.log('🎯 Platform Credentials to fetch:', platformCreds);
+
+          const hasPlatforms = Object.values(platformCreds).some(v => v);
+
+          return hasPlatforms && (
+            <div className="p-6 bg-white rounded-2xl border shadow-lg backdrop-blur-sm dark:bg-gray-800/50 border-gray-200/60 dark:border-gray-700/60">
+              <h3 className="flex gap-3 items-center mb-6 text-xl font-bold text-gray-900 dark:text-gray-100">
+                <div className="p-2 bg-gradient-to-br from-purple-100 to-pink-100 rounded-lg dark:from-purple-500/20 dark:to-pink-500/20">
+                  <TrendingUp
+                    size={24}
+                    className="text-purple-600 dark:text-purple-400"
+                  />
+                </div>
+                Platform Performance
+              </h3>
+              <PlatformStats
+                platformCredentials={platformCreds}
+                showCombinedMetrics={false}
+                compact={true}
+                clickable={true}
+              />
+            </div>
+          );
+        })()}
+
       </div>
-
-      {/* Bio / About Section */}
-      {userData?.bio && (
-        <div
-          className={`mt-6 text-sm leading-relaxed ${
-            isDark ? "text-gray-300" : "text-gray-700"
-          }`}
-        >
-          {userData.bio}
-        </div>
-      )}
-    </div>
+    </DashboardLayout>
   );
 }
