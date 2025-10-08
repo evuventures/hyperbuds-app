@@ -1,0 +1,75 @@
+http://localhost:4000/api/v1/profiles/social-sync/tiktok
+http://localhost:4000/api/v1/profiles/social-sync/twitch
+
+req.body : {
+    follow: 1000
+}
+
+res.json: {
+    {
+    "success": true,
+    "message": "Social media Tiktok synced successfully",
+    "profile": {
+        "stats": {
+            "platformBreakdown": {
+                "tiktok": {
+                    "followers": 1000,
+                    "engagement": 0
+                },
+                "instagram": {
+                    "followers": 15925,
+                    "engagement": 2.91
+                },
+                "youtube": {
+                    "followers": 7100,
+                    "engagement": 2.66
+                },
+                "twitch": {
+                    "followers": 0,
+                    "engagement": 0
+                }
+            },
+            "totalFollowers": 24025,
+            "avgEngagement": 1.39
+        },
+        "preferences": {
+            "audienceSize": {
+                "min": 0,
+                "max": 1000000
+            },
+            "budget": {
+                "min": 0,
+                "max": 10000
+            },
+            "collaborationTypes": [],
+            "locations": []
+        },
+        "location": {
+            "city": "Delhi ",
+            "state": "Delhi",
+            "country": "India"
+        },
+        "_id": "68cec58c9b8985cfa07fe824",
+        "userId": "68cec2a59b8985cfa07fe80a",
+        "niche": [
+            "music",
+            "education",
+            "gaming",
+            "comedy",
+            "fitness"
+        ],
+        "rizzScore": 79,
+        "isPublic": true,
+        "isActive": true,
+        "lastSeen": "2025-09-26T21:02:18.953Z",
+        "createdAt": "2025-09-20T15:17:32.306Z",
+        "updatedAt": "2025-10-08T19:01:19.222Z",
+        "__v": 0,
+        "bio": "Hi ",
+        "displayName": "Yash Gupta",
+        "avatar": "",
+        "profileUrl": "",
+        "id": ""
+    }
+}
+}
