@@ -60,7 +60,7 @@ const MatchingInterface: React.FC<MatchingInterfaceProps> = ({
 
   if (!currentMatch) {
     return (
-      <div className="flex flex-col items-center justify-center h-full text-gray-500">
+      <div className="flex flex-col justify-center items-center h-full text-gray-500">
         No matches available
       </div>
     );
@@ -70,7 +70,7 @@ const MatchingInterface: React.FC<MatchingInterfaceProps> = ({
   const profile = currentMatch.targetProfile;
   if (!profile) {
     return (
-      <div className="flex flex-col items-center justify-center h-full text-gray-500">
+      <div className="flex flex-col justify-center items-center h-full text-gray-500">
         This suggestion is missing profile data.
       </div>
     );
@@ -81,9 +81,9 @@ const MatchingInterface: React.FC<MatchingInterfaceProps> = ({
     .join(", ");
 
   return (
-    <div className="max-w-md mx-auto h-screen bg-gray-50 flex flex-col">
+    <div className="flex flex-col mx-auto max-w-md h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-white shadow-sm px-4 py-3 flex items-center justify-between">
+      <div className="flex justify-between items-center px-4 py-3 bg-white shadow-sm">
         <h1 className="text-xl font-bold text-gray-800">Discover</h1>
         <div className="flex space-x-2">
           <Button variant="ghost" size="sm" onClick={refreshMatches} disabled={isRefreshing}>
@@ -106,7 +106,7 @@ const MatchingInterface: React.FC<MatchingInterfaceProps> = ({
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 p-4 relative">
+      <div className="relative flex-1 p-4">
         <AnimatePresence mode="popLayout">
           <motion.div
             key={currentMatch._id}
@@ -117,7 +117,7 @@ const MatchingInterface: React.FC<MatchingInterfaceProps> = ({
             onDragEnd={handleDragEnd}
             className="absolute inset-0"
           >
-            <Card className="h-full overflow-hidden bg-white shadow-2xl border-0">
+            <Card className="overflow-hidden h-full bg-white border-0 shadow-2xl">
               {/* Top section */}
               <div className="relative h-64 bg-gradient-to-br from-purple-400 to-pink-400">
                 <div className="absolute inset-0 bg-black/20" />
@@ -131,22 +131,22 @@ const MatchingInterface: React.FC<MatchingInterfaceProps> = ({
                   />
                 </Avatar>
 
-                <div className="absolute top-4 right-4 flex space-x-2">
-                  <Badge variant="secondary" className="bg-white/90 text-purple-700 font-semibold">
-                    <Star className="w-3 h-3 mr-1" />
+                <div className="flex absolute top-4 right-4 space-x-2">
+                  <Badge variant="secondary" className="font-semibold text-purple-700 bg-white/90">
+                    <Star className="mr-1 w-3 h-3" />
                     {profile.rizzScore ?? "—"}
                   </Badge>
-                  <Badge variant="secondary" className="bg-white/90 text-green-700 font-semibold">
+                  <Badge variant="secondary" className="font-semibold text-green-700 bg-white/90">
                     {currentMatch.compatibilityScore}% Match
                   </Badge>
                 </div>
 
-                <div className="absolute bottom-4 left-4 right-4 text-white">
+                <div className="absolute right-4 bottom-4 left-4 text-white">
                   <h2 className="text-2xl font-bold">{profile.displayName}</h2>
                   <p className="text-purple-100">{profile.username}</p>
                   {locationStr && (
                     <div className="flex items-center mt-2 text-sm">
-                      <MapPin className="w-3 h-3 mr-1" />
+                      <MapPin className="mr-1 w-3 h-3" />
                       {locationStr}
                     </div>
                   )}
@@ -154,7 +154,7 @@ const MatchingInterface: React.FC<MatchingInterfaceProps> = ({
               </div>
 
               <CardContent className="p-4 space-y-4">
-                {profile.bio && <p className="text-gray-700 text-sm leading-relaxed">{profile.bio}</p>}
+                {profile.bio && <p className="text-sm leading-relaxed text-gray-700">{profile.bio}</p>}
 
                 {/* Niches */}
                 {!!profile.niche?.length && (
@@ -170,8 +170,8 @@ const MatchingInterface: React.FC<MatchingInterfaceProps> = ({
                 {/* Stats */}
                 <div className="grid grid-cols-2 gap-4 py-2 border-t">
                   <div className="text-center">
-                    <div className="flex items-center justify-center">
-                      <Users className="w-4 h-4 mr-1 text-blue-500" />
+                    <div className="flex justify-center items-center">
+                      <Users className="mr-1 w-4 h-4 text-blue-500" />
                       <span className="text-sm font-semibold">
                         {(profile.stats.totalFollowers / 1000).toFixed(0)}K
                       </span>
@@ -179,8 +179,8 @@ const MatchingInterface: React.FC<MatchingInterfaceProps> = ({
                     <span className="text-xs text-gray-500">Followers</span>
                   </div>
                   <div className="text-center">
-                    <div className="flex items-center justify-center">
-                      <TrendingUp className="w-4 h-4 mr-1 text-green-500" />
+                    <div className="flex justify-center items-center">
+                      <TrendingUp className="mr-1 w-4 h-4 text-green-500" />
                       <span className="text-sm font-semibold">{profile.stats.avgEngagement}%</span>
                     </div>
                     <span className="text-xs text-gray-500">Engagement</span>
@@ -189,31 +189,31 @@ const MatchingInterface: React.FC<MatchingInterfaceProps> = ({
 
                 {/* Tabs */}
                 <Tabs defaultValue="compatibility" className="w-full">
-                  <TabsList className="grid w-full grid-cols-2">
+                  <TabsList className="grid grid-cols-2 w-full">
                     <TabsTrigger value="compatibility">Compatibility</TabsTrigger>
                     <TabsTrigger value="insights">Insights</TabsTrigger>
                   </TabsList>
 
-                  <TabsContent value="compatibility" className="space-y-2 mt-4">
-                    <div className="flex items-center justify-between">
+                  <TabsContent value="compatibility" className="mt-4 space-y-2">
+                    <div className="flex justify-between items-center">
                       <span className="text-sm">Niche Match</span>
                       <span className="font-semibold">
                         {currentMatch.scoreBreakdown.nicheCompatibility}%
                       </span>
                     </div>
-                    <div className="flex items-center justify-between">
+                    <div className="flex justify-between items-center">
                       <span className="text-sm">Audience Overlap</span>
                       <span className="font-semibold">
                         {currentMatch.scoreBreakdown.audienceOverlap}%
                       </span>
                     </div>
-                    <div className="flex items-center justify-between">
+                    <div className="flex justify-between items-center">
                       <span className="text-sm">Engagement Style</span>
                       <span className="font-semibold">
                         {currentMatch.scoreBreakdown.engagementStyle}%
                       </span>
                     </div>
-                    <div className="flex items-center justify-between">
+                    <div className="flex justify-between items-center">
                       <span className="text-sm">Location</span>
                       <span className="font-semibold">
                         {currentMatch.scoreBreakdown.geolocation}%
@@ -224,7 +224,7 @@ const MatchingInterface: React.FC<MatchingInterfaceProps> = ({
                   <TabsContent value="insights" className="mt-4">
                     <div className="space-y-2">
                       <div className="flex items-center text-sm">
-                        <Sparkles className="w-4 h-4 mr-2 text-yellow-500" />
+                        <Sparkles className="mr-2 w-4 h-4 text-yellow-500" />
                         <span className="text-gray-600">AI Confidence:</span>
                         <span className="ml-1 font-semibold">
                           {Math.round(currentMatch.metadata.confidence * 100)}%
@@ -248,17 +248,17 @@ const MatchingInterface: React.FC<MatchingInterfaceProps> = ({
           </motion.div>
         </AnimatePresence>
 
-        <div className="absolute bottom-20 left-4 right-4 text-center">
+        <div className="absolute right-4 left-4 bottom-20 text-center">
           <p className="text-xs text-gray-500">Swipe right to like • Swipe left to pass</p>
         </div>
       </div>
 
       {/* Action Buttons */}
-      <div className="bg-white p-4 flex justify-center space-x-8 shadow-lg">
+      <div className="flex justify-center p-4 space-x-8 bg-white shadow-lg">
         <Button
           variant="outline"
           size="lg"
-          className="rounded-full w-16 h-16 border-2 border-red-200 hover:border-red-300 hover:bg-red-50"
+          className="w-16 h-16 rounded-full border-2 border-red-200 hover:border-red-300 hover:bg-red-50"
           onClick={() => handleSwipe("left")}
         >
           <X className="w-8 h-8 text-red-500" />
@@ -267,8 +267,8 @@ const MatchingInterface: React.FC<MatchingInterfaceProps> = ({
         <Button
           variant="outline"
           size="lg"
-          className="rounded-full w-20 h-20 border-2 border-purple-200 hover:border-purple-300 hover:bg-purple-50"
-          // optional: super-like action here
+          className="w-20 h-20 rounded-full border-2 border-purple-200 hover:border-purple-300 hover:bg-purple-50"
+        // optional: super-like action here
         >
           <Zap className="w-10 h-10 text-purple-500" />
         </Button>
@@ -276,7 +276,7 @@ const MatchingInterface: React.FC<MatchingInterfaceProps> = ({
         <Button
           variant="outline"
           size="lg"
-          className="rounded-full w-16 h-16 border-2 border-green-200 hover:border-green-300 hover:bg-green-50"
+          className="w-16 h-16 rounded-full border-2 border-green-200 hover:border-green-300 hover:bg-green-50"
           onClick={() => handleSwipe("right")}
         >
           <Heart className="w-8 h-8 text-green-500" />
