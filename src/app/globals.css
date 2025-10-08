@@ -1,7 +1,5 @@
 @import "tailwindcss";
-
-@custom-variant dark (&:is(.dark *));
-
+/* Removed unsupported at-rule "@custom-variant". Define custom variants in tailwind.config.js (plugins or safelist) instead. */
 
 :root {
   --background: #ffffff;
