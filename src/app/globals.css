@@ -1,4 +1,4 @@
-@import "tailwindcss";
+/*@import "tailwindcss";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -8,7 +8,7 @@
   --foreground: #171717;
 }
 
-/* Dark theme CSS variables */
+/* Dark theme CSS variables 
 :root.dark {
   --background: linear-gradient(to bottom right,
       rgba(249, 250, 251, 1) 0%,
@@ -26,9 +26,9 @@
 
 /* ============================
    🎨 THEME TOKENS
-============================ */
+============================ 
 @theme {
-  /* Colors */
+  /* Colors 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
 
@@ -51,32 +51,32 @@
   --color-card: hsl(var(--card));
   --color-card-foreground: hsl(var(--card-foreground));
 
-  /* Brand */
+  /* Brand 
   --color-hyperbuds-purple-500: #a855f7;
   --color-hyperbuds-electric-500: #6366f1;
 
-  /* Status */
+  /* Status 
   --color-success: #10b981;
   --color-warning: #f59e0b;
   --color-error: #ef4444;
   --color-info: #3b82f6;
 
-  /* Gradient */
+  /* Gradient 
   --color-gradient-start: #a855f7;
   --color-gradient-middle: #6366f1;
   --color-gradient-end: #3b82f6;
 
-  /* Dark mode specific colors */
+  /* Dark mode specific colors 
   --color-dark-bg: #0f172a;
   --color-dark-surface: #1e293b;
   --color-dark-border: #334155;
 
-  /* Fonts */
+  /* Fonts 
   --font-sans: Inter, system-ui, -apple-system, sans-serif;
   --font-mono: "JetBrains Mono", "Fira Code", Monaco, Consolas, monospace;
   --font-display: "Clash Display", Inter, system-ui, sans-serif;
 
-  /* Sizes */
+  /* Sizes 
   --text-2xs: 0.625rem;
   --text-xs: 0.75rem;
   --text-sm: 0.875rem;
@@ -92,25 +92,25 @@
   --text-8xl: 6rem;
   --text-9xl: 8rem;
 
-  /* Spacing */
+  /* Spacing 
   --spacing-18: 4.5rem;
   --spacing-88: 22rem;
   --spacing-128: 32rem;
   --spacing-144: 36rem;
 
-  /* Widths */
+  /* Widths 
   --max-w-8xl: 88rem;
   --max-w-9xl: 96rem;
   --max-w-10xl: 104rem;
 
-  /* Radius */
+  /* Radius 
   --radius-lg: 1rem;
   --radius-md: 0.75rem;
   --radius-sm: 0.5rem;
   --radius-4xl: 2rem;
   --radius-5xl: 2.5rem;
 
-  /* Shadows */
+  /* Shadows 
   --shadow-glow: 0 0 20px -5px rgb(168 85 247 / 0.4);
   --shadow-glow-lg: 0 0 40px -10px rgb(168 85 247 / 0.6);
   --shadow-inner-glow: inset 0 0 20px -5px rgb(168 85 247 / 0.3);
@@ -119,11 +119,11 @@
   --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   --shadow-card-hover: 0 10px 25px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 
-  /* Dark mode shadows */
+  /* Dark mode shadows 
   --shadow-dark-card: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.15);
   --shadow-dark-card-hover: 0 10px 25px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
 
-  /* Screens */
+  /* Screens 
   --breakpoint-xs: 375px;
   --breakpoint-sm: 640px;
   --breakpoint-md: 768px;
@@ -137,7 +137,7 @@
    🎞️ ANIMATIONS (same as before)
 ============================ */
 
-/* Accordion */
+/* Accordion 
 @keyframes accordion-down {
   from {
     height: 0
@@ -158,7 +158,7 @@
   }
 }
 
-/* Fade + Slide */
+/* Fade + Slide 
 @keyframes fade-in {
   0% {
     opacity: 0;
@@ -219,7 +219,7 @@
   }
 }
 
-/* Scale */
+/* Scale 
 @keyframes scale-in {
   0% {
     opacity: 0;
@@ -232,7 +232,7 @@
   }
 }
 
-/* Bounce + Pulse */
+/* Bounce + Pulse 
 @keyframes bounce-subtle {
 
   0%,
@@ -257,7 +257,7 @@
   }
 }
 
-/* Float + Glow */
+/* Float + Glow 
 @keyframes float {
 
   0%,
@@ -280,7 +280,7 @@
   }
 }
 
-/* Shimmer + Gradient */
+/* Shimmer + Gradient 
 @keyframes shimmer {
   0% {
     background-position: -200% 0
@@ -315,7 +315,7 @@
   }
 }
 
-/* Wiggle + Tilt */
+/* Wiggle + Tilt 
 @keyframes wiggle {
 
   0%,
@@ -347,7 +347,7 @@
 
 /* ============================
    📦 ANIMATION UTILITIES
-============================ */
+============================ 
 @utility animate-accordion-down {
   animation: accordion-down 0.2s ease-out
 }
@@ -426,7 +426,7 @@
 
 /* ============================
    🌙 DARK THEME SIDEBAR STYLES
-============================ */
+============================ 
 
 .sidebar-container {
   height: 100%;
@@ -446,7 +446,7 @@
   overflow-y: auto;
 }
 
-/* User Profile Section */
+/* User Profile Section 
 .user-profile {
   display: flex;
   align-items: center;
@@ -517,7 +517,7 @@
   color: #9ca3af;
 }
 
-/* Section Styles */
+/* Section Styles 
 .section {
   margin-bottom: 2rem;
 }
@@ -565,7 +565,7 @@
   color: #d1d5db;
 }
 
-/* Explore Navigation */
+/* Explore Navigation 
 .explore-nav {
   display: flex;
   flex-direction: column;
@@ -681,7 +681,7 @@
   letter-spacing: 0.025em;
 }
 
-/* Friends Section */
+/* Friends Section 
 .friends-section {
   display: none;
 }
@@ -842,7 +842,7 @@
 
 /* Responsive Design (same as before) */
 
-/* Mobile (< 640px) */
+/* Mobile (< 640px) 
 @media (max-width: 639px) {
   .sidebar-content {
     padding: 0 1rem 1rem 1rem;
@@ -881,7 +881,7 @@
   }
 }
 
-/* Tablet (640px - 1023px) */
+/* Tablet (640px - 1023px) 
 @media (min-width: 640px) and (max-width: 1023px) {
   .explore-nav {
     display: grid;
@@ -890,7 +890,7 @@
   }
 }
 
-/* Desktop (≥ 1024px) */
+/* Desktop (≥ 1024px) 
 @media (min-width: 1024px) {
   .friends-section {
     display: block;
@@ -902,7 +902,7 @@
   }
 }
 
-/* Large Desktop (≥ 1280px) */
+/* Large Desktop (≥ 1280px) 
 @media (min-width: 1280px) {
   .sidebar-content {
     padding: 0 1.5rem 1.5rem 1.5rem;
@@ -913,7 +913,7 @@
   }
 }
 
-/* Animation for expanding/collapsing */
+/* Animation for expanding/collapsing 
 .friends-list {
   animation: fadeIn 0.3s ease-in-out;
 }
@@ -930,7 +930,7 @@
   }
 }
 
-/* Focus states for accessibility */
+/* Focus states for accessibility 
 .nav-item:focus-visible,
 .expand-button:focus-visible,
 .show-more-button:focus-visible,
@@ -954,7 +954,7 @@
   @apply bg-purple-600 dark:bg-purple-400;
 }
 
-/* Scrollbar styles for dark mode */
+/* Scrollbar styles for dark mode 
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -964,35 +964,35 @@
   display: none;
 }
 
-/* Dark mode transition classes */
+/* Dark mode transition classes *
 .theme-transition {
   transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
 }
 
 
-/* Hide scrollbar but keep scroll functionality */
+/* Hide scrollbar but keep scroll functionality 
 .no-scrollbar {
   -ms-overflow-style: none;
-  /* IE & Edge */
+  /* IE & Edge 
   scrollbar-width: none;
-  /* Firefox */
+  /* Firefox 
 }
 
 .no-scrollbar::-webkit-scrollbar {
   display: none;
-  /* Chrome, Safari */
+  /* Chrome, Safari 
 }
 
-/* Change dot size, shape, and color */
+/* Change dot size, shape, and color 
 .swiper-pagination-bullet {
   background-color: #d1d5db;
-  /* gray-300 */
+  /* gray-300 
   opacity: 1;
   width: 12px;
   height: 12px;
   margin: 0 4px !important;
   border-radius: 9999px;
-  /* full rounded */
+  /* full rounded 
   transition: all 0.3s ease;
 }
 
@@ -1000,12 +1000,12 @@
   background: linear-gradient(to right, #A259FF, #0011FF);
   width: 14px;
   height: 14px;
-  /* elongated active dot */
+  /* elongated active dot 
 }
 
 /* Dashboard Layout Styles */
 
-/* Hide scrollbars while maintaining functionality */
+/* Hide scrollbars while maintaining functionality 
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -1015,12 +1015,12 @@
   display: none;
 }
 
-/* Smooth transitions */
+/* Smooth transitions 
 .transition-all {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Custom scrollbar for main content areas */
+/* Custom scrollbar for main content areas 
 .custom-scrollbar::-webkit-scrollbar {
   width: 6px;
 }
@@ -1038,7 +1038,7 @@
   background: #94a3b8;
 }
 
-/* Mobile-first responsive breakpoints */
+/* Mobile-first responsive breakpoints 
 @media (max-width: 768px) {
   .dashboard-container {
     padding: 0;
@@ -1061,7 +1061,7 @@
   }
 }
 
-/* Sidebar animations */
+/* Sidebar animations 
 @media (max-width: 1024px) {
   .sidebar-mobile {
     transform: translateX(-100%);
@@ -1073,12 +1073,12 @@
   }
 }
 
-/* Backdrop blur for mobile overlay */
+/* Backdrop blur for mobile overlay 
 .backdrop-blur {
   backdrop-filter: blur(4px);
 }
 
-/* Loading states */
+/* Loading states 
 .loading-shimmer {
   background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
   background-size: 200% 100%;
@@ -1095,13 +1095,13 @@
   }
 }
 
-/* Focus states for accessibility */
+/* Focus states for accessibility 
 .focus-visible:focus-visible {
   outline: 2px solid #3b82f6;
   outline-offset: 2px;
 }
 
-/* Print styles */
+/* Print styles 
 @media print {
 
   .sidebar,
@@ -1118,7 +1118,7 @@
 
 /* Modern Dashboard Styles */
 
-/* Smooth scrollbar styles */
+/* Smooth scrollbar styles 
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -1128,7 +1128,7 @@
   display: none;
 }
 
-/* Custom scrollbar for content areas */
+/* Custom scrollbar for content areas 
 .custom-scrollbar::-webkit-scrollbar {
   width: 6px;
 }
@@ -1146,7 +1146,7 @@
   background: rgba(156, 163, 175, 0.5);
 }
 
-/* Backdrop blur fallback */
+/* Backdrop blur fallback 
 @supports not (backdrop-filter: blur(10px)) {
   .backdrop-blur-lg {
     background-color: rgba(255, 255, 255, 0.95);
@@ -1157,14 +1157,14 @@
   }
 }
 
-/* Smooth transitions for all interactive elements */
+/* Smooth transitions for all interactive elements 
 * {
   transition-property: color, background-color, border-color, transform, opacity, box-shadow;
   transition-duration: 200ms;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Focus states for accessibility */
+/* Focus states for accessibility 
 button:focus-visible,
 input:focus-visible,
 select:focus-visible,
@@ -1173,7 +1173,7 @@ textarea:focus-visible {
   outline-offset: 2px;
 }
 
-/* Loading animations */
+/* Loading animations 
 @keyframes pulse {
 
   0%,
@@ -1190,7 +1190,7 @@ textarea:focus-visible {
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
-/* Gradient text animation */
+/* Gradient text animation 
 @keyframes gradient-shift {
   0% {
     background-position: 0% 50%;
@@ -1210,7 +1210,7 @@ textarea:focus-visible {
   animation: gradient-shift 3s ease infinite;
 }
 
-/* Card hover effects */
+/* Card hover effects 
 .card-hover {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -1220,14 +1220,14 @@ textarea:focus-visible {
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
 
-/* Glass morphism effect */
+/* Glass morphism effect 
 .glass {
   background: rgba(255, 255, 255, 0.25);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.18);
 }
 
-/* Responsive container */
+/* Responsive container 
 .container {
   width: 100%;
   margin-left: auto;
@@ -1257,7 +1257,7 @@ textarea:focus-visible {
   }
 }
 
-/* Mobile-first responsive grid */
+/* Mobile-first responsive grid 
 .responsive-grid {
   display: grid;
   gap: 1rem;
@@ -1283,7 +1283,7 @@ textarea:focus-visible {
   }
 }
 
-/* Sidebar animations */
+/* Sidebar animations 
 .sidebar-enter {
   transform: translateX(-100%);
 }
@@ -1302,7 +1302,7 @@ textarea:focus-visible {
   transition: transform 300ms ease-in-out;
 }
 
-/* Modern button styles */
+/* Modern button styles 
 .btn-primary {
   background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
   color: white;
@@ -1346,7 +1346,7 @@ textarea:focus-visible {
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
-/* Status indicators */
+/* Status indicators 
 .status-online {
   background-color: #10b981;
   animation: pulse 2s infinite;
@@ -1360,7 +1360,7 @@ textarea:focus-visible {
   background-color: #6b7280;
 }
 
-/* Modern card design */
+/* Modern card design 
 .modern-card {
   background: rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(20px);
@@ -1377,7 +1377,7 @@ textarea:focus-visible {
   border-color: rgba(139, 92, 246, 0.2);
 }
 
-/* Responsive text sizes */
+/* Responsive text sizes 
 .text-responsive {
   font-size: 0.875rem;
 }
@@ -1394,7 +1394,7 @@ textarea:focus-visible {
   }
 }
 
-/* Loading skeleton */
+/* Loading skeleton 
 .skeleton {
   background: linear-gradient(90deg, #f0f0f0 25%, transparent 37%, #f0f0f0 63%);
   background-size: 400% 100%;
@@ -1411,12 +1411,12 @@ textarea:focus-visible {
   }
 }
 
-/* Hide scrollbar for Chrome, Safari and Opera */
+/* Hide scrollbar for Chrome, Safari and Opera 
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
 
-/* Hide scrollbar for IE, Edge and Firefox */
+/* Hide scrollbar for IE, Edge and Firefox 
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -1426,7 +1426,7 @@ textarea:focus-visible {
    📱 MESSAGING SCROLLBAR STYLES
 ============================ */
 
-/* Hide scrollbar by default, show on hover with custom styling */
+/* Hide scrollbar by default, show on hover with custom styling 
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -1436,7 +1436,7 @@ textarea:focus-visible {
   display: none;
 }
 
-/* Custom scrollbar for messaging area - appears on hover */
+/* Custom scrollbar for messaging area - appears on hover 
 .hover\:scrollbar-thin:hover::-webkit-scrollbar {
   display: block;
   width: 4px;
@@ -1457,7 +1457,7 @@ textarea:focus-visible {
   background: rgba(156, 163, 175, 0.5);
 }
 
-/* Dark mode scrollbar styles */
+/* Dark mode scrollbar styles 
 .hover\:dark\:scrollbar-thumb-gray-600:hover::-webkit-scrollbar-thumb {
   background: rgba(75, 85, 99, 0.4);
 }
@@ -1466,7 +1466,7 @@ textarea:focus-visible {
   background: rgba(75, 85, 99, 0.6);
 }
 
-/* Firefox scrollbar styles */
+/* Firefox scrollbar styles 
 .hover\:scrollbar-thin:hover {
   scrollbar-width: thin;
   scrollbar-color: rgba(156, 163, 175, 0.3) transparent;
