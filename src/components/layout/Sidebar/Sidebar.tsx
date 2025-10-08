@@ -13,7 +13,7 @@ interface SidebarProps {
   user: {
     username?: string;
     email: string;
-    displayName?: string; 
+    displayName?: string;
     avatar?: string;
     rizzScore?: number;
     subscription?: 'free' | 'premium' | 'pro';
@@ -24,7 +24,6 @@ interface SidebarProps {
   onToggleCollapse?: () => void;
 }
 
-// ✅ add this type so TS knows path is optional
 type MenuItem = {
   id: string;
   icon: React.ComponentType<{ size?: number; className?: string }>;
@@ -58,32 +57,30 @@ const mockData = {
 };
 
 export const Sidebar: React.FC<SidebarProps> = ({ user, activeTab, collapsed, onTabChange, onToggleCollapse }) => {
-  console.log('Sidebar rendered with collapsed:', collapsed);
+  // ❌ REMOVED: console.log('Sidebar rendered with collapsed:', collapsed);
+  // ❌ REMOVED: console.log('isCollapsed:', isCollapsed);
 
-  // Use the actual collapsed prop
-  const isCollapsed = Boolean(collapsed);
-  console.log('isCollapsed:', isCollapsed);
+  // Use the actual collapsed prop directly, no need for the Boolean cast.
+  const isCollapsed = collapsed;
   const pathname = usePathname();
   const [notifications] = useState(mockData.notifications);
+  
   // Determine active tab based on current route
   const getActiveTabFromPath = () => {
     // Main menu items
     if (pathname === '/dashboard') return 'home';
-    if (pathname.startsWith('/profile')) return 'profile'; // Handle all profile routes
+    if (pathname.startsWith('/profile')) return 'profile';
     if (pathname === '/ai-matches') return 'matches';
-    if (pathname === '/matching') return 'matching';
+    if (pathname === '/matching' || pathname.startsWith('/collaborations')) return 'matching'; // Included collaborations route
     if (pathname === '/streaming') return 'streaming';
 
     // Business items
-    if (pathname === '/marketplace') return 'marketplace';
-    if (pathname.startsWith('/payments')) return 'Subscription'; // Handle payment routes
-    if (pathname === '/bookings') return 'bookings';
-    if (pathname === '/earnings') return 'earnings';
-
+    if (pathname === '/marketplace' || pathname.startsWith('/marketplace/')) return 'marketplace';
+    if (pathname.startsWith('/payments/subscription') || pathname.startsWith('/payments/checkout')) return 'Subscription';
+    if (pathname.startsWith('/payments/earnings')) return 'earnings';
+    
     // Communication items
-    if (pathname.startsWith('/messages')) return 'messages'; // Handle all message routes
-    if (pathname === '/invites') return 'invites';
-    if (pathname === '/networking') return 'networking';
+    if (pathname.startsWith('/messages')) return 'messages';
 
     // Fallback to prop
     return activeTab;
@@ -96,7 +93,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ user, activeTab, collapsed, on
     onTabChange(itemId);
   };
 
-  // ✅ typed arrays
   const mainMenuItems: MenuItem[] = [
     { id: 'home', icon: House, label: 'Home', count: notifications.matches, path: '/dashboard' },
     { id: 'profile', icon: User2, label: 'Profile', path: '/profile' },
@@ -107,9 +103,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ user, activeTab, collapsed, on
 
   const businessItems: MenuItem[] = [
     { id: 'marketplace', icon: ShoppingBag, label: 'Marketplace', count: notifications.marketplace, path: '/marketplace' },
-    { id: 'Subscription', icon: Currency, label: 'Subscription', path: '/payments/checkout' },
+    { id: 'Subscription', icon: Currency, label: 'Subscription', path: '/payments/subscription' }, // Changed path for consistency
     // { id: 'bookings', icon: Users, label: 'Bookings', path: '/bookings' },
-    //{ id: 'earnings', icon: Currency, label: 'Earnings', path: '/earnings' }
+    // { id: 'earnings', icon: Currency, label: 'Earnings', path: '/earnings' }
   ];
 
   const commItems: MenuItem[] = [
@@ -117,19 +113,16 @@ export const Sidebar: React.FC<SidebarProps> = ({ user, activeTab, collapsed, on
       id: 'messages', icon: MessageCircle, label: 'Messages', count: notifications.messages,
       path: '/messages'
     },
-    //  { id: 'invites', icon: MessageCircle, label: 'Invites', path: '/invites' },
+    //  { id: 'invites', icon: MessageCircle, label: 'Invites', path: '/invites' },
     // { id: 'networking', icon: Users, label: 'Network', path: '/networking' }
   ];
-
-
-
 
 
   const Tooltip = ({ children, content }: { children: React.ReactNode; content: string }) => (
     <div className="relative group">
       {children}
       <AnimatePresence>
-        {collapsed && (
+        {isCollapsed && ( // Using isCollapsed here
           <motion.div
             initial={{ opacity: 0, x: -10, scale: 0.95 }}
             animate={{ opacity: 1, x: 0, scale: 1 }}
@@ -143,8 +136,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ user, activeTab, collapsed, on
       </AnimatePresence>
     </div>
   );
-
-
 
 
   return (
