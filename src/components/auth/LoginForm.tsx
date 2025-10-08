@@ -8,10 +8,10 @@ import { BASE_URL } from '@/config/baseUrl';
 
 const handleGoogleLogin = () => {
   const clientId = "265404811439-3a6feinek5pckg02bjg7mfrva4esuqh0.apps.googleusercontent.com";
-  const redirectUri = "http://localhost:3000"; 
+  const redirectUri = "http://localhost:3000";
   const scope = "email profile";
   const responseType = "code";
-  
+
   const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=${responseType}&scope=${scope}&access_type=offline&prompt=consent`;
 
   window.location.href = googleAuthUrl;
@@ -163,9 +163,9 @@ export default function LoginForm() {
                 </div>
                 <span className="text-sm font-medium text-gray-700">Facebook</span>
               </button>
-              <button 
-               onClick={handleGoogleLogin}
-               className="flex flex-1 gap-3 cursor-pointer justify-center items-center h-12 rounded-xl border backdrop-blur-sm transition-colors duration-300 bg-white/60 border-white/30 hover:bg-white/80">
+              <button
+                onClick={handleGoogleLogin}
+                className="flex flex-1 gap-3 cursor-pointer justify-center items-center h-12 rounded-xl border backdrop-blur-sm transition-colors duration-300 bg-white/60 border-white/30 hover:bg-white/80">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 text-red-500 lucide lucide-chrome">
                   <circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="4" /><line x1="21.17" x2="12" y1="8" y2="8" /><line x1="3.95" x2="8.54" y1="6" y2="14" /><line x1="10.88" x2="15.46" y1="20" y2="12" />
                 </svg>
@@ -222,6 +222,14 @@ export default function LoginForm() {
                   </button>
                 </div>
               </div>
+              <div className="text-right">
+                <a
+                  href="/auth/forgot-password"
+                  className="text-sm font-medium text-red-500 hover:text-red-600 transition-colors duration-200"
+                >
+                  Forgot password?
+                </a>
+              </div>
 
               <button
                 type="submit"
@@ -232,7 +240,7 @@ export default function LoginForm() {
             </form>
 
             <div className="mt-8 text-sm text-center text-gray-600">
-              Don`&apos;`t have an account?{' '}
+              Don&apos;t have an account?{' '}
               <a
                 href="/auth/register"
                 onClick={handleSignUpClick}

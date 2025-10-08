@@ -698,9 +698,9 @@ export const RightSidebar = () => {
           ))}
         </div>
 
-        <button className="py-2 mt-4 w-full text-sm font-semibold text-blue-600 transition-colors dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300">
+      {/*<button className="py-2 mt-4 w-full text-sm font-semibold text-blue-600 transition-colors dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300">
           Explore All Trends
-        </button>
+        </button>*/}
       </div>
     </aside>
   );

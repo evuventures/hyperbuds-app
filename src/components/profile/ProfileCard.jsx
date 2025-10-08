@@ -1,4 +1,7 @@
-import { useState, useEffect, useRouter } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { PlatformStats } from "@/components/collaboration/PlatformStats";
+import { useMultiplePlatformData, useCombinedPlatformMetrics } from "@/hooks/features/usePlatformData";
 import {
   User,
   Phone,
@@ -60,10 +63,62 @@ export default function UserProfileHeader({
   onConnect,
   onMessage,
 }) {
+  const router = useRouter();
   const [copied, setCopied] = useState(false);
   const [isFollowing, setIsFollowing] = useState(false);
   const [showFullBio, setShowFullBio] = useState(false);
   const [open, setOpen] = useState(false);
+
+  // Platform data fetching for stats
+  const [platformCredentials, setPlatformCredentials] = useState({});
+  const [platforms, setPlatforms] = useState([]);
+
+  // Extract platform credentials from social links
+  useEffect(() => {
+    if (userData?.profile?.socialLinks) {
+      const socialLinks = userData.profile.socialLinks;
+      const creds = {};
+      const platformList = [];
+
+      // Extract TikTok username from URL
+      if (socialLinks.tiktok) {
+        const match = socialLinks.tiktok.match(/tiktok\.com\/@?([^/?]+)/);
+        if (match) {
+          creds.tiktok = match[1];
+          platformList.push({ type: 'tiktok', username: match[1] });
+        }
+      }
+
+      // Extract Twitter username from URL
+      if (socialLinks.twitter) {
+        const match = socialLinks.twitter.match(/(?:twitter|x)\.com\/([^/?]+)/);
+        if (match) {
+          creds.twitter = match[1];
+          platformList.push({ type: 'twitter', username: match[1] });
+        }
+      }
+
+      // Extract Twitch username from URL
+      if (socialLinks.twitch) {
+        const match = socialLinks.twitch.match(/twitch\.tv\/([^/?]+)/);
+        if (match) {
+          creds.twitch = match[1];
+          platformList.push({ type: 'twitch', username: match[1] });
+        }
+      }
+
+      setPlatformCredentials(creds);
+      setPlatforms(platformList);
+    }
+  }, [userData?.profile?.socialLinks]);
+
+  // Fetch platform data only if we have platforms
+  const { data: platformData, loading: platformLoading } = useMultiplePlatformData(platforms, { enabled: platforms.length > 0 });
+  const combinedMetrics = useCombinedPlatformMetrics(platformData);
+
+  const handleNavigateToRizzScore = () => {
+    router.push("/profile/rizz-score");
+  };
 
   // Show loading skeleton if no userData or isLoading is true
   if (isLoading || !userData || !userData.profile) {
@@ -228,27 +283,29 @@ export default function UserProfileHeader({
                 <Share2 size={18} />
               </button>
 
-              <div className="relative">
-                {/* Trigger button */}
-                <button
-                  onClick={() => setOpen(!open)}
-                  className="p-3 text-gray-600 rounded-xl border shadow-md transition-all cursor-pointer hover:scale-105 bg-gray-100/80 dark:bg-gray-700/60 hover:bg-gray-200 dark:hover:bg-gray-600/80 dark:text-gray-300 border-gray-200/50 dark:border-gray-600/50"
-                >
-                  <MoreHorizontal size={18} />
-                </button>
+              {isOwnProfile && (
+                <div className="relative">
+                  {/* Trigger button */}
+                  <button
+                    onClick={() => setOpen(!open)}
+                    className="p-3 text-gray-600 rounded-xl border shadow-md transition-all cursor-pointer hover:scale-105 bg-gray-100/80 dark:bg-gray-700/60 hover:bg-gray-200 dark:hover:bg-gray-600/80 dark:text-gray-300 border-gray-200/50 dark:border-gray-600/50"
+                  >
+                    <MoreHorizontal size={18} />
+                  </button>
 
-                {/* Dropdown menu */}
-                {open && (
-                  <div className="absolute right-0 mt-2 w-40 bg-white rounded-md ring-1 shadow-lg dark:bg-gray-800 ring-black/5">
-                    <Link
-                      href="/profile/edit"
-                      className="block px-4 py-2 text-sm text-gray-700 rounded-md cursor-pointer dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
-                    >
-                      Edit Profile
-                    </Link>
-                  </div>
-                )}
-              </div>
+                  {/* Dropdown menu */}
+                  {open && (
+                    <div className="absolute right-0 mt-2 w-40 bg-white rounded-md ring-1 shadow-lg dark:bg-gray-800 ring-black/5">
+                      <Link
+                        href="/profile/edit"
+                        className="block px-4 py-2 text-sm text-gray-700 rounded-md cursor-pointer dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+                      >
+                        Edit Profile
+                      </Link>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
           </div>
@@ -277,62 +334,51 @@ export default function UserProfileHeader({
 
 
           {/* Enhanced Action Buttons */}
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
-            {isOwnProfile ? (
+          {isOwnProfile ? (
+            <div className="flex justify-start">
+              <Link href="/matching">
+                <button className="flex gap-2 items-center justify-center px-6 py-3 text-sm font-semibold text-white bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg shadow-lg transition-all transform hover:scale-105 hover:from-purple-600 hover:to-pink-600 dark:from-purple-600 dark:to-pink-600 dark:hover:from-purple-700 dark:hover:to-pink-700 hover:shadow-xl">
+                  <Heart size={18} />
+                  Get Match
+                </button>
+              </Link>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               <button
-                onClick={onEditProfile}
-                className="flex gap-3 items-center px-8 py-4 font-semibold text-white bg-gradient-to-r from-gray-700 to-gray-900 rounded-xl shadow-xl transition-all transform hover:scale-105 dark:from-gray-600 dark:to-gray-800 hover:from-gray-800 hover:to-gray-900 dark:hover:from-gray-500 dark:hover:to-gray-700 hover:shadow-2xl"
+                onClick={handleConnect}
+                className={`px-8 py-4 rounded-xl font-semibold transition-all transform hover:scale-105 shadow-xl hover:shadow-2xl flex items-center gap-3 justify-center ${isFollowing
+                  ? "text-gray-700 bg-gray-200 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
+                  : "text-white bg-gradient-to-r from-blue-500 to-purple-500 dark:from-blue-600 dark:to-purple-600 hover:from-blue-600 hover:to-purple-600 dark:hover:from-blue-700 dark:hover:to-purple-700"
+                  }`}
               >
-                <Edit3 size={20} />
-                Edit Profile
+                {isFollowing ? (
+                  <>
+                    <Check size={20} />
+                    Following
+                  </>
+                ) : (
+                  <>
+                    <User size={20} />
+                    Connect
+                  </>
+                )}
               </button>
-            ) : (
-              <>
-                <button
-                  onClick={handleConnect}
-                  className={`px-8 py-4 rounded-xl font-semibold transition-all transform hover:scale-105 shadow-xl hover:shadow-2xl flex items-center gap-3 ${isFollowing
-                    ? "text-gray-700 bg-gray-200 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
-                    : "text-white bg-gradient-to-r from-blue-500 to-purple-500 dark:from-blue-600 dark:to-purple-600 hover:from-blue-600 hover:to-purple-600 dark:hover:from-blue-700 dark:hover:to-purple-700"
-                    }`}
-                >
-                  {isFollowing ? (
-                    <>
-                      <Check size={20} />
-                      Following
-                    </>
-                  ) : (
-                    <>
-                      <User size={20} />
-                      Connect
-                    </>
-                  )}
-                </button>
 
-                <button
-                  onClick={() => onMessage?.(user.id)}
-                  className="flex gap-3 items-center px-6 py-4 font-semibold text-gray-700 bg-white rounded-xl border-2 border-gray-200 shadow-lg transition-all hover:scale-105 dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500"
-                >
-                  <MessageCircle size={20} />
-                  Message
-                </button>
-              </>
-            )}
-
-            <button className="flex gap-3 items-center px-6 py-4 font-semibold text-gray-700 bg-white rounded-xl border-2 border-gray-200 shadow-lg transition-all hover:scale-105 dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500">
-              <Phone size={20} />
-              Call
-            </button>
-
-            <button className="flex gap-3 items-center px-6 py-4 font-semibold text-gray-700 bg-white rounded-xl border-2 border-gray-200 shadow-lg transition-all hover:scale-105 dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500">
-              <Mail size={20} />
-              Email
-            </button>
-            {/* <Link href="/matching">
-              <button className="flex gap-3 items-center px-6 py-4 font-semibold text-white bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl shadow-xl transition row hover:bg-pink-600">
-                <Heart size={20} /> Match
+              <button
+                onClick={() => onMessage?.(user.id)}
+                className="flex gap-3 items-center justify-center px-6 py-4 font-semibold text-gray-700 bg-white rounded-xl border-2 border-gray-200 shadow-lg transition-all hover:scale-105 dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500"
+              >
+                <MessageCircle size={20} />
+                Message
               </button>
-            </Link> */}
-          </div>
+
+              <button className="flex gap-3 items-center justify-center px-6 py-4 font-semibold text-gray-700 bg-white rounded-xl border-2 border-gray-200 shadow-lg transition-all hover:scale-105 dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500">
+                <Mail size={20} />
+                Email
+              </button>
+            </div>
+          )}
         </div>
       </div >
 
@@ -343,14 +389,14 @@ export default function UserProfileHeader({
             {[
               {
                 label: "Total Followers",
-                value: user.stats.totalFollowers?.toLocaleString() || "0",
+                value: platformLoading ? "..." : (combinedMetrics.totalFollowers > 0 ? combinedMetrics.totalFollowers.toLocaleString() : (user.stats?.totalFollowers?.toLocaleString() || "0")),
                 color: "blue",
                 icon: Users,
                 change: "+12%",
               },
               {
                 label: "Engagement Rate",
-                value: `${user.stats.avgEngagement || "0"}%`,
+                value: platformLoading ? "..." : (combinedMetrics.averageEngagementRate > 0 ? `${combinedMetrics.averageEngagementRate.toFixed(1)}%` : `${user.stats?.avgEngagement || "0"}%`),
                 color: "green",
                 icon: TrendingUp,
                 change: "+5%",
@@ -372,7 +418,9 @@ export default function UserProfileHeader({
             ].map((stat, index) => (
               <div
                 key={stat.label}
-                className="group relative overflow-hidden rounded-2xl bg-white dark:bg-gray-800/50 border border-gray-200/60 dark:border-gray-700/60 p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] backdrop-blur-sm"
+                className={`group relative overflow-hidden rounded-2xl bg-white dark:bg-gray-800/50 border border-gray-200/60 dark:border-gray-700/60 p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] backdrop-blur-sm ${stat.label === "Rizz Score" && isOwnProfile ? "cursor-pointer" : ""
+                  }`}
+                onClick={stat.label === "Rizz Score" && isOwnProfile ? handleNavigateToRizzScore : undefined}
               >
                 <div className="flex justify-between items-center mb-4">
                   <div
@@ -415,8 +463,17 @@ export default function UserProfileHeader({
                 >
                   {stat.value}
                 </div>
-                <div className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                  {stat.label}
+                <div className="flex flex-col gap-2 justify-between">
+                  <div className="self-start text-sm font-medium text-gray-500 dark:text-gray-400">
+                    {stat.label}
+                  </div>
+                  {stat.label === "Rizz Score" && isOwnProfile && (
+                    <div className="flex self-end">
+                      <div className="flex items-center text-xs font-medium text-purple-500 opacity-0 transition-opacity duration-200 dark:text-purple-400 group-hover:opacity-100">
+                        View Details →
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Hover Effect Background */}
@@ -579,13 +636,13 @@ export default function UserProfileHeader({
                 >
                   <div className="flex gap-3 items-center">
                     <div className={`p-3 rounded-xl bg-gradient-to-br ${info.color} group-hover:scale-110 transition-transform`}>
-                      <span className="text-white text-lg">{info.icon}</span>
+                      <span className="text-lg text-white">{info.icon}</span>
                     </div>
                     <div className="flex-1">
                       <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">
                         {info.name}
                       </div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                      <div className="text-xs text-gray-500 truncate dark:text-gray-400">
                         {url.replace('https://', '').replace('http://', '')}
                       </div>
                     </div>
@@ -599,9 +656,38 @@ export default function UserProfileHeader({
       )}
 
       {/* Enhanced Platform Performance */}
-      {
-        user.stats?.platformBreakdown &&
-        Object.keys(user.stats.platformBreakdown).length > 0 && (
+      {user?.profile?.socialLinks && (() => {
+        // Extract usernames from social links URLs for connected platforms only
+        const platformCreds = {};
+        const socialLinks = user.profile.socialLinks;
+
+        // Extract TikTok username from URL
+        if (socialLinks.tiktok) {
+          const match = socialLinks.tiktok.match(/tiktok\.com\/@?([^/?]+)/);
+          if (match) {
+            platformCreds.tiktok = match[1];
+          }
+        }
+
+        // Extract Twitter username from URL
+        if (socialLinks.twitter) {
+          const match = socialLinks.twitter.match(/(?:twitter|x)\.com\/([^/?]+)/);
+          if (match) {
+            platformCreds.twitter = match[1];
+          }
+        }
+
+        // Extract Twitch username from URL
+        if (socialLinks.twitch) {
+          const match = socialLinks.twitch.match(/twitch\.tv\/([^/?]+)/);
+          if (match) {
+            platformCreds.twitch = match[1];
+          }
+        }
+
+        const hasPlatforms = Object.values(platformCreds).some(v => v);
+
+        return hasPlatforms && (
           <div className="p-6 bg-white rounded-2xl border shadow-lg backdrop-blur-sm dark:bg-gray-800/50 border-gray-200/60 dark:border-gray-700/60">
             <h3 className="flex gap-3 items-center mb-6 text-xl font-bold text-gray-900 dark:text-gray-100">
               <div className="p-2 bg-gradient-to-br from-purple-100 to-pink-100 rounded-lg dark:from-purple-500/20 dark:to-pink-500/20">
@@ -613,60 +699,14 @@ export default function UserProfileHeader({
               Platform Performance
             </h3>
 
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-              {Object.entries(user.stats.platformBreakdown).map(
-                ([platform, data]) => {
-                  // ✅ safely destructure followers & engagement
-                  const { followers, engagement } = data;
-
-                  return (
-                    <div
-                      key={platform}
-                      className="group p-5 rounded-xl transition-all hover:scale-[1.02] bg-gray-50/80 dark:bg-gray-700/40 border border-gray-200 dark:border-gray-600/50 hover:border-gray-300 dark:hover:border-gray-500/70 hover:shadow-lg"
-                    >
-                      <div className="flex justify-between items-center mb-4">
-                        <div
-                          className={`p-3 rounded-xl bg-gradient-to-br ${platform === "instagram"
-                            ? "from-pink-100 to-rose-100 dark:from-pink-500/20 dark:to-rose-500/20"
-                            : platform === "twitter"
-                              ? "from-cyan-100 to-blue-100 dark:from-cyan-500/20 dark:to-blue-500/20"
-                              : "from-purple-100 to-violet-100 dark:from-purple-500/20 dark:to-violet-500/20"
-                            } group-hover:scale-110 transition-transform`}
-                        >
-                          <Users
-                            size={24}
-                            className={`${platform === "instagram"
-                              ? "text-pink-600 dark:text-pink-400"
-                              : platform === "twitter"
-                                ? "text-cyan-600 dark:text-cyan-400"
-                                : "text-purple-600 dark:text-purple-400"
-                              }`}
-                          />
-                        </div>
-                      </div>
-
-                      <div className="mb-2 text-xs font-bold tracking-wider text-gray-500 uppercase dark:text-gray-400">
-                        {platform}
-                      </div>
-
-                      <div className="mb-1 text-2xl font-bold text-gray-900 dark:text-gray-100">
-                        {followers.toLocaleString()}
-                      </div>
-                      <div className="text-sm text-gray-500 dark:text-gray-400">
-                        followers
-                      </div>
-
-                      <div className="text-sm text-gray-500 dark:text-gray-400">
-                        Engagement: {engagement}%
-                      </div>
-                    </div>
-                  );
-                }
-              )}
-            </div>
+            <PlatformStats
+              platformCredentials={platformCreds}
+              showCombinedMetrics={false}
+              compact={true}
+            />
           </div>
-        )
-      }
+        );
+      })()}
     </div >
   );
 }

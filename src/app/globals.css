@@ -1,7 +1,5 @@
 @import "tailwindcss";
-
-@custom-variant dark (&:is(.dark *));
-
+/* Removed unsupported at-rule "@custom-variant". Define custom variants in tailwind.config.js (plugins or safelist) instead. */
 
 :root {
   --background: #ffffff;
@@ -18,7 +16,7 @@
   --foreground: #ededed;
 }
 
-@theme inline {
+:root {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-inter), system-ui, sans-serif;
@@ -27,7 +25,7 @@
 /* ============================
    🎨 THEME TOKENS
 ============================ */
-@theme {
+:root {
   /* Colors */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -348,80 +346,80 @@
 /* ============================
    📦 ANIMATION UTILITIES
 ============================ */
-@utility animate-accordion-down {
-  animation: accordion-down 0.2s ease-out
+.animate-accordion-down {
+  animation: accordion-down 0.2s ease-out;
 }
 
-@utility animate-accordion-up {
-  animation: accordion-up 0.2s ease-out
+.animate-accordion-up {
+  animation: accordion-up 0.2s ease-out;
 }
 
-@utility animate-fade-in {
-  animation: fade-in 0.5s ease-out
+.animate-fade-in {
+  animation: fade-in 0.5s ease-out;
 }
 
-@utility animate-fade-in-up {
-  animation: fade-in-up 0.5s ease-out
+.animate-fade-in-up {
+  animation: fade-in-up 0.5s ease-out;
 }
 
-@utility animate-slide-in-right {
-  animation: slide-in-right 0.3s ease-out
+.animate-slide-in-right {
+  animation: slide-in-right 0.3s ease-out;
 }
 
-@utility animate-slide-in-left {
-  animation: slide-in-left 0.3s ease-out
+.animate-slide-in-left {
+  animation: slide-in-left 0.3s ease-out;
 }
 
-@utility animate-slide-up {
-  animation: slide-up 0.3s ease-out
+.animate-slide-up {
+  animation: slide-up 0.3s ease-out;
 }
 
-@utility animate-scale-in {
-  animation: scale-in 0.2s ease-out
+.animate-scale-in {
+  animation: scale-in 0.2s ease-out;
 }
 
-@utility animate-bounce-subtle {
-  animation: bounce-subtle 0.6s ease-in-out
+.animate-bounce-subtle {
+  animation: bounce-subtle 0.6s ease-in-out;
 }
 
-@utility animate-pulse-soft {
-  animation: pulse-soft 2s ease-in-out infinite
+.animate-pulse-soft {
+  animation: pulse-soft 2s ease-in-out infinite;
 }
 
-@utility animate-float {
-  animation: float 6s ease-in-out infinite
+.animate-float {
+  animation: float 6s ease-in-out infinite;
 }
 
-@utility animate-glow-pulse {
-  animation: glow-pulse 2s ease-in-out infinite alternate
+.animate-glow-pulse {
+  animation: glow-pulse 2s ease-in-out infinite alternate;
 }
 
-@utility animate-shimmer {
-  animation: shimmer 2.5s ease-in-out infinite
+.animate-shimmer {
+  animation: shimmer 2.5s ease-in-out infinite;
 }
 
-@utility animate-gradient-x {
-  animation: gradient-x 3s ease infinite
+.animate-gradient-x {
+  animation: gradient-x 3s ease infinite;
 }
 
-@utility animate-gradient-y {
-  animation: gradient-y 3s ease infinite
+.animate-gradient-y {
+  animation: gradient-y 3s ease infinite;
 }
 
-@utility animate-spin-slow {
-  animation: spin 3s linear infinite
+.animate-spin-slow {
+  animation: spin 3s linear infinite;
 }
 
-@utility animate-ping-slow {
-  animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite
+.animate-ping-slow {
+  animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
 }
 
-@utility animate-wiggle {
-  animation: wiggle 1s ease-in-out infinite
+.animate-wiggle {
+  animation: wiggle 1s ease-in-out infinite;
 }
 
-@utility animate-tilt {
-  animation: tilt 10s infinite linear
+.animate-tilt {
+  animation: tilt 10s infinite linear;
 }
 
 /* ============================
@@ -947,11 +945,22 @@
 }
 
 .custom-bullet {
-  @apply bg-purple-300 dark:bg-purple-600 w-3 h-3 rounded-full;
+  background-color: rgba(168, 85, 247, 0.18);
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 9999px;
+}
+
+.dark .custom-bullet {
+  background-color: #7c3aed;
 }
 
 .custom-bullet-active {
-  @apply bg-purple-600 dark:bg-purple-400;
+  background-color: #7c3aed;
+}
+
+.dark .custom-bullet-active {
+  background-color: rgba(167, 139, 250, 0.9);
 }
 
 /* Scrollbar styles for dark mode */

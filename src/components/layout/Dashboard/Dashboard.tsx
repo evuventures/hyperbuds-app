@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Header } from '@/components/layout/Header/Header';
 import { Sidebar } from '../Sidebar/Sidebar';
@@ -9,6 +9,7 @@ import DashboardSkeleton from '@/components/ui/skeleton';
 import { BASE_URL } from '../../../config/baseUrl';
 import { Menu, X } from 'lucide-react';
 import { ThemeProvider } from '@/context/Theme';
+import { useSidebar } from '@/context/SidebarContext';
 
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -16,9 +17,24 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [user, setUser] = useState<{ id: string; name: string; email: string; avatar?: string } | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [rightSidebarOpen, setRightSidebarOpen] = useState(false);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
+  // Use global sidebar context
+  const {
+    sidebarCollapsed,
+    sidebarOpen,
+    rightSidebarOpen,
+    isInitialized: sidebarInitialized,
+    setSidebarOpen,
+    setRightSidebarOpen,
+    toggleSidebarCollapse,
+    toggleSidebarOpen,
+    toggleRightSidebarOpen,
+  } = useSidebar();
+
+  // Debug logging
+  console.log('Dashboard - sidebarCollapsed:', sidebarCollapsed);
+  console.log('Dashboard - sidebarInitialized:', sidebarInitialized);
+
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -48,36 +64,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     fetchUser();
   }, [router]);
 
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth >= 1024) setSidebarOpen(false);
-      if (window.innerWidth < 1280) {
-        setSidebarCollapsed(true);
-      } else {
-        setSidebarCollapsed(false);
-      }
-    };
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  useEffect(() => {
-    const savedCollapsedState = localStorage.getItem('sidebarCollapsed');
-    if (savedCollapsedState !== null && window.innerWidth >= 1280) {
-      setSidebarCollapsed(JSON.parse(savedCollapsedState));
+  if (loading || !user) {
+    // Wait for sidebar to be initialized before showing skeleton with correct state
+    if (!sidebarInitialized) {
+      return <DashboardSkeleton collapsed={false} />; // Default state while initializing
     }
-  }, []);
-
-  useEffect(() => {
-    localStorage.setItem('sidebarCollapsed', JSON.stringify(sidebarCollapsed));
-  }, [sidebarCollapsed]);
-
-  const toggleSidebarCollapse = () => {
-    setSidebarCollapsed(!sidebarCollapsed);
-  };
-
-  if (loading || !user) return <DashboardSkeleton />;
+    return <DashboardSkeleton collapsed={sidebarCollapsed} />;
+  }
 
   return (
     <ThemeProvider>
@@ -87,7 +80,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <div className="flex justify-between items-center px-4 py-3">
             <div className="flex gap-3 items-center">
               <button
-                onClick={() => setSidebarOpen(!sidebarOpen)}
+                onClick={toggleSidebarOpen}
                 className="p-2 bg-gray-100 rounded-xl transition-colors dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700"
               >
                 <Menu className="w-5 h-5 text-gray-600 dark:text-gray-300" />
@@ -99,7 +92,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
             <div className="flex gap-2 items-center">
               <button
-                onClick={() => setRightSidebarOpen(!rightSidebarOpen)}
+                onClick={toggleRightSidebarOpen}
                 className="p-2 bg-gray-100 rounded-xl transition-colors dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 xl:hidden"
               >
                 <svg className="w-5 h-5 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -117,7 +110,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
         {/* Desktop Header */}
         <div className="hidden lg:block">
-          <Header user={user} onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
+          <Header user={user} onMenuClick={toggleSidebarOpen} />
         </div>
 
         {/* Main Dashboard Container */}
@@ -128,7 +121,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               fixed inset-y-0 left-0 z-40 transform transition-all duration-300 ease-in-out
               lg:relative lg:translate-x-0 lg:z-auto lg:pt-0
               ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-              ${sidebarCollapsed && window.innerWidth >= 1024 ? 'w-16' : 'w-60'}
+              ${sidebarCollapsed ? 'lg:w-16' : 'w-60'}
             `}
           >
             <div className="relative pt-16 h-full bg-white border-r shadow-xl transition-colors duration-200 lg:pt-0 dark:bg-gray-900 border-gray-200/50 dark:border-gray-700/50 lg:shadow-none">
@@ -145,7 +138,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <Sidebar
                   user={user}
                   activeTab={activeTab}
-                  collapsed={sidebarCollapsed && window.innerWidth >= 1024}
+                  collapsed={sidebarCollapsed}
                   onTabChange={(tab) => {
                     setActiveTab(tab);
                     setSidebarOpen(false);

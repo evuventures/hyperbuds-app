@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Header } from '@/components/layout/Header/Header';
 import DashboardSkeleton from '@/components/ui/skeleton';
+import { useSidebar } from '@/context/SidebarContext';
 import { BASE_URL } from '../../../config/baseUrl';
 import { ThemeProvider } from '@/context/Theme';
 
@@ -15,6 +16,9 @@ export default function HeaderOnlyLayout({ children }: HeaderOnlyLayoutProps) {
    const router = useRouter();
    const [user, setUser] = useState<{ id: string; name: string; email: string; avatar?: string } | null>(null);
    const [loading, setLoading] = useState(true);
+
+   // Use global sidebar context for skeleton
+   const { sidebarCollapsed, isInitialized: sidebarInitialized } = useSidebar();
 
    useEffect(() => {
       const fetchUser = async () => {
@@ -44,7 +48,13 @@ export default function HeaderOnlyLayout({ children }: HeaderOnlyLayoutProps) {
       fetchUser();
    }, [router]);
 
-   if (loading || !user) return <DashboardSkeleton />;
+   if (loading || !user) {
+      // Wait for sidebar to be initialized before showing skeleton with correct state
+      if (!sidebarInitialized) {
+         return <DashboardSkeleton collapsed={false} />; // Default state while initializing
+      }
+      return <DashboardSkeleton collapsed={sidebarCollapsed} />;
+   }
 
    return (
       <ThemeProvider>
