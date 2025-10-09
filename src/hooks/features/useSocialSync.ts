@@ -55,8 +55,10 @@ export const useSocialSync = () => {
       queryClient.invalidateQueries({ queryKey: ['profile'] });
 
       toast({
-        title: "Sync successful!",
-        description: `${variables.platform.toUpperCase()} data synced to your profile`,
+        title: "🎉 Sync Successful!",
+        description: `${variables.platform.charAt(0).toUpperCase() + variables.platform.slice(1)} data has been synced to your profile`,
+        duration: 4000,
+        variant: "success",
       });
 
       // Remove from syncing set
@@ -68,9 +70,10 @@ export const useSocialSync = () => {
     },
     onError: (error: Error, variables) => {
       toast({
-        title: "Sync failed",
-        description: error.message || `Failed to sync ${variables.platform} data`,
+        title: "❌ Sync Failed",
+        description: error.message || `Failed to sync ${variables.platform.charAt(0).toUpperCase() + variables.platform.slice(1)} data. Please try again.`,
         variant: "destructive",
+        duration: 5000,
       });
 
       // Remove from syncing set
@@ -109,8 +112,10 @@ export const useSocialSync = () => {
       if (result.success) {
         queryClient.invalidateQueries({ queryKey: ['profile'] });
         toast({
-          title: "Sync completed!",
-          description: "All platforms have been synced to your profile",
+          title: "🚀 All Platforms Synced!",
+          description: "All your social media data has been successfully synced to your profile",
+          duration: 4000,
+          variant: "success",
         });
       }
 
@@ -119,9 +124,10 @@ export const useSocialSync = () => {
     } catch (error) {
       setSyncingPlatforms(new Set());
       toast({
-        title: "Sync failed",
-        description: error instanceof Error ? error.message : "Failed to sync platforms",
+        title: "❌ Sync Failed",
+        description: error instanceof Error ? error.message : "Failed to sync platforms. Please try again.",
         variant: "destructive",
+        duration: 5000,
       });
       throw error;
     }

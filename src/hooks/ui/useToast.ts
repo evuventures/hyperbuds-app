@@ -7,6 +7,7 @@ export interface ToastOptions {
   description?: string;
   variant?: "default" | "success" | "destructive"; // add more if you want
   duration?: number;
+  className?: string;
 }
 
 export const useToast = () => {
@@ -14,6 +15,7 @@ export const useToast = () => {
     return sonnerToast(options.title, {
       description: options.description,
       duration: options.duration,
+      className: options.className,
       // you can map `variant` to styling if needed
     });
   };
