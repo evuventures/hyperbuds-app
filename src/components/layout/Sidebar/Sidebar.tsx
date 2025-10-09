@@ -72,6 +72,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ user, activeTab, collapsed, on
     if (pathname.startsWith('/profile')) return 'profile'; // Handle all profile routes
     if (pathname === '/ai-matches') return 'matches';
     if (pathname === '/matching') return 'matching';
+    if (pathname.startsWith('/collaborations')) return 'collaborations';
     if (pathname === '/streaming') return 'streaming';
 
     // Business items
@@ -101,7 +102,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ user, activeTab, collapsed, on
     { id: 'home', icon: House, label: 'Home', count: notifications.matches, path: '/dashboard' },
     { id: 'profile', icon: User2, label: 'Profile', path: '/profile' },
     { id: 'matches', icon: Heart, label: 'AI Matches', count: notifications.matches, path: '/ai-matches' },
-    { id: 'matching', icon: Users, label: 'Collaborations', count: notifications.collaborations, path: '/matching' },
+    { id: 'matching', icon: Heart, label: 'Matching', path: '/matching' },
+    { id: 'collaborations', icon: Users, label: 'Collaborations', count: notifications.collaborations, path: '/collaborations' },
     //{ id: 'streaming', icon: Users, label: 'Live Streaming', path: '/streaming' }
   ];
 
