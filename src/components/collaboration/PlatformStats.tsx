@@ -21,12 +21,14 @@ import {
 } from 'lucide-react';
 import { useMultiplePlatformData, useCombinedPlatformMetrics } from '@/hooks/features/usePlatformData';
 import type { PlatformType, PlatformCredentials } from '@/types/platform.types';
+import { SyncPlatformButton } from './SyncPlatformButton';
 
 interface PlatformStatsProps {
    platformCredentials: PlatformCredentials;
    showCombinedMetrics?: boolean;
    compact?: boolean;
    clickable?: boolean;
+   showSyncButtons?: boolean;
 }
 
 const platformIcons: Record<PlatformType, string> = {
@@ -45,7 +47,8 @@ export function PlatformStats({
    platformCredentials,
    showCombinedMetrics = true,
    compact = false,
-   clickable = false
+   clickable = false,
+   showSyncButtons = false
 }: PlatformStatsProps) {
    const [platforms, setPlatforms] = useState<Array<{ type: PlatformType; username: string }>>([]);
    const router = useRouter();
@@ -333,6 +336,18 @@ export function PlatformStats({
                               </>
                            )}
                         </div>
+
+                        {/* Sync Button */}
+                        {showSyncButtons && (
+                           <div className="pt-3 mt-3 border-t border-gray-200 dark:border-gray-700">
+                              <SyncPlatformButton
+                                 platform={platform}
+                                 platformData={platformData}
+                                 variant="compact"
+                                 onSyncComplete={() => refetch()}
+                              />
+                           </div>
+                        )}
                      </div>
                   </motion.div>
                );

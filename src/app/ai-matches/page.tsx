@@ -1,202 +1,70 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { RefreshCw, ArrowLeft } from "lucide-react";
-import type { MatchSuggestion, CreatorProfile } from "@/types/matching.types";
+import { RefreshCw, ArrowLeft, Loader2, Heart, Users, Sparkles, TrendingUp, MessageCircle, Star, Zap } from "lucide-react";
+import type { CreatorProfile } from "@/types/matching.types";
 import MatchHistoryGallery from "@/components/matching/MatchHistoryGallery";
 import ProfileModal from "@/components/matching/ProfileModal";
 import { useRouter } from "next/navigation";
 import DashboardLayout from "@/components/layout/Dashboard/Dashboard";
-
-// Mock data for demonstration - moved outside component to prevent infinite loop
-const mockMatches: MatchSuggestion[] = [
-   {
-      _id: "1",
-      userId: "current-user",
-      targetUserId: "user-1",
-      compatibilityScore: 92,
-      matchType: "ai-suggested",
-      scoreBreakdown: {
-         audienceOverlap: 85,
-         nicheCompatibility: 95,
-         engagementStyle: 88,
-         geolocation: 90,
-         activityTime: 78,
-         rizzScoreCompatibility: 92
-      },
-      status: "liked",
-      metadata: {
-         algorithm: "ai-v2",
-         confidence: 0.92,
-         features: ["Strong audience overlap", "Similar content style", "High engagement potential"]
-      },
-      targetProfile: {
-         userId: "user-1",
-         username: "gamergirl2025",
-         displayName: "Gaming Girl",
-         avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=400&h=400&fit=crop&crop=face",
-         bio: "Gaming content creator and lifestyle influencer. Love creating fun content and collaborating with amazing creators!",
-         niche: ["gaming", "tech", "lifestyle"],
-         location: {
-            city: "Los Angeles",
-            state: "California",
-            country: "US"
-         },
-         stats: {
-            totalFollowers: 95000,
-            avgEngagement: 7.2,
-            platformBreakdown: {
-               tiktok: { followers: 60000, engagement: 8.1 },
-               instagram: { followers: 25000, engagement: 6.5 },
-               youtube: { followers: 10000, engagement: 5.8 }
-            }
-         },
-         socialLinks: {
-            tiktok: "https://tiktok.com/@gamergirl2025",
-            instagram: "https://instagram.com/gamergirl2025",
-            youtube: "https://youtube.com/c/gamergirl2025"
-         },
-         rizzScore: 82,
-         isPublic: true,
-         isActive: true
-      },
-      createdAt: "2025-01-14T10:00:00Z",
-      updatedAt: "2025-01-14T10:00:00Z"
-   },
-   {
-      _id: "2",
-      userId: "current-user",
-      targetUserId: "user-2",
-      compatibilityScore: 88,
-      matchType: "ai-suggested",
-      scoreBreakdown: {
-         audienceOverlap: 78,
-         nicheCompatibility: 92,
-         engagementStyle: 85,
-         geolocation: 88,
-         activityTime: 82,
-         rizzScoreCompatibility: 88
-      },
-      status: "mutual",
-      metadata: {
-         algorithm: "ai-v2",
-         confidence: 0.88,
-         features: ["Complementary niches", "Good location match", "High collaboration potential"]
-      },
-      targetProfile: {
-         userId: "user-2",
-         username: "creativevibes",
-         displayName: "Creative Vibes",
-         avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400&fit=crop&crop=face",
-         bio: "Creative content creator focusing on art, design, and lifestyle. Always looking for new collaboration opportunities!",
-         niche: ["art", "design", "lifestyle"],
-         location: {
-            city: "New York",
-            state: "New York",
-            country: "US"
-         },
-         stats: {
-            totalFollowers: 75000,
-            avgEngagement: 6.8,
-            platformBreakdown: {
-               instagram: { followers: 45000, engagement: 7.2 },
-               tiktok: { followers: 20000, engagement: 6.1 },
-               youtube: { followers: 10000, engagement: 7.5 }
-            }
-         },
-         socialLinks: {
-            instagram: "https://instagram.com/creativevibes",
-            tiktok: "https://tiktok.com/@creativevibes",
-            youtube: "https://youtube.com/c/creativevibes"
-         },
-         rizzScore: 85,
-         isPublic: true,
-         isActive: true
-      },
-      createdAt: "2025-01-13T15:30:00Z",
-      updatedAt: "2025-01-13T15:30:00Z"
-   },
-   {
-      _id: "3",
-      userId: "current-user",
-      targetUserId: "user-3",
-      compatibilityScore: 90,
-      matchType: "ai-suggested",
-      scoreBreakdown: {
-         audienceOverlap: 82,
-         nicheCompatibility: 88,
-         engagementStyle: 92,
-         geolocation: 85,
-         activityTime: 88,
-         rizzScoreCompatibility: 90
-      },
-      status: "liked",
-      metadata: {
-         algorithm: "ai-v2",
-         confidence: 0.90,
-         features: ["Excellent engagement match", "Similar audience demographics", "High collaboration success rate"]
-      },
-      targetProfile: {
-         userId: "user-3",
-         username: "musicmaker",
-         displayName: "Music Maker",
-         avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face",
-         bio: "Music producer and content creator. Love creating original music and collaborating with other creators on unique projects.",
-         niche: ["music", "entertainment", "tech"],
-         location: {
-            city: "Austin",
-            state: "Texas",
-            country: "US"
-         },
-         stats: {
-            totalFollowers: 120000,
-            avgEngagement: 8.5,
-            platformBreakdown: {
-               youtube: { followers: 70000, engagement: 9.2 },
-               tiktok: { followers: 35000, engagement: 7.8 },
-               instagram: { followers: 15000, engagement: 8.1 }
-            }
-         },
-         socialLinks: {
-            youtube: "https://youtube.com/c/musicmaker",
-            tiktok: "https://tiktok.com/@musicmaker",
-            instagram: "https://instagram.com/musicmaker"
-         },
-         rizzScore: 89,
-         isPublic: true,
-         isActive: true
-      },
-      createdAt: "2025-01-12T08:15:00Z",
-      updatedAt: "2025-01-12T08:15:00Z"
-   }
-];
+import { useMatchHistory } from "@/hooks/features/useMatching";
 
 const AIMatchesPage: React.FC = () => {
    const router = useRouter();
-   const [historyMatches, setHistoryMatches] = useState<MatchSuggestion[]>([]);
    const [selectedProfile, setSelectedProfile] = useState<CreatorProfile | null>(null);
    const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
    const [likedMatches, setLikedMatches] = useState<Set<string>>(new Set());
-   const [isRefreshing, setIsRefreshing] = useState(false);
+   const [isMounted, setIsMounted] = useState(false);
 
-   // Initialize with mock data
-   useEffect(() => {
-      // Set history matches
-      setHistoryMatches(mockMatches);
-
-      // Initialize liked matches
-      const likedIds = mockMatches
-         .filter(match => match.status === "liked" || match.status === "mutual")
-         .map(match => match.targetProfile?.userId)
-         .filter((id): id is string => Boolean(id));
-      setLikedMatches(new Set(likedIds));
+   // Ensure client-side only rendering
+   React.useEffect(() => {
+      setIsMounted(true);
    }, []);
+
+   // Fetch match history using the real API hook - only fetch when mounted on client
+   const {
+      data: matchHistoryData,
+      isLoading,
+      error,
+      refetch,
+      isRefetching
+   } = useMatchHistory({
+      status: 'all',
+      limit: 50,
+      sortBy: 'compatibility',
+      sortOrder: 'desc'
+   });
+
+   // Extract matches from the response
+   const historyMatches = React.useMemo(() => matchHistoryData?.matches || [], [matchHistoryData?.matches]);
+
+   // Update liked matches when data loads
+   React.useEffect(() => {
+      if (historyMatches.length > 0) {
+         const likedIds = historyMatches
+            .filter(match => match.status === "liked" || match.status === "mutual")
+            .map(match => match.targetProfile?.userId)
+            .filter((id): id is string => Boolean(id));
+         setLikedMatches(new Set(likedIds));
+      }
+   }, [historyMatches]);
+
+   // Don't render until mounted on client
+   if (!isMounted) {
+      return (
+         <DashboardLayout>
+            <div className="flex justify-center items-center min-h-screen">
+               <Loader2 className="w-12 h-12 text-purple-600 animate-spin" />
+            </div>
+         </DashboardLayout>
+      );
+   }
 
    const handleMessage = (userId: string) => {
       console.log("Opening chat with user:", userId);
-      // This would typically open a chat interface
-      alert(`Opening chat with user: ${userId}`);
+      // Navigate to messages with the user
+      router.push(`/messages?userId=${userId}`);
    };
 
    const handleViewProfile = (userId: string) => {
@@ -208,25 +76,15 @@ const AIMatchesPage: React.FC = () => {
    };
 
    const refreshMatches = async () => {
-      setIsRefreshing(true);
-      try {
-         // Simulate API call
-         await new Promise(resolve => setTimeout(resolve, 1000));
-         console.log("Refreshed AI matches");
-      } catch (err) {
-         console.error("Refresh failed:", err);
-      } finally {
-         setIsRefreshing(false);
-      }
+      await refetch();
    };
 
    return (
       <DashboardLayout>
          <div className="min-h-screen bg-gray-50 dark:bg-slate-900">
-
             <div className="p-6">
                <div className="mx-auto max-w-4xl">
-                  {/* Simple Header */}
+                  {/* Header */}
                   <div className="flex justify-between items-center mb-1">
                      <Button
                         variant="outline"
@@ -242,29 +100,212 @@ const AIMatchesPage: React.FC = () => {
                         variant="outline"
                         size="sm"
                         onClick={refreshMatches}
-                        disabled={isRefreshing}
+                        disabled={isRefetching}
                         className="text-gray-900 bg-gray-100 border-gray-300 cursor-pointer dark:text-white dark:bg-white/10 dark:border-white/20 hover:bg-gray-200 dark:hover:bg-white/20"
                      >
-                        <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? "animate-spin" : ""}`} />
+                        <RefreshCw className={`w-4 h-4 mr-2 ${isRefetching ? "animate-spin" : ""}`} />
                         Refresh
                      </Button>
                   </div>
 
-                  {/* Simple Title */}
-                  <div className="mb-4 text-center">
-                     <h1 className="mb-2 text-3xl font-bold text-gray-900 dark:text-white">AI Matches</h1>
-                     <p className="text-gray-600 dark:text-gray-400">Your match history</p>
+                  {/* Title */}
+                  <div className="mb-6 text-center">
+                     <div className="flex items-center justify-center mb-3">
+                        <div className="p-3 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 dark:from-purple-600 dark:to-pink-600">
+                           <Heart className="w-8 h-8 text-white" />
+                        </div>
+                     </div>
+                     <h1 className="mb-2 text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent dark:from-purple-400 dark:to-pink-400">
+                        AI Matches
+                     </h1>
+                     <p className="text-lg text-gray-600 dark:text-gray-400">
+                        {isLoading
+                           ? "Loading your match history..."
+                           : historyMatches.length === 0 
+                              ? "Discover your perfect collaboration partners"
+                              : `${historyMatches.length} ${historyMatches.length === 1 ? 'match' : 'matches'} found`}
+                     </p>
                   </div>
 
-                  {/* Simple Content */}
+                  {/* Content */}
                   <div className="p-6 rounded-xl border border-gray-200 backdrop-blur-sm bg-white/80 dark:bg-white/5 dark:border-white/10">
-                     <MatchHistoryGallery
-                        historyMatches={historyMatches}
-                        onMessage={handleMessage}
-                        onViewProfile={handleViewProfile}
-                        likedMatches={likedMatches}
-                     />
+                     {isLoading ? (
+                        <div className="flex flex-col justify-center items-center py-16">
+                           <div className="relative mb-6">
+                              <div className="w-20 h-20 rounded-full bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 flex items-center justify-center">
+                                 <Loader2 className="w-10 h-10 text-purple-600 animate-spin dark:text-purple-400" />
+                              </div>
+                              <div className="absolute -top-1 -right-1 w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center animate-pulse">
+                                 <Sparkles className="w-3 h-3 text-yellow-800" />
+                              </div>
+                           </div>
+                           <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                              Finding Your Perfect Matches
+                           </h3>
+                           <p className="text-gray-600 dark:text-gray-400 text-center max-w-md">
+                              Our AI is analyzing thousands of creators to find the best collaboration opportunities for you...
+                           </p>
+                        </div>
+                     ) : error ? (
+                        <div className="flex flex-col justify-center items-center py-16">
+                           <div className="w-20 h-20 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center mb-6">
+                              <div className="w-12 h-12 rounded-full bg-red-500 flex items-center justify-center">
+                                 <Heart className="w-6 h-6 text-white" />
+                              </div>
+                           </div>
+                           <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                              Oops! Something went wrong
+                           </h3>
+                           <p className="text-gray-600 dark:text-gray-400 mb-6 text-center max-w-md">
+                              We couldn&apos;t load your matches right now. Don&apos;t worry, this happens sometimes.
+                           </p>
+                           <div className="flex flex-col sm:flex-row gap-4">
+                              <Button 
+                                 onClick={() => refetch()} 
+                                 className="px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold rounded-lg"
+                              >
+                                 <RefreshCw className="w-4 h-4 mr-2" />
+                                 Try Again
+                              </Button>
+                              <Button 
+                                 onClick={() => router.push('/matching')} 
+                                 variant="outline"
+                                 className="px-6 py-3 border-2 border-purple-200 dark:border-purple-800 text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 font-semibold rounded-lg"
+                              >
+                                 <Heart className="w-4 h-4 mr-2" />
+                                 Go to Matching
+                              </Button>
+                           </div>
+                        </div>
+                     ) : historyMatches.length === 0 ? (
+                        <div className="flex flex-col justify-center items-center py-16">
+                           {/* Enhanced Empty State */}
+                           <div className="text-center max-w-2xl mx-auto">
+                              {/* Animated Icon */}
+                              <div className="relative mb-8">
+                                 <div className="w-32 h-32 mx-auto rounded-full bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 flex items-center justify-center">
+                                    <div className="w-24 h-24 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 dark:from-purple-600 dark:to-pink-600 flex items-center justify-center animate-pulse">
+                                       <Heart className="w-12 h-12 text-white" />
+                                    </div>
+                                 </div>
+                                 <div className="absolute -top-2 -right-2 w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center animate-bounce">
+                                    <Sparkles className="w-4 h-4 text-yellow-800" />
+                                 </div>
+                              </div>
+
+                              {/* Main Message */}
+                              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+                                 No matches yet, but great things are coming!
+                              </h2>
+                              <p className="text-lg text-gray-600 dark:text-gray-400 mb-8">
+                                 Our AI is working hard to find creators who match your style, audience, and collaboration goals.
+                              </p>
+
+                              {/* Feature Cards */}
+                              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                                 <div className="p-4 rounded-lg bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800">
+                                    <div className="flex items-center justify-center w-12 h-12 mx-auto mb-3 rounded-full bg-blue-500">
+                                       <Users className="w-6 h-6 text-white" />
+                                    </div>
+                                    <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Smart Matching</h3>
+                                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                                       AI analyzes compatibility based on content, audience, and goals
+                                    </p>
+                                 </div>
+
+                                 <div className="p-4 rounded-lg bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-200 dark:border-green-800">
+                                    <div className="flex items-center justify-center w-12 h-12 mx-auto mb-3 rounded-full bg-green-500">
+                                       <TrendingUp className="w-6 h-6 text-white" />
+                                    </div>
+                                    <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Growth Focused</h3>
+                                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                                       Connect with creators who can help you reach new audiences
+                                    </p>
+                                 </div>
+
+                                 <div className="p-4 rounded-lg bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border border-purple-200 dark:border-purple-800">
+                                    <div className="flex items-center justify-center w-12 h-12 mx-auto mb-3 rounded-full bg-purple-500">
+                                       <Zap className="w-6 h-6 text-white" />
+                                    </div>
+                                    <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Instant Connect</h3>
+                                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                                       Start conversations and collaborations right away
+                                    </p>
+                                 </div>
+                              </div>
+
+                              {/* Action Buttons */}
+                              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                                 <Button 
+                                    onClick={() => router.push('/matching')} 
+                                    className="px-8 py-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all transform hover:scale-105"
+                                 >
+                                    <Heart className="w-5 h-5 mr-2" />
+                                    Start Matching
+                                 </Button>
+                                 <Button 
+                                    onClick={() => router.push('/profile/edit')} 
+                                    variant="outline"
+                                    className="px-8 py-3 border-2 border-purple-200 dark:border-purple-800 text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 font-semibold rounded-lg"
+                                 >
+                                    <Star className="w-5 h-5 mr-2" />
+                                    Complete Profile
+                                 </Button>
+                              </div>
+
+                              {/* Tips Section */}
+                              <div className="mt-12 p-6 rounded-lg bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700">
+                                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+                                    <MessageCircle className="w-5 h-5 mr-2 text-purple-500" />
+                                    Pro Tips for Better Matches
+                                 </h3>
+                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600 dark:text-gray-400">
+                                    <div className="flex items-start">
+                                       <div className="w-2 h-2 rounded-full bg-purple-500 mt-2 mr-3 flex-shrink-0"></div>
+                                       <span>Complete your profile with detailed bio and interests</span>
+                                    </div>
+                                    <div className="flex items-start">
+                                       <div className="w-2 h-2 rounded-full bg-purple-500 mt-2 mr-3 flex-shrink-0"></div>
+                                       <span>Add your social media links for better matching</span>
+                                    </div>
+                                    <div className="flex items-start">
+                                       <div className="w-2 h-2 rounded-full bg-purple-500 mt-2 mr-3 flex-shrink-0"></div>
+                                       <span>Be active in the matching page to get more suggestions</span>
+                                    </div>
+                                    <div className="flex items-start">
+                                       <div className="w-2 h-2 rounded-full bg-purple-500 mt-2 mr-3 flex-shrink-0"></div>
+                                       <span>Update your preferences to refine your matches</span>
+                                    </div>
+                                 </div>
+                              </div>
+                           </div>
+                        </div>
+                     ) : (
+                        <MatchHistoryGallery
+                           historyMatches={historyMatches}
+                           onMessage={handleMessage}
+                           onViewProfile={handleViewProfile}
+                           likedMatches={likedMatches}
+                        />
+                     )}
                   </div>
+
+                  {/* Pagination Info */}
+                  {matchHistoryData?.pagination && historyMatches.length > 0 && (
+                     <div className="mt-6 p-4 rounded-lg bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border border-purple-200 dark:border-purple-800">
+                        <div className="flex items-center justify-center text-sm text-gray-600 dark:text-gray-400">
+                           <Users className="w-4 h-4 mr-2 text-purple-500" />
+                           <span className="font-medium">
+                              Showing {historyMatches.length} of {matchHistoryData.pagination.total} total matches
+                           </span>
+                        </div>
+                        {matchHistoryData.pagination.total > 0 && (
+                           <div className="mt-2 text-xs text-center text-gray-500 dark:text-gray-500">
+                              Keep swiping to discover more amazing creators!
+                           </div>
+                        )}
+                     </div>
+                  )}
                </div>
             </div>
 

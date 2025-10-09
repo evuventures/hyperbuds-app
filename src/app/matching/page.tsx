@@ -15,8 +15,8 @@ import CompatibilityModal from "@/components/matching/CompatibilityModal";
 import FunLoader from "@/components/matching/FunLoader";
 import DashboardLayout from "@/components/layout/Dashboard/Dashboard";
 
-// Mock data for demonstration - moved outside component to prevent infinite loop
-const mockMatches: MatchSuggestion[] = [
+// Mock data removed - now using real API data
+/* const mockMatches: MatchSuggestion[] = [
   {
     _id: "1",
     userId: "current-user",
@@ -176,7 +176,7 @@ const mockMatches: MatchSuggestion[] = [
     createdAt: "2025-01-15T10:00:00Z",
     updatedAt: "2025-01-15T10:00:00Z"
   }
-];
+]; */
 
 const MatchmakingPage: React.FC = () => {
   const [userProfile, setUserProfile] = useState<CreatorProfile | null>(null);
@@ -199,33 +199,8 @@ const MatchmakingPage: React.FC = () => {
       try {
         const accessToken = localStorage.getItem("accessToken");
         if (!accessToken) {
-          // Use mock data if no token
-          setUserProfile({
-            userId: "current-user",
-            username: "currentuser",
-            displayName: "Current User",
-            avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face",
-            bio: "Content creator looking for amazing collaborations!",
-            niche: ["gaming", "tech", "lifestyle"],
-            location: {
-              city: "San Francisco",
-              state: "California",
-              country: "US"
-            },
-            stats: {
-              totalFollowers: 50000,
-              avgEngagement: 6.5,
-              platformBreakdown: {
-                tiktok: { followers: 30000, engagement: 7.0 },
-                instagram: { followers: 15000, engagement: 6.0 },
-                youtube: { followers: 5000, engagement: 6.5 }
-              }
-            },
-            rizzScore: 78,
-            isPublic: true,
-            isActive: true
-          });
-          setMatches(mockMatches);
+          // No token - redirect to login
+          setError("Please login to view matches");
           setDataLoaded(true);
           return;
         }
@@ -317,45 +292,20 @@ const MatchmakingPage: React.FC = () => {
           } else if (suggestionsData.data && Array.isArray(suggestionsData.data) && suggestionsData.data.length > 0) {
             setMatches(suggestionsData.data as MatchSuggestion[]);
           } else {
-            // Use mock data if API returns empty results
-            setMatches(mockMatches);
+            // No matches available - set empty array
+            setMatches([]);
           }
         } else {
-          // Fallback to mock data
-          setMatches(mockMatches);
+          // API error - set empty array
+          setMatches([]);
         }
 
         setError(null);
       } catch (err: unknown) {
         console.error("Error loading data:", err);
         setError(err instanceof Error ? err.message : "Failed to load matching data");
-        // Use mock data as fallback
-        setUserProfile({
-          userId: "current-user",
-          username: "currentuser",
-          displayName: "Current User",
-          avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face",
-          bio: "Content creator looking for amazing collaborations!",
-          niche: ["gaming", "tech", "lifestyle"],
-          location: {
-            city: "San Francisco",
-            state: "California",
-            country: "US"
-          },
-          stats: {
-            totalFollowers: 50000,
-            avgEngagement: 6.5,
-            platformBreakdown: {
-              tiktok: { followers: 30000, engagement: 7.0 },
-              instagram: { followers: 15000, engagement: 6.0 },
-              youtube: { followers: 5000, engagement: 6.5 }
-            }
-          },
-          rizzScore: 78,
-          isPublic: true,
-          isActive: true
-        });
-        setMatches(mockMatches);
+        // Set empty data on error
+        setMatches([]);
       } finally {
         setDataLoaded(true);
       }
@@ -486,23 +436,23 @@ const MatchmakingPage: React.FC = () => {
         });
 
         if (response.ok) {
-          // TEMPORARY: Force mock data for testing
-          setMatches(mockMatches); // Force mock data for testing
-
-          // Original logic (commented out for testing):
-          // if (data.matches) {
-          //   setMatches(data.matches as MatchSuggestion[]);
-          // } else if (data.data?.matches) {
-          //   setMatches(data.data.matches as MatchSuggestion[]);
-          // } else if (data.data) {
-          //   setMatches(data.data as MatchSuggestion[]);
-          // } else {
-          //   setMatches(mockMatches);
-          // }
+          const data = await response.json();
+          
+          // Handle different response structures
+          if (data.matches) {
+            setMatches(data.matches as MatchSuggestion[]);
+          } else if (data.data?.matches) {
+            setMatches(data.data.matches as MatchSuggestion[]);
+          } else if (data.data) {
+            setMatches(data.data as MatchSuggestion[]);
+          } else {
+            // No matches available
+            setMatches([]);
+          }
+        } else {
+          // API error - show empty
+          setMatches([]);
         }
-      } else {
-        // Use mock data
-        setMatches(mockMatches);
       }
     } catch (err) {
       console.error("Refresh failed:", err);

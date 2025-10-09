@@ -4,6 +4,7 @@ import "./globals.css";
 import { AuthProvider } from "../providers/AuthProvider";
 import { ThemeProvider } from "../providers/ThemeProvider";
 import { SidebarProvider } from "../context/SidebarContext";
+import { QueryProvider } from "../providers/QueryProvider";
 import { Toaster } from "sonner";
 
 const inter = Inter({
@@ -49,14 +50,16 @@ export default function RootLayout({
         />
       </head>
       <body className={`${inter.variable} antialiased bg-white dark:bg-gray-900`}>
-        <ThemeProvider>
-          <SidebarProvider>
-            <AuthProvider>
-              {children}
-              <Toaster richColors position="top-right" />
-            </AuthProvider>
-          </SidebarProvider>
-        </ThemeProvider>
+        <QueryProvider>
+          <ThemeProvider>
+            <SidebarProvider>
+              <AuthProvider>
+                {children}
+                <Toaster richColors position="top-right" />
+              </AuthProvider>
+            </SidebarProvider>
+          </ThemeProvider>
+        </QueryProvider>
       </body>
     </html>
   );

@@ -1,0 +1,24 @@
+[1mdiff --git a/src/hooks/features/useSocialSync.ts b/src/hooks/features/useSocialSync.ts[m
+[1mindex 60e59f0..dc627ed 100644[m
+[1m--- a/src/hooks/features/useSocialSync.ts[m
+[1m+++ b/src/hooks/features/useSocialSync.ts[m
+[36m@@ -20,8 +20,7 @@[m [mexport const useSocialSync = () => {[m
+   const syncMutation = useMutation({[m
+     mutationFn: async ({ platform, platformData }: SyncPlatformParams) => {[m
+       const syncData: SocialSyncRequest = {[m
+[31m-        follow: platformData.followers,  // Backend expects "follow" field[m
+[31m-        engagement: platformData.averageEngagement,[m
+[32m+[m[32m        follow: platformData.followers,  // Backend expects "follow" field only[m
+       };[m
+ [m
+       switch (platform) {[m
+[36m@@ -82,8 +81,7 @@[m [mexport const useSocialSync = () => {[m
+     Object.entries(platformsData).forEach(([platform, data]) => {[m
+       if (data) {[m
+         syncData[platform] = {[m
+[31m-          follow: data.followers,  // Backend expects "follow" field[m
+[31m-          engagement: data.averageEngagement,[m
+[32m+[m[32m          follow: data.followers,  // Backend expects "follow" field only[m
+         };[m
+         setSyncingPlatforms(prev => new Set(prev).add(platform));[m
+       }[m
