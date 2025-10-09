@@ -19,26 +19,41 @@ export const useSocialSync = () => {
   // Mutation for syncing a single platform
   const syncMutation = useMutation({
     mutationFn: async ({ platform, platformData }: SyncPlatformParams) => {
+      console.log(`🔄 Sync mutation called for ${platform}:`, { platform, platformData });
+
       const syncData: SocialSyncRequest = {
-        follow: platformData.followers,  // Backend expects "follow" field
-        engagement: platformData.averageEngagement,
+        follow: platformData.followers,  // Backend expects "follow" field only
       };
 
-      switch (platform) {
-        case 'tiktok':
-          return await profileApi.syncTikTok(syncData);
-        case 'twitch':
-          return await profileApi.syncTwitch(syncData);
-        case 'twitter':
-          return await profileApi.syncTwitter(syncData);
-        default:
-          throw new Error(`Sync not supported for ${platform}`);
+      console.log(`📤 Sending sync data for ${platform}:`, syncData);
+
+      try {
+        let result;
+        switch (platform) {
+          case 'tiktok':
+            result = await profileApi.syncTikTok(syncData);
+            break;
+          case 'twitch':
+            result = await profileApi.syncTwitch(syncData);
+            break;
+          case 'twitter':
+            result = await profileApi.syncTwitter(syncData);
+            break;
+          default:
+            throw new Error(`Sync not supported for ${platform}`);
+        }
+
+        console.log(`✅ Sync API response for ${platform}:`, result);
+        return result;
+      } catch (error) {
+        console.error(`❌ Sync API error for ${platform}:`, error);
+        throw error;
       }
     },
     onSuccess: (data, variables) => {
       // Invalidate profile queries to refetch updated data
       queryClient.invalidateQueries({ queryKey: ['profile'] });
-      
+
       toast({
         title: "Sync successful!",
         description: `${variables.platform.toUpperCase()} data synced to your profile`,
@@ -78,12 +93,11 @@ export const useSocialSync = () => {
     platformsData: Record<PlatformType, UnifiedPlatformData | null>
   ) => {
     const syncData: Record<string, SocialSyncRequest> = {};
-    
+
     Object.entries(platformsData).forEach(([platform, data]) => {
       if (data) {
         syncData[platform] = {
-          follow: data.followers,  // Backend expects "follow" field
-          engagement: data.averageEngagement,
+          follow: data.followers,  // Backend expects "follow" field only
         };
         setSyncingPlatforms(prev => new Set(prev).add(platform));
       }
@@ -91,7 +105,7 @@ export const useSocialSync = () => {
 
     try {
       const result = await profileApi.syncAllPlatforms(syncData);
-      
+
       if (result.success) {
         queryClient.invalidateQueries({ queryKey: ['profile'] });
         toast({
@@ -99,7 +113,7 @@ export const useSocialSync = () => {
           description: "All platforms have been synced to your profile",
         });
       }
-      
+
       setSyncingPlatforms(new Set());
       return result;
     } catch (error) {
