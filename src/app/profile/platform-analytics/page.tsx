@@ -165,6 +165,7 @@ export default function PlatformAnalyticsPage() {
                      showCombinedMetrics={true}
                      compact={false}
                      clickable={false}
+                     showSyncButtons={true}
                   />
                </motion.div>
 
@@ -196,6 +197,7 @@ export default function PlatformAnalyticsPage() {
                         showCombinedMetrics={false}
                         compact={false}
                         clickable={false}
+                        showSyncButtons={true}
                      />
                   </motion.div>
                )}
