@@ -22,7 +22,7 @@ export const useSocialSync = () => {
       console.log(`🔄 Sync mutation called for ${platform}:`, { platform, platformData });
 
       const syncData: SocialSyncRequest = {
-        follow: platformData.followers,  // Backend expects "follow" field only
+        followers: platformData.followers,  // Backend expects "followers" field
       };
 
       console.log(`📤 Sending sync data for ${platform}:`, syncData);
@@ -97,7 +97,7 @@ export const useSocialSync = () => {
     Object.entries(platformsData).forEach(([platform, data]) => {
       if (data) {
         syncData[platform] = {
-          follow: data.followers,  // Backend expects "follow" field only
+          followers: data.followers,  // Backend expects "followers" field
         };
         setSyncingPlatforms(prev => new Set(prev).add(platform));
       }

@@ -29,6 +29,9 @@ export const SyncPlatformButton: React.FC<SyncPlatformButtonProps> = ({
     typeof platformData.followers === 'number' &&
     platformData.followers > 0;
 
+  // Debug: Log the platform data structure
+  console.log(`🔍 Platform data for ${platform}:`, platformData);
+
   const handleSync = async () => {
     if (!hasValidData) {
       console.warn(`No valid data to sync for ${platform}`);

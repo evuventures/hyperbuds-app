@@ -3,7 +3,7 @@
 import { apiClient } from './client';
 
 export interface SocialSyncRequest {
-  follow?: number;  // Backend expects "follow" not "followers"
+  followers?: number;  // Backend expects "followers" field
   engagement?: number;
 }
 
@@ -66,7 +66,7 @@ export const profileApi = {
     results: Record<string, SocialSyncResponse | { error: string }>;
   }> => {
     const results: Record<string, SocialSyncResponse | { error: string }> = {};
-    
+
     const syncPromises = Object.entries(platformData).map(async ([platform, data]) => {
       try {
         let result;
@@ -88,8 +88,8 @@ export const profileApi = {
         }
         results[platform] = result;
       } catch (error) {
-        results[platform] = { 
-          error: error instanceof Error ? error.message : 'Sync failed' 
+        results[platform] = {
+          error: error instanceof Error ? error.message : 'Sync failed'
         };
       }
     });
