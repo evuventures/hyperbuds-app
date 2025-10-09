@@ -19,6 +19,7 @@ interface User {
 }
 
 export default function PlatformAnalyticsPage() {
+   console.log('🚀 PlatformAnalyticsPage component loaded!');
    const searchParams = useSearchParams();
    const router = useRouter();
    const [user, setUser] = useState<User | null>(null);
@@ -84,26 +85,45 @@ export default function PlatformAnalyticsPage() {
    const platformCreds: Record<string, string> = {};
    const socialLinks = user?.profile?.socialLinks || {};
 
+   console.log('🔍 User profile socialLinks:', socialLinks);
+
    if (socialLinks.tiktok) {
       const match = socialLinks.tiktok.match(/tiktok\.com\/@?([^/?]+)/);
       if (match) {
          platformCreds.tiktok = match[1];
+         console.log('✅ Extracted TikTok username:', match[1]);
+      } else {
+         console.log('❌ Could not extract TikTok username from:', socialLinks.tiktok);
       }
+   } else {
+      console.log('❌ No TikTok social link found');
    }
 
    if (socialLinks.twitter) {
       const match = socialLinks.twitter.match(/(?:twitter|x)\.com\/([^/?]+)/);
       if (match) {
          platformCreds.twitter = match[1];
+         console.log('✅ Extracted Twitter username:', match[1]);
+      } else {
+         console.log('❌ Could not extract Twitter username from:', socialLinks.twitter);
       }
+   } else {
+      console.log('❌ No Twitter social link found');
    }
 
    if (socialLinks.twitch) {
       const match = socialLinks.twitch.match(/twitch\.tv\/([^/?]+)/);
       if (match) {
          platformCreds.twitch = match[1];
+         console.log('✅ Extracted Twitch username:', match[1]);
+      } else {
+         console.log('❌ Could not extract Twitch username from:', socialLinks.twitch);
       }
+   } else {
+      console.log('❌ No Twitch social link found');
    }
+
+   console.log('🔍 Final platformCreds:', platformCreds);
 
    const platformNames = {
       tiktok: 'TikTok',

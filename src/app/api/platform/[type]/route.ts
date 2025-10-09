@@ -18,9 +18,12 @@ export async function GET(
       const { searchParams } = new URL(request.url);
       const username = searchParams.get('username');
 
+      console.log(`🔍 Platform API called: ${type} with username: "${username}"`);
+
       // Validate platform type
       const validPlatforms: PlatformType[] = ['tiktok', 'twitter', 'twitch'];
       if (!validPlatforms.includes(type as PlatformType)) {
+         console.log(`❌ Invalid platform type: ${type}`);
          return NextResponse.json(
             { success: false, error: 'Invalid platform type' },
             { status: 400 }
@@ -29,6 +32,7 @@ export async function GET(
 
       // Validate username
       if (!username || username.trim() === '') {
+         console.log(`❌ Username is required but got: "${username}"`);
          return NextResponse.json(
             { success: false, error: 'Username is required' },
             { status: 400 }
@@ -56,6 +60,12 @@ export async function GET(
             lastFetched: new Date(),
             raw: { mock: true, platform: type, username: username.trim() }
          };
+
+         console.log(`✅ Returning mock data for ${type}:`, {
+            username: username.trim(),
+            followers: mockData.followers,
+            platform: mockData.platform
+         });
 
          return NextResponse.json({
             success: true,
