@@ -134,7 +134,6 @@ export default function EditProfilePage() {
   const [isNavigating, setIsNavigating] = useState(false);
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
   const [profile, setProfile] = useState<UserProfile | null>(null);
-
   const [displayName, setDisplayName] = useState("");
   const [bio, setBio] = useState("");
   const [niches, setNiches] = useState<string[]>([]);

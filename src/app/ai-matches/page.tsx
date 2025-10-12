@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { RefreshCw, ArrowLeft, Loader2, Heart, Users, Sparkles, TrendingUp, MessageCircle, Star, Zap } from "lucide-react";
+import { RefreshCw, ArrowLeft, Loader2, Heart, Users, Sparkles, TrendingUp, MessageCircle, Zap } from "lucide-react";
 import type { CreatorProfile } from "@/types/matching.types";
 import MatchHistoryGallery from "@/components/matching/MatchHistoryGallery";
 import ProfileModal from "@/components/matching/ProfileModal";
