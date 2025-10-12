@@ -367,6 +367,21 @@ export const useMatchFilters = (initialFilters: MatchFilters = {}) => {
   };
 };
 
+// Hook for Rizz Score leaderboard
+export const useRizzLeaderboard = (query?: {
+  niche?: string;
+  location?: string;
+  limit?: number;
+  timeframe?: 'current' | 'weekly' | 'monthly';
+}) => {
+  return useQuery({
+    queryKey: [...MATCHING_KEYS.leaderboard, query],
+    queryFn: () => matchingApi.getRizzLeaderboard(query),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchOnWindowFocus: false,
+  });
+};
+
 // Main matching hook that combines multiple functionalities
 export const useMatching = () => {
   const suggestions = useMatchSuggestions();

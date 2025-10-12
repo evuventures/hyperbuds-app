@@ -23,13 +23,7 @@ interface ThemeProviderProps {
 }
 
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    // Initialize from the class that was set by the inline script
-    if (typeof window !== 'undefined') {
-      return document.documentElement.classList.contains('dark');
-    }
-    return false;
-  });
+  const [isDarkMode, setIsDarkMode] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
 
   // Load theme preference from localStorage on mount
@@ -78,6 +72,15 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   const setDarkMode = (isDark: boolean) => {
     setIsDarkMode(isDark);
   };
+
+  // Prevent hydration mismatch by not rendering until theme is loaded
+  if (!isLoaded) {
+    return (
+      <ThemeContext.Provider value={{ isDarkMode: false, toggleDarkMode, setDarkMode }}>
+        {children}
+      </ThemeContext.Provider>
+    );
+  }
 
   return (
     <ThemeContext.Provider value={{ isDarkMode, toggleDarkMode, setDarkMode }}>

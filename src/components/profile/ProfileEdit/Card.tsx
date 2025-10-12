@@ -444,7 +444,7 @@ export default function EditProfilePage() {
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.4, ease: "easeOut" }}
-        className="relative z-10 p-6 mx-auto w-full max-w-4xl bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-3xl border shadow-2xl md:p-10 border-gray-200/50 dark:border-gray-700/50"
+        className="relative z-10 p-6 mx-auto w-full max-w-4xl rounded-3xl border shadow-2xl backdrop-blur-sm bg-white/90 dark:bg-gray-800/90 md:p-10 border-gray-200/50 dark:border-gray-700/50"
       >
         {/* Header with Enhanced Back Button */}
         <motion.div
@@ -456,7 +456,7 @@ export default function EditProfilePage() {
           <motion.button
             onClick={() => handleNavigation("/profile")}
             className="flex overflow-hidden relative justify-center items-center w-12 h-12 text-gray-600 bg-gray-100 rounded-full transition-all cursor-pointer group hover:bg-gray-200 dark:text-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600"
-            title="Back to Profile"
+            title="Back"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
@@ -581,7 +581,7 @@ export default function EditProfilePage() {
               </div>
             </motion.div>
 
-            {/* Username */}
+            {/* Username 
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -597,7 +597,7 @@ export default function EditProfilePage() {
               />
               <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Username cannot be changed</p>
             </motion.div>
-
+*/}
             {/* Display Name */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
