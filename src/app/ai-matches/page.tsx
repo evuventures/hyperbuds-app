@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation";
 import DashboardLayout from "@/components/layout/Dashboard/Dashboard";
 import { useMatchHistory } from "@/hooks/features/useMatching";
 
+
 const AIMatchesPage: React.FC = () => {
    const router = useRouter();
    const [selectedProfile, setSelectedProfile] = useState<CreatorProfile | null>(null);
@@ -68,12 +69,9 @@ const AIMatchesPage: React.FC = () => {
    };
 
    const handleViewProfile = (userId: string) => {
-      const match = historyMatches.find(m => m.targetProfile?.userId === userId);
-      if (match?.targetProfile) {
-         setSelectedProfile(match.targetProfile);
-         setIsProfileModalOpen(true);
-      }
-   };
+  router.push(`profile/user-profile/${userId}`);
+};
+
 
    const refreshMatches = async () => {
       await refetch();
@@ -140,11 +138,11 @@ const AIMatchesPage: React.FC = () => {
                               </div>
                            </div>
                            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                              Finding Your Perfect Matches
+                              Finding Your Perfect Match History
                            </h3>
-                           <p className="text-gray-600 dark:text-gray-400 text-center max-w-md">
+                           {/*<p className="text-gray-600 dark:text-gray-400 text-center max-w-md">
                               Our AI is analyzing thousands of creators to find the best collaboration opportunities for you...
-                           </p>
+                           </p>*/}
                         </div>
                      ) : error ? (
                         <div className="flex flex-col justify-center items-center py-16">
@@ -157,7 +155,7 @@ const AIMatchesPage: React.FC = () => {
                               Oops! Something went wrong
                            </h3>
                            <p className="text-gray-600 dark:text-gray-400 mb-6 text-center max-w-md">
-                              We couldn&apos;t load your matches right now. Don&apos;t worry, this happens sometimes.
+                              We couldn&apos;t load your match history right now. Don&apos;t worry, this happens sometimes.
                            </p>
                            <div className="flex flex-col sm:flex-row gap-4">
                               <Button 
@@ -173,7 +171,7 @@ const AIMatchesPage: React.FC = () => {
                                  className="px-6 py-3 border-2 border-purple-200 dark:border-purple-800 text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 font-semibold rounded-lg"
                               >
                                  <Heart className="w-4 h-4 mr-2" />
-                                 Go to Matching
+                                 Get Matching
                               </Button>
                            </div>
                         </div>
@@ -194,12 +192,10 @@ const AIMatchesPage: React.FC = () => {
                               </div>
 
                               {/* Main Message */}
-                              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-                                 No matches yet, but great things are coming!
+                              <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-10">
+                                 No match History!
                               </h2>
-                              <p className="text-lg text-gray-600 dark:text-gray-400 mb-8">
-                                 Our AI is working hard to find creators who match your style, audience, and collaboration goals.
-                              </p>
+                              
 
                               {/* Feature Cards */}
                               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
@@ -241,16 +237,16 @@ const AIMatchesPage: React.FC = () => {
                                     className="px-8 py-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all transform hover:scale-105"
                                  >
                                     <Heart className="w-5 h-5 mr-2" />
-                                    Start Matching
+                                    Get Matching
                                  </Button>
-                                 <Button 
+                               {/*  <Button 
                                     onClick={() => router.push('/profile/edit')} 
                                     variant="outline"
                                     className="px-8 py-3 border-2 border-purple-200 dark:border-purple-800 text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 font-semibold rounded-lg"
                                  >
                                     <Star className="w-5 h-5 mr-2" />
                                     Complete Profile
-                                 </Button>
+                                 </Button>*/}
                               </div>
 
                               {/* Tips Section */}

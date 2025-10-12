@@ -189,7 +189,7 @@ export default function PlatformAnalyticsPage() {
                   />
                </motion.div>
 
-               {/* Individual Platform Details */}
+               {/* Individual Platform Details 
                {platform && platformCreds[platform] && (
                   <motion.div
                      initial={{ opacity: 0, y: 20 }}
@@ -221,7 +221,7 @@ export default function PlatformAnalyticsPage() {
                      />
                   </motion.div>
                )}
-
+    */}
                {/* Quick Stats Grid */}
                <motion.div
                   initial={{ opacity: 0, y: 20 }}

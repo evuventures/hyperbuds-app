@@ -313,45 +313,43 @@ const MatchmakingPage: React.FC = () => {
     loadData();
   }, []); // Empty dependency array - only run once on mount
 
-  const handleAction = async (matchId: string, action: "like" | "unlike" | "pass" | "view") => {
-    try {
-      const accessToken = localStorage.getItem("accessToken");
-      if (accessToken) {
-        await fetch(`${BASE_URL}/api/v1/matching/actions`, {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ matchId, action }),
-        });
-      }
-
-      if (action === "view") {
-        const match = matches.find(m => m.targetProfile?.userId === matchId);
-        if (match && match.targetProfile) {
-          setSelectedMatch(match);
-          setSelectedProfile(match.targetProfile);
-          setIsCompatibilityModalOpen(true);
-        }
-      } else if (action === "pass") {
-        // Only remove the card when passing, not when liking
-        setMatches(prev => prev.filter(m => m.targetProfile?.userId !== matchId));
-      } else if (action === "like") {
-        // Track liked matches for visual feedback
-        setLikedMatches(prev => new Set(prev).add(matchId));
-      } else if (action === "unlike") {
-        // Remove from liked matches
-        setLikedMatches(prev => {
-          const newSet = new Set(prev);
-          newSet.delete(matchId);
-          return newSet;
-        });
-      }
-    } catch (err) {
-      console.error("Action failed:", err);
+ const handleAction = async (matchId: string, action: "like" | "unlike" | "pass" | "view") => {
+  try {
+    const accessToken = localStorage.getItem("accessToken");
+    if (accessToken) {
+      await fetch(`${BASE_URL}/api/v1/matching/matches/${matchId}/action`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ action }),
+      });
     }
-  };
+
+    if (action === "view") {
+      const match = matches.find(m => m.targetProfile?.userId === matchId);
+      if (match && match.targetProfile) {
+        setSelectedMatch(match);
+        setSelectedProfile(match.targetProfile);
+        setIsCompatibilityModalOpen(true);
+      }
+    } else if (action === "pass") {
+      setMatches(prev => prev.filter(m => m.targetProfile?.userId !== matchId));
+    } else if (action === "like") {
+      setLikedMatches(prev => new Set(prev).add(matchId));
+    } else if (action === "unlike") {
+      setLikedMatches(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(matchId);
+        return newSet;
+      });
+    }
+  } catch (err) {
+    console.error("Action failed:", err);
+  }
+};
+
 
   const handleCollaboration = async (matchId: string) => {
     try {
