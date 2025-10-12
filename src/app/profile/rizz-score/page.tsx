@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { ArrowLeft, RefreshCw, Zap, TrendingUp, Users, MessageCircle, Calendar, Star } from "lucide-react";
+import { ArrowLeft, RefreshCw, Zap, TrendingUp, Users, MessageCircle, Calendar, Star, Trophy } from "lucide-react";
 import DashboardLayout from "@/components/layout/Dashboard/Dashboard";
 import RizzScoreDisplay from "@/components/profile/RizzScoreDisplay";
 import { useRizzScore } from "@/hooks/useRizzScore";
@@ -115,7 +115,7 @@ const RizzScorePage: React.FC = () => {
                            whileTap={{ scale: 0.98 }}
                         >
                            <ArrowLeft className="w-4 h-4" />
-                           <span className="text-sm font-medium">Back to Profile</span>
+                           <span className="text-sm font-medium">Back</span>
                         </motion.button>
 
                         <div className="flex gap-2 items-center">
@@ -165,7 +165,7 @@ const RizzScorePage: React.FC = () => {
                         whileTap={{ scale: 0.98 }}
                      >
                         <ArrowLeft className="w-5 h-5" />
-                        <span className="font-medium">Back to Profile</span>
+                        <span className="font-medium">Back</span>
                      </motion.button>
 
                      {/* Page Title */}
@@ -343,6 +343,34 @@ const RizzScorePage: React.FC = () => {
                               {new Date(rizzScore.lastCalculated).toLocaleTimeString()}
                            </p>
                         </motion.div>
+                     </div>
+
+                     {/* Leaderboard Link */}
+                     <div className="p-6 bg-gradient-to-r from-yellow-50 to-amber-50 rounded-2xl border border-yellow-200 dark:from-yellow-900/20 dark:to-amber-900/20 dark:border-yellow-700">
+                        <div className="flex justify-between items-center">
+                           <div className="flex gap-4 items-center">
+                              <div className="p-3 bg-gradient-to-r from-yellow-500 to-amber-500 rounded-xl">
+                                 <Trophy className="w-6 h-6 text-white" />
+                              </div>
+                              <div>
+                                 <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+                                    See How You Rank
+                                 </h3>
+                                 <p className="text-sm text-gray-600 dark:text-gray-400">
+                                    Compare your Rizz Score with top creators
+                                 </p>
+                              </div>
+                           </div>
+                           <motion.button
+                              onClick={() => router.push('/profile/rizz-score/leaderboard')}
+                              className="flex gap-2 items-center px-4 py-2 text-white bg-gradient-to-r from-yellow-500 to-amber-500 rounded-lg transition-all duration-200 cursor-pointer hover:from-yellow-600 hover:to-amber-600 hover:shadow-lg"
+                              whileHover={{ scale: 1.02 }}
+                              whileTap={{ scale: 0.98 }}
+                           >
+                              <Trophy className="w-4 h-4" />
+                              <span className="font-medium">View Leaderboard</span>
+                           </motion.button>
+                        </div>
                      </div>
 
                      {/* Tips and Recommendations */}

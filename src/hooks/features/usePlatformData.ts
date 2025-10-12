@@ -147,11 +147,24 @@ export function useMultiplePlatformData(
                console.log(`✅ ${type} data stored successfully`);
             } catch (err) {
                const errorMessage = err instanceof Error ? err.message : 'Unknown error';
-               console.error(`❌ ${type} error:`, errorMessage);
-               fetchErrors.push({
-                  platform: type,
-                  error: errorMessage,
-               });
+
+               // Handle specific API quota errors
+               if (errorMessage.includes('quota') || errorMessage.includes('exceeded')) {
+                  console.warn(`⚠️ ${type} API quota exceeded. Consider upgrading plan or using cached data.`);
+                  fetchErrors.push({
+                     platform: type,
+                     error: 'API quota exceeded. Please try again later or upgrade your plan.',
+                     type: 'quota_error'
+                  });
+               } else {
+                  console.error(`❌ ${type} error:`, errorMessage);
+                  fetchErrors.push({
+                     platform: type,
+                     error: errorMessage,
+                     type: 'api_error'
+                  });
+               }
+
                results[type] = null;
             }
          })
@@ -162,6 +175,12 @@ export function useMultiplePlatformData(
          errors: fetchErrors,
          successCount: Object.values(results).filter(v => v !== null).length
       });
+
+      // Log quota errors for monitoring
+      const quotaErrors = fetchErrors.filter(error => error.type === 'quota_error');
+      if (quotaErrors.length > 0) {
+         console.warn('🚨 API Quota Issues Detected:', quotaErrors.map(e => e.platform));
+      }
 
       setData(results);
       setErrors(fetchErrors);

@@ -131,10 +131,10 @@ export interface UnifiedPlatformData {
    followers: number;
    following: number;
    totalContent: number;
-  totalEngagement: number;
-  averageEngagement: number;
-  lastFetched: Date;
-  raw?: unknown;
+   totalEngagement: number;
+   averageEngagement: number;
+   lastFetched: Date;
+   raw?: unknown;
 }
 
 // API Response Types
@@ -149,6 +149,7 @@ export interface PlatformAPIResponse<T> {
 export interface PlatformAPIError {
    platform: PlatformType;
    error: string;
+   type?: 'quota_error' | 'api_error' | 'network_error' | 'unknown';
    code?: string;
    details?: unknown;
 }
