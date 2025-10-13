@@ -82,8 +82,8 @@ const Recommendations: React.FC<RecommendationsProps> = ({ onGetMatches }) => {
    const getCompatibilityColor = (score: number) => {
       if (score >= 90) return "text-white bg-green-600 border-green-500 shadow-lg";
       if (score >= 80) return "text-white bg-yellow-600 border-yellow-500 shadow-lg";
-      if (score >= 70) return "text-white bg-orange-600 border-orange-500 shadow-lg";
-      return "text-white bg-red-600 border-red-500 shadow-lg";
+      if (score >= 70) return "text-white bg-purple-600 border-purple-500 shadow-lg";
+      return "text-white bg-pink-600 border-pink-500 shadow-lg";
    };
 
    const getRizzScoreColor = (score: number) => {
@@ -143,7 +143,7 @@ const Recommendations: React.FC<RecommendationsProps> = ({ onGetMatches }) => {
             {/* Header */}
             <div className="flex flex-col gap-4 justify-between items-start sm:items-center">
                <div className="flex gap-3 items-center">
-                  <div className="p-2 bg-gradient-to-r from-orange-500 to-red-500 rounded-xl">
+                  <div className="p-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl">
                      <RefreshCw className="w-5 h-5 text-white animate-spin" />
                   </div>
                   <div>
@@ -174,7 +174,7 @@ const Recommendations: React.FC<RecommendationsProps> = ({ onGetMatches }) => {
             {/* Header */}
             <div className="flex flex-col gap-4 justify-between items-start sm:items-center">
                <div className="flex gap-3 items-center">
-                  <div className="p-2 bg-gradient-to-r from-orange-500 to-red-500 rounded-xl">
+                  <div className="p-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl">
                      <Star className="w-5 h-5 text-white" />
                   </div>
                   <div>
@@ -191,8 +191,8 @@ const Recommendations: React.FC<RecommendationsProps> = ({ onGetMatches }) => {
             {/* Error State */}
             <div className="p-12 text-center text-gray-900 bg-white rounded-3xl border border-gray-200 shadow-sm dark:bg-gray-800 dark:text-white dark:border-gray-700">
                <div className="flex flex-col gap-6 items-center mx-auto max-w-md">
-                  <div className="p-4 bg-gradient-to-r from-red-100 to-orange-100 rounded-full dark:from-red-900/40 dark:to-orange-900/40">
-                     <X className="w-12 h-12 text-red-600 dark:text-red-400" />
+                  <div className="p-4 bg-gradient-to-r from-purple-100 to-pink-100 rounded-full dark:from-purple-900/40 dark:to-pink-900/40">
+                     <X className="w-12 h-12 text-purple-600 dark:text-purple-400" />
                   </div>
 
                   <div className="space-y-2">
@@ -206,7 +206,7 @@ const Recommendations: React.FC<RecommendationsProps> = ({ onGetMatches }) => {
 
                   <motion.button
                      onClick={() => window.location.reload()}
-                     className="flex gap-2 items-center px-8 py-4 font-semibold text-white bg-gradient-to-r from-red-600 to-orange-600 rounded-xl shadow-lg transition-all duration-200 transform cursor-pointer hover:from-red-700 hover:to-orange-700 hover:scale-105"
+                     className="flex gap-2 items-center px-8 py-4 font-semibold text-white bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl shadow-lg transition-all duration-200 transform cursor-pointer hover:from-purple-700 hover:to-pink-700 hover:scale-105"
                      whileHover={{ scale: 1.05 }}
                      whileTap={{ scale: 0.95 }}
                      transition={{ type: "spring", stiffness: 300, damping: 20 }}
@@ -226,7 +226,7 @@ const Recommendations: React.FC<RecommendationsProps> = ({ onGetMatches }) => {
             {/* Header */}
             <div className="flex flex-col gap-4 justify-between items-start sm:items-center">
                <div className="flex gap-3 items-center">
-                  <div className="p-2 bg-gradient-to-r from-orange-500 to-red-500 rounded-xl">
+                  <div className="p-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl">
                      <Star className="w-5 h-5 text-white" />
                   </div>
                   <div>
@@ -243,8 +243,8 @@ const Recommendations: React.FC<RecommendationsProps> = ({ onGetMatches }) => {
             {/* Empty State */}
             <div className="p-12 text-center text-gray-900 bg-white rounded-3xl border border-gray-200 shadow-sm dark:bg-gray-800 dark:text-white dark:border-gray-700">
                <div className="flex flex-col gap-6 items-center mx-auto max-w-md">
-                  <div className="p-4 bg-gradient-to-r from-orange-100 to-red-100 rounded-full dark:from-orange-900/40 dark:to-red-900/40">
-                     <Star className="w-12 h-12 text-orange-600 dark:text-orange-400" />
+                  <div className="p-4 bg-gradient-to-r from-purple-100 to-pink-100 rounded-full dark:from-purple-900/40 dark:to-pink-900/40">
+                     <Star className="w-12 h-12 text-purple-600 dark:text-purple-400" />
                   </div>
 
                   <div className="space-y-2">
@@ -279,7 +279,7 @@ const Recommendations: React.FC<RecommendationsProps> = ({ onGetMatches }) => {
          {/* Header */}
          <div className="flex flex-col gap-4 justify-between items-start sm:items-center">
             <div className="flex gap-3 items-center">
-               <div className="p-2 bg-gradient-to-r from-orange-500 to-red-500 rounded-xl">
+               <div className="p-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl">
                   <Star className="w-5 h-5 text-white" />
                </div>
                <div>
@@ -294,7 +294,7 @@ const Recommendations: React.FC<RecommendationsProps> = ({ onGetMatches }) => {
 
             <button
                onClick={handleViewAllRecommendations}
-               className="flex gap-2 items-center font-medium text-orange-600 transition-all duration-200 transform cursor-pointer dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 hover:gap-3 hover:scale-105 group"
+               className="flex gap-2 items-center font-medium text-purple-600 transition-all duration-200 transform cursor-pointer dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 hover:gap-3 hover:scale-105 group"
             >
                View All Recommendations
                <ChevronRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" />
@@ -321,9 +321,9 @@ const Recommendations: React.FC<RecommendationsProps> = ({ onGetMatches }) => {
                }}
                breakpoints={{
                   640: { slidesPerView: 1, spaceBetween: 20 },
-                  768: { slidesPerView: 1, spaceBetween: 24 },
-                  1024: { slidesPerView: 1, spaceBetween: 24 },
-                  1280: { slidesPerView: 1, spaceBetween: 32 },
+                  768: { slidesPerView: 2, spaceBetween: 20 },
+                  1024: { slidesPerView: 2, spaceBetween: 24 },
+                  1280: { slidesPerView: 2, spaceBetween: 32 },
                }}
                className="!pb-8 sm:!pb-12 !pt-4"
             >
@@ -392,7 +392,7 @@ const Recommendations: React.FC<RecommendationsProps> = ({ onGetMatches }) => {
                                     </div>
 
                                     {/* Passed Indicator */}
-                                    <div className="font-medium text-xs sm:text-sm px-3 py-1.5 border backdrop-blur-sm rounded-lg text-white bg-orange-600 border-orange-500 shadow-lg transition-transform duration-200 hover:scale-105 flex items-center">
+                                    <div className="font-medium text-xs sm:text-sm px-3 py-1.5 border backdrop-blur-sm rounded-lg text-white bg-purple-600 border-purple-500 shadow-lg transition-transform duration-200 hover:scale-105 flex items-center">
                                        <X className="inline mr-1.5 w-3 h-3" />
                                        Passed {card.passedAt}
                                     </div>
@@ -431,7 +431,7 @@ const Recommendations: React.FC<RecommendationsProps> = ({ onGetMatches }) => {
                                        size="sm"
                                        onClick={() => handlePermanentlyPass(card.id)}
                                        disabled={isRemoving}
-                                       className="h-9 text-xs font-semibold text-red-600 bg-gradient-to-r from-red-50 to-rose-50 rounded-lg border border-red-200 shadow-sm transition-all duration-200 cursor-pointer sm:h-10 sm:text-sm dark:text-red-400 dark:from-red-500/20 dark:to-rose-500/20 dark:border-red-500/40 hover:from-red-100 hover:to-rose-100 dark:hover:from-red-500/30 dark:hover:to-rose-500/30 hover:border-red-300 dark:hover:border-red-400/60 hover:text-red-700 dark:hover:text-red-300 hover:shadow-md hover:shadow-red-500/20 hover:scale-105"
+                                       className="h-9 text-xs font-semibold text-purple-600 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border border-purple-200 shadow-sm transition-all duration-200 cursor-pointer sm:h-10 sm:text-sm dark:text-purple-400 dark:from-purple-500/20 dark:to-pink-500/20 dark:border-purple-500/40 hover:from-purple-100 hover:to-pink-100 dark:hover:from-purple-500/30 dark:hover:to-pink-500/30 hover:border-purple-300 dark:hover:border-purple-400/60 hover:text-purple-700 dark:hover:text-purple-300 hover:shadow-md hover:shadow-purple-500/20 hover:scale-105"
                                     >
                                        <X className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-1" />
                                        <span className="hidden sm:inline">Pass</span>
