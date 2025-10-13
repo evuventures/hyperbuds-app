@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import Trending from "@/components/dashboard/Trending";
 import Recommended from "@/components/dashboard/Recommended";
+import Recommendations from "@/components/dashboard/Recommendations";
 
 // Mock data for quick stats
 const mockStats = {
@@ -22,8 +23,8 @@ const mockStats = {
 // Mock data for recent activity
 
 
- const MainContent: React.FC = () => {
-  
+const MainContent: React.FC = () => {
+
 
   return (
     <div className="p-4 w-full min-h-screen bg-gradient-to-br from-gray-50 via-white transition-colors duration-200 to-purple-50/10 dark:from-gray-900 dark:via-gray-900 dark:to-purple-900/10 lg:p-6">
@@ -76,6 +77,8 @@ const mockStats = {
         <Trending />
 
         <Recommended />
+
+        <Recommendations />
 
         {/* Call to Action */}
         <div className="p-8 text-center text-white bg-gradient-to-r from-purple-600 to-indigo-600 rounded-2xl shadow-lg dark:from-purple-700 dark:to-indigo-700">
