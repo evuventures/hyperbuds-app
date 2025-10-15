@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation";
 import DashboardLayout from "@/components/layout/Dashboard/Dashboard";
 import { useMatchHistory } from "@/hooks/features/useMatching";
 
+
 const CollaborationsPage: React.FC = () => {
   const router = useRouter();
   const [selectedProfile, setSelectedProfile] = useState<CreatorProfile | null>(null);
@@ -150,11 +151,12 @@ const CollaborationsPage: React.FC = () => {
               </Button>
               <Button
                 variant="outline"
-                onClick={() => router.push('/collaborations/history')}
-                className="text-purple-600 border-purple-500 hover:bg-purple-50 dark:text-purple-400 dark:hover:bg-purple-900/20"
+                onClick={() => router.push('/ai-matches')}
+                className="mt-0 text-purple-600 border-purple-500 hover:bg-purple-50 dark:text-purple-400 dark:hover:bg-purple-900/20"
               >
-                History
+                View Match History
               </Button>
+
             </div>
 
             {/* Content */}
@@ -188,7 +190,7 @@ const CollaborationsPage: React.FC = () => {
                     No Collaborations Yet
                   </h3>
                   <p className="mb-6 max-w-md text-center text-gray-600 dark:text-gray-400">
-                    Start swiping to find amazing creators! When you both like each other, you&apos;ll see them here ready to collaborate.
+                    Get Matching to find amazing creators! When match is accepted, you&apos;ll see them here ready to collaborate.
                   </p>
                   <Button
                     onClick={() => router.push('/matching')}

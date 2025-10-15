@@ -134,7 +134,6 @@ export default function EditProfilePage() {
   const [isNavigating, setIsNavigating] = useState(false);
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
   const [profile, setProfile] = useState<UserProfile | null>(null);
-
   const [displayName, setDisplayName] = useState("");
   const [bio, setBio] = useState("");
   const [niches, setNiches] = useState<string[]>([]);
@@ -581,7 +580,7 @@ export default function EditProfilePage() {
               </div>
             </motion.div>
 
-            {/* Username */}
+            {/* Username 
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -597,7 +596,7 @@ export default function EditProfilePage() {
               />
               <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Username cannot be changed</p>
             </motion.div>
-
+*/}
             {/* Display Name */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
