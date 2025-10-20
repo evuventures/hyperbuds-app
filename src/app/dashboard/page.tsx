@@ -7,8 +7,8 @@ import {
   Plus,
 } from "lucide-react";
 import Trending from "@/components/dashboard/Trending";
-import Recommended from "@/components/dashboard/Recommended";
-import Recommendations from "@/components/dashboard/Recommendations";
+//import Recommended from "@/components/dashboard/Recommended";
+//import Recommendations from "@/components/dashboard/Recommendations";
 
 // Mock data for quick stats
 const mockStats = {
@@ -76,12 +76,12 @@ const MainContent: React.FC = () => {
 
         <Trending />
 
-        <Recommended />
+       {/*<Recommended />
 
-        <Recommendations />
+        <Recommendations />*/}
 
         {/* Call to Action */}
-        <div className="p-8 text-center text-white bg-gradient-to-r from-purple-600 to-indigo-600 rounded-2xl shadow-lg dark:from-purple-700 dark:to-indigo-700">
+        <div className="p-8 mt-8 text-center text-white bg-gradient-to-r from-purple-600 to-indigo-600 rounded-2xl shadow-lg dark:from-purple-700 dark:to-indigo-700">
           <h3 className="mb-4 text-2xl font-bold">
             Ready to Start Your Next Collaboration?
           </h3>
