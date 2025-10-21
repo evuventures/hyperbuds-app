@@ -1,54 +1,106 @@
 @import "tailwindcss";
 
-@custom-variant dark (&:is(.dark *));
+@import "../styles/base.css";
+@import "../styles/animations.css";
+@import "../styles/utilities.css";
+@import "../styles/components.css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
 
-    /* Fonts */
-  --font-sans: Inter, system-ui, -apple-system, sans-serif;
-  --font-mono: "JetBrains Mono", "Fira Code", Monaco, Consolas, monospace;
-  --font-display: "Clash Display", Inter, system-ui, sans-serif;
 
+
+/* Modern Dropdown Styling */
+.dropdown-menu-enhanced {
+  position: fixed !important;
+  z-index: 999999 !important;
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(20px) !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+  border-radius: 16px !important;
+  min-height: 120px !important;
+  max-height: 320px !important;
+  overflow-y: auto !important;
+  transform: translateZ(0) !important;
+  padding: 8px !important;
+  display: flex !important;
+  flex-direction: column !important;
 }
 
-/* Dark theme CSS variables */
-:root.dark {
-  --background: linear-gradient(to bottom right,
-      rgba(249, 250, 251, 1) 0%,
-      rgba(255, 255, 255, 1) 50%,
-      rgba(243, 244, 246, 1) 100%);
-  ;
-  --foreground: #ededed;
+.dark .dropdown-menu-enhanced {
+  background: rgba(31, 41, 55, 0.95) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.25), 0 10px 10px -5px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Modern Dropdown Button Styling */
+.dropdown-menu-enhanced button {
+  color: rgb(55, 65, 81) !important;
+  background: transparent !important;
+  border: none !important;
+  width: 100% !important;
+  display: block !important;
+  text-align: left !important;
+  padding: 10px 12px !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  transition: all 0.15s ease !important;
+  border-radius: 8px !important;
+  margin: 2px 0 !important;
+  position: relative !important;
+}
+
+.dark .dropdown-menu-enhanced button {
+  color: rgb(209, 213, 219) !important;
+}
+
+.dropdown-menu-enhanced button:hover {
+  background: rgba(99, 102, 241, 0.08) !important;
+  color: rgb(99, 102, 241) !important;
+  transform: translateX(2px) !important;
+}
+
+.dark .dropdown-menu-enhanced button:hover {
+  background: rgba(129, 140, 248, 0.12) !important;
+  color: rgb(129, 140, 248) !important;
+}
+
+.dropdown-menu-enhanced button[data-selected="true"] {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(79, 70, 229, 0.08)) !important;
+  color: rgb(99, 102, 241) !important;
+  font-weight: 600 !important;
+  border-left: 3px solid rgb(99, 102, 241) !important;
+}
+
+.dark .dropdown-menu-enhanced button[data-selected="true"] {
+  background: linear-gradient(135deg, rgba(129, 140, 248, 0.15), rgba(99, 102, 241, 0.1)) !important;
+  color: rgb(129, 140, 248) !important;
+  border-left-color: rgb(129, 140, 248) !important;
 }
 
 
-/* Loading skeleton */
-.skeleton {
-  background: linear-gradient(90deg, #f0f0f0 25%, transparent 37%, #f0f0f0 63%);
-  background-size: 400% 100%;
-  animation: skeleton-loading 1.4s ease infinite;
+
+
+
+/* ============================
+   🌙 DARK THEME SIDEBAR STYLES
+============================ */
+
+.sidebar-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: white;
+  transition: background-color 0.2s ease;
 }
 
-@keyframes skeleton-loading {
-  0% {
-    background-position: 100% 50%;
-  }
-
-  100% {
-    background-position: -100% 50%;
-  }
+.dark .sidebar-container {
+  background: #111827;
 }
 
-/* Hide scrollbar for Chrome, Safari and Opera */
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
-}
-
-/* Hide scrollbar for IE, Edge and Firefox */
-.no-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
+.sidebar-content {
+  flex: 1;
+  padding: 0 1.25rem 1.25rem 1.25rem;
+  overflow-y: auto;
 }
 
