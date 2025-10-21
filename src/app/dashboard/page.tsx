@@ -7,7 +7,7 @@ import {
   Plus,
 } from "lucide-react";
 import Trending from "@/components/dashboard/Trending";
-import Recommended from "@/components/dashboard/Recommended";
+//import Recommended from "@/components/dashboard/Recommended";
 import Recommendations from "@/components/dashboard/Recommendations";
 
 // Mock data for quick stats
@@ -76,7 +76,7 @@ const MainContent: React.FC = () => {
 
         <Trending />
 
-        <Recommended />
+       {/* <Recommended />*/}
 
         <Recommendations />
 
