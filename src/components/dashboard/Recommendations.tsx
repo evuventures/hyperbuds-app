@@ -13,6 +13,7 @@ import {
    ArrowRight,
    X,
    Eye,
+   Sparkles,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
@@ -21,16 +22,13 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useRecommendations } from "@/hooks/features/useRecommendations";
 import type { RecommendationCard } from "@/types/recommendation.types";
+import Link from "next/link";
 
 import "swiper/css";
 import "swiper/css/pagination";
 import "swiper/css/navigation";
 
-interface RecommendationsProps {
-   onGetMatches?: () => void;
-}
-
-const Recommendations: React.FC<RecommendationsProps> = ({ onGetMatches }) => {
+const Recommendations: React.FC = () => {
    const [likedCreators, setLikedCreators] = useState<number[]>([]);
    const [removedCreators, setRemovedCreators] = useState<number[]>([]);
 
@@ -42,7 +40,6 @@ const Recommendations: React.FC<RecommendationsProps> = ({ onGetMatches }) => {
       error,
       giveAnotherChance,
       permanentlyPass,
-      getFreshMatches,
    } = useRecommendations({ enabled: true });
 
    const handleGiveAnotherChance = (creatorId: number) => {
@@ -91,23 +88,6 @@ const Recommendations: React.FC<RecommendationsProps> = ({ onGetMatches }) => {
       if (score >= 75) return "text-white bg-blue-600 border-blue-500 shadow-lg";
       if (score >= 65) return "text-white bg-green-600 border-green-500 shadow-lg";
       return "text-white bg-gray-600 border-gray-500 shadow-lg";
-   };
-
-   const handleGetMatches = () => {
-      console.log("🎯 Getting fresh matches...");
-
-      if (onGetMatches) {
-         onGetMatches();
-      } else {
-         getFreshMatches();
-      }
-
-      // Show feedback
-      setTimeout(() => {
-         console.log("✨ Fresh matches loaded! Check your recommendations.");
-         // In a real app, you might show a toast notification here
-         // toast.success("Fresh matches loaded!");
-      }, 1000);
    };
 
    const handleViewAllRecommendations = () => {
@@ -257,17 +237,18 @@ const Recommendations: React.FC<RecommendationsProps> = ({ onGetMatches }) => {
                      </p>
                   </div>
 
-                  <motion.button
-                     onClick={handleGetMatches}
-                     className="flex gap-2 items-center px-8 py-4 font-semibold text-white bg-gradient-to-r from-purple-600 to-indigo-600 rounded-xl shadow-lg transition-all duration-200 transform cursor-pointer hover:from-purple-700 hover:to-indigo-700 hover:scale-105"
-                     whileHover={{ scale: 1.05 }}
-                     whileTap={{ scale: 0.95 }}
-                     transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                  >
-                     <Zap className="w-5 h-5" />
-                     Get Matches
-                     <ArrowRight className="w-5 h-5" />
-                  </motion.button>
+                  <Link href="/ai-matches">
+                     <motion.button
+                        className="flex gap-2 items-center px-8 py-4 font-semibold text-white bg-gradient-to-r from-purple-600 to-indigo-600 rounded-xl shadow-lg transition-all duration-200 transform cursor-pointer hover:from-purple-700 hover:to-indigo-700 hover:scale-105"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                     >
+                        <Sparkles className="w-5 h-5" />
+                        Start to Generate
+                        <ArrowRight className="w-5 h-5" />
+                     </motion.button>
+                  </Link>
                </div>
             </div>
          </section>
@@ -469,7 +450,7 @@ const Recommendations: React.FC<RecommendationsProps> = ({ onGetMatches }) => {
                                        className="w-full h-10 sm:h-11 text-sm sm:text-base font-bold text-white bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg border-0 shadow-md transition-all duration-200 cursor-pointer hover:from-purple-600 hover:to-pink-600 hover:text-white hover:shadow-lg hover:shadow-purple-500/40 hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
                                        <Zap className="mr-1.5 sm:mr-2 w-4 h-4 sm:w-5 sm:h-5" />
-                                       {likedCreators.includes(card.id) ? "Already Accepted!" : "Accept"}
+                                       {likedCreators.includes(card.id) ? "Collaboration Started!" : "Start Collab"}
                                     </Button>
                                  </div>
                               </CardContent>

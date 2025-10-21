@@ -1,5 +1,5 @@
-import { useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { recommendationsApi } from '@/lib/api/recommendations.api';
 import type {
    RecommendationsResponse,
    GiveChanceResponse,
@@ -16,7 +16,7 @@ export const useRecommendations = (options: UseRecommendationsOptions = {}) => {
    const { enabled = true, limit = 10, offset = 0 } = options;
    const queryClient = useQueryClient();
 
-   // Fetch recommendations from API
+   // Fetch recommendations from backend API directly
    const {
       data: recommendationsData,
       isLoading: isLoadingRecommendations,
@@ -25,40 +25,39 @@ export const useRecommendations = (options: UseRecommendationsOptions = {}) => {
    } = useQuery<RecommendationsResponse>({
       queryKey: ['recommendations', { limit, offset }],
       queryFn: async () => {
-         const response = await fetch(`/api/recommendations?limit=${limit}&offset=${offset}`);
-
-         if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message || 'Failed to fetch recommendations');
+         try {
+            const response = await recommendationsApi.getRecommendations({ limit, offset });
+            return response;
+         } catch (error: unknown) {
+            // If backend doesn't have endpoint yet, return empty data
+            console.warn('Recommendations API not available yet:', error);
+            return {
+               success: true,
+               data: {
+                  recommendations: [],
+                  total: 0,
+                  hasMore: false,
+                  pagination: {
+                     limit,
+                     offset,
+                     totalPages: 0,
+                     currentPage: 1,
+                  }
+               }
+            };
          }
-
-         const data = await response.json();
-         return data;
       },
       enabled,
       staleTime: 5 * 60 * 1000, // 5 minutes
       gcTime: 10 * 60 * 1000, // 10 minutes
-      retry: 2,
+      retry: 1, // Reduced retries since backend might not be ready
       retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
    });
 
    // Give another chance mutation
    const likeRecommendationMutation = useMutation<GiveChanceResponse, Error, number>({
       mutationFn: async (creatorId: number) => {
-         const response = await fetch('/api/recommendations/give-chance', {
-            method: 'POST',
-            headers: {
-               'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ creatorId }),
-         });
-
-         if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message || 'Failed to give creator another chance');
-         }
-
-         return response.json();
+         return await recommendationsApi.giveAnotherChance(creatorId);
       },
       onSuccess: (data) => {
          // Invalidate and refetch recommendations
@@ -77,20 +76,7 @@ export const useRecommendations = (options: UseRecommendationsOptions = {}) => {
    // Permanently pass mutation
    const removeRecommendationMutation = useMutation<PermanentlyPassResponse, Error, number>({
       mutationFn: async (creatorId: number) => {
-         const response = await fetch('/api/recommendations/permanently-pass', {
-            method: 'POST',
-            headers: {
-               'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ creatorId }),
-         });
-
-         if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message || 'Failed to permanently pass creator');
-         }
-
-         return response.json();
+         return await recommendationsApi.permanentlyPass(creatorId);
       },
       onSuccess: (data) => {
          // Invalidate and refetch recommendations
@@ -102,16 +88,6 @@ export const useRecommendations = (options: UseRecommendationsOptions = {}) => {
          console.error('❌ Failed to permanently pass:', error.message);
       },
    });
-
-   // Get fresh matches (navigate to matching page)
-   const getFreshMatches = useCallback(() => {
-      // Invalidate queries to refresh data
-      queryClient.invalidateQueries({ queryKey: ['matches'] });
-      queryClient.invalidateQueries({ queryKey: ['recommendations'] });
-
-      // Navigate to matching page
-      window.location.href = '/matching';
-   }, [queryClient]);
 
    return {
       // Data
@@ -130,7 +106,6 @@ export const useRecommendations = (options: UseRecommendationsOptions = {}) => {
       // Actions
       giveAnotherChance: likeRecommendationMutation.mutate,
       permanentlyPass: removeRecommendationMutation.mutate,
-      getFreshMatches,
       refetch: refetchRecommendations,
    };
 };
