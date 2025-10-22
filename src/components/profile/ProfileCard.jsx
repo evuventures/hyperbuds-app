@@ -223,7 +223,7 @@ export default function UserProfileHeader({
                     )}
                   </div>
 
-                  <div className="flex gap-4 items-start mb-3">
+                  <div className="flex flex-col gap-2 items-start mb-3 md:flex-row md:gap-4">
                     <p className="text-lg font-medium text-blue-600 transition-colors cursor-pointer dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300">
                       @{user.username}
                     </p>
@@ -337,7 +337,7 @@ export default function UserProfileHeader({
           {isOwnProfile ? (
             <div className="flex justify-start">
               <Link href="/matching">
-                <button className="flex gap-2 items-center justify-center px-6 py-3 text-sm font-semibold text-white bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg shadow-lg transition-all transform hover:scale-105 hover:from-purple-600 hover:to-pink-600 dark:from-purple-600 dark:to-pink-600 dark:hover:from-purple-700 dark:hover:to-pink-700 hover:shadow-xl">
+                <button className="flex gap-2 justify-center items-center px-6 py-3 text-sm font-semibold text-white bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg shadow-lg transition-all transform hover:scale-105 hover:from-purple-600 hover:to-pink-600 dark:from-purple-600 dark:to-pink-600 dark:hover:from-purple-700 dark:hover:to-pink-700 hover:shadow-xl">
                   <Heart size={18} />
                   Get Match
                 </button>
@@ -367,13 +367,13 @@ export default function UserProfileHeader({
 
               <button
                 onClick={() => onMessage?.(user.id)}
-                className="flex gap-3 items-center justify-center px-6 py-4 font-semibold text-gray-700 bg-white rounded-xl border-2 border-gray-200 shadow-lg transition-all hover:scale-105 dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500"
+                className="flex gap-3 justify-center items-center px-6 py-4 font-semibold text-gray-700 bg-white rounded-xl border-2 border-gray-200 shadow-lg transition-all hover:scale-105 dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500"
               >
                 <MessageCircle size={20} />
                 Message
               </button>
 
-              <button className="flex gap-3 items-center justify-center px-6 py-4 font-semibold text-gray-700 bg-white rounded-xl border-2 border-gray-200 shadow-lg transition-all hover:scale-105 dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500">
+              <button className="flex gap-3 justify-center items-center px-6 py-4 font-semibold text-gray-700 bg-white rounded-xl border-2 border-gray-200 shadow-lg transition-all hover:scale-105 dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500">
                 <Mail size={20} />
                 Email
               </button>
@@ -385,7 +385,7 @@ export default function UserProfileHeader({
       {/* Enhanced Stats Overview with Animation */}
       {
         user.stats && (
-          <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 md:grid-cols-4">
             {[
               {
                 label: "Total Followers",
@@ -418,13 +418,13 @@ export default function UserProfileHeader({
             ].map((stat, index) => (
               <div
                 key={stat.label}
-                className={`group relative overflow-hidden rounded-2xl bg-white dark:bg-gray-800/50 border border-gray-200/60 dark:border-gray-700/60 p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] backdrop-blur-sm ${stat.label === "Rizz Score" && isOwnProfile ? "cursor-pointer" : ""
+                className={`group relative overflow-hidden rounded-2xl bg-white dark:bg-gray-800/50 border border-gray-200/60 dark:border-gray-700/60 p-4 sm:p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] backdrop-blur-sm ${stat.label === "Rizz Score" && isOwnProfile ? "cursor-pointer" : ""
                   }`}
                 onClick={stat.label === "Rizz Score" && isOwnProfile ? handleNavigateToRizzScore : undefined}
               >
-                <div className="flex justify-between items-center mb-4">
+                <div className="flex justify-between items-center mb-3 sm:mb-4">
                   <div
-                    className={`p-3 rounded-xl bg-gradient-to-br ${stat.color === "blue"
+                    className={`p-2 sm:p-3 rounded-xl bg-gradient-to-br flex-shrink-0 ${stat.color === "blue"
                       ? "from-blue-100 to-blue-200 dark:from-blue-500/20 dark:to-blue-600/20"
                       : stat.color === "green"
                         ? "from-green-100 to-green-200 dark:from-green-500/20 dark:to-green-600/20"
@@ -434,8 +434,8 @@ export default function UserProfileHeader({
                       }`}
                   >
                     <stat.icon
-                      size={24}
-                      className={`${stat.color === "blue"
+                      size={20}
+                      className={`sm:w-6 sm:h-6 ${stat.color === "blue"
                         ? "text-blue-600 dark:text-blue-400"
                         : stat.color === "green"
                           ? "text-green-600 dark:text-green-400"
@@ -446,20 +446,20 @@ export default function UserProfileHeader({
                     />
                   </div>
                   {stat.change && (
-                    <span className="px-2 py-1 text-xs font-medium text-green-600 bg-green-50 rounded-full dark:text-green-400 dark:bg-green-500/20">
+                    <span className="flex-shrink-0 px-2 py-1 text-xs font-medium text-green-600 bg-green-50 rounded-full dark:text-green-400 dark:bg-green-500/20">
                       {stat.change}
                     </span>
                   )}
                 </div>
                 <div
-                  className={`text-3xl font-bold mb-2 bg-gradient-to-r ${stat.color === "blue"
-                    ? "from-blue-600 to-blue-800 dark:from-blue-400 dark:to-blue-200"
+                  className={`text-2xl sm:text-3xl font-bold mb-2 break-words overflow-visible ${stat.color === "blue"
+                    ? "text-blue-600 dark:text-blue-400"
                     : stat.color === "green"
-                      ? "from-green-600 to-green-800 dark:from-green-400 dark:to-green-200"
+                      ? "text-green-600 dark:text-green-400"
                       : stat.color === "purple"
-                        ? "from-purple-600 to-purple-800 dark:from-purple-400 dark:to-purple-200"
-                        : "from-orange-600 to-orange-800 dark:from-orange-400 dark:to-orange-200"
-                    } bg-clip-text text-transparent`}
+                        ? "text-purple-600 dark:text-purple-400"
+                        : "text-orange-600 dark:text-orange-400"
+                    }`}
                 >
                   {stat.value}
                 </div>

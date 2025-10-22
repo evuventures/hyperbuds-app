@@ -24,7 +24,7 @@ type PayoutAccountStatus = {
 };
 
 function EarningsDashboard() {
-    const { state, loadEarnings, requestPayout,  getPayoutAccountStatus } = usePayment();
+    const { state, loadEarnings, requestPayout, getPayoutAccountStatus } = usePayment();
     const [payoutAmount, setPayoutAmount] = useState<string>('');
     const [payoutDescription, setPayoutDescription] = useState<string>('');
     const [showPayoutForm, setShowPayoutForm] = useState(false);
@@ -60,7 +60,8 @@ function EarningsDashboard() {
     useEffect(() => {
         loadEarnings();
         loadPayoutAccountStatus();
-    }, [loadEarnings, loadPayoutAccountStatus]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     // Mock earnings data for development
     const mockEarnings = process.env.NODE_ENV === 'development' ? {

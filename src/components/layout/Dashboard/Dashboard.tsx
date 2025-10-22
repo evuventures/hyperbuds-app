@@ -114,14 +114,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
 
         {/* Main Dashboard Container */}
-        <div className="flex overflow-hidden pt-16 lg:h-[90vh] lg:pt-0">
+        <div className="flex overflow-hidden pt-16 min-h-screen lg:pt-0">
           {/* Sidebar */}
           <div
             className={`
-              fixed inset-y-0 left-0 z-40 transform transition-all duration-300 ease-in-out
+              fixed inset-y-0 left-0 z-40 w-60 transform transition-all duration-300 ease-in-out
               lg:relative lg:translate-x-0 lg:z-auto lg:pt-0
               ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-              ${sidebarCollapsed ? 'lg:w-16' : 'w-60'}
+              ${sidebarCollapsed ? 'lg:w-16' : 'lg:w-60'}
             `}
           >
             <div className="relative pt-16 h-full bg-white border-r shadow-xl transition-colors duration-200 lg:pt-0 dark:bg-gray-900 border-gray-200/50 dark:border-gray-700/50 lg:shadow-none">
@@ -138,12 +138,24 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <Sidebar
                   user={user}
                   activeTab={activeTab}
+                  collapsed={false}
+                  onTabChange={(tab) => {
+                    setActiveTab(tab);
+                    setSidebarOpen(false);
+                  }}
+                  onToggleCollapse={toggleSidebarCollapse}
+                  className="lg:hidden"
+                />
+                <Sidebar
+                  user={user}
+                  activeTab={activeTab}
                   collapsed={sidebarCollapsed}
                   onTabChange={(tab) => {
                     setActiveTab(tab);
                     setSidebarOpen(false);
                   }}
                   onToggleCollapse={toggleSidebarCollapse}
+                  className="hidden lg:flex"
                 />
               </div>
             </div>
