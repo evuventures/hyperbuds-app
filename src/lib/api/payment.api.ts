@@ -23,7 +23,7 @@ import {
    PaymentErrorResponse
 } from '@/types/payment.types';
 
-const BASE_URL = 'https://api.hyperbuds.com/api/v1/payments';
+const BASE_URL = 'https://api-hyperbuds-backend.onrender.com/api/v1/payments';
 
 class PaymentAPI {
    private async request<T>(
