@@ -29,10 +29,10 @@ const LoadingSpinner = () => (
 
 const handleGoogleLogin = () => {
   const clientId = "265404811439-3a6feinek5pckg02bjg7mfrva4esuqh0.apps.googleusercontent.com";
-  const redirectUri = "http://localhost:3000"; 
+  const redirectUri = "http://localhost:3000";
   const scope = "email profile";
   const responseType = "code";
-  
+
   const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=${responseType}&scope=${scope}&access_type=offline&prompt=consent`;
 
   window.location.href = googleAuthUrl;
@@ -96,8 +96,7 @@ export default function App() {
         const data = await response.json();
         setError(data.message || 'An error occurred during registration.');
       }
-    } catch (err) {
-      console.error('Network error:', err);
+    } catch {
       setError('A network error occurred. Please try again.');
     } finally {
       setIsLoading(false);
@@ -144,9 +143,9 @@ export default function App() {
                 </div>
                 <span className="text-sm font-medium text-gray-700">Facebook</span>
               </button>
-              <button 
-                 onClick={handleGoogleLogin}
-                className="flex flex-1 cursor-pointer gap-3 justify-center items-center h-12 rounded-xl border backdrop-blur-sm transition-colors duration-300 bg-white/60 border-white/30 hover:bg-white/80">
+              <button
+                onClick={handleGoogleLogin}
+                className="flex flex-1 gap-3 justify-center items-center h-12 rounded-xl border backdrop-blur-sm transition-colors duration-300 cursor-pointer bg-white/60 border-white/30 hover:bg-white/80">
                 <Chrome className="w-5 h-5 text-red-500" />
                 <span className="text-sm font-medium text-gray-700">Google</span>
               </button>
@@ -204,7 +203,14 @@ export default function App() {
                 disabled={isLoading}
                 className="w-full h-14 bg-linear-to-r from-purple-600 to-blue-600 text-white font-semibold rounded-xl hover:from-purple-700 hover:to-blue-700 transition-all duration-300 transform hover:scale-[1.02] hover:shadow-lg hover:shadow-purple-500/25 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
               >
-                {isLoading ? <LoadingSpinner /> : 'Sign Up'}
+                {isLoading ? (
+                  <>
+                    <LoadingSpinner />
+                    <span>Signing up...</span>
+                  </>
+                ) : (
+                  'Sign Up'
+                )}
               </button>
             </form>
             <p className='mx-auto mt-4 text-base text-center'>Already have an account? <a href="/auth/signin" className='font-semibold text-blue-600 transition-colors duration-200 hover:text-blue-500'>signin</a></p>
