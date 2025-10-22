@@ -522,7 +522,7 @@ const MatchmakingPage: React.FC = () => {
                         repeat: Infinity,
                         ease: "easeInOut"
                       }}
-                      className="absolute inset-0 bg-gradient-to-r rounded-full blur-md from-purple-400/40 to-pink-400/40"
+                      className="absolute inset-0 bg-linear-to-r rounded-full blur-md from-purple-400/40 to-pink-400/40"
                     />
 
                     {/* Enhanced Avatar */}
