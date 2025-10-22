@@ -502,7 +502,7 @@ function StripeFormComponent({ onSubmit, isLoading = false, error }: StripeFormP
             <button
                 type="submit"
                 disabled={isLoading || !isManualFormComplete || state.isLoading}
-                className="py-3 mt-6 w-full font-semibold text-white bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg shadow-md transition cursor-pointer hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="py-3 mt-6 w-full font-semibold text-white bg-linear-to-r from-purple-500 to-pink-500 rounded-lg shadow-md transition cursor-pointer hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
             >
                 {isLoading || state.isLoading ? 'Processing...' : 'Pay Now'}
             </button>

@@ -117,7 +117,7 @@ export default function LoginForm() {
   };
 
   return (
-    <div className="flex justify-center items-center p-4 min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
+    <div className="flex justify-center items-center p-4 min-h-screen bg-linear-to-br from-indigo-50 via-white to-purple-50">
       {/* Background circles for visual effect */}
       <div className="overflow-hidden fixed inset-0 pointer-events-none">
         <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full blur-3xl bg-purple-300/30" />
@@ -129,13 +129,13 @@ export default function LoginForm() {
         <div className="flex justify-center items-center p-4 w-full lg:w-1/2 lg:p-8">
           <div className="w-full max-w-md">
             <div className="mb-8 text-center">
-              <div className="inline-flex justify-center items-center mb-6 w-16 h-16 bg-gradient-to-r from-purple-500 to-blue-500 rounded-2xl shadow-lg shadow-purple-500/25">
+              <div className="inline-flex justify-center items-center mb-6 w-16 h-16 bg-linear-to-r from-purple-500 to-blue-500 rounded-2xl shadow-lg shadow-purple-500/25">
                 {/* User icon placeholder */}
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-8 h-8 text-white lucide lucide-user-check">
                   <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><polyline points="16 11 18 13 22 9" />
                 </svg>
               </div>
-              <h1 className="mb-2 text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-gray-900 to-gray-600">
+              <h1 className="mb-2 text-4xl font-bold text-transparent bg-clip-text bg-linear-to-r from-gray-900 to-gray-600">
                 Welcome Back
               </h1>
               <p className="text-gray-600">Please log in to your account</p>
@@ -174,9 +174,9 @@ export default function LoginForm() {
             </div>
 
             <div className="flex items-center mb-8">
-              <div className="flex-1 h-px bg-gradient-to-r from-transparent to-gray-300" />
+              <div className="flex-1 h-px bg-linear-to-r from-transparent to-gray-300" />
               <span className="px-4 text-sm text-gray-500">or continue with email</span>
-              <div className="flex-1 h-px bg-gradient-to-l from-transparent to-gray-300" />
+              <div className="flex-1 h-px bg-linear-to-l from-transparent to-gray-300" />
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -233,7 +233,7 @@ export default function LoginForm() {
 
               <button
                 type="submit"
-                className="w-full h-14 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-semibold rounded-xl hover:from-purple-700 hover:to-blue-700 transition-all duration-300 transform hover:scale-[1.02] hover:shadow-lg hover:shadow-purple-500/25 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full h-14 bg-linear-to-r from-purple-600 to-blue-600 text-white font-semibold rounded-xl hover:from-purple-700 hover:to-blue-700 transition-all duration-300 transform hover:scale-[1.02] hover:shadow-lg hover:shadow-purple-500/25 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
               >
                 Log In
               </button>
@@ -254,8 +254,8 @@ export default function LoginForm() {
 
         {/* Right-hand side marketing content */}
         <div className="hidden relative w-1/2 lg:block">
-          <div className="overflow-hidden absolute inset-4 bg-gradient-to-br rounded-3xl from-purple-600/90 to-blue-600/90">
-            <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-blue-500/20" />
+          <div className="overflow-hidden absolute inset-4 bg-linear-to-br rounded-3xl from-purple-600/90 to-blue-600/90">
+            <div className="absolute inset-0 bg-linear-to-br from-purple-500/20 to-blue-500/20" />
             <div className="flex relative justify-center items-center p-12 h-full">
               <div className="text-center text-white">
                 <div className="flex justify-center items-center mx-auto mb-8 w-24 h-24 rounded-2xl backdrop-blur-sm bg-white/20">

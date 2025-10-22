@@ -140,7 +140,7 @@ const RightSidebarSkeleton: React.FC = () => (
       <div className="space-y-3">
         {Array.from({ length: 4 }).map((_, i) => (
           <div key={i} className="flex items-start p-3 space-x-3 bg-gray-50 rounded-lg dark:bg-gray-700">
-            <Skeleton className="flex-shrink-0 w-8 h-8 rounded-full" />
+            <Skeleton className="shrink-0 w-8 h-8 rounded-full" />
             <div className="flex-1">
               <Skeleton className="mb-1 w-full h-4" />
               <Skeleton className="w-16 h-3" />
@@ -181,7 +181,7 @@ const RightSidebarSkeleton: React.FC = () => (
 // Main Dashboard Skeleton Component
 const DashboardSkeleton: React.FC<{ collapsed?: boolean }> = ({ collapsed = false }) => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 transition-colors duration-200 overflow-y-clip dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
+    <div className="min-h-screen bg-linear-to-br from-gray-50 via-white to-gray-100 transition-colors duration-200 overflow-y-clip dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
       {/* Mobile Header Skeleton */}
       <div className="fixed top-0 right-0 left-0 z-50 border-b shadow-sm backdrop-blur-lg lg:hidden bg-white/95 dark:bg-gray-900/95 border-gray-200/50 dark:border-gray-700/50">
         <div className="flex justify-between items-center px-4 py-3">

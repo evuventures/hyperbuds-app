@@ -74,7 +74,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <ThemeProvider>
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 transition-colors duration-200 overflow-y-clip dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
+      <div className="min-h-screen bg-linear-to-br from-gray-50 via-white to-gray-100 transition-colors duration-200 overflow-y-clip dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
         {/* Mobile Header */}
         <div className="fixed top-0 right-0 left-0 z-50 border-b shadow-sm backdrop-blur-lg lg:hidden bg-white/95 dark:bg-gray-900/95 border-gray-200/50 dark:border-gray-700/50">
           <div className="flex justify-between items-center px-4 py-3">
@@ -85,7 +85,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               >
                 <Menu className="w-5 h-5 text-gray-600 dark:text-gray-300" />
               </button>
-              <h1 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-600">
+              <h1 className="text-xl font-bold text-transparent bg-clip-text bg-linear-to-r from-purple-600 to-blue-600">
                 HyperBuds
               </h1>
             </div>
@@ -99,7 +99,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zM12 13a1 1 0 110-2 1 1 0 010 2zM12 20a1 1 0 110-2 1 1 0 010 2z" />
                 </svg>
               </button>
-              <div className="flex justify-center items-center w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full">
+              <div className="flex justify-center items-center w-8 h-8 bg-linear-to-r from-purple-500 to-pink-500 rounded-full">
                 <span className="text-sm font-medium text-white">
                   {user.name?.[0]?.toUpperCase() || user.email[0].toUpperCase()}
                 </span>

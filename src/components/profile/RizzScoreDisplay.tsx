@@ -193,7 +193,7 @@ export const RizzScoreDisplay: React.FC<RizzScoreDisplayProps> = ({
                   initial={{ scale: 0, rotate: -180 }}
                   animate={{ scale: 1, rotate: 0 }}
                   transition={{ delay: 0.3, type: "spring", stiffness: 300 }}
-                  className={`p-2 bg-gradient-to-br ${getScoreBgColor(rizzScore.currentScore)} rounded-lg`}
+                  className={`p-2 bg-linear-to-br ${getScoreBgColor(rizzScore.currentScore)} rounded-lg`}
                >
                   <Star size={24} className={getScoreColor(rizzScore.currentScore)} />
                </motion.div>
@@ -226,7 +226,7 @@ export const RizzScoreDisplay: React.FC<RizzScoreDisplayProps> = ({
                <motion.div
                   animate={{ rotate: 360 }}
                   transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-                  className={`absolute inset-0 w-40 h-40 rounded-full bg-gradient-to-r ${getScoreBgColor(rizzScore.currentScore)} opacity-20 blur-xl`}
+                  className={`absolute inset-0 w-40 h-40 rounded-full bg-linear-to-r ${getScoreBgColor(rizzScore.currentScore)} opacity-20 blur-xl`}
                />
 
                {/* Main Score Circle */}
@@ -235,13 +235,13 @@ export const RizzScoreDisplay: React.FC<RizzScoreDisplayProps> = ({
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ duration: 0.6, type: "spring", stiffness: 200, delay: 0.2 }}
                   whileHover={{ scale: 1.05 }}
-                  className={`relative inline-flex items-center justify-center w-36 h-36 rounded-full bg-gradient-to-br ${getScoreBgColor(rizzScore.currentScore)} border-4 border-white shadow-2xl dark:border-gray-800 overflow-hidden`}
+                  className={`relative inline-flex items-center justify-center w-36 h-36 rounded-full bg-linear-to-br ${getScoreBgColor(rizzScore.currentScore)} border-4 border-white shadow-2xl dark:border-gray-800 overflow-hidden`}
                >
                   {/* Inner Pulsing Circle */}
                   <motion.div
                      animate={{ scale: [1, 1.1, 1] }}
                      transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                     className={`absolute inset-2 bg-gradient-to-br to-transparent rounded-full from-white/20`}
+                     className={`absolute inset-2 bg-linear-to-br to-transparent rounded-full from-white/20`}
                   />
 
                   {/* Score Number */}
@@ -281,7 +281,7 @@ export const RizzScoreDisplay: React.FC<RizzScoreDisplayProps> = ({
                   initial={{ scale: 0.9, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ delay: 1, duration: 0.4 }}
-                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r ${getScoreBgColor(rizzScore.currentScore)} bg-opacity-10 border border-current`}
+                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-full bg-linear-to-r ${getScoreBgColor(rizzScore.currentScore)} bg-opacity-10 border border-current`}
                >
                   <motion.div
                      animate={{ scale: [1, 1.2, 1] }}
@@ -334,7 +334,7 @@ export const RizzScoreDisplay: React.FC<RizzScoreDisplayProps> = ({
                         initial={{ width: 0 }}
                         animate={{ width: `${rizzScore.currentScore}%` }}
                         transition={{ delay: 1.6, duration: 1, ease: "easeOut" }}
-                        className={`h-full bg-gradient-to-r ${getScoreBgColor(rizzScore.currentScore)} rounded-full`}
+                        className={`h-full bg-linear-to-r ${getScoreBgColor(rizzScore.currentScore)} rounded-full`}
                      />
                   </div>
                   <div className="mt-1 text-xs text-center text-gray-500 dark:text-gray-400">
@@ -427,7 +427,7 @@ export const RizzScoreDisplay: React.FC<RizzScoreDisplayProps> = ({
                                  y: -4,
                                  transition: { duration: 0.2 }
                               }}
-                              className={`overflow-hidden relative p-6 bg-gradient-to-br rounded-2xl border-2 transition-all duration-300 cursor-pointer group ${colors[colorClass]}`}
+                              className={`overflow-hidden relative p-6 bg-linear-to-br rounded-2xl border-2 transition-all duration-300 cursor-pointer group ${colors[colorClass]}`}
                            >
                               {/* Animated Background Pattern */}
                               <motion.div
@@ -435,7 +435,7 @@ export const RizzScoreDisplay: React.FC<RizzScoreDisplayProps> = ({
                                  animate={{ rotate: [0, 360] }}
                                  transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
                               >
-                                 <div className={`w-full h-full bg-gradient-to-br ${colorClass === "red" ? "from-red-400 to-red-600"
+                                 <div className={`w-full h-full bg-linear-to-br ${colorClass === "red" ? "from-red-400 to-red-600"
                                     : colorClass === "green" ? "from-green-400 to-green-600"
                                        : colorClass === "blue" ? "from-blue-400 to-blue-600"
                                           : "from-purple-400 to-purple-600"
@@ -506,10 +506,10 @@ export const RizzScoreDisplay: React.FC<RizzScoreDisplayProps> = ({
                                        initial={{ width: 0 }}
                                        animate={{ width: `${Math.min(parseFloat(factor.value.replace('%', '')), 100)}%` }}
                                        transition={{ delay: factor.delay + 0.7, duration: 1, ease: "easeOut" }}
-                                       className={`h-full rounded-full ${colorClass === "red" ? "bg-gradient-to-r from-red-400 to-red-500"
-                                          : colorClass === "green" ? "bg-gradient-to-r from-green-400 to-green-500"
-                                             : colorClass === "blue" ? "bg-gradient-to-r from-blue-400 to-blue-500"
-                                                : "bg-gradient-to-r from-purple-400 to-purple-500"
+                                       className={`h-full rounded-full ${colorClass === "red" ? "bg-linear-to-r from-red-400 to-red-500"
+                                          : colorClass === "green" ? "bg-linear-to-r from-green-400 to-green-500"
+                                             : colorClass === "blue" ? "bg-linear-to-r from-blue-400 to-blue-500"
+                                                : "bg-linear-to-r from-purple-400 to-purple-500"
                                           }`}
                                     />
                                  </motion.div>
@@ -528,7 +528,7 @@ export const RizzScoreDisplay: React.FC<RizzScoreDisplayProps> = ({
                            exit={{ opacity: 0, scale: 0.9, y: -20 }}
                            transition={{ delay: 2, duration: 0.5, type: "spring", stiffness: 200 }}
                            whileHover={{ scale: 1.02 }}
-                           className="p-4 bg-gradient-to-r from-orange-50 to-red-50 rounded-xl border border-orange-200 dark:from-orange-500/10 dark:to-red-500/10 dark:border-orange-500/20"
+                           className="p-4 bg-linear-to-r from-orange-50 to-red-50 rounded-xl border border-orange-200 dark:from-orange-500/10 dark:to-red-500/10 dark:border-orange-500/20"
                         >
                            <motion.div
                               initial={{ x: -20, opacity: 0 }}

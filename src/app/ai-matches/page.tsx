@@ -109,11 +109,11 @@ const AIMatchesPage: React.FC = () => {
                   {/* Title */}
                   <div className="mb-6 text-center">
                      <div className="flex items-center justify-center mb-3">
-                        <div className="p-3 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 dark:from-purple-600 dark:to-pink-600">
+                        <div className="p-3 rounded-full bg-linear-to-r from-purple-500 to-pink-500 dark:from-purple-600 dark:to-pink-600">
                            <Heart className="w-8 h-8 text-white" />
                         </div>
                      </div>
-                     <h1 className="mb-2 text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent dark:from-purple-400 dark:to-pink-400">
+                     <h1 className="mb-2 text-4xl font-bold bg-linear-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent dark:from-purple-400 dark:to-pink-400">
                         AI Matches
                      </h1>
                      <p className="text-lg text-gray-600 dark:text-gray-400">
@@ -130,7 +130,7 @@ const AIMatchesPage: React.FC = () => {
                      {isLoading ? (
                         <div className="flex flex-col justify-center items-center py-16">
                            <div className="relative mb-6">
-                              <div className="w-20 h-20 rounded-full bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 flex items-center justify-center">
+                              <div className="w-20 h-20 rounded-full bg-linear-to-r from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 flex items-center justify-center">
                                  <Loader2 className="w-10 h-10 text-purple-600 animate-spin dark:text-purple-400" />
                               </div>
                               <div className="absolute -top-1 -right-1 w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center animate-pulse">
@@ -160,7 +160,7 @@ const AIMatchesPage: React.FC = () => {
                            <div className="flex flex-col sm:flex-row gap-4">
                               <Button 
                                  onClick={() => refetch()} 
-                                 className="px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold rounded-lg"
+                                 className="px-6 py-3 bg-linear-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold rounded-lg"
                               >
                                  <RefreshCw className="w-4 h-4 mr-2" />
                                  Try Again
@@ -181,8 +181,8 @@ const AIMatchesPage: React.FC = () => {
                            <div className="text-center max-w-2xl mx-auto">
                               {/* Animated Icon */}
                               <div className="relative mb-8">
-                                 <div className="w-32 h-32 mx-auto rounded-full bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 flex items-center justify-center">
-                                    <div className="w-24 h-24 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 dark:from-purple-600 dark:to-pink-600 flex items-center justify-center animate-pulse">
+                                 <div className="w-32 h-32 mx-auto rounded-full bg-linear-to-r from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 flex items-center justify-center">
+                                    <div className="w-24 h-24 rounded-full bg-linear-to-r from-purple-500 to-pink-500 dark:from-purple-600 dark:to-pink-600 flex items-center justify-center animate-pulse">
                                        <Heart className="w-12 h-12 text-white" />
                                     </div>
                                  </div>
@@ -199,7 +199,7 @@ const AIMatchesPage: React.FC = () => {
 
                               {/* Feature Cards */}
                               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-                                 <div className="p-4 rounded-lg bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800">
+                                 <div className="p-4 rounded-lg bg-linear-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800">
                                     <div className="flex items-center justify-center w-12 h-12 mx-auto mb-3 rounded-full bg-blue-500">
                                        <Users className="w-6 h-6 text-white" />
                                     </div>
@@ -209,7 +209,7 @@ const AIMatchesPage: React.FC = () => {
                                     </p>
                                  </div>
 
-                                 <div className="p-4 rounded-lg bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-200 dark:border-green-800">
+                                 <div className="p-4 rounded-lg bg-linear-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-200 dark:border-green-800">
                                     <div className="flex items-center justify-center w-12 h-12 mx-auto mb-3 rounded-full bg-green-500">
                                        <TrendingUp className="w-6 h-6 text-white" />
                                     </div>
@@ -219,7 +219,7 @@ const AIMatchesPage: React.FC = () => {
                                     </p>
                                  </div>
 
-                                 <div className="p-4 rounded-lg bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border border-purple-200 dark:border-purple-800">
+                                 <div className="p-4 rounded-lg bg-linear-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border border-purple-200 dark:border-purple-800">
                                     <div className="flex items-center justify-center w-12 h-12 mx-auto mb-3 rounded-full bg-purple-500">
                                        <Zap className="w-6 h-6 text-white" />
                                     </div>
@@ -234,7 +234,7 @@ const AIMatchesPage: React.FC = () => {
                               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                                  <Button 
                                     onClick={() => router.push('/matching')} 
-                                    className="px-8 py-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all transform hover:scale-105"
+                                    className="px-8 py-3 bg-linear-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all transform hover:scale-105"
                                  >
                                     <Heart className="w-5 h-5 mr-2" />
                                     Get Matching
@@ -257,19 +257,19 @@ const AIMatchesPage: React.FC = () => {
                                  </h3>
                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600 dark:text-gray-400">
                                     <div className="flex items-start">
-                                       <div className="w-2 h-2 rounded-full bg-purple-500 mt-2 mr-3 flex-shrink-0"></div>
+                                       <div className="w-2 h-2 rounded-full bg-purple-500 mt-2 mr-3 shrink-0"></div>
                                        <span>Complete your profile with detailed bio and interests</span>
                                     </div>
                                     <div className="flex items-start">
-                                       <div className="w-2 h-2 rounded-full bg-purple-500 mt-2 mr-3 flex-shrink-0"></div>
+                                       <div className="w-2 h-2 rounded-full bg-purple-500 mt-2 mr-3 shrink-0"></div>
                                        <span>Add your social media links for better matching</span>
                                     </div>
                                     <div className="flex items-start">
-                                       <div className="w-2 h-2 rounded-full bg-purple-500 mt-2 mr-3 flex-shrink-0"></div>
+                                       <div className="w-2 h-2 rounded-full bg-purple-500 mt-2 mr-3 shrink-0"></div>
                                        <span>Be active in the matching page to get more suggestions</span>
                                     </div>
                                     <div className="flex items-start">
-                                       <div className="w-2 h-2 rounded-full bg-purple-500 mt-2 mr-3 flex-shrink-0"></div>
+                                       <div className="w-2 h-2 rounded-full bg-purple-500 mt-2 mr-3 shrink-0"></div>
                                        <span>Update your preferences to refine your matches</span>
                                     </div>
                                  </div>
@@ -288,7 +288,7 @@ const AIMatchesPage: React.FC = () => {
 
                   {/* Pagination Info */}
                   {matchHistoryData?.pagination && historyMatches.length > 0 && (
-                     <div className="mt-6 p-4 rounded-lg bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border border-purple-200 dark:border-purple-800">
+                     <div className="mt-6 p-4 rounded-lg bg-linear-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border border-purple-200 dark:border-purple-800">
                         <div className="flex items-center justify-center text-sm text-gray-600 dark:text-gray-400">
                            <Users className="w-4 h-4 mr-2 text-purple-500" />
                            <span className="font-medium">

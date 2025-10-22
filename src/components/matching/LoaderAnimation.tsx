@@ -203,7 +203,7 @@ const LoaderAnimation: React.FC<LoaderAnimationProps> = ({ onComplete }) => {
                 flex flex-col items-center justify-center p-8 rounded-3xl shadow-2xl relative overflow-hidden
                 min-w-[320px] min-h-[500px] md:min-w-[700px] md:min-h-[650px]
                 border border-white/10 dark:border-white/10 light:border-purple-200/30 backdrop-blur-xl
-                bg-gradient-to-br from-white/5 to-white/10 dark:from-white/5 dark:to-white/10 light:from-white/80 light:to-white/60
+                bg-linear-to-br from-white/5 to-white/10 dark:from-white/5 dark:to-white/10 light:from-white/80 light:to-white/60
                 "
                 variants={containerVariants}
                 initial="hidden"
@@ -277,7 +277,7 @@ const LoaderAnimation: React.FC<LoaderAnimationProps> = ({ onComplete }) => {
                                 </div>
                                 <div className="overflow-hidden w-full h-2 rounded-full bg-white/10 dark:bg-white/10 light:bg-purple-200/50">
                                     <motion.div
-                                        className="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full dark:from-purple-500 dark:to-pink-500 light:from-purple-400 light:to-pink-400"
+                                        className="h-full bg-linear-to-r from-purple-500 to-pink-500 rounded-full dark:from-purple-500 dark:to-pink-500 light:from-purple-400 light:to-pink-400"
                                         initial={{ width: 0 }}
                                         animate={{ width: `${progress}%` }}
                                         transition={{ duration: 0.3, ease: "easeOut" }}
@@ -291,7 +291,7 @@ const LoaderAnimation: React.FC<LoaderAnimationProps> = ({ onComplete }) => {
                                     <motion.div
                                         key={stage}
                                         className={`w-3 h-3 rounded-full ${stage <= currentStage
-                                            ? 'bg-gradient-to-r from-purple-500 to-pink-500 dark:from-purple-500 dark:to-pink-500 light:from-purple-400 light:to-pink-400'
+                                            ? 'bg-linear-to-r from-purple-500 to-pink-500 dark:from-purple-500 dark:to-pink-500 light:from-purple-400 light:to-pink-400'
                                             : 'bg-white/20 dark:bg-white/20 light:bg-purple-300/40'
                                             }`}
                                         variants={stageIndicatorVariants}
@@ -344,7 +344,7 @@ const LoaderAnimation: React.FC<LoaderAnimationProps> = ({ onComplete }) => {
 
                                 {/* Inner pulsing circle */}
                                 <motion.div
-                                    className="absolute w-48 h-48 bg-gradient-to-br rounded-full border from-white/10 to-white/5 dark:from-white/10 dark:to-white/5 light:from-purple-100/80 light:to-purple-50/60 border-white/20 dark:border-white/20 light:border-purple-200/40"
+                                    className="absolute w-48 h-48 bg-linear-to-br rounded-full border from-white/10 to-white/5 dark:from-white/10 dark:to-white/5 light:from-purple-100/80 light:to-purple-50/60 border-white/20 dark:border-white/20 light:border-purple-200/40"
                                     variants={pulseVariants}
                                     animate="animate"
                                 />
@@ -371,7 +371,7 @@ const LoaderAnimation: React.FC<LoaderAnimationProps> = ({ onComplete }) => {
                                                 </div>
                                                 {/* Score badge */}
                                                 <motion.div
-                                                    className="flex absolute -top-2 -right-2 justify-center items-center w-8 h-8 text-xs font-bold text-white bg-gradient-to-r from-purple-500 to-pink-500 rounded-full shadow-lg dark:from-purple-500 dark:to-pink-500 light:from-purple-400 light:to-pink-400"
+                                                    className="flex absolute -top-2 -right-2 justify-center items-center w-8 h-8 text-xs font-bold text-white bg-linear-to-r from-purple-500 to-pink-500 rounded-full shadow-lg dark:from-purple-500 dark:to-pink-500 light:from-purple-400 light:to-pink-400"
                                                     initial={{ scale: 0 }}
                                                     animate={{ scale: 1 }}
                                                     transition={{ delay: index * 0.2 + 1 }}
@@ -405,7 +405,7 @@ const LoaderAnimation: React.FC<LoaderAnimationProps> = ({ onComplete }) => {
                             className="flex z-10 flex-col items-center text-center text-white dark:text-white light:text-purple-700"
                         >
                             <motion.div
-                                className="flex justify-center items-center mb-6 w-24 h-24 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full dark:from-green-400 dark:to-emerald-500 light:from-green-300 light:to-emerald-400"
+                                className="flex justify-center items-center mb-6 w-24 h-24 bg-linear-to-r from-green-400 to-emerald-500 rounded-full dark:from-green-400 dark:to-emerald-500 light:from-green-300 light:to-emerald-400"
                                 initial={{ scale: 0 }}
                                 animate={{ scale: 1 }}
                                 transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
@@ -423,7 +423,7 @@ const LoaderAnimation: React.FC<LoaderAnimationProps> = ({ onComplete }) => {
                                 </motion.svg>
                             </motion.div>
 
-                            <h2 className="mb-4 text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400 dark:from-purple-400 dark:to-pink-400 light:from-purple-500 light:to-pink-500">
+                            <h2 className="mb-4 text-4xl font-extrabold text-transparent bg-clip-text bg-linear-to-r from-purple-400 to-pink-400 dark:from-purple-400 dark:to-pink-400 light:from-purple-500 light:to-pink-500">
                                 Analysis Complete!
                             </h2>
                             <p className="max-w-md text-lg leading-relaxed text-white/80 dark:text-white/80 light:text-purple-600/80">

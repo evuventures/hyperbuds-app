@@ -107,7 +107,7 @@ const SimpleLoader: React.FC<SimpleLoaderProps> = ({ onComplete }) => {
             className="flex flex-col items-center justify-center p-8 rounded-3xl relative overflow-hidden shadow-2xl
                min-w-[320px] min-h-[450px] md:min-w-[500px] md:min-h-[550px]
                border border-white/10 backdrop-blur-xl 
-               bg-gradient-to-br from-white/5 to-white/10"
+               bg-linear-to-br from-white/5 to-white/10"
             initial={{ opacity: 0, scale: 0.8, y: 50 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
@@ -159,7 +159,7 @@ const SimpleLoader: React.FC<SimpleLoaderProps> = ({ onComplete }) => {
                         </div>
                         <div className="overflow-hidden w-full h-2 rounded-full bg-white/10">
                            <motion.div
-                              className="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full"
+                              className="h-full bg-linear-to-r from-purple-500 to-pink-500 rounded-full"
                               initial={{ width: 0 }}
                               animate={{ width: `${progress}%` }}
                               transition={{ duration: 0.3, ease: "easeOut" }}
@@ -173,7 +173,7 @@ const SimpleLoader: React.FC<SimpleLoaderProps> = ({ onComplete }) => {
                            <motion.div
                               key={stage}
                               className={`w-2 h-2 rounded-full ${stage <= currentStage
-                                 ? 'bg-gradient-to-r from-purple-500 to-pink-500'
+                                 ? 'bg-linear-to-r from-purple-500 to-pink-500'
                                  : 'bg-white/20'
                                  }`}
                               initial={{ scale: 0, opacity: 0 }}
@@ -237,7 +237,7 @@ const SimpleLoader: React.FC<SimpleLoaderProps> = ({ onComplete }) => {
 
                         {/* Inner pulsing circle */}
                         <motion.div
-                           className="absolute w-36 h-36 bg-gradient-to-br rounded-full border from-white/10 to-white/5 border-white/20"
+                           className="absolute w-36 h-36 bg-linear-to-br rounded-full border from-white/10 to-white/5 border-white/20"
                            animate={{
                               scale: [1, 1.1, 1],
                               opacity: [0.7, 1, 0.7]
@@ -252,7 +252,7 @@ const SimpleLoader: React.FC<SimpleLoaderProps> = ({ onComplete }) => {
                         {/* Center content */}
                         <div className="flex relative z-10 flex-col justify-center items-center">
                            <motion.div
-                              className="flex justify-center items-center mb-2 w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full"
+                              className="flex justify-center items-center mb-2 w-16 h-16 bg-linear-to-r from-purple-500 to-pink-500 rounded-full"
                               animate={{
                                  scale: [1, 1.1, 1],
                                  rotate: [0, 5, -5, 0]
@@ -307,7 +307,7 @@ const SimpleLoader: React.FC<SimpleLoaderProps> = ({ onComplete }) => {
                      className="flex z-10 flex-col items-center text-center text-white"
                   >
                      <motion.div
-                        className="flex justify-center items-center mb-6 w-20 h-20 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full"
+                        className="flex justify-center items-center mb-6 w-20 h-20 bg-linear-to-r from-green-400 to-emerald-500 rounded-full"
                         initial={{ scale: 0, rotate: -180 }}
                         animate={{ scale: 1, rotate: 0 }}
                         transition={{
@@ -330,7 +330,7 @@ const SimpleLoader: React.FC<SimpleLoaderProps> = ({ onComplete }) => {
                         </motion.svg>
                      </motion.div>
 
-                     <h2 className="mb-4 text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">
+                     <h2 className="mb-4 text-3xl font-extrabold text-transparent bg-clip-text bg-linear-to-r from-purple-400 to-pink-400">
                         Analysis Complete!
                      </h2>
                      <p className="max-w-sm text-base leading-relaxed text-white/80">

@@ -522,7 +522,7 @@ const MatchmakingPage: React.FC = () => {
                         repeat: Infinity,
                         ease: "easeInOut"
                       }}
-                      className="absolute inset-0 bg-gradient-to-r rounded-full blur-md from-purple-400/40 to-pink-400/40"
+                      className="absolute inset-0 bg-linear-to-r rounded-full blur-md from-purple-400/40 to-pink-400/40"
                     />
 
                     {/* Enhanced Avatar */}
@@ -532,7 +532,7 @@ const MatchmakingPage: React.FC = () => {
                         alt={userProfile?.displayName}
                         className="object-cover"
                       />
-                      <AvatarFallback className="text-lg font-bold bg-gradient-to-br from-purple-500 to-pink-500">
+                      <AvatarFallback className="text-lg font-bold bg-linear-to-br from-purple-500 to-pink-500">
                         {userProfile?.displayName?.charAt(0) || "U"}
                       </AvatarFallback>
                     </Avatar>
@@ -588,13 +588,13 @@ const MatchmakingPage: React.FC = () => {
                   }`}>
                   <TabsTrigger
                     value="ai-matches"
-                    className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:font-semibold data-[state=active]:dark:text-white text-gray-600 dark:text-gray-300 cursor-pointer rounded-lg transition-all duration-200 hover:text-gray-900 dark:hover:text-white"
+                    className="data-[state=active]:bg-linear-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:font-semibold data-[state=active]:dark:text-white text-gray-600 dark:text-gray-300 cursor-pointer rounded-lg transition-all duration-200 hover:text-gray-900 dark:hover:text-white"
                   >
                     AI Matches
                   </TabsTrigger>
                   <TabsTrigger
                     value="preferences"
-                    className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:font-semibold data-[state=active]:dark:text-white text-gray-600 dark:text-gray-300 cursor-pointer rounded-lg transition-all duration-200 hover:text-gray-900 dark:hover:text-white"
+                    className="data-[state=active]:bg-linear-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:font-semibold data-[state=active]:dark:text-white text-gray-600 dark:text-gray-300 cursor-pointer rounded-lg transition-all duration-200 hover:text-gray-900 dark:hover:text-white"
                   >
                     Preferences
                   </TabsTrigger>
@@ -628,7 +628,7 @@ const MatchmakingPage: React.FC = () => {
                       <p className="mb-4 text-gray-600 dark:text-white/60">Try adjusting your preferences or check back later!</p>
                       <Button
                         onClick={() => setActiveTab("preferences")}
-                        className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+                        className="bg-linear-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
                       >
                         Update Preferences
                       </Button>

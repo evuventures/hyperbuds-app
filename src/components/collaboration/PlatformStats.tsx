@@ -131,7 +131,7 @@ export function PlatformStats({
             <motion.div
                initial={{ opacity: 0, y: 20 }}
                animate={{ opacity: 1, y: 0 }}
-               className="p-6 rounded-2xl border shadow-lg bg-gradient-to-br from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 border-purple-200 dark:border-purple-800"
+               className="p-6 rounded-2xl border shadow-lg bg-linear-to-br from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 border-purple-200 dark:border-purple-800"
             >
                <div className="flex gap-2 items-center mb-4">
                   <TrendingUp className="w-6 h-6 text-purple-600 dark:text-purple-400" />
@@ -200,7 +200,7 @@ export function PlatformStats({
                      >
                         <div className="flex justify-between items-center mb-4">
                            <div
-                              className={`p-3 rounded-xl bg-gradient-to-br ${platform === "tiktok"
+                              className={`p-3 rounded-xl bg-linear-to-br ${platform === "tiktok"
                                  ? "from-pink-100 to-rose-100 dark:from-pink-500/20 dark:to-rose-500/20"
                                  : platform === "twitter"
                                     ? "from-cyan-100 to-blue-100 dark:from-cyan-500/20 dark:to-blue-500/20"
@@ -247,7 +247,7 @@ export function PlatformStats({
                      className="overflow-hidden rounded-xl border shadow-md transition-shadow bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:shadow-lg"
                   >
                      {/* Platform Header */}
-                     <div className={`p-4 bg-gradient-to-r ${platformColors[platform]}`}>
+                     <div className={`p-4 bg-linear-to-r ${platformColors[platform]}`}>
                         <div className="flex gap-3 items-center">
                            <span className="text-3xl">{platformIcons[platform]}</span>
                            <div className="flex-1 min-w-0">
