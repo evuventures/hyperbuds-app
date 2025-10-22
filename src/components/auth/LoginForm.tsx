@@ -23,6 +23,7 @@ export default function LoginForm() {
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   // State to manage password visibility
   const [showPassword, setShowPassword] = useState(false);
 
@@ -41,11 +42,14 @@ export default function LoginForm() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
     setMessage('');
     setError('');
+    setIsLoading(true);
 
     if (!email || !password) {
       setError('Please enter both email and password.');
+      setIsLoading(false);
       return;
     }
 
@@ -64,15 +68,12 @@ export default function LoginForm() {
 
         if (data.accessToken) {
           localStorage.setItem('accessToken', data.accessToken);
-          console.log(data.user?.profile)
         }
 
         // Check if user has completed profile/registration
         if (data.user?.profile?.username === "") {
           // Check various conditions that might indicate incomplete profile
-          const isProfileIncomplete =
-            !data.username
-
+          const isProfileIncomplete = !data.username
 
           if (isProfileIncomplete) {
             // Route to registration/profile completion page
@@ -83,7 +84,6 @@ export default function LoginForm() {
 
         // If profile is complete, go to dashboard
         router.push('/');
-        console.log(data)
       } else {
         // Handle specific error cases
         if (response.status === 404) {
@@ -104,9 +104,10 @@ export default function LoginForm() {
           setError(data.message || 'Invalid email or password. Please try again.');
         }
       }
-    } catch (err) {
-      console.error('Network error:', err);
+    } catch {
       setError('A network error occurred. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -165,7 +166,7 @@ export default function LoginForm() {
               </button>
               <button
                 onClick={handleGoogleLogin}
-                className="flex flex-1 gap-3 cursor-pointer justify-center items-center h-12 rounded-xl border backdrop-blur-sm transition-colors duration-300 bg-white/60 border-white/30 hover:bg-white/80">
+                className="flex flex-1 gap-3 justify-center items-center h-12 rounded-xl border backdrop-blur-sm transition-colors duration-300 cursor-pointer bg-white/60 border-white/30 hover:bg-white/80">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 text-red-500 lucide lucide-chrome">
                   <circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="4" /><line x1="21.17" x2="12" y1="8" y2="8" /><line x1="3.95" x2="8.54" y1="6" y2="14" /><line x1="10.88" x2="15.46" y1="20" y2="12" />
                 </svg>
@@ -225,7 +226,7 @@ export default function LoginForm() {
               <div className="text-right">
                 <a
                   href="/auth/forgot-password"
-                  className="text-sm font-medium text-red-500 hover:text-red-600 transition-colors duration-200"
+                  className="text-sm font-medium text-red-500 transition-colors duration-200 hover:text-red-600"
                 >
                   Forgot password?
                 </a>
@@ -233,9 +234,20 @@ export default function LoginForm() {
 
               <button
                 type="submit"
+                disabled={isLoading}
                 className="w-full h-14 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-semibold rounded-xl hover:from-purple-700 hover:to-blue-700 transition-all duration-300 transform hover:scale-[1.02] hover:shadow-lg hover:shadow-purple-500/25 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
               >
-                Log In
+                {isLoading ? (
+                  <>
+                    <svg className="w-5 h-5 text-white animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>Logging in...</span>
+                  </>
+                ) : (
+                  'Log In'
+                )}
               </button>
             </form>
 
@@ -267,7 +279,7 @@ export default function LoginForm() {
                 </div>
                 <h2 className="mb-4 text-3xl font-bold">Welcome back!</h2>
                 <p className="mb-8 text-lg text-white/80">
-                  We`&apos;`re excited to see you again.
+                  We&apos;re excited to see you again.
                 </p>
                 <div className="grid grid-cols-3 gap-4 text-center">
                   <div>
