@@ -29,7 +29,6 @@ import {
   Check,
   ExternalLink,
   Verified,
-  Camera,
   Sparkles,
   UserCheck,
   PartyPopper,
@@ -179,20 +178,13 @@ export default function UserProfileHeader({
 
             <div className="flex gap-8 items-center mt-5">
 
-              {/* Enhanced Avatar with Upload Option */}
-              <div className="relative group">
-                <div className="flex justify-center items-center text-3xl font-bold text-white bg-gradient-to-br from-blue-400 via-purple-500 to-pink-400 rounded-3xl ring-4 ring-white ring-offset-4 ring-offset-gray-50 shadow-2xl transition-all md:w-32 md:h-32 w-22 h-22 group-hover:scale-105 dark:from-blue-500 dark:via-purple-600 dark:to-pink-500 dark:ring-gray-800 dark:ring-offset-gray-900">
+              {/* Enhanced Avatar */}
+              <div className="relative">
+                <div className="flex justify-center items-center text-3xl font-bold text-white bg-gradient-to-br from-blue-400 via-purple-500 to-pink-400 rounded-3xl ring-4 ring-white ring-offset-4 ring-offset-gray-50 shadow-2xl transition-all md:w-32 md:h-32 w-22 h-22 dark:from-blue-500 dark:via-purple-600 dark:to-pink-500 dark:ring-gray-800 dark:ring-offset-gray-900">
                   {user.displayName?.charAt(0) ||
                     user.username?.charAt(0) ||
                     "U"}
                 </div>
-
-                {/* Avatar Upload Overlay for Own Profile */}
-                {isOwnProfile && (
-                  <div className="flex absolute inset-0 justify-center items-center rounded-3xl opacity-0 transition-all cursor-pointer bg-black/50 group-hover:opacity-100">
-                    <Camera size={24} className="text-white" />
-                  </div>
-                )}
 
                 {/* Status Indicators */}
                 {user.isActive && (
@@ -337,7 +329,7 @@ export default function UserProfileHeader({
           {isOwnProfile ? (
             <div className="flex justify-start">
               <Link href="/matching">
-                <button className="flex gap-2 justify-center items-center px-6 py-3 text-sm font-semibold text-white bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg shadow-lg transition-all transform hover:scale-105 hover:from-purple-600 hover:to-pink-600 dark:from-purple-600 dark:to-pink-600 dark:hover:from-purple-700 dark:hover:to-pink-700 hover:shadow-xl">
+                <button className="flex gap-2 justify-center items-center px-6 py-3 text-sm font-semibold text-white bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg shadow-lg transition-all transform cursor-pointer hover:scale-105 hover:from-purple-600 hover:to-pink-600 dark:from-purple-600 dark:to-pink-600 dark:hover:from-purple-700 dark:hover:to-pink-700 hover:shadow-xl">
                   <Heart size={18} />
                   Get Match
                 </button>

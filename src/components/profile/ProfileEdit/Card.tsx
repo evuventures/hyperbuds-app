@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { FaCamera, FaCheckCircle, FaSpinner } from "react-icons/fa";
 import { ChevronLeft } from "lucide-react";
 import { BASE_URL } from "@/config/baseUrl";
@@ -144,6 +144,9 @@ export default function EditProfilePage() {
 
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+
+  // Ref for file input
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Smooth navigation function
   const handleNavigation = (path: string) => {
@@ -293,25 +296,43 @@ export default function EditProfilePage() {
     setSocialLinks((prev: SocialLinks) => ({ ...prev, [platformId]: cleanedValue }));
   };
 
+  const handleAvatarClick = () => {
+    console.log("Avatar clicked - opening file picker");
+    fileInputRef.current?.click();
+  };
+
   const handleAvatarUpload = async (file: File) => {
+    console.log("File selected:", file.name, file.type, file.size);
+
     const formData = new FormData();
     formData.append("file", file);
     formData.append("type", "avatar");
 
     try {
       const token = localStorage.getItem("accessToken");
+      console.log("Uploading to:", `${BASE_URL}/api/v1/profiles/upload-media`);
+
       const response = await fetch(`${BASE_URL}/api/v1/profiles/upload-media`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
         body: formData,
       });
 
+      console.log("Upload response status:", response.status);
+
       if (response.ok) {
         const data = await response.json();
+        console.log("Upload successful:", data);
         setAvatar(data.url);
+        setMessage("Profile picture uploaded successfully!");
+      } else {
+        const errorData = await response.text();
+        console.error("Upload failed:", response.status, errorData);
+        setError("Failed to upload profile picture. Please try again.");
       }
     } catch (err) {
       console.error("Avatar upload failed:", err);
+      setError("Failed to upload profile picture. Please try again.");
     }
   };
 
@@ -564,17 +585,50 @@ export default function EditProfilePage() {
             >
               <label className="block mb-2 font-semibold text-gray-700 dark:text-white">Profile Picture</label>
               <div className="flex gap-4 items-center">
-                <div className="flex overflow-hidden justify-center items-center w-24 h-24 bg-gray-100 rounded-full shadow-lg dark:bg-gray-700">
-                  {avatar ? (
-                    <Image src={avatar} alt="avatar" className="object-cover w-full h-full" />
-                  ) : (
-                    <FaCamera className="w-8 h-8 text-gray-400" />
-                  )}
+                <div
+                  onClick={handleAvatarClick}
+                  className="relative group cursor-pointer"
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => e.key === 'Enter' && handleAvatarClick()}
+                >
+                  <div className="flex overflow-hidden justify-center items-center w-24 h-24 bg-gray-100 rounded-full shadow-lg transition-all group-hover:ring-4 group-hover:ring-purple-500/50 dark:bg-gray-700">
+                    {avatar ? (
+                      <Image src={avatar} alt="avatar" width={96} height={96} className="object-cover w-full h-full pointer-events-none" />
+                    ) : (
+                      <FaCamera className="w-8 h-8 text-gray-400 group-hover:text-purple-500 transition-colors pointer-events-none" />
+                    )}
+                  </div>
+                  {/* Overlay on hover */}
+                  <div className="flex absolute inset-0 justify-center items-center bg-black/50 rounded-full opacity-0 transition-opacity pointer-events-none group-hover:opacity-100">
+                    <FaCamera className="w-6 h-6 text-white" />
+                  </div>
                 </div>
+
+                <div className="flex flex-col gap-2">
+                  <button
+                    type="button"
+                    onClick={handleAvatarClick}
+                    className="px-4 py-2 text-sm font-medium text-purple-600 bg-purple-50 rounded-lg border border-purple-200 transition-all cursor-pointer hover:bg-purple-100 dark:bg-purple-900/30 dark:text-purple-400 dark:border-purple-700 dark:hover:bg-purple-900/50"
+                  >
+                    <FaCamera className="inline mr-2 w-4 h-4" />
+                    Choose Photo
+                  </button>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Max 5MB (JPG, PNG, GIF)
+                  </p>
+                </div>
+
                 <input
+                  ref={fileInputRef}
                   type="file"
                   accept="image/*"
-                  onChange={(e) => e.target.files && handleAvatarUpload(e.target.files[0])}
+                  onChange={(e) => {
+                    console.log("File input changed", e.target.files);
+                    if (e.target.files && e.target.files[0]) {
+                      handleAvatarUpload(e.target.files[0]);
+                    }
+                  }}
                   className="hidden"
                 />
               </div>
