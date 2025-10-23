@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Eye, EyeOff, User, Facebook, Chrome } from 'lucide-react';
 import { BASE_URL } from '@/config/baseUrl';
+import EmailVerificationModal from './EmailVerificationModal';
 
 const LoadingSpinner = () => (
   <svg
@@ -42,10 +43,10 @@ const handleGoogleLogin = () => {
 export default function App() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showVerificationModal, setShowVerificationModal] = useState(false);
 
 
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -63,7 +64,6 @@ export default function App() {
   // ✅ type for form submit event
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setMessage('');
     setError('');
     setIsLoading(true);
 
@@ -89,7 +89,7 @@ export default function App() {
       });
 
       if (response.ok) {
-        setMessage('Registration successful! Please check your email for a verification link.');
+        setShowVerificationModal(true);
       } else if (response.status === 409) {
         setError('This email is already in use. Please use a different one.');
       } else {
@@ -123,12 +123,6 @@ export default function App() {
               </h1>
               <p className="text-gray-600">Join us and start your journey today</p>
             </div>
-
-            {message && (
-              <div className="p-4 mb-6 bg-green-50 rounded-xl border border-green-200">
-                <p className="text-sm text-green-600">{message}</p>
-              </div>
-            )}
 
             {error && (
               <div className="p-4 mb-6 bg-red-50 rounded-xl border border-red-200">
@@ -250,6 +244,13 @@ export default function App() {
           </div>
         </div>
       </div>
+
+      {/* Email Verification Modal */}
+      <EmailVerificationModal
+        isOpen={showVerificationModal}
+        onClose={() => setShowVerificationModal(false)}
+        email={email}
+      />
     </div>
   );
 }
