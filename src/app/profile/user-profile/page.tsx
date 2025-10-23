@@ -60,7 +60,7 @@ export default function UserProfilePage() {
   if (error) {
     return (
       <DashboardLayout>
-        <div className="p-6">
+        <div className="p-4 pb-16 lg:p-6 lg:pb-34">
           <div className="">
             <p className="text-red-400">Error loading profile: {error}</p>
             <button
@@ -77,7 +77,7 @@ export default function UserProfilePage() {
 
   return (
     <DashboardLayout>
-      <div className="p-6 space-y-6">
+      <div className="p-4 pb-16 space-y-6 lg:p-6 lg:pb-34">
         <UserProfileHeader
           userData={user}
           isLoading={isLoading}

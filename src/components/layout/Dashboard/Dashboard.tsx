@@ -74,7 +74,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <ThemeProvider>
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 transition-colors duration-200 overflow-y-clip dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
+      <div className="overflow-hidden h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 transition-colors duration-200 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
         {/* Mobile Header */}
         <div className="fixed top-0 right-0 left-0 z-50 border-b shadow-sm backdrop-blur-lg lg:hidden bg-white/95 dark:bg-gray-900/95 border-gray-200/50 dark:border-gray-700/50">
           <div className="flex justify-between items-center px-4 py-3">
@@ -114,7 +114,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
 
         {/* Main Dashboard Container */}
-        <div className="flex overflow-hidden pt-16 min-h-screen lg:pt-0">
+        <div className="flex pt-16 h-full lg:pt-0">
           {/* Sidebar */}
           <div
             className={`
@@ -134,7 +134,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   <X className="w-5 h-5 text-gray-600 dark:text-gray-300" />
                 </button>
               </div>
-              <div className="h-full overflow-y-auto [&::-webkit-scrollbar]:hidden">
+              <div className="overflow-hidden h-full">
                 <Sidebar
                   user={user}
                   activeTab={activeTab}
@@ -162,23 +162,21 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
 
           {/* Content */}
-          <div className="flex flex-col w-full min-w-0">
-            <div className="flex overflow-hidden">
-              <main className="flex-1 overflow-auto [&::-webkit-scrollbar]:hidden transition-colors duration-200">
-                <div className=" max-w-full h-[90vh]">
-                  <div className="w-full min-h-full">
-                    {children}
-                  </div>
+          <div className="flex flex-col w-full min-w-0 h-full">
+            <div className="flex h-full">
+              <main className="flex-1 overflow-y-auto [&::-webkit-scrollbar]:hidden transition-colors duration-200">
+                <div className="w-full h-full">
+                  {children}
                 </div>
               </main>
 
               {/* Right Sidebar */}
               <div className={`
                 fixed inset-y-0 right-0 z-40 w-80 transform transition-all duration-300 ease-in-out bg-white dark:bg-gray-900 border-l border-gray-200/50 dark:border-gray-700/50 shadow-xl
-                xl:relative xl:translate-x-0 xl:z-auto xl:shadow-none xl:pt-0
+                xl:relative xl:translate-x-0 xl:z-auto xl:shadow-none xl:pt-0 xl:h-full
                 ${rightSidebarOpen ? 'translate-x-0' : 'translate-x-full xl:translate-x-0'}
               `}>
-                <div className="pt-16 h-full xl:pt-0">
+                <div className="flex flex-col pt-16 h-full xl:pt-0">
                   <div className="absolute top-4 left-4 z-10 xl:hidden">
                     <button
                       onClick={() => setRightSidebarOpen(false)}
@@ -187,7 +185,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                       <X className="w-5 h-5 text-gray-600 dark:text-gray-300" />
                     </button>
                   </div>
-                  <div className="overflow-y-auto h-full scrollbar-hide">
+                  <div className="overflow-y-auto flex-1 [&::-webkit-scrollbar]:hidden">
                     <RightSidebar />
                   </div>
                 </div>

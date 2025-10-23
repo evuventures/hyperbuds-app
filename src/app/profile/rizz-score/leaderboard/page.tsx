@@ -170,8 +170,8 @@ const LeaderboardPage: React.FC = () => {
 
    return (
       <DashboardLayout>
-         <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 transition-colors duration-200 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
-            <div className="px-3 py-4 mx-auto max-w-7xl sm:px-4 sm:py-6 lg:px-8">
+         <div className="min-h-full bg-gradient-to-br from-gray-50 via-white to-gray-100 transition-colors duration-200 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
+            <div className="px-3 py-4 pb-16 mx-auto max-w-7xl sm:px-4 sm:py-6 lg:px-8 lg:pb-34">
                {/* Header */}
                <motion.div
                   initial={{ opacity: 0, y: -20 }}
