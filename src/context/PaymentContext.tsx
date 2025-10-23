@@ -445,7 +445,7 @@ export function PaymentProvider({ children }: PaymentProviderProps) {
       }
    };
 
-   const getPayoutAccountStatus = async () => {
+   const getPayoutAccountStatus = useCallback(async () => {
       try {
          // Skip API calls in development mode to prevent failed fetch errors
          if (process.env.NODE_ENV === 'development') {
@@ -475,7 +475,7 @@ export function PaymentProvider({ children }: PaymentProviderProps) {
          });
          throw error;
       }
-   };
+   }, []);
 
    const requestPayout = async (data: PayoutRequest) => {
       try {

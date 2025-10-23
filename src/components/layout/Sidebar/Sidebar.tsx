@@ -22,6 +22,7 @@ interface SidebarProps {
   collapsed: boolean;
   onTabChange: (tab: string) => void;
   onToggleCollapse?: () => void;
+  className?: string;
 }
 
 type MenuItem = {
@@ -56,7 +57,7 @@ const mockData = {
   }
 };
 
-export const Sidebar: React.FC<SidebarProps> = ({ user, activeTab, collapsed, onTabChange, onToggleCollapse }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ user, activeTab, collapsed, onTabChange, onToggleCollapse, className }) => {
   // ❌ REMOVED: console.log('Sidebar rendered with collapsed:', collapsed);
   // ❌ REMOVED: console.log('isCollapsed:', isCollapsed);
 
@@ -64,7 +65,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ user, activeTab, collapsed, on
   const isCollapsed = collapsed;
   const pathname = usePathname();
   const [notifications] = useState(mockData.notifications);
-  
+
   // Determine active tab based on current route
   const getActiveTabFromPath = () => {
     // Main menu items
@@ -79,7 +80,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ user, activeTab, collapsed, on
     if (pathname === '/marketplace' || pathname.startsWith('/marketplace/')) return 'marketplace';
     if (pathname.startsWith('/payments/subscription') || pathname.startsWith('/payments/checkout')) return 'Subscription';
     if (pathname.startsWith('/payments/earnings')) return 'earnings';
-    
+
     // Communication items
     if (pathname.startsWith('/messages')) return 'messages';
 
@@ -155,7 +156,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ user, activeTab, collapsed, on
           visibility: visible !important;
         }
       `}</style>
-      <div className={`${isCollapsed ? 'w-16' : 'w-60'} flex flex-col border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 h-[90vh] overflow-y-auto [&::-webkit-scrollbar]:hidden transition-all duration-300 relative ${isCollapsed ? 'sidebar-collapsed' : ''}`}>
+      <div className={`${isCollapsed ? 'w-16' : 'w-60'} flex flex-col border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 h-full min-h-screen overflow-y-auto [&::-webkit-scrollbar]:hidden transition-all duration-300 relative ${isCollapsed ? 'sidebar-collapsed' : ''} ${className || ''}`}>
 
         {/* Collapse Toggle */}
         <motion.button

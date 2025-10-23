@@ -66,7 +66,8 @@ function SubscriptionManagement() {
 
    useEffect(() => {
       loadPaymentMethods();
-   }, [loadPaymentMethods]);
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+   }, []);
 
    const handlePlanSelect = (planId: string) => {
       setSelectedPlan(planId);
