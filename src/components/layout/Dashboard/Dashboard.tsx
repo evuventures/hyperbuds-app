@@ -72,11 +72,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     toggleRightSidebarOpen,
   } = useSidebar();
 
-  // Debug logging
-  console.log('Dashboard - sidebarCollapsed:', sidebarCollapsed);
-  console.log('Dashboard - sidebarInitialized:', sidebarInitialized);
-
-
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -95,23 +90,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
         const data = await res.json();
         
-        // Debug: Log the full response from backend
-        console.log("🔍 Backend response from /api/v1/users/me:", JSON.stringify(data, null, 2));
-        
         // API returns { user: {...}, profile: {...} }
         // Check if profile is complete before allowing dashboard access
         const profile = data?.profile;
-        console.log("📋 Profile data:", profile);
-        console.log("✅ Profile validation:", {
-          hasUsername: !!profile?.username,
-          username: profile?.username,
-          hasBio: !!profile?.bio,
-          bio: profile?.bio,
-          hasNiche: !!profile?.niche,
-          niche: profile?.niche,
-          nicheIsArray: Array.isArray(profile?.niche),
-          nicheLength: Array.isArray(profile?.niche) ? profile.niche.length : 0
-        });
         
         const isProfileIncomplete = 
           !profile?.username || 
@@ -123,17 +104,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
         if (isProfileIncomplete) {
           // Redirect to profile completion page
-          console.error("❌ Profile incomplete, redirecting to complete-profile");
-          console.error("Missing fields:", {
-            needsUsername: !profile?.username || profile.username === "",
-            needsBio: !profile?.bio || profile.bio === "",
-            needsNiche: !profile?.niche || (Array.isArray(profile.niche) && profile.niche.length === 0)
-          });
           router.push("/profile/complete-profile");
           return;
         }
-
-        console.log("✅ Profile is complete! Loading dashboard...");
         
         // Combine user and profile data for convenience
         setUser({
