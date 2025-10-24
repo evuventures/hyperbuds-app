@@ -15,7 +15,7 @@ const SOCIAL_PLATFORMS = [
 ];
 
 const MOCK_NICHES = [
-  'beauty', 'gaming', 'music', 'fitness', 'food', 'travel', 'fashion', 'tech', 
+  'beauty', 'gaming', 'music', 'fitness', 'food', 'travel', 'fashion', 'tech',
   'comedy', 'education', 'lifestyle', 'art', 'dance', 'sports', 'business', 'health', 'other'
 ];
 
