@@ -60,12 +60,12 @@ export default function ProfilePage() {
   if (error) {
     return (
       <DashboardLayout>
-        <div className="p-6">
+        <div className="p-4 pb-16 lg:p-6 lg:pb-34">
           <div className="">
             <p className="text-red-400">Error loading profile: {error}</p>
             <button
               onClick={() => window.location.reload()}
-              className="mt-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+              className="px-4 py-2 mt-2 text-white bg-red-600 rounded-lg transition-colors hover:bg-red-700"
             >
               Retry
             </button>
@@ -77,7 +77,7 @@ export default function ProfilePage() {
 
   return (
     <DashboardLayout>
-      <div className="p-6 space-y-6">
+      <div className="p-4 pb-16 space-y-6 lg:p-6 lg:pb-34">
         <UserProfileHeader
           userData={user}
           isDark={true}

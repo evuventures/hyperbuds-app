@@ -313,42 +313,42 @@ const MatchmakingPage: React.FC = () => {
     loadData();
   }, []); // Empty dependency array - only run once on mount
 
- const handleAction = async (matchId: string, action: "like" | "unlike" | "pass" | "view") => {
-  try {
-    const accessToken = localStorage.getItem("accessToken");
-    if (accessToken) {
-      await fetch(`${BASE_URL}/api/v1/matching/matches/${matchId}/action`, {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ action }),
-      });
-    }
-
-    if (action === "view") {
-      const match = matches.find(m => m.targetProfile?.userId === matchId);
-      if (match && match.targetProfile) {
-        setSelectedMatch(match);
-        setSelectedProfile(match.targetProfile);
-        setIsCompatibilityModalOpen(true);
+  const handleAction = async (matchId: string, action: "like" | "unlike" | "pass" | "view") => {
+    try {
+      const accessToken = localStorage.getItem("accessToken");
+      if (accessToken) {
+        await fetch(`${BASE_URL}/api/v1/matching/matches/${matchId}/action`, {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ action }),
+        });
       }
-    } else if (action === "pass") {
-      setMatches(prev => prev.filter(m => m.targetProfile?.userId !== matchId));
-    } else if (action === "like") {
-      setLikedMatches(prev => new Set(prev).add(matchId));
-    } else if (action === "unlike") {
-      setLikedMatches(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(matchId);
-        return newSet;
-      });
+
+      if (action === "view") {
+        const match = matches.find(m => m.targetProfile?.userId === matchId);
+        if (match && match.targetProfile) {
+          setSelectedMatch(match);
+          setSelectedProfile(match.targetProfile);
+          setIsCompatibilityModalOpen(true);
+        }
+      } else if (action === "pass") {
+        setMatches(prev => prev.filter(m => m.targetProfile?.userId !== matchId));
+      } else if (action === "like") {
+        setLikedMatches(prev => new Set(prev).add(matchId));
+      } else if (action === "unlike") {
+        setLikedMatches(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(matchId);
+          return newSet;
+        });
+      }
+    } catch (err) {
+      console.error("Action failed:", err);
     }
-  } catch (err) {
-    console.error("Action failed:", err);
-  }
-};
+  };
 
 
   const handleCollaboration = async (matchId: string) => {
@@ -435,7 +435,7 @@ const MatchmakingPage: React.FC = () => {
 
         if (response.ok) {
           const data = await response.json();
-          
+
           // Handle different response structures
           if (data.matches) {
             setMatches(data.matches as MatchSuggestion[]);
@@ -463,7 +463,7 @@ const MatchmakingPage: React.FC = () => {
   if (!dataLoaded) {
     return (
       <DashboardLayout>
-        <div className="flex justify-center items-center min-h-screen">
+        <div className="flex justify-center items-center min-h-full pb-16 lg:pb-34">
           <div className="text-center">
             <div className="mx-auto mb-4 w-8 h-8 rounded-full border-4 border-purple-500 animate-spin border-t-transparent"></div>
             <p className="text-gray-600 dark:text-gray-400">Loading...</p>
@@ -476,7 +476,7 @@ const MatchmakingPage: React.FC = () => {
   if (error) {
     return (
       <DashboardLayout>
-        <div className="flex justify-center items-center h-screen text-red-500">
+        <div className="flex justify-center items-center min-h-full pb-16 text-red-500 lg:pb-34">
           <p>{error}</p>
         </div>
       </DashboardLayout>
@@ -494,8 +494,8 @@ const MatchmakingPage: React.FC = () => {
 
   return (
     <DashboardLayout>
-      <div className="flex flex-col min-h-screen bg-white dark:bg-[#0f172a]">
-        <div className="flex-1 p-4 md:p-6 lg:p-8">
+      <div className="flex flex-col min-h-full bg-white dark:bg-[#0f172a]">
+        <div className="flex-1 p-4 pb-16 md:p-6 lg:p-8 lg:pb-34">
           <div className="mx-auto max-w-7xl">
             {/* Header Section */}
             <motion.div

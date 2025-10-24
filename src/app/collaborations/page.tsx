@@ -54,7 +54,7 @@ const CollaborationsPage: React.FC = () => {
   if (!isMounted) {
     return (
       <DashboardLayout>
-        <div className="flex justify-center items-center min-h-screen">
+        <div className="flex justify-center items-center min-h-full pb-16 lg:pb-34">
           <Loader2 className="w-12 h-12 text-purple-600 animate-spin" />
         </div>
       </DashboardLayout>
@@ -87,8 +87,8 @@ const CollaborationsPage: React.FC = () => {
 
   return (
     <DashboardLayout>
-      <div className="min-h-screen bg-gray-50 dark:bg-slate-900">
-        <div className="p-6">
+      <div className="min-h-full bg-gray-50 dark:bg-slate-900">
+        <div className="p-4 pb-16 lg:p-6 lg:pb-34">
           <div className="mx-auto max-w-6xl">
             {/* Header */}
             <div className="flex justify-between items-center mb-1">

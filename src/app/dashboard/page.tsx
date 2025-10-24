@@ -27,7 +27,7 @@ const MainContent: React.FC = () => {
 
 
   return (
-    <div className="p-4 w-full min-h-screen bg-gradient-to-br from-gray-50 via-white transition-colors duration-200 to-purple-50/10 dark:from-gray-900 dark:via-gray-900 dark:to-purple-900/10 lg:p-6">
+    <div className="p-4 pb-16 w-full min-h-full bg-gradient-to-br from-gray-50 via-white transition-colors duration-200 to-purple-50/10 dark:from-gray-900 dark:via-gray-900 dark:to-purple-900/10 lg:p-6 lg:pb-34">
       <div className="mx-auto space-y-8 max-w-full">
         {/* Welcome Header */}
         <div className="overflow-hidden relative p-8 text-white bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 rounded-3xl shadow-xl dark:from-purple-700 dark:via-blue-700 dark:to-indigo-700">
@@ -76,7 +76,7 @@ const MainContent: React.FC = () => {
 
         <Trending />
 
-       {/* <Recommended />*/}
+        {/* <Recommended />*/}
 
         <Recommendations />
 

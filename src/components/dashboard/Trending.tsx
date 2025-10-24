@@ -136,7 +136,7 @@ const Trending: React.FC = () => {
             <TrendingUp className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h2 className="text-2xl font-bold text-foreground">Trending Collaborations</h2>
+            <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Trending Collaborations</h2>
             <p className="text-gray-600 dark:text-gray-400">Most watched content this week</p>
           </div>
         </div>

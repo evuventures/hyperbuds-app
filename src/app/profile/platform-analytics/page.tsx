@@ -49,7 +49,7 @@ export default function PlatformAnalyticsPage() {
    if (error) {
       return (
          <DashboardLayout>
-            <div className="p-6">
+            <div className="p-4 pb-16 lg:p-6 lg:pb-34">
                <div className="text-center">
                   <p className="text-red-400">Error loading profile: {error}</p>
                   <button
@@ -67,7 +67,7 @@ export default function PlatformAnalyticsPage() {
    if (isLoading) {
       return (
          <DashboardLayout>
-            <div className="p-6">
+            <div className="p-4 pb-16 lg:p-6 lg:pb-34">
                <div className="animate-pulse">
                   <div className="mb-6 w-1/4 h-8 bg-gray-300 rounded"></div>
                   <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -134,7 +134,7 @@ export default function PlatformAnalyticsPage() {
    return (
       <DashboardLayout>
          <div className="min-h-screen bg-linear-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
-            <div className="p-6 space-y-8">
+            <div className="p-4 pb-16 space-y-8 lg:p-6 lg:pb-34">
                {/* Header */}
                <motion.div
                   initial={{ opacity: 0, y: -20 }}
