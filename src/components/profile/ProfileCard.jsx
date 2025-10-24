@@ -4,27 +4,22 @@ import { PlatformStats } from "@/components/collaboration/PlatformStats";
 import { useMultiplePlatformData, useCombinedPlatformMetrics } from "@/hooks/features/usePlatformData";
 import {
   User,
-  Phone,
+ 
   Mail,
-  MapPin,
-  Building,
+ 
   MoreHorizontal,
-  Calendar,
-  Eye,
+ 
   Users,
   TrendingUp,
   Star,
-  Globe,
-  DollarSign,
+  
   Target,
   Activity,
-  Shield,
-  Clock,
-  Edit3,
+  
   Share2,
   Heart,
   MessageCircle,
-  Bookmark,
+ 
   Copy,
   Check,
   ExternalLink,
@@ -176,11 +171,11 @@ export default function UserProfileHeader({
         <div className="relative p-8">
           <div className="flex flex-col-reverse justify-between items-start mb-8 md:flex-row">
 
-            <div className="flex gap-8 items-center mt-5">
+            <div className=" md:flex gap-8 items-center mt-5">
 
-              {/* Enhanced Avatar */}
-              <div className="relative">
-                <div className="flex justify-center items-center text-3xl font-bold text-white bg-gradient-to-br from-blue-400 via-purple-500 to-pink-400 rounded-3xl ring-4 ring-white ring-offset-4 ring-offset-gray-50 shadow-2xl transition-all md:w-32 md:h-32 w-22 h-22 dark:from-blue-500 dark:via-purple-600 dark:to-pink-500 dark:ring-gray-800 dark:ring-offset-gray-900">
+              {/* Enhanced Avatar*/} 
+              <div className="relative ">
+                <div className="flex justify-center mt-4 md:mt-0 mx-auto md:mx-0 items-center text-3xl font-bold text-white bg-gradient-to-br from-blue-400 via-purple-500 to-pink-400 rounded-3xl ring-4 ring-white ring-offset-4 ring-offset-gray-50 shadow-2xl transition-all md:w-32 md:h-32 w-22 h-22 dark:from-blue-500 dark:via-purple-600 dark:to-pink-500 dark:ring-gray-800 dark:ring-offset-gray-900">
                   {user.displayName?.charAt(0) ||
                     user.username?.charAt(0) ||
                     "U"}
@@ -188,7 +183,7 @@ export default function UserProfileHeader({
 
                 {/* Status Indicators */}
                 {user.isActive && (
-                  <div className="flex absolute -right-2 -bottom-2 justify-center items-center w-10 h-10 bg-green-500 rounded-full border-4 border-white shadow-xl animate-pulse dark:border-gray-800">
+                  <div className="flex absolute right-6 md:-right-2 -bottom-2 justify-center items-center w-10 h-10 bg-green-500 rounded-full border-4 border-white shadow-xl animate-pulse dark:border-gray-800">
                     <Activity size={14} className="text-white" />
                   </div>
                 )}
@@ -203,7 +198,7 @@ export default function UserProfileHeader({
               {/* Enhanced User Information */}
               <div className="flex-1 space-y-4">
                 <div>
-                  <div className="flex gap-3 items-start mb-2">
+                  <div className="flex gap-3 items-start mb-2 mt-4 md:mt-0">
                     <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-gray-900 to-gray-600 dark:from-gray-100 dark:to-gray-300">
                       {user.displayName || user.username}
                     </h1>
@@ -215,7 +210,7 @@ export default function UserProfileHeader({
                     )}
                   </div>
 
-                  <div className="flex flex-col gap-2 items-start mb-3 md:flex-row md:gap-4">
+                  <div className="flex  gap-2 items-start mb-3 flex-row md:gap-4">
                     <p className="text-lg font-medium text-blue-600 transition-colors cursor-pointer dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300">
                       @{user.username}
                     </p>
@@ -303,7 +298,7 @@ export default function UserProfileHeader({
           </div>
 
           {/* Enhanced Meta Information */}
-          <div className="flex flex-col gap-3 items-start my-5 text-sm md:flex-row">
+          <div className="mt-8 md:mt-0 flex flex-col gap-3 items-start my-5 text-sm md:flex-row">
             <div className="flex gap-2 items-center text-gray-500 dark:text-gray-400">
               <PartyPopper size={16} className="text-purple-500" />
               <span>Joined {formatShortDate(user.createdAt)}</span>
