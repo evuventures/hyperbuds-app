@@ -7,10 +7,51 @@ import { Sidebar } from '../Sidebar/Sidebar';
 import { RightSidebar } from '../RightSideBar/RightSidebar';
 import DashboardSkeleton from '@/components/ui/skeleton';
 import { BASE_URL } from '../../../config/baseUrl';
-import { Menu, X } from 'lucide-react';
-import { ThemeProvider } from '@/context/Theme';
+import { Menu, X, Moon, Sun } from 'lucide-react';
+import { ThemeProvider, useTheme } from '@/context/Theme';
 import { useSidebar } from '@/context/SidebarContext';
 
+// Mobile Header Buttons Component (needs to be inside ThemeProvider)
+function MobileHeaderButtons({ toggleRightSidebarOpen, user }: { 
+  toggleRightSidebarOpen: () => void, 
+  user: { id: string; name: string; email: string; avatar?: string } | null 
+}) {
+  const { isDarkMode, toggleDarkMode } = useTheme();
+
+  return (
+    <div className="flex gap-2 items-center">
+      {/* Dark Mode Toggle */}
+      <button
+        onClick={toggleDarkMode}
+        className="p-2 bg-gray-100 rounded-xl transition-colors dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700"
+        aria-label="Toggle dark mode"
+      >
+        {isDarkMode ? (
+          <Sun className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+        ) : (
+          <Moon className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+        )}
+      </button>
+
+      {/* Right Sidebar Toggle */}
+      <button
+        onClick={toggleRightSidebarOpen}
+        className="p-2 bg-gray-100 rounded-xl transition-colors dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 xl:hidden"
+      >
+        <svg className="w-5 h-5 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zM12 13a1 1 0 110-2 1 1 0 010 2zM12 20a1 1 0 110-2 1 1 0 010 2z" />
+        </svg>
+      </button>
+
+      {/* User Avatar */}
+      <div className="flex justify-center items-center w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full">
+        <span className="text-sm font-medium text-white">
+          {user?.name?.[0]?.toUpperCase() || user?.email[0]?.toUpperCase()}
+        </span>
+      </div>
+    </div>
+  );
+}
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -90,21 +131,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </h1>
             </div>
 
-            <div className="flex gap-2 items-center">
-              <button
-                onClick={toggleRightSidebarOpen}
-                className="p-2 bg-gray-100 rounded-xl transition-colors dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 xl:hidden"
-              >
-                <svg className="w-5 h-5 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zM12 13a1 1 0 110-2 1 1 0 010 2zM12 20a1 1 0 110-2 1 1 0 010 2z" />
-                </svg>
-              </button>
-              <div className="flex justify-center items-center w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full">
-                <span className="text-sm font-medium text-white">
-                  {user.name?.[0]?.toUpperCase() || user.email[0].toUpperCase()}
-                </span>
-              </div>
-            </div>
+            <MobileHeaderButtons toggleRightSidebarOpen={toggleRightSidebarOpen} user={user} />
           </div>
         </div>
 

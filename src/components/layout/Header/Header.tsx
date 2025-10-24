@@ -41,26 +41,26 @@ export const Header: React.FC<HeaderProps> = ({ user, onMenuClick }) => {
 
   return (
     <header className="sticky top-0 z-50 border-b shadow-sm backdrop-blur-lg transition-colors duration-200 bg-white/95 dark:bg-gray-900/95 border-gray-200/50 dark:border-gray-700/50">
-      <div className="flex justify-between items-center px-6 py-4">
+      <div className="flex justify-between items-center px-3 py-3 sm:px-6 sm:py-4">
 
         {/* Left Section */}
-        <div className="flex gap-6 items-center">
+        <div className="flex gap-2 items-center sm:gap-6">
           {/* Hamburger Menu Button - Mobile Only */}
           <button
             onClick={onMenuClick}
             className="p-2 bg-gray-100 rounded-xl transition-colors lg:hidden dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700"
             aria-label="Open menu"
           >
-            <Menu className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+            <Menu className="w-4 h-4 text-gray-600 dark:text-gray-300 sm:w-5 sm:h-5" />
           </button>
 
           {/* Logo */}
-          <div className="flex gap-3 items-center cursor-pointer" onClick={() => window.location.href = '/'}>
+          <div className="flex gap-2 items-center cursor-pointer sm:gap-3" onClick={() => window.location.href = '/'}>
             <div className="flex gap-2 items-center" >
-              <div className="flex justify-center items-center w-8 h-8 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg cursor-pointer">
-                <span className="text-sm font-bold text-white cursor-pointer">H</span>
+              <div className="flex justify-center items-center w-7 h-7 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg cursor-pointer sm:w-8 sm:h-8">
+                <span className="text-xs font-bold text-white cursor-pointer sm:text-sm">H</span>
               </div>
-              <h1 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-600 cursor-pointer">
+              <h1 className="hidden text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-600 cursor-pointer min-[400px]:block sm:text-2xl">
                 HyperBuds
               </h1>
             </div>
@@ -82,28 +82,28 @@ export const Header: React.FC<HeaderProps> = ({ user, onMenuClick }) => {
         </div>*/}
 
         {/* Right Section */}
-        <div className="flex gap-4 items-center">
+        <div className="flex gap-2 items-center sm:gap-4">
 
           {/* Dark Mode Toggle */}
           <button
             onClick={toggleDarkMode}
-            className="hidden lg:flex p-2.5 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 cursor-pointer dark:hover:bg-gray-700 transition-colors"
+            className="flex p-2 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 cursor-pointer dark:hover:bg-gray-700 transition-colors sm:p-2.5"
             aria-label="Toggle dark mode"
           >
             {isDarkMode ? (
-              <Sun className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+              <Sun className="w-4 h-4 text-gray-600 dark:text-gray-300 sm:w-5 sm:h-5" />
             ) : (
-              <Moon className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+              <Moon className="w-4 h-4 text-gray-600 dark:text-gray-300 sm:w-5 sm:h-5" />
             )}
           </button>
 
           {/* Notifications */}
-          <div className="relative">
+          <div className="relative hidden min-[380px]:block">
             <button
               onClick={() => setShowNotifications(!showNotifications)}
-              className="relative p-2.5 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors cursor-pointer"
+              className="relative p-2 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors cursor-pointer sm:p-2.5"
             >
-              <Bell className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+              <Bell className="w-4 h-4 text-gray-600 dark:text-gray-300 sm:w-5 sm:h-5" />
               {unreadCount > 0 && (
                 <span className="flex absolute -top-1 -right-1 justify-center items-center w-5 h-5 text-xs font-bold text-white bg-red-500 rounded-full animate-pulse">
                   {unreadCount}
