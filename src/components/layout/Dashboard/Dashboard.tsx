@@ -89,15 +89,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         }
 
         const data = await res.json();
-        
+
         // API returns { user: {...}, profile: {...} }
         // Check if profile is complete before allowing dashboard access
         const profile = data?.profile;
-        
-        const isProfileIncomplete = 
-          !profile?.username || 
+
+        const isProfileIncomplete =
+          !profile?.username ||
           profile.username === "" ||
-          !profile?.bio || 
+          !profile?.bio ||
           profile.bio === "" ||
           !profile?.niche ||
           (Array.isArray(profile.niche) && profile.niche.length === 0);
@@ -107,7 +107,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           router.push("/profile/complete-profile");
           return;
         }
-        
+
         // Combine user and profile data for convenience
         setUser({
           ...data.user,

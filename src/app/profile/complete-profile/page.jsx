@@ -48,7 +48,7 @@ export default function MultiStepProfileForm() {
     const fetchLocation = async () => {
       try {
         const apiKey = process.env.NEXT_PUBLIC_ABSTRACT_API_KEY;
-        
+
         // Skip if no API key configured
         if (!apiKey) {
           return;
@@ -57,7 +57,7 @@ export default function MultiStepProfileForm() {
         const res = await fetch(
           `https://ipgeolocation.abstractapi.com/v1/?api_key=${apiKey}`
         );
-        
+
         // Silently fail for rate limit errors (429) or other API errors
         if (!res.ok) {
           if (res.status === 429) {
