@@ -93,6 +93,24 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         }
 
         const data = await res.json();
+
+        // Check if profile is complete before allowing dashboard access
+        const profile = data?.profile;
+        const isProfileIncomplete =
+          !profile?.username ||
+          profile.username === "" ||
+          !profile?.bio ||
+          profile.bio === "" ||
+          !profile?.niche ||
+          (Array.isArray(profile.niche) && profile.niche.length === 0);
+
+        if (isProfileIncomplete) {
+          // Redirect to profile completion page
+          console.log("Profile incomplete, redirecting to complete-profile");
+          router.push("/profile/complete-profile");
+          return;
+        }
+
         setUser(data);
       } catch (err) {
         console.error("Failed to fetch user", err);

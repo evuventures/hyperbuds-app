@@ -71,15 +71,23 @@ export default function LoginForm() {
         }
 
         // Check if user has completed profile/registration
-        if (data.user?.profile?.username === "") {
-          // Check various conditions that might indicate incomplete profile
-          const isProfileIncomplete = !data.username
+        // A profile is incomplete if critical fields are missing
+        const profile = data.user?.profile;
+        const isProfileIncomplete =
+          !profile?.username ||
+          profile.username === "" ||
+          !profile?.bio ||
+          profile.bio === "" ||
+          !profile?.niche ||
+          (Array.isArray(profile.niche) && profile.niche.length === 0);
 
-          if (isProfileIncomplete) {
-            // Route to registration/profile completion page
+        if (isProfileIncomplete) {
+          // Route to profile completion page
+          setMessage('Please complete your profile to continue.');
+          setTimeout(() => {
             router.push('/profile/complete-profile');
-            return;
-          }
+          }, 500);
+          return;
         }
 
         // If profile is complete, go to dashboard
