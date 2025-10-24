@@ -39,7 +39,7 @@ const RizzScorePage: React.FC = () => {
    return (
       <DashboardLayout>
          <motion.div
-            className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 transition-colors duration-200 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800"
+            className="min-h-full pb-16 bg-gradient-to-br from-gray-50 via-white to-gray-100 transition-colors duration-200 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 lg:pb-34"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, ease: "easeOut" }}
@@ -346,13 +346,6 @@ const RizzScorePage: React.FC = () => {
                      </div>
 
                      {/* Leaderboard Link */}
-<<<<<<< HEAD
-                     <div className="p-6 bg-linear-to-r from-yellow-50 to-amber-50 rounded-2xl border border-yellow-200 dark:from-yellow-900/20 dark:to-amber-900/20 dark:border-yellow-700">
-                        <div className="flex justify-between items-center">
-                           <div className="flex gap-4 items-center">
-                              <div className="p-3 bg-linear-to-r from-yellow-500 to-amber-500 rounded-xl">
-                                 <Trophy className="w-6 h-6 text-white" />
-=======
                      <motion.div
                         className="p-4 bg-gradient-to-r from-yellow-50 to-amber-50 rounded-2xl border border-yellow-200 shadow-lg dark:from-yellow-900/20 dark:to-amber-900/20 dark:border-yellow-700 sm:p-6"
                         whileHover={{ scale: 1.01 }}
@@ -363,7 +356,6 @@ const RizzScorePage: React.FC = () => {
                            <div className="flex gap-3 items-center sm:gap-4">
                               <div className="flex-shrink-0 p-2.5 bg-gradient-to-r from-yellow-500 to-amber-500 rounded-xl shadow-md sm:p-3">
                                  <Trophy className="w-5 h-5 text-white sm:w-6 sm:h-6" />
->>>>>>> feature-platform-api
                               </div>
                               <div className="flex-1">
                                  <h3 className="text-base font-bold text-gray-900 sm:text-lg dark:text-white">
@@ -378,11 +370,7 @@ const RizzScorePage: React.FC = () => {
                            {/* Button */}
                            <motion.button
                               onClick={() => router.push('/profile/rizz-score/leaderboard')}
-<<<<<<< HEAD
-                              className="flex gap-2 items-center px-4 py-2 text-white bg-linear-to-r from-yellow-500 to-amber-500 rounded-lg transition-all duration-200 cursor-pointer hover:from-yellow-600 hover:to-amber-600 hover:shadow-lg"
-=======
                               className="flex gap-2 justify-center items-center px-4 py-2.5 w-full text-sm font-semibold text-white bg-gradient-to-r from-yellow-500 to-amber-500 rounded-xl shadow-md transition-all duration-200 cursor-pointer sm:w-auto hover:from-yellow-600 hover:to-amber-600 hover:shadow-lg active:scale-95"
->>>>>>> feature-platform-api
                               whileHover={{ scale: 1.02 }}
                               whileTap={{ scale: 0.98 }}
                            >
@@ -393,12 +381,6 @@ const RizzScorePage: React.FC = () => {
                      </motion.div>
 
                      {/* Tips and Recommendations */}
-<<<<<<< HEAD
-                     <div className="p-8 bg-linear-to-r from-purple-50 to-pink-50 rounded-2xl border border-purple-200 dark:from-purple-900/20 dark:to-pink-900/20 dark:border-purple-700">
-                        <div className="flex gap-3 items-center mb-6">
-                           <div className="flex justify-center items-center w-12 h-12 bg-linear-to-r from-purple-500 to-pink-500 rounded-xl">
-                              <Star className="w-6 h-6 text-white" />
-=======
                      <motion.div
                         className="p-5 bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl border border-purple-200 shadow-lg dark:from-purple-900/20 dark:to-pink-900/20 dark:border-purple-700 sm:p-6 lg:p-8"
                         initial={{ opacity: 0, y: 20 }}
@@ -409,7 +391,6 @@ const RizzScorePage: React.FC = () => {
                         <div className="flex gap-3 items-start mb-5 sm:items-center sm:mb-6">
                            <div className="flex-shrink-0 flex justify-center items-center w-11 h-11 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl shadow-md sm:w-12 sm:h-12">
                               <Star className="w-5 h-5 text-white sm:w-6 sm:h-6" />
->>>>>>> feature-platform-api
                            </div>
                            <div className="flex-1 min-w-0">
                               <h3 className="text-base font-bold leading-tight text-gray-900 sm:text-lg lg:text-xl dark:text-white">
@@ -421,23 +402,6 @@ const RizzScorePage: React.FC = () => {
                            </div>
                         </div>
 
-<<<<<<< HEAD
-                        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                           <div className="space-y-4">
-                              <h4 className="font-semibold text-gray-900 dark:text-white">Content Strategy</h4>
-                              <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
-                                 <li className="flex gap-2 items-start">
-                                    <span className="shrink-0 mt-2 w-2 h-2 bg-purple-500 rounded-full"></span>
-                                    Post consistently to maintain engagement
-                                 </li>
-                                 <li className="flex gap-2 items-start">
-                                    <span className="shrink-0 mt-2 w-2 h-2 bg-purple-500 rounded-full"></span>
-                                    Use trending hashtags and topics
-                                 </li>
-                                 <li className="flex gap-2 items-start">
-                                    <span className="shrink-0 mt-2 w-2 h-2 bg-purple-500 rounded-full"></span>
-                                    Engage with your audience regularly
-=======
                         {/* Tips Grid */}
                         <div className="grid grid-cols-1 gap-4 sm:gap-5 lg:grid-cols-2 lg:gap-6">
                            {/* Content Strategy */}
@@ -462,27 +426,10 @@ const RizzScorePage: React.FC = () => {
                                  <li className="flex gap-3 items-start">
                                     <span className="flex-shrink-0 mt-2 w-1.5 h-1.5 bg-purple-500 rounded-full"></span>
                                     <span className="flex-1">Engage with your audience regularly</span>
->>>>>>> feature-platform-api
                                  </li>
                               </ul>
                            </motion.div>
 
-<<<<<<< HEAD
-                           <div className="space-y-4">
-                              <h4 className="font-semibold text-gray-900 dark:text-white">Growth Tips</h4>
-                              <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
-                                 <li className="flex gap-2 items-start">
-                                    <span className="shrink-0 mt-2 w-2 h-2 bg-pink-500 rounded-full"></span>
-                                    Collaborate with other creators
-                                 </li>
-                                 <li className="flex gap-2 items-start">
-                                    <span className="shrink-0 mt-2 w-2 h-2 bg-pink-500 rounded-full"></span>
-                                    Cross-promote across platforms
-                                 </li>
-                                 <li className="flex gap-2 items-start">
-                                    <span className="shrink-0 mt-2 w-2 h-2 bg-pink-500 rounded-full"></span>
-                                    Analyze your best-performing content
-=======
                            {/* Growth Tips */}
                            <motion.div
                               className="p-5 space-y-3.5 bg-white/60 rounded-xl border border-pink-200 shadow-sm backdrop-blur-sm dark:bg-gray-800/60 dark:border-pink-700 sm:p-6 sm:space-y-4"
@@ -505,7 +452,6 @@ const RizzScorePage: React.FC = () => {
                                  <li className="flex gap-3 items-start">
                                     <span className="flex-shrink-0 mt-2 w-1.5 h-1.5 bg-pink-500 rounded-full"></span>
                                     <span className="flex-1">Analyze your best-performing content</span>
->>>>>>> feature-platform-api
                                  </li>
                               </ul>
                            </motion.div>
