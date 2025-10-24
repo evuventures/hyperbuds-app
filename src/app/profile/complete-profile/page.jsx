@@ -15,8 +15,8 @@ const SOCIAL_PLATFORMS = [
 ];
 
 const MOCK_NICHES = [
-  'gaming', 'tech', 'fashion', 'beauty', 'food', 'travel', 'fitness', 'art', 'music',
-  'lifestyle', 'finance', 'education', 'comedy', 'diy', 'sports', 'science'
+  'beauty', 'gaming', 'music', 'fitness', 'food', 'travel', 'fashion', 'tech', 
+  'comedy', 'education', 'lifestyle', 'art', 'dance', 'sports', 'business', 'health', 'other'
 ];
 
 export default function MultiStepProfileForm() {
