@@ -70,20 +70,50 @@ export default function LoginForm() {
           localStorage.setItem('accessToken', data.accessToken);
         }
 
-        // Check if user has completed profile/registration
-        if (data.user?.profile?.username === "") {
-          // Check various conditions that might indicate incomplete profile
-          const isProfileIncomplete = !data.username
+        // Fetch full user data including profile from /users/me
+        try {
+          const userRes = await fetch(`${BASE_URL}/api/v1/users/me`, {
+            headers: {
+              'Authorization': `Bearer ${data.accessToken}`,
+            },
+            credentials: 'include',
+          });
 
-          if (isProfileIncomplete) {
-            // Route to registration/profile completion page
-            router.push('/profile/complete-profile');
-            return;
+          if (userRes.ok) {
+            const userData = await userRes.json();
+            
+            // Check if user has completed profile/registration
+            // A profile is incomplete if critical fields are missing
+            const profile = userData?.profile;
+            const isProfileIncomplete =
+              !profile?.username ||
+              profile.username === "" ||
+              !profile?.bio ||
+              profile.bio === "" ||
+              !profile?.niche ||
+              (Array.isArray(profile.niche) && profile.niche.length === 0);
+
+            if (isProfileIncomplete) {
+              // Route to profile completion page
+              setMessage('Please complete your profile to continue.');
+              setTimeout(() => {
+                router.push('/profile/complete-profile');
+              }, 500);
+              return;
+            }
+
+            // If profile is complete, go to dashboard
+            router.push('/');
+          } else {
+            // If we can't fetch user data, just go to dashboard
+            // Dashboard will handle profile completion check
+            router.push('/');
           }
+        } catch (err) {
+          console.error('Failed to fetch user profile:', err);
+          // On error, go to dashboard and let it handle the check
+          router.push('/');
         }
-
-        // If profile is complete, go to dashboard
-        router.push('/');
       } else {
         // Handle specific error cases
         if (response.status === 404) {

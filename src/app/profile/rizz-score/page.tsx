@@ -263,132 +263,165 @@ const RizzScorePage: React.FC = () => {
                      </div>
 
                      {/* Additional Analytics Section */}
-                     <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-4 lg:gap-6">
                         {/* Engagement Rate */}
                         <motion.div
-                           className="p-6 bg-white rounded-xl border border-gray-200 shadow-lg dark:bg-gray-900 dark:border-gray-700"
+                           className="p-4 bg-white rounded-xl border border-gray-200 shadow-lg dark:bg-gray-900 dark:border-gray-700 sm:p-5 lg:p-6"
                            whileHover={{ scale: 1.02, y: -2 }}
                            transition={{ duration: 0.2 }}
                         >
-                           <div className="flex gap-3 items-center mb-3">
-                              <div className="flex justify-center items-center w-10 h-10 bg-green-100 rounded-lg dark:bg-green-900/20">
-                                 <TrendingUp className="w-5 h-5 text-green-600 dark:text-green-400" />
+                           <div className="flex gap-2.5 items-center mb-3 sm:gap-3">
+                              <div className="flex-shrink-0 flex justify-center items-center w-9 h-9 bg-green-100 rounded-lg shadow-sm dark:bg-green-900/20 sm:w-10 sm:h-10">
+                                 <TrendingUp className="w-4 h-4 text-green-600 dark:text-green-400 sm:w-5 sm:h-5" />
                               </div>
-                              <h3 className="font-semibold text-gray-900 dark:text-white">Engagement Rate</h3>
+                              <h3 className="text-sm font-semibold text-gray-900 sm:text-base dark:text-white">Engagement Rate</h3>
                            </div>
-                           <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                           <p className="text-xl font-bold text-gray-900 sm:text-2xl dark:text-white">
                               {rizzScore.factors.engagement.engagementRate.toFixed(1)}%
                            </p>
-                           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                           <p className="mt-1 text-xs text-gray-500 sm:text-sm dark:text-gray-400">
                               Average across all platforms
                            </p>
                         </motion.div>
 
                         {/* Content Frequency */}
                         <motion.div
-                           className="p-6 bg-white rounded-xl border border-gray-200 shadow-lg dark:bg-gray-900 dark:border-gray-700"
+                           className="p-4 bg-white rounded-xl border border-gray-200 shadow-lg dark:bg-gray-900 dark:border-gray-700 sm:p-5 lg:p-6"
                            whileHover={{ scale: 1.02, y: -2 }}
                            transition={{ duration: 0.2 }}
                         >
-                           <div className="flex gap-3 items-center mb-3">
-                              <div className="flex justify-center items-center w-10 h-10 bg-purple-100 rounded-lg dark:bg-purple-900/20">
-                                 <MessageCircle className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                           <div className="flex gap-2.5 items-center mb-3 sm:gap-3">
+                              <div className="flex-shrink-0 flex justify-center items-center w-9 h-9 bg-purple-100 rounded-lg shadow-sm dark:bg-purple-900/20 sm:w-10 sm:h-10">
+                                 <MessageCircle className="w-4 h-4 text-purple-600 dark:text-purple-400 sm:w-5 sm:h-5" />
                               </div>
-                              <h3 className="font-semibold text-gray-900 dark:text-white">Content Frequency</h3>
+                              <h3 className="text-sm font-semibold text-gray-900 sm:text-base dark:text-white">Content Frequency</h3>
                            </div>
-                           <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                           <p className="text-xl font-bold text-gray-900 sm:text-2xl dark:text-white">
                               {rizzScore.factors.growth.contentFrequency.toFixed(1)}
                            </p>
-                           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                           <p className="mt-1 text-xs text-gray-500 sm:text-sm dark:text-gray-400">
                               Posts per week
                            </p>
                         </motion.div>
 
                         {/* Consistency Score */}
                         <motion.div
-                           className="p-6 bg-white rounded-xl border border-gray-200 shadow-lg dark:bg-gray-900 dark:border-gray-700"
+                           className="p-4 bg-white rounded-xl border border-gray-200 shadow-lg dark:bg-gray-900 dark:border-gray-700 sm:p-5 lg:p-6"
                            whileHover={{ scale: 1.02, y: -2 }}
                            transition={{ duration: 0.2 }}
                         >
-                           <div className="flex gap-3 items-center mb-3">
-                              <div className="flex justify-center items-center w-10 h-10 bg-blue-100 rounded-lg dark:bg-blue-900/20">
-                                 <Users className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                           <div className="flex gap-2.5 items-center mb-3 sm:gap-3">
+                              <div className="flex-shrink-0 flex justify-center items-center w-9 h-9 bg-blue-100 rounded-lg shadow-sm dark:bg-blue-900/20 sm:w-10 sm:h-10">
+                                 <Users className="w-4 h-4 text-blue-600 dark:text-blue-400 sm:w-5 sm:h-5" />
                               </div>
-                              <h3 className="font-semibold text-gray-900 dark:text-white">Consistency</h3>
+                              <h3 className="text-sm font-semibold text-gray-900 sm:text-base dark:text-white">Consistency</h3>
                            </div>
-                           <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                           <p className="text-xl font-bold text-gray-900 sm:text-2xl dark:text-white">
                               {rizzScore.factors.growth.consistencyScore.toFixed(1)}%
                            </p>
-                           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                           <p className="mt-1 text-xs text-gray-500 sm:text-sm dark:text-gray-400">
                               Posting consistency
                            </p>
                         </motion.div>
 
                         {/* Last Updated */}
                         <motion.div
-                           className="p-6 bg-white rounded-xl border border-gray-200 shadow-lg dark:bg-gray-900 dark:border-gray-700"
+                           className="p-4 bg-white rounded-xl border border-gray-200 shadow-lg dark:bg-gray-900 dark:border-gray-700 sm:p-5 lg:p-6"
                            whileHover={{ scale: 1.02, y: -2 }}
                            transition={{ duration: 0.2 }}
                         >
-                           <div className="flex gap-3 items-center mb-3">
-                              <div className="flex justify-center items-center w-10 h-10 bg-orange-100 rounded-lg dark:bg-orange-900/20">
-                                 <Calendar className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+                           <div className="flex gap-2.5 items-center mb-3 sm:gap-3">
+                              <div className="flex-shrink-0 flex justify-center items-center w-9 h-9 bg-orange-100 rounded-lg shadow-sm dark:bg-orange-900/20 sm:w-10 sm:h-10">
+                                 <Calendar className="w-4 h-4 text-orange-600 dark:text-orange-400 sm:w-5 sm:h-5" />
                               </div>
-                              <h3 className="font-semibold text-gray-900 dark:text-white">Last Updated</h3>
+                              <h3 className="text-sm font-semibold text-gray-900 sm:text-base dark:text-white">Last Updated</h3>
                            </div>
-                           <p className="text-sm font-medium text-gray-900 dark:text-white">
+                           <p className="text-xs font-medium text-gray-900 sm:text-sm dark:text-white">
                               {new Date(rizzScore.lastCalculated).toLocaleDateString()}
                            </p>
-                           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                           <p className="mt-1 text-xs text-gray-500 sm:text-sm dark:text-gray-400">
                               {new Date(rizzScore.lastCalculated).toLocaleTimeString()}
                            </p>
                         </motion.div>
                      </div>
 
                      {/* Leaderboard Link */}
+<<<<<<< HEAD
                      <div className="p-6 bg-linear-to-r from-yellow-50 to-amber-50 rounded-2xl border border-yellow-200 dark:from-yellow-900/20 dark:to-amber-900/20 dark:border-yellow-700">
                         <div className="flex justify-between items-center">
                            <div className="flex gap-4 items-center">
                               <div className="p-3 bg-linear-to-r from-yellow-500 to-amber-500 rounded-xl">
                                  <Trophy className="w-6 h-6 text-white" />
+=======
+                     <motion.div
+                        className="p-4 bg-gradient-to-r from-yellow-50 to-amber-50 rounded-2xl border border-yellow-200 shadow-lg dark:from-yellow-900/20 dark:to-amber-900/20 dark:border-yellow-700 sm:p-6"
+                        whileHover={{ scale: 1.01 }}
+                        transition={{ duration: 0.2 }}
+                     >
+                        <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center">
+                           {/* Left Content */}
+                           <div className="flex gap-3 items-center sm:gap-4">
+                              <div className="flex-shrink-0 p-2.5 bg-gradient-to-r from-yellow-500 to-amber-500 rounded-xl shadow-md sm:p-3">
+                                 <Trophy className="w-5 h-5 text-white sm:w-6 sm:h-6" />
+>>>>>>> feature-platform-api
                               </div>
-                              <div>
-                                 <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+                              <div className="flex-1">
+                                 <h3 className="text-base font-bold text-gray-900 sm:text-lg dark:text-white">
                                     See How You Rank
                                  </h3>
-                                 <p className="text-sm text-gray-600 dark:text-gray-400">
+                                 <p className="mt-0.5 text-xs text-gray-600 sm:text-sm dark:text-gray-400">
                                     Compare your Rizz Score with top creators
                                  </p>
                               </div>
                            </div>
+
+                           {/* Button */}
                            <motion.button
                               onClick={() => router.push('/profile/rizz-score/leaderboard')}
+<<<<<<< HEAD
                               className="flex gap-2 items-center px-4 py-2 text-white bg-linear-to-r from-yellow-500 to-amber-500 rounded-lg transition-all duration-200 cursor-pointer hover:from-yellow-600 hover:to-amber-600 hover:shadow-lg"
+=======
+                              className="flex gap-2 justify-center items-center px-4 py-2.5 w-full text-sm font-semibold text-white bg-gradient-to-r from-yellow-500 to-amber-500 rounded-xl shadow-md transition-all duration-200 cursor-pointer sm:w-auto hover:from-yellow-600 hover:to-amber-600 hover:shadow-lg active:scale-95"
+>>>>>>> feature-platform-api
                               whileHover={{ scale: 1.02 }}
                               whileTap={{ scale: 0.98 }}
                            >
                               <Trophy className="w-4 h-4" />
-                              <span className="font-medium">View Leaderboard</span>
+                              <span>View Leaderboard</span>
                            </motion.button>
                         </div>
-                     </div>
+                     </motion.div>
 
                      {/* Tips and Recommendations */}
+<<<<<<< HEAD
                      <div className="p-8 bg-linear-to-r from-purple-50 to-pink-50 rounded-2xl border border-purple-200 dark:from-purple-900/20 dark:to-pink-900/20 dark:border-purple-700">
                         <div className="flex gap-3 items-center mb-6">
                            <div className="flex justify-center items-center w-12 h-12 bg-linear-to-r from-purple-500 to-pink-500 rounded-xl">
                               <Star className="w-6 h-6 text-white" />
+=======
+                     <motion.div
+                        className="p-5 bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl border border-purple-200 shadow-lg dark:from-purple-900/20 dark:to-pink-900/20 dark:border-purple-700 sm:p-6 lg:p-8"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5, delay: 0.3 }}
+                     >
+                        {/* Header */}
+                        <div className="flex gap-3 items-start mb-5 sm:items-center sm:mb-6">
+                           <div className="flex-shrink-0 flex justify-center items-center w-11 h-11 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl shadow-md sm:w-12 sm:h-12">
+                              <Star className="w-5 h-5 text-white sm:w-6 sm:h-6" />
+>>>>>>> feature-platform-api
                            </div>
-                           <div>
-                              <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                           <div className="flex-1 min-w-0">
+                              <h3 className="text-base font-bold leading-tight text-gray-900 sm:text-lg lg:text-xl dark:text-white">
                                  Tips to Improve Your Rizz Score
                               </h3>
-                              <p className="text-gray-600 dark:text-gray-400">
+                              <p className="mt-1 text-xs leading-tight text-gray-600 sm:text-sm dark:text-gray-400">
                                  Based on your current performance
                               </p>
                            </div>
                         </div>
 
+<<<<<<< HEAD
                         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                            <div className="space-y-4">
                               <h4 className="font-semibold text-gray-900 dark:text-white">Content Strategy</h4>
@@ -404,10 +437,37 @@ const RizzScorePage: React.FC = () => {
                                  <li className="flex gap-2 items-start">
                                     <span className="shrink-0 mt-2 w-2 h-2 bg-purple-500 rounded-full"></span>
                                     Engage with your audience regularly
+=======
+                        {/* Tips Grid */}
+                        <div className="grid grid-cols-1 gap-4 sm:gap-5 lg:grid-cols-2 lg:gap-6">
+                           {/* Content Strategy */}
+                           <motion.div
+                              className="p-5 space-y-3.5 bg-white/60 rounded-xl border border-purple-200 shadow-sm backdrop-blur-sm dark:bg-gray-800/60 dark:border-purple-700 sm:p-6 sm:space-y-4"
+                              whileHover={{ scale: 1.01, boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)" }}
+                              transition={{ duration: 0.2 }}
+                           >
+                              <h4 className="flex gap-2.5 items-center text-sm font-bold text-gray-900 sm:text-base dark:text-white">
+                                 <div className="flex-shrink-0 w-1 h-6 bg-gradient-to-b from-purple-500 to-purple-600 rounded-full"></div>
+                                 Content Strategy
+                              </h4>
+                              <ul className="space-y-3 text-xs leading-relaxed text-gray-700 sm:text-sm dark:text-gray-300">
+                                 <li className="flex gap-3 items-start">
+                                    <span className="flex-shrink-0 mt-2 w-1.5 h-1.5 bg-purple-500 rounded-full"></span>
+                                    <span className="flex-1">Post consistently to maintain engagement</span>
+                                 </li>
+                                 <li className="flex gap-3 items-start">
+                                    <span className="flex-shrink-0 mt-2 w-1.5 h-1.5 bg-purple-500 rounded-full"></span>
+                                    <span className="flex-1">Use trending hashtags and topics</span>
+                                 </li>
+                                 <li className="flex gap-3 items-start">
+                                    <span className="flex-shrink-0 mt-2 w-1.5 h-1.5 bg-purple-500 rounded-full"></span>
+                                    <span className="flex-1">Engage with your audience regularly</span>
+>>>>>>> feature-platform-api
                                  </li>
                               </ul>
-                           </div>
+                           </motion.div>
 
+<<<<<<< HEAD
                            <div className="space-y-4">
                               <h4 className="font-semibold text-gray-900 dark:text-white">Growth Tips</h4>
                               <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
@@ -422,11 +482,35 @@ const RizzScorePage: React.FC = () => {
                                  <li className="flex gap-2 items-start">
                                     <span className="shrink-0 mt-2 w-2 h-2 bg-pink-500 rounded-full"></span>
                                     Analyze your best-performing content
+=======
+                           {/* Growth Tips */}
+                           <motion.div
+                              className="p-5 space-y-3.5 bg-white/60 rounded-xl border border-pink-200 shadow-sm backdrop-blur-sm dark:bg-gray-800/60 dark:border-pink-700 sm:p-6 sm:space-y-4"
+                              whileHover={{ scale: 1.01, boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)" }}
+                              transition={{ duration: 0.2 }}
+                           >
+                              <h4 className="flex gap-2.5 items-center text-sm font-bold text-gray-900 sm:text-base dark:text-white">
+                                 <div className="flex-shrink-0 w-1 h-6 bg-gradient-to-b from-pink-500 to-pink-600 rounded-full"></div>
+                                 Growth Tips
+                              </h4>
+                              <ul className="space-y-3 text-xs leading-relaxed text-gray-700 sm:text-sm dark:text-gray-300">
+                                 <li className="flex gap-3 items-start">
+                                    <span className="flex-shrink-0 mt-2 w-1.5 h-1.5 bg-pink-500 rounded-full"></span>
+                                    <span className="flex-1">Collaborate with other creators</span>
+                                 </li>
+                                 <li className="flex gap-3 items-start">
+                                    <span className="flex-shrink-0 mt-2 w-1.5 h-1.5 bg-pink-500 rounded-full"></span>
+                                    <span className="flex-1">Cross-promote across platforms</span>
+                                 </li>
+                                 <li className="flex gap-3 items-start">
+                                    <span className="flex-shrink-0 mt-2 w-1.5 h-1.5 bg-pink-500 rounded-full"></span>
+                                    <span className="flex-1">Analyze your best-performing content</span>
+>>>>>>> feature-platform-api
                                  </li>
                               </ul>
-                           </div>
+                           </motion.div>
                         </div>
-                     </div>
+                     </motion.div>
                   </div>
                )}
             </motion.div>

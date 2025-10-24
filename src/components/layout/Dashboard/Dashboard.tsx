@@ -72,19 +72,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     toggleRightSidebarOpen,
   } = useSidebar();
 
-  // Debug logging
-  console.log('Dashboard - sidebarCollapsed:', sidebarCollapsed);
-  console.log('Dashboard - sidebarInitialized:', sidebarInitialized);
-
-
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const res = await fetch(`${BASE_URL}/api/v1/auth/me`, {
+        const res = await fetch(`${BASE_URL}/api/v1/users/me`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
           },
           credentials: "include",
+          cache: "no-store", // Disable caching to get fresh profile data
         });
 
         if (!res.ok) {
@@ -93,7 +89,30 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         }
 
         const data = await res.json();
-        setUser(data);
+
+        // API returns { user: {...}, profile: {...} }
+        // Check if profile is complete before allowing dashboard access
+        const profile = data?.profile;
+
+        const isProfileIncomplete =
+          !profile?.username ||
+          profile.username === "" ||
+          !profile?.bio ||
+          profile.bio === "" ||
+          !profile?.niche ||
+          (Array.isArray(profile.niche) && profile.niche.length === 0);
+
+        if (isProfileIncomplete) {
+          // Redirect to profile completion page
+          router.push("/profile/complete-profile");
+          return;
+        }
+
+        // Combine user and profile data for convenience
+        setUser({
+          ...data.user,
+          profile: data.profile,
+        });
       } catch (err) {
         console.error("Failed to fetch user", err);
         router.push("/auth/signin");
