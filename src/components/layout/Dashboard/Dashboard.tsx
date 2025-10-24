@@ -85,6 +85,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
           },
           credentials: "include",
+          cache: "no-store", // Disable caching to get fresh profile data
         });
 
         if (!res.ok) {
