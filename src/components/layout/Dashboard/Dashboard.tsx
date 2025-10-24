@@ -12,9 +12,9 @@ import { ThemeProvider, useTheme } from '@/context/Theme';
 import { useSidebar } from '@/context/SidebarContext';
 
 // Mobile Header Buttons Component (needs to be inside ThemeProvider)
-function MobileHeaderButtons({ toggleRightSidebarOpen, user }: { 
-  toggleRightSidebarOpen: () => void, 
-  user: { id: string; name: string; email: string; avatar?: string } | null 
+function MobileHeaderButtons({ toggleRightSidebarOpen, user }: {
+  toggleRightSidebarOpen: () => void,
+  user: { id: string; name: string; email: string; avatar?: string } | null
 }) {
   const { isDarkMode, toggleDarkMode } = useTheme();
 
