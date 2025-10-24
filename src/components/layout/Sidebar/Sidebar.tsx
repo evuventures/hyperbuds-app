@@ -156,7 +156,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ user, activeTab, collapsed, on
           visibility: visible !important;
         }
       `}</style>
-      <div className={`${isCollapsed ? 'w-16' : 'w-60'} flex flex-col border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 h-full min-h-screen overflow-y-auto [&::-webkit-scrollbar]:hidden transition-all duration-300 relative ${isCollapsed ? 'sidebar-collapsed' : ''} ${className || ''}`}>
+      <div className={`${isCollapsed ? 'w-16' : 'w-60'} flex flex-col border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 h-[90vh] overflow-hidden transition-all duration-300 relative ${isCollapsed ? 'sidebar-collapsed' : ''} ${className || ''}`}>
 
         {/* Collapse Toggle */}
         <motion.button
@@ -184,7 +184,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ user, activeTab, collapsed, on
         {/* … unchanged header code … */}
 
         {/* Navigation */}
-        <div className={`${isCollapsed ? 'p-2 pt-12' : 'p-4 pt-12'} space-y-3 flex-1 overflow-y-auto`}>
+        <div className={`${isCollapsed ? 'p-2 pt-12' : 'p-4 pt-12'} space-y-3 flex-1 overflow-hidden`}>
           {[mainMenuItems, businessItems, commItems].map((section, idx) => (
             <div key={idx}>
               {!isCollapsed && (
@@ -216,7 +216,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ user, activeTab, collapsed, on
                         >
                           {/* Active indicator */}
                           {currentActiveTab === item.id && (
-                            <div className="active-indicator absolute inset-0 bg-gradient-to-r rounded-lg from-purple-500/10 to-pink-500/10" />
+                            <div className="absolute inset-0 bg-gradient-to-r rounded-lg active-indicator from-purple-500/10 to-pink-500/10" />
                           )}
 
                           <div className={`relative flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'}`}>
@@ -224,7 +224,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ user, activeTab, collapsed, on
                               <item.icon className="w-5 h-5 transition-all duration-300 group-hover:scale-110 group-hover:text-purple-600 dark:group-hover:text-purple-400" />
                             </div>
                             {!isCollapsed && (
-                              <span className="text-sm font-medium whitespace-nowrap overflow-hidden">
+                              <span className="overflow-hidden text-sm font-medium whitespace-nowrap">
                                 {item.label}
                               </span>
                             )}
@@ -257,7 +257,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ user, activeTab, collapsed, on
                       >
                         {/* Active indicator */}
                         {currentActiveTab === item.id && (
-                          <div className="active-indicator absolute inset-0 bg-gradient-to-r rounded-lg from-purple-500/10 to-pink-500/10" />
+                          <div className="absolute inset-0 bg-gradient-to-r rounded-lg active-indicator from-purple-500/10 to-pink-500/10" />
                         )}
 
                         <div className={`relative flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'}`}>
@@ -265,7 +265,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ user, activeTab, collapsed, on
                             <item.icon className="w-5 h-5 transition-all duration-300 group-hover:scale-110 group-hover:text-purple-600 dark:group-hover:text-purple-400" />
                           </div>
                           {!isCollapsed && (
-                            <span className="text-sm font-medium whitespace-nowrap overflow-hidden">
+                            <span className="overflow-hidden text-sm font-medium whitespace-nowrap">
                               {item.label}
                             </span>
                           )}
@@ -292,7 +292,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ user, activeTab, collapsed, on
             <>
               <div className='flex flex-col gap-3'>
                 <div className="flex gap-2 items-center">
-                  <div className="avatar flex justify-center items-center w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full">
+                  <div className="flex justify-center items-center w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full avatar">
                     <span className="text-sm font-medium text-white">
                       {user.username?.[0]?.toUpperCase() || user.email[0].toUpperCase()}
                     </span>
@@ -310,7 +310,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ user, activeTab, collapsed, on
             </>
           ) : (
             <div className="flex justify-center">
-              <div className="avatar flex justify-center items-center w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full">
+              <div className="flex justify-center items-center w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full avatar">
                 <span className="text-xs font-medium text-white">
                   {user.username?.[0]?.toUpperCase() || user.email[0].toUpperCase()}
                 </span>
@@ -318,6 +318,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ user, activeTab, collapsed, on
             </div>
           )}
         </div>
+
       </div>
     </>
   );
