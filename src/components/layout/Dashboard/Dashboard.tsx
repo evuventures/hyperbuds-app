@@ -80,7 +80,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const res = await fetch(`${BASE_URL}/api/v1/auth/me`, {
+        const res = await fetch(`${BASE_URL}/api/v1/users/me`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
           },
@@ -96,8 +96,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         const data = await res.json();
         
         // Debug: Log the full response from backend
-        console.log("🔍 Backend response from /api/v1/auth/me:", JSON.stringify(data, null, 2));
+        console.log("🔍 Backend response from /api/v1/users/me:", JSON.stringify(data, null, 2));
         
+        // API returns { user: {...}, profile: {...} }
         // Check if profile is complete before allowing dashboard access
         const profile = data?.profile;
         console.log("📋 Profile data:", profile);
@@ -133,7 +134,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         }
 
         console.log("✅ Profile is complete! Loading dashboard...");
-        setUser(data);
+        
+        // Combine user and profile data for convenience
+        setUser({
+          ...data.user,
+          profile: data.profile,
+        });
       } catch (err) {
         console.error("Failed to fetch user", err);
         router.push("/auth/signin");
