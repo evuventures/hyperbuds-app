@@ -94,24 +94,45 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         }
 
         const data = await res.json();
-
+        
+        // Debug: Log the full response from backend
+        console.log("🔍 Backend response from /api/v1/auth/me:", JSON.stringify(data, null, 2));
+        
         // Check if profile is complete before allowing dashboard access
         const profile = data?.profile;
-        const isProfileIncomplete =
-          !profile?.username ||
+        console.log("📋 Profile data:", profile);
+        console.log("✅ Profile validation:", {
+          hasUsername: !!profile?.username,
+          username: profile?.username,
+          hasBio: !!profile?.bio,
+          bio: profile?.bio,
+          hasNiche: !!profile?.niche,
+          niche: profile?.niche,
+          nicheIsArray: Array.isArray(profile?.niche),
+          nicheLength: Array.isArray(profile?.niche) ? profile.niche.length : 0
+        });
+        
+        const isProfileIncomplete = 
+          !profile?.username || 
           profile.username === "" ||
-          !profile?.bio ||
+          !profile?.bio || 
           profile.bio === "" ||
           !profile?.niche ||
           (Array.isArray(profile.niche) && profile.niche.length === 0);
 
         if (isProfileIncomplete) {
           // Redirect to profile completion page
-          console.log("Profile incomplete, redirecting to complete-profile");
+          console.error("❌ Profile incomplete, redirecting to complete-profile");
+          console.error("Missing fields:", {
+            needsUsername: !profile?.username || profile.username === "",
+            needsBio: !profile?.bio || profile.bio === "",
+            needsNiche: !profile?.niche || (Array.isArray(profile.niche) && profile.niche.length === 0)
+          });
           router.push("/profile/complete-profile");
           return;
         }
 
+        console.log("✅ Profile is complete! Loading dashboard...");
         setUser(data);
       } catch (err) {
         console.error("Failed to fetch user", err);
