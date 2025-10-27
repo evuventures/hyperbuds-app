@@ -206,7 +206,7 @@ const DashboardSkeleton: React.FC<{ collapsed?: boolean }> = ({ collapsed = fals
         {/* Sidebar */}
         <div
           className={`
-            fixed inset-y-0 left-0 z-40 transform transition-all duration-300 ease-in-out
+          hidden lg:flex  fixed inset-y-0 left-0 z-40 transform transition-all duration-300 ease-in-out
             lg:relative lg:translate-x-0 lg:z-auto lg:pt-0
             translate-x-0
             ${collapsed ? 'lg:w-16' : 'w-60'}
