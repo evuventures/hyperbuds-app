@@ -13,7 +13,9 @@ import {
   CreditCard,
   Menu,
 } from 'lucide-react';
-import { useTheme } from '@/context/Theme'; // Adjust path as needed
+import { useTheme } from '@/context/Theme';
+import { useAuth } from '@/hooks/auth/useAuth';
+import { useRouter } from 'next/navigation';
 
 interface HeaderProps {
   user: {
@@ -30,6 +32,18 @@ export const Header: React.FC<HeaderProps> = ({ user, onMenuClick }) => {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const { isDarkMode, toggleDarkMode } = useTheme();
+  const { logout } = useAuth();
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      setShowUserMenu(false);
+      router.push('/auth/signin');
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
+  };
 
   const mockNotifications = [
     { id: 1, type: 'match', message: 'New collaboration match found!', time: '2m ago', unread: true },
@@ -206,7 +220,10 @@ export const Header: React.FC<HeaderProps> = ({ user, onMenuClick }) => {
                 </div>
 
                 <div className="py-2 border-t border-gray-100 dark:border-gray-700">
-                  <button className="flex gap-3 items-center px-4 py-2 w-full text-left text-red-600 transition-colors cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 dark:text-red-400">
+                  <button 
+                    onClick={handleLogout}
+                    className="flex gap-3 items-center px-4 py-2 w-full text-left text-red-600 transition-colors cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 dark:text-red-400"
+                  >
                     <LogOut className="w-4 h-4" />
                     <span className="text-sm">Sign Out</span>
                   </button>
