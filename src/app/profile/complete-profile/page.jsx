@@ -48,7 +48,7 @@ export default function MultiStepProfileForm() {
     const fetchLocation = async () => {
       try {
         const apiKey = process.env.NEXT_PUBLIC_ABSTRACT_API_KEY;
-        
+
         // Skip if no API key configured
         if (!apiKey) {
           return;
@@ -57,7 +57,7 @@ export default function MultiStepProfileForm() {
         const res = await fetch(
           `https://ipgeolocation.abstractapi.com/v1/?api_key=${apiKey}`
         );
-        
+
         // Silently fail for rate limit errors (429) or other API errors
         if (!res.ok) {
           if (res.status === 429) {
@@ -259,13 +259,6 @@ export default function MultiStepProfileForm() {
         Object.entries(profileData).filter(([, value]) => value !== undefined)
       );
 
-      console.log('📤 Sending profile data to backend:', cleanedProfileData);
-      console.log('✅ Required fields check:', {
-        hasUsername: !!cleanedProfileData.username,
-        hasBio: !!cleanedProfileData.bio,
-        hasNiche: Array.isArray(cleanedProfileData.niche) && cleanedProfileData.niche.length > 0
-      });
-
       const response = await fetch(`${BASE_URL}/api/v1/profiles/me`, {
         method: 'PUT',
         headers: {
@@ -277,17 +270,8 @@ export default function MultiStepProfileForm() {
 
       if (response.ok) {
         const responseData = await response.json();
-        console.log('✅ Profile created successfully:', responseData);
         setMessage('Profile created successfully!');
         setCurrentStep(5); // Success screen
-
-        // Trigger social sync for platforms with valid URLs
-        const validSocialLinks = Object.entries(socialLinks).filter(([, url]) => url && url.trim());
-        if (validSocialLinks.length > 0) {
-          // Note: Social sync would require platform access tokens
-          // This is typically handled through OAuth flows
-          console.log('Social links to sync:', validSocialLinks);
-        }
       } else {
         const errorData = await response.json();
         console.error('❌ Profile creation failed:', errorData);
@@ -574,12 +558,8 @@ export default function MultiStepProfileForm() {
       <button
         className="px-8 py-4 w-full font-semibold text-white bg-gradient-to-r from-purple-500 to-blue-500 rounded-xl shadow-lg transition-all duration-300 transform hover:shadow-xl hover:scale-105"
         onClick={() => {
-          console.log('🚀 Button clicked! Redirecting to dashboard...');
-          console.log('📊 Current profile data:', { username, bio, niches: selectedNiches });
-          
           // Force redirect with page reload to refresh profile data
           setTimeout(() => {
-            console.log('⏰ Timeout completed, navigating now...');
             window.location.href = '/';
           }, 1000);
         }}
