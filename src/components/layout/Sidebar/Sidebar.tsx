@@ -1,12 +1,13 @@
 "use client"
 import React, { useState } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Heart, Users, ShoppingBag, MessageCircle, Currency, User2,
-  Menu, House
+  Menu, House, LogOut
 } from 'lucide-react';
+import { useAuth } from '@/hooks/auth/useAuth';
 
 
 interface SidebarProps {
@@ -64,7 +65,19 @@ export const Sidebar: React.FC<SidebarProps> = ({ user, activeTab, collapsed, on
   // Use the actual collapsed prop directly, no need for the Boolean cast.
   const isCollapsed = collapsed;
   const pathname = usePathname();
+  const router = useRouter();
+  const { logout } = useAuth();
   const [notifications] = useState(mockData.notifications);
+
+  // Logout handler
+  const handleLogout = async () => {
+    try {
+      await logout();
+      router.push('/auth/signin');
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
+  };
 
   // Determine active tab based on current route
   const getActiveTabFromPath = () => {
@@ -306,15 +319,37 @@ export const Sidebar: React.FC<SidebarProps> = ({ user, activeTab, collapsed, on
                     </div>
                   </div>
                 </div>
+
+                {/* Logout Button */}
+                <motion.button
+                  onClick={handleLogout}
+                  whileHover={{ scale: 1.02, x: 2 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="flex items-center gap-3 px-3 py-2.5 mt-2 text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 rounded-lg transition-all duration-300 cursor-pointer hover:bg-red-100 dark:hover:bg-red-900/30 group lg:hidden"
+                >
+                  <LogOut className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
+                  <span className="text-sm font-medium">Sign Out</span>
+                </motion.button>
               </div>
             </>
           ) : (
-            <div className="flex justify-center">
+            <div className="flex flex-col gap-2 items-center">
               <div className="flex justify-center items-center w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full avatar">
                 <span className="text-xs font-medium text-white">
                   {user.username?.[0]?.toUpperCase() || user.email[0].toUpperCase()}
                 </span>
               </div>
+
+              {/* Logout Button - Collapsed */}
+              <motion.button
+                onClick={handleLogout}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+                className="flex justify-center items-center p-2 text-red-600 bg-red-50 rounded-lg transition-all duration-300 cursor-pointer dark:text-red-400 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30"
+                title="Sign Out"
+              >
+                <LogOut className="w-4 h-4" />
+              </motion.button>
             </div>
           )}
         </div>
