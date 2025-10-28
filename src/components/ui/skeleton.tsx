@@ -231,7 +231,7 @@ const DashboardSkeleton: React.FC<{ collapsed?: boolean }> = ({ collapsed = fals
             </main>
 
             {/* Right Sidebar */}
-            <div className="fixed inset-y-0 right-0 z-40 w-80 bg-white border-l shadow-xl transition-all duration-300 ease-in-out transform translate-x-0 dark:bg-gray-900 border-gray-200/50 dark:border-gray-700/50 xl:relative xl:translate-x-0 xl:z-auto xl:shadow-none xl:pt-0">
+            <div className="hidden lg:flex fixed inset-y-0 right-0 z-40 w-80 bg-white border-l shadow-xl transition-all duration-300 ease-in-out transform translate-x-0 dark:bg-gray-900 border-gray-200/50 dark:border-gray-700/50 xl:relative xl:translate-x-0 xl:z-auto xl:shadow-none xl:pt-0">
               <div className="pt-16 h-full xl:pt-0">
                 <div className="overflow-y-auto h-full scrollbar-hide">
                   <RightSidebarSkeleton />
