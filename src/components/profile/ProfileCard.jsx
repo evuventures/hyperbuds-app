@@ -4,22 +4,22 @@ import { PlatformStats } from "@/components/collaboration/PlatformStats";
 import { useMultiplePlatformData, useCombinedPlatformMetrics } from "@/hooks/features/usePlatformData";
 import {
   User,
- 
+
   Mail,
- 
+
   MoreHorizontal,
- 
+
   Users,
   TrendingUp,
   Star,
-  
+
   Target,
   Activity,
-  
+
   Share2,
   Heart,
   MessageCircle,
- 
+
   Copy,
   Check,
   ExternalLink,
@@ -168,14 +168,57 @@ export default function UserProfileHeader({
           <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-gradient-to-tr from-pink-500 to-blue-500 rounded-full blur-3xl"></div>
         </div>
 
-        <div className="relative p-8">
-          <div className="flex flex-col-reverse justify-between items-start mb-8 md:flex-row">
+        <div className="relative p-4 sm:p-6 md:p-8">
+          {/* Quick Actions Menu - Mobile First */}
+          <div className="flex gap-2 justify-end items-center mb-8 pb-4 border-b border-gray-200 dark:border-gray-700 md:hidden">
+            <button
+              onClick={copyProfileUrl}
+              className="p-3 text-gray-600 rounded-xl border shadow-md transition-all cursor-pointer hover:scale-105 bg-gray-100/80 dark:bg-gray-700/60 hover:bg-gray-200 dark:hover:bg-gray-600/80 dark:text-gray-300 border-gray-200/50 dark:border-gray-600/50 group"
+              title="Copy profile URL"
+            >
+              {copied ? (
+                <Check size={18} className="text-green-500" />
+              ) : (
+                <Copy size={18} />
+              )}
+            </button>
 
-            <div className=" md:flex gap-8 items-center mt-5">
+            <button className="p-3 text-gray-600 rounded-xl border shadow-md transition-all cursor-pointer hover:scale-105 bg-gray-100/80 dark:bg-gray-700/60 hover:bg-gray-200 dark:hover:bg-gray-600/80 dark:text-gray-300 border-gray-200/50 dark:border-gray-600/50">
+              <Share2 size={18} />
+            </button>
 
-              {/* Enhanced Avatar*/} 
-              <div className="relative ">
-                <div className="flex justify-center mt-4 md:mt-0 mx-auto md:mx-0 items-center text-3xl font-bold text-white bg-gradient-to-br from-blue-400 via-purple-500 to-pink-400 rounded-3xl ring-4 ring-white ring-offset-4 ring-offset-gray-50 shadow-2xl transition-all md:w-32 md:h-32 w-22 h-22 dark:from-blue-500 dark:via-purple-600 dark:to-pink-500 dark:ring-gray-800 dark:ring-offset-gray-900">
+            {isOwnProfile && (
+              <div className="relative">
+                {/* Trigger button */}
+                <button
+                  onClick={() => setOpen(!open)}
+                  className="p-3 text-gray-600 rounded-xl border shadow-md transition-all cursor-pointer hover:scale-105 bg-gray-100/80 dark:bg-gray-700/60 hover:bg-gray-200 dark:hover:bg-gray-600/80 dark:text-gray-300 border-gray-200/50 dark:border-gray-600/50"
+                >
+                  <MoreHorizontal size={18} />
+                </button>
+
+                {/* Dropdown menu */}
+                {open && (
+                  <div className="absolute right-0 z-50 mt-2 w-40 bg-white rounded-md ring-1 shadow-lg dark:bg-gray-800 ring-black/5">
+                    <Link
+                      href="/profile/edit"
+                      className="block px-4 py-2 text-sm text-gray-700 rounded-md cursor-pointer dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+                    >
+                      Edit Profile
+                    </Link>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          <div className="flex flex-col justify-between items-start mb-8 mt-4 md:mt-0 md:flex-row">
+
+            <div className="flex flex-row gap-4 sm:gap-6 md:gap-8 items-start w-full md:items-center md:w-auto">
+
+              {/* Enhanced Avatar*/}
+              <div className="relative flex-shrink-0">
+                <div className="flex justify-center items-center text-3xl font-bold text-white bg-gradient-to-br from-blue-400 via-purple-500 to-pink-400 rounded-3xl ring-4 ring-white ring-offset-4 ring-offset-gray-50 shadow-2xl transition-all w-28 h-28 sm:w-32 sm:h-32 md:w-32 md:h-32 dark:from-blue-500 dark:via-purple-600 dark:to-pink-500 dark:ring-gray-800 dark:ring-offset-gray-900">
                   {user.displayName?.charAt(0) ||
                     user.username?.charAt(0) ||
                     "U"}
@@ -183,7 +226,7 @@ export default function UserProfileHeader({
 
                 {/* Status Indicators */}
                 {user.isActive && (
-                  <div className="flex absolute right-6 md:-right-2 -bottom-2 justify-center items-center w-10 h-10 bg-green-500 rounded-full border-4 border-white shadow-xl animate-pulse dark:border-gray-800">
+                  <div className="flex absolute -right-2 -bottom-2 justify-center items-center w-10 h-10 bg-green-500 rounded-full border-4 border-white shadow-xl animate-pulse dark:border-gray-800">
                     <Activity size={14} className="text-white" />
                   </div>
                 )}
@@ -196,10 +239,10 @@ export default function UserProfileHeader({
               </div>
 
               {/* Enhanced User Information */}
-              <div className="flex-1 space-y-4">
+              <div className="flex-1 space-y-3 text-left w-full md:w-auto">
                 <div>
-                  <div className="flex gap-3 items-start mb-2 mt-4 md:mt-0">
-                    <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-gray-900 to-gray-600 dark:from-gray-100 dark:to-gray-300">
+                  <div className="flex gap-3 justify-start items-center mb-2 mt-2 md:mt-0">
+                    <h1 className="text-2xl sm:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-gray-900 to-gray-600 dark:from-gray-100 dark:to-gray-300">
                       {user.displayName || user.username}
                     </h1>
                     {user.isVerified && (
@@ -210,8 +253,8 @@ export default function UserProfileHeader({
                     )}
                   </div>
 
-                  <div className="flex  gap-2 items-start mb-3 flex-row md:gap-4">
-                    <p className="text-lg font-medium text-blue-600 transition-colors cursor-pointer dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300">
+                  <div className="flex gap-2 justify-start items-center mb-3 flex-row flex-wrap md:gap-4">
+                    <p className="text-base sm:text-lg font-medium text-blue-600 transition-colors cursor-pointer dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300">
                       @{user.username}
                     </p>
                     <div
@@ -234,7 +277,7 @@ export default function UserProfileHeader({
                 {user.bio && (
                   <div className="max-w-2xl">
                     <p
-                      className={`text-lg leading-relaxed text-gray-600 dark:text-gray-300 transition-all ${showFullBio ? "" : "line-clamp-2"}`}
+                      className={`text-base md:text-lg leading-relaxed text-gray-600 dark:text-gray-300 transition-all ${showFullBio ? "" : "line-clamp-2"}`}
                     >
                       {user.bio}
                     </p>
@@ -252,8 +295,8 @@ export default function UserProfileHeader({
               </div>
             </div>
 
-            {/* Quick Actions Menu */}
-            <div className="flex gap-2 justify-end items-center w-full">
+            {/* Quick Actions Menu - Desktop Only */}
+            <div className="hidden gap-2 justify-end items-center md:flex">
               <button
                 onClick={copyProfileUrl}
                 className="p-3 text-gray-600 rounded-xl border shadow-md transition-all cursor-pointer hover:scale-105 bg-gray-100/80 dark:bg-gray-700/60 hover:bg-gray-200 dark:hover:bg-gray-600/80 dark:text-gray-300 border-gray-200/50 dark:border-gray-600/50 group"
@@ -282,7 +325,7 @@ export default function UserProfileHeader({
 
                   {/* Dropdown menu */}
                   {open && (
-                    <div className="absolute right-0 mt-2 w-40 bg-white rounded-md ring-1 shadow-lg dark:bg-gray-800 ring-black/5">
+                    <div className="absolute right-0 z-50 mt-2 w-40 bg-white rounded-md ring-1 shadow-lg dark:bg-gray-800 ring-black/5">
                       <Link
                         href="/profile/edit"
                         className="block px-4 py-2 text-sm text-gray-700 rounded-md cursor-pointer dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
@@ -298,7 +341,7 @@ export default function UserProfileHeader({
           </div>
 
           {/* Enhanced Meta Information */}
-          <div className="mt-8 md:mt-0 flex flex-col gap-3 items-start my-5 text-sm md:flex-row">
+          <div className="mt-0 md:mt-0 flex flex-col gap-3 items-start my-5 text-sm md:flex-row">
             <div className="flex gap-2 items-center text-gray-500 dark:text-gray-400">
               <PartyPopper size={16} className="text-purple-500" />
               <span>Joined {formatShortDate(user.createdAt)}</span>
@@ -331,7 +374,7 @@ export default function UserProfileHeader({
               </Link>
             </div>
           ) : (
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            <div className="grid grid-cols-1 gap-4 w-full md:grid-cols-3">
               <button
                 onClick={handleConnect}
                 className={`px-8 py-4 rounded-xl font-semibold transition-all transform hover:scale-105 shadow-xl hover:shadow-2xl flex items-center gap-3 justify-center ${isFollowing
