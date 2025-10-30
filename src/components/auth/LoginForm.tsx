@@ -59,7 +59,7 @@ export default function LoginForm() {
     } finally {
       setIsLoading(false);
     }
-  }; // ✅ properly closed handleSubmit function here
+  }; // ✅ closes handleSubmit function properly
 
   const togglePasswordVisibility = () => setShowPassword(!showPassword);
 
@@ -79,7 +79,10 @@ export default function LoginForm() {
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-50 p-4">
-      <form onSubmit={handleSubmit} className="w-full max-w-md p-8 bg-white rounded-xl shadow-lg space-y-6">
+      <form
+        onSubmit={handleSubmit}
+        className="w-full max-w-md p-8 bg-white rounded-xl shadow-lg space-y-6"
+      >
         <h1 className="text-2xl font-bold text-center">Login</h1>
 
         {message && <p className="text-green-600">{message}</p>}
@@ -90,7 +93,7 @@ export default function LoginForm() {
           <input
             type="email"
             value={email}
-            onChange={e => setEmail(e.target.value)}
+            onChange={(e) => setEmail(e.target.value)}
             className="w-full px-4 py-2 border rounded"
             required
           />
@@ -102,29 +105,49 @@ export default function LoginForm() {
             <input
               type={showPassword ? 'text' : 'password'}
               value={password}
-              onChange={e => setPassword(e.target.value)}
+              onChange={(e) => setPassword(e.target.value)}
               className="w-full px-4 py-2 border rounded"
               required
             />
-            <button type="button" onClick={togglePasswordVisibility} className="absolute right-2 top-2">
+            <button
+              type="button"
+              onClick={togglePasswordVisibility}
+              className="absolute right-2 top-2"
+            >
               {showPassword ? <FaEyeSlash /> : <FaEye />}
             </button>
           </div>
         </div>
 
-        <button type="submit" disabled={isLoading} className="w-full py-2 bg-blue-600 text-white rounded">
+        <button
+          type="submit"
+          disabled={isLoading}
+          className="w-full py-2 bg-blue-600 text-white rounded"
+        >
           {isLoading ? 'Logging in...' : 'Log In'}
         </button>
 
         <div className="flex justify-between">
-          <a href="/auth/forgot-password" className="text-sm text-blue-500">Forgot password?</a>
-          <a href="/auth/register" onClick={handleSignUpClick} className="text-sm text-blue-500">Sign up</a>
+          <a href="/auth/forgot-password" className="text-sm text-blue-500">
+            Forgot password?
+          </a>
+          <a
+            href="/auth/register"
+            onClick={handleSignUpClick}
+            className="text-sm text-blue-500"
+          >
+            Sign up
+          </a>
         </div>
 
-        <button type="button" onClick={handleGoogleLogin} className="w-full py-2 mt-4 bg-red-500 text-white rounded">
+        <button
+          type="button"
+          onClick={handleGoogleLogin}
+          className="w-full py-2 mt-4 bg-red-500 text-white rounded"
+        >
           Login with Google
         </button>
       </form>
     </div>
   );
-}
+} // ✅ closes component properly
