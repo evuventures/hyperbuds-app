@@ -33,8 +33,9 @@ export async function getCurrentUser() {
 
     const data = await res.json();
     return data;
-  } catch (err: any) {
+  } catch (error: unknown) {
     console.error("❌ getCurrentUser error:", err.message);
     throw err;
   }
 }
+
