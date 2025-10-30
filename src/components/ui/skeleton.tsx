@@ -131,10 +131,10 @@ const MainContentSkeleton: React.FC = () => (
   </div>
 );
 
-// Right Sidebar Skeleton
-const RightSidebarSkeleton: React.FC = () => (
+// Right Sidebar Skeleton - Commented out (right sidebar removed)
+/* const RightSidebarSkeleton: React.FC = () => (
   <div className="p-4 bg-white border-l border-gray-200 lg:w-80 dark:bg-gray-800 dark:border-gray-700">
-    {/* Notifications section */}
+    {/* Notifications section *\/}
     <div className="mb-6">
       <Skeleton className="mb-4 w-24 h-5" />
       <div className="space-y-3">
@@ -150,7 +150,7 @@ const RightSidebarSkeleton: React.FC = () => (
       </div>
     </div>
 
-    {/* Activity section */}
+    {/* Activity section *\/}
     <div className="mb-6">
       <Skeleton className="mb-4 w-20 h-5" />
       <div className="space-y-4">
@@ -166,7 +166,7 @@ const RightSidebarSkeleton: React.FC = () => (
       </div>
     </div>
 
-    {/* Quick actions */}
+    {/* Quick actions *\/}
     <div>
       <Skeleton className="mb-4 w-28 h-5" />
       <div className="space-y-2">
@@ -176,7 +176,7 @@ const RightSidebarSkeleton: React.FC = () => (
       </div>
     </div>
   </div>
-);
+); */
 
 // Main Dashboard Skeleton Component
 const DashboardSkeleton: React.FC<{ collapsed?: boolean }> = ({ collapsed = false }) => {
@@ -231,13 +231,13 @@ const DashboardSkeleton: React.FC<{ collapsed?: boolean }> = ({ collapsed = fals
             </main>
 
             {/* Right Sidebar */}
-            <div className="fixed inset-y-0 right-0 z-40 w-80 bg-white border-l shadow-xl transition-all duration-300 ease-in-out transform translate-x-0 dark:bg-gray-900 border-gray-200/50 dark:border-gray-700/50 xl:relative xl:translate-x-0 xl:z-auto xl:shadow-none xl:pt-0">
+            {/* <div className="fixed inset-y-0 right-0 z-40 w-80 bg-white border-l shadow-xl transition-all duration-300 ease-in-out transform translate-x-0 dark:bg-gray-900 border-gray-200/50 dark:border-gray-700/50 xl:relative xl:translate-x-0 xl:z-auto xl:shadow-none xl:pt-0">
               <div className="pt-16 h-full xl:pt-0">
                 <div className="overflow-y-auto h-full scrollbar-hide">
                   <RightSidebarSkeleton />
                 </div>
               </div>
-            </div>
+            </div> */}
           </div>
         </div>
       </div>
