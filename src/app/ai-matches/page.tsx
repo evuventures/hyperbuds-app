@@ -4,38 +4,37 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import DashboardLayout from "@/components/layout/Dashboard/Dashboard";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, RefreshCw, Loader2, Heart, Users } from "lucide-react";
+import { ArrowLeft, RefreshCw, Loader2, Heart } from "lucide-react";
 import MatchHistoryGallery from "@/components/matching/MatchHistoryGallery";
-import { useMatchHistory } from "@/hooks/features/useMatching";
+import { useMatching } from "@/hooks/features/useMatching"; // ✅ changed
 import type { CreatorProfile } from "@/types/matching.types";
 
 const AIMatchesPage: React.FC = () => {
   const router = useRouter();
   const [likedMatches, setLikedMatches] = useState<Set<string>>(new Set());
 
-  const { data, isLoading, error, refetch, isRefetching } = useMatchHistory({
-    status: "all",
-    limit: 50,
-    sortBy: "compatibility",
-    sortOrder: "desc",
-  });
-
-  const matches = data?.matches || [];
+  // ✅ Now using the correct hook for AI suggestions
+  const {
+    suggestions: matches = [],
+    isLoading,
+    error,
+    refreshMatches,
+    isRefetching,
+  } = useMatching();
 
   // Track liked matches
   useEffect(() => {
     if (matches.length) {
       const likedIds = matches
         .filter((m) => m.status === "liked" || m.status === "mutual")
-        .map((m) => m.targetProfile?.userId)
-        .filter((id): id is string => Boolean(id));
+        .map((m) => m.targetUserId?._id || m.targetUserId)
+        .filter(Boolean);
       setLikedMatches(new Set(likedIds));
     }
   }, [matches]);
 
   const handleMessage = (userId: string) => router.push(`/messages?userId=${userId}`);
   const handleViewProfile = (userId: string) => router.push(`/profile/user-profile/${userId}`);
-  const refreshMatches = async () => refetch();
 
   return (
     <DashboardLayout>
@@ -52,7 +51,11 @@ const AIMatchesPage: React.FC = () => {
 
         <h1 className="text-3xl font-bold mb-2">AI Matches</h1>
         <p className="mb-6 text-gray-600">
-          {isLoading ? "Loading matches..." : matches.length === 0 ? "No matches found yet" : `${matches.length} matches found`}
+          {isLoading
+            ? "Loading matches..."
+            : matches.length === 0
+            ? "No matches found yet"
+            : `${matches.length} matches found`}
         </p>
 
         {isLoading ? (
@@ -60,12 +63,12 @@ const AIMatchesPage: React.FC = () => {
             <Loader2 className="w-12 h-12 text-purple-600 animate-spin" />
           </div>
         ) : error ? (
-          <div className="text-center py-20 text-red-500">{error}</div>
+          <div className="text-center py-20 text-red-500">{String(error)}</div>
         ) : matches.length === 0 ? (
           <div className="text-center py-20">
             <Heart className="w-12 h-12 text-pink-500 mx-auto mb-4" />
-            <p>No matches yet. Update your profile preferences!</p>
-            <Button onClick={() => router.push("/profile/edit")} className="mt-4">Complete Profile</Button>
+            <p>No matches yet. Try refreshing your suggestions!</p>
+            <Button onClick={refreshMatches} className="mt-4">Refresh Suggestions</Button>
           </div>
         ) : (
           <MatchHistoryGallery
