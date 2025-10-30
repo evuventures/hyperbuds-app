@@ -49,19 +49,20 @@ export default function LoginForm() {
 
       if (isProfileIncomplete) router.push('/profile/complete-profile');
       else router.push('/');
-
-  } catch (err: unknown) {
-  console.error(err);
-
-  if (err instanceof Error) {
-    setError(err.message || 'Network error occurred');
-  } else {
-    setError('An unknown error occurred');
-  }
-};
-
+    } catch (err: unknown) {
+      console.error(err);
+      if (err instanceof Error) {
+        setError(err.message || 'Network error occurred');
+      } else {
+        setError('An unknown error occurred');
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }; // ✅ closes handleSubmit properly
 
   const togglePasswordVisibility = () => setShowPassword(!showPassword);
+
   const handleSignUpClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
     router.push('/auth/register');
@@ -69,7 +70,7 @@ export default function LoginForm() {
 
   const handleGoogleLogin = () => {
     const clientId = "YOUR_GOOGLE_CLIENT_ID";
-    const redirectUri = "http://localhost:3000";
+    const redirectUri = "https://api-hyperbuds-backend.onrender.com/auth/signin";
     const scope = "email profile";
     const responseType = "code";
 
@@ -105,7 +106,11 @@ export default function LoginForm() {
               className="w-full px-4 py-2 border rounded"
               required
             />
-            <button type="button" onClick={togglePasswordVisibility} className="absolute right-2 top-2">
+            <button
+              type="button"
+              onClick={togglePasswordVisibility}
+              className="absolute right-2 top-2"
+            >
               {showPassword ? <FaEyeSlash /> : <FaEye />}
             </button>
           </div>
