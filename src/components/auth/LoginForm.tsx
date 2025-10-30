@@ -59,7 +59,7 @@ export default function LoginForm() {
     } finally {
       setIsLoading(false);
     }
-  }; // ✅ closes handleSubmit properly
+  }; // ✅ properly closed handleSubmit function here
 
   const togglePasswordVisibility = () => setShowPassword(!showPassword);
 
@@ -106,11 +106,7 @@ export default function LoginForm() {
               className="w-full px-4 py-2 border rounded"
               required
             />
-            <button
-              type="button"
-              onClick={togglePasswordVisibility}
-              className="absolute right-2 top-2"
-            >
+            <button type="button" onClick={togglePasswordVisibility} className="absolute right-2 top-2">
               {showPassword ? <FaEyeSlash /> : <FaEye />}
             </button>
           </div>
