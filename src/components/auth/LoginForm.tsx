@@ -50,13 +50,16 @@ export default function LoginForm() {
       if (isProfileIncomplete) router.push('/profile/complete-profile');
       else router.push('/');
 
-    } catch (err: any) {
-      console.error(err);
-      setError(err.message || 'Network error occurred');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  } catch (err: unknown) {
+  console.error(err);
+
+  if (err instanceof Error) {
+    setError(err.message || 'Network error occurred');
+  } else {
+    setError('An unknown error occurred');
+  }
+};
+
 
   const togglePasswordVisibility = () => setShowPassword(!showPassword);
   const handleSignUpClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
