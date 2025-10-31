@@ -19,7 +19,6 @@ export async function getCurrentUser() {
       },
     });
 
-    // Handle token expiration or invalid token
     if (!res.ok) {
       let errorMessage = "Failed to fetch user profile";
       try {
@@ -34,8 +33,9 @@ export async function getCurrentUser() {
     const data = await res.json();
     return data;
   } catch (error: unknown) {
-    console.error("❌ getCurrentUser error:", err.message);
-    throw err;
+    const message =
+      error instanceof Error ? error.message : "Unknown error occurred";
+    console.error("❌ getCurrentUser error:", message);
+    throw new Error(message);
   }
 }
-

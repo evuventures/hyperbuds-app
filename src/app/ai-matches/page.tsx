@@ -1,33 +1,33 @@
 "use client";
-
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import DashboardLayout from "@/components/layout/Dashboard/Dashboard";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, RefreshCw, Loader2, Heart } from "lucide-react";
 import MatchHistoryGallery from "@/components/matching/MatchHistoryGallery";
-import { useMatching } from "@/hooks/features/useMatching"; // ✅ changed
+import { useMatching } from "@/hooks/features/useMatching";
 import type { CreatorProfile } from "@/types/matching.types";
 
 const AIMatchesPage: React.FC = () => {
   const router = useRouter();
   const [likedMatches, setLikedMatches] = useState<Set<string>>(new Set());
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // ✅ Now using the correct hook for AI suggestions
   const {
     suggestions: matches = [],
     isLoading,
     error,
-    refreshMatches,
-    isRefetching,
+    refetch,
   } = useMatching();
 
-  // Track liked matches
   useEffect(() => {
     if (matches.length) {
       const likedIds = matches
-        .filter((m) => m.status === "liked" || m.status === "mutual")
-        .map((m) => m.targetUserId?._id || m.targetUserId)
+        .filter((m: any) => m.status === "liked" || m.status === "mutual")
+        .map((m: any) => {
+          const target = m.targetUserId;
+          return typeof target === "string" ? target : target?._id;
+        })
         .filter(Boolean);
       setLikedMatches(new Set(likedIds));
     }
@@ -36,6 +36,12 @@ const AIMatchesPage: React.FC = () => {
   const handleMessage = (userId: string) => router.push(`/messages?userId=${userId}`);
   const handleViewProfile = (userId: string) => router.push(`/profile/user-profile/${userId}`);
 
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await refetch();
+    setIsRefreshing(false);
+  };
+
   return (
     <DashboardLayout>
       <div className="min-h-screen p-6 bg-gray-50 dark:bg-slate-900">
@@ -43,8 +49,8 @@ const AIMatchesPage: React.FC = () => {
           <Button onClick={() => router.back()} variant="outline" size="sm">
             <ArrowLeft className="w-4 h-4 mr-2" /> Back
           </Button>
-          <Button onClick={refreshMatches} disabled={isRefetching} variant="outline" size="sm">
-            <RefreshCw className={`w-4 h-4 mr-2 ${isRefetching ? "animate-spin" : ""}`} />
+          <Button onClick={handleRefresh} disabled={isRefreshing} variant="outline" size="sm">
+            <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? "animate-spin" : ""}`} />
             Refresh
           </Button>
         </div>
@@ -68,7 +74,9 @@ const AIMatchesPage: React.FC = () => {
           <div className="text-center py-20">
             <Heart className="w-12 h-12 text-pink-500 mx-auto mb-4" />
             <p>No matches yet. Try refreshing your suggestions!</p>
-            <Button onClick={refreshMatches} className="mt-4">Refresh Suggestions</Button>
+            <Button onClick={handleRefresh} className="mt-4">
+              Refresh Suggestions
+            </Button>
           </div>
         ) : (
           <MatchHistoryGallery

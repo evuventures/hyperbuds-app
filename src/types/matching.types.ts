@@ -2,6 +2,8 @@
 
 export interface MatchSuggestion {
   _id: string;
+  id:string;
+  profile?: CreatorProfile;
   userId: string;
   targetUserId: string;
   compatibilityScore: number;
