@@ -1,19 +1,10 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import Recommendations from "@/components/dashboard/Recommendations";
 import Trending from "@/components/dashboard/Trending";
-import { Zap, Video, Plus } from "lucide-react";
-
-// Mock stats - replace with actual data from API
-const mockStats = {
-  totalMatches: 47,
-  activeCollabs: 8,
-  avgResponseTime: "2.3h",
-  successRate: "94%",
-  newMatches: 12,
-  pendingInvites: 5,
-};
+import { Zap, Rocket } from "lucide-react";
 
 const MainContent: React.FC = () => {
   return (
@@ -39,22 +30,17 @@ const MainContent: React.FC = () => {
                   </span>
                 </h1>
                 <p className="mb-6 max-w-xl text-lg text-white/90 dark:text-white/80">
-                  You have {mockStats.newMatches} new matches and{" "}
-                  {mockStats.pendingInvites} collaboration invites waiting for
-                  you.
+                  Discover new ideas, collaborations, and opportunities waiting for you.
                 </p>
 
-                {/* Quick Action Buttons */}
-                <div className="flex flex-wrap gap-3">
-                  <button className="flex gap-2 items-center px-6 py-3 font-semibold text-purple-600 bg-white rounded-xl shadow-lg transition-all duration-200 transform dark:bg-gray-100 dark:text-purple-700 hover:bg-gray-100 dark:hover:bg-gray-200 hover:scale-105">
-                    <Video className="w-4 h-4" />
-                    Go Live
-                  </button>
-                  <button className="flex gap-2 items-center px-6 py-3 font-semibold text-white rounded-xl border-2 backdrop-blur-sm transition-all duration-200 border-white/30 dark:border-white/40 hover:bg-white/10 dark:hover:bg-white/20">
-                    <Plus className="w-4 h-4" />
-                    New Collab
-                  </button>
-                </div>
+                {/* Get Started Button */}
+                <Link
+                  href="/profile"
+                  className="inline-flex gap-2 items-center px-8 py-3 font-semibold text-purple-600 bg-white rounded-xl shadow-lg transition-all duration-200 transform dark:bg-gray-100 dark:text-purple-700 hover:bg-gray-100 dark:hover:bg-gray-200 hover:scale-105"
+                >
+                  <Rocket className="w-5 h-5" />
+                  Get Started
+                </Link>
               </div>
             </div>
           </div>
