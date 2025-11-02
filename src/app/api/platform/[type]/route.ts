@@ -42,45 +42,26 @@ export async function GET(
       // Check if RapidAPI key is configured
       const rapidApiKey = process.env.RAPIDAPI_KEY || process.env.NEXT_PUBLIC_RAPIDAPI_KEY;
       if (!rapidApiKey) {
-         // Return mock data for testing when RapidAPI key is not configured
-         console.log(`🔧 Using mock data for ${type} (username: ${username}) - RapidAPI key not configured`);
-
-         const mockData = {
-            platform: type as PlatformType,
-            username: username.trim(),
-            displayName: username.trim(),
-            profileImage: `https://ui-avatars.com/api/?name=${encodeURIComponent(username.trim())}&background=random`,
-            bio: `Mock bio for ${username.trim()}`,
-            verified: false,
-            followers: Math.floor(Math.random() * 10000) + 100, // Random followers between 100-10100
-            following: Math.floor(Math.random() * 1000) + 10,
-            totalContent: Math.floor(Math.random() * 100) + 5,
-            totalEngagement: Math.floor(Math.random() * 5000) + 100,
-            averageEngagement: Math.floor(Math.random() * 20) + 1,
-            lastFetched: new Date(),
-            raw: { mock: true, platform: type, username: username.trim() }
-         };
-
-         console.log(`✅ Returning mock data for ${type}:`, {
-            username: username.trim(),
-            followers: mockData.followers,
-            platform: mockData.platform
-         });
-
-         return NextResponse.json({
-            success: true,
-            data: mockData,
-            cached: false,
-            mock: true
-         });
+         console.error(`❌ RapidAPI key not configured for ${type} (username: ${username})`);
+         return NextResponse.json(
+            { 
+               success: false, 
+               error: 'API configuration error. RapidAPI key is not configured.' 
+            },
+            { status: 500 }
+         );
       }
 
       // Fetch platform data
       const result = await fetchPlatformData(type as PlatformType, username.trim());
 
       if (!result.success) {
+         // Return the actual error message - no mock data fallback
+         const errorMessage = result.error || 'Failed to fetch platform data';
+         console.error(`❌ Failed to fetch ${type} data for ${username}:`, errorMessage);
+         
          return NextResponse.json(
-            { success: false, error: result.error },
+            { success: false, error: errorMessage },
             { status: 404 }
          );
       }

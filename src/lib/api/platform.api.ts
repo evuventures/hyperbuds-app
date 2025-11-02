@@ -86,9 +86,18 @@ export async function fetchTikTokUserInfo(username: string): Promise<PlatformAPI
    } catch (error) {
       const axiosError = error as AxiosError;
       const errorData = axiosError.response?.data as { message?: string } | undefined;
+      const errorMessage = errorData?.message || axiosError.message || 'Failed to fetch TikTok user info';
+      
+      // Check if it's a quota error
+      const isQuotaError = errorMessage.toLowerCase().includes('quota') || 
+                          errorMessage.toLowerCase().includes('exceeded') ||
+                          axiosError.response?.status === 429;
+      
       return {
          success: false,
-         error: errorData?.message || axiosError.message || 'Failed to fetch TikTok user info',
+         error: isQuotaError 
+            ? `API quota exceeded: ${errorMessage}` 
+            : errorMessage,
       };
    }
 }
@@ -187,6 +196,9 @@ export function normalizePlatformData(
       case 'tiktok': {
          const tiktokData = data as unknown as Record<string, any>;
 
+         // Log raw response for debugging
+         console.log('🔍 TikTok API Raw Response:', JSON.stringify(tiktokData, null, 2));
+
          // TikTok API structure: response contains userInfo object
          const userInfo = (tiktokData.userInfo || tiktokData) as Record<string, any>;
          const user = (userInfo.user || tiktokData.user || tiktokData) as Record<string, any>;
@@ -195,11 +207,27 @@ export function normalizePlatformData(
          const statsV2 = (userInfo.statsV2 || {}) as Record<string, any>;
          const stats = (userInfo.stats || tiktokData.stats || {}) as Record<string, any>;
          
+         // Log extracted values for debugging
+         console.log('📊 TikTok Data Extraction:', {
+            hasUserInfo: !!tiktokData.userInfo,
+            hasUser: !!user,
+            statsV2: statsV2,
+            stats: stats,
+            user: user
+         });
+         
          // Parse followers and engagement (prefer statsV2 for accuracy)
-         const followerCount = parseInt(String(statsV2.followerCount || stats.followerCount || '0'));
-         const followingCount = parseInt(String(statsV2.followingCount || stats.followingCount || '0'));
-         const videoCount = parseInt(String(statsV2.videoCount || stats.videoCount || '0'));
-         const heartCount = parseInt(String(statsV2.heartCount || statsV2.heart || stats.heart || '0'));
+         const followerCount = parseInt(String(statsV2.followerCount || stats.followerCount || user?.followerCount || '0'));
+         const followingCount = parseInt(String(statsV2.followingCount || stats.followingCount || user?.followingCount || '0'));
+         const videoCount = parseInt(String(statsV2.videoCount || stats.videoCount || user?.videoCount || '0'));
+         const heartCount = parseInt(String(statsV2.heartCount || statsV2.heart || stats.heart || stats.heartCount || user?.heartCount || '0'));
+
+         console.log('✅ TikTok Normalized Values:', {
+            followers: followerCount,
+            following: followingCount,
+            videos: videoCount,
+            hearts: heartCount
+         });
 
          return {
             platform: 'tiktok',

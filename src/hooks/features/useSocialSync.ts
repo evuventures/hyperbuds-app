@@ -22,7 +22,8 @@ export const useSocialSync = () => {
       console.log(`🔄 Sync mutation called for ${platform}:`, { platform, platformData });
 
       const syncData: SocialSyncRequest = {
-        followers: platformData.followers,  // Backend expects "followers" field
+        followers: platformData.followers,
+        engagement: platformData.averageEngagement,  // Add engagement field
       };
 
       console.log(`📤 Sending sync data for ${platform}:`, syncData);
@@ -38,6 +39,9 @@ export const useSocialSync = () => {
             break;
           case 'twitter':
             result = await profileApi.syncTwitter(syncData);
+            break;
+          case 'instagram':
+            result = await profileApi.syncInstagram(syncData);
             break;
           default:
             throw new Error(`Sync not supported for ${platform}`);
@@ -100,7 +104,8 @@ export const useSocialSync = () => {
     Object.entries(platformsData).forEach(([platform, data]) => {
       if (data) {
         syncData[platform] = {
-          followers: data.followers,  // Backend expects "followers" field
+          followers: data.followers,
+          engagement: data.averageEngagement,  // Add engagement field
         };
         setSyncingPlatforms(prev => new Set(prev).add(platform));
       }

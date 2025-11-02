@@ -35,12 +35,14 @@ const platformIcons: Record<PlatformType, string> = {
    tiktok: '🎵',
    twitter: '🐦',
    twitch: '🎮',
+   instagram: '📷',
 };
 
 const platformColors: Record<PlatformType, string> = {
    tiktok: 'from-pink-500 to-red-500',
    twitter: 'from-blue-400 to-blue-600',
    twitch: 'from-purple-500 to-purple-700',
+   instagram: 'from-purple-600 via-pink-500 to-orange-400',
 };
 
 export function PlatformStats({
@@ -219,8 +221,10 @@ export function PlatformStats({
                            </div>
                         </div>
 
-                        <div className="mb-2 text-xs font-bold tracking-wider text-gray-500 uppercase dark:text-gray-400">
-                           {platform}
+                        <div className="flex gap-2 justify-between items-center mb-2">
+                           <div className="text-xs font-bold tracking-wider text-gray-500 uppercase dark:text-gray-400">
+                              {platform}
+                           </div>
                         </div>
 
                         <div className="mb-1 text-2xl font-bold text-gray-900 dark:text-gray-100">

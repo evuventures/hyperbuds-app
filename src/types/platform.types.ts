@@ -1,10 +1,11 @@
 // Platform API Types
-export type PlatformType = 'tiktok' | 'twitter' | 'twitch';
+export type PlatformType = 'tiktok' | 'twitter' | 'twitch' | 'instagram';
 
 export interface PlatformCredentials {
    tiktok?: string;
    twitter?: string;
    twitch?: string;
+   instagram?: string;
 }
 
 // TikTok API Types (based on TikTok API23)
