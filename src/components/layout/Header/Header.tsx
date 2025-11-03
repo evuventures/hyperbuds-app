@@ -43,8 +43,6 @@ export const Header: React.FC<HeaderProps> = ({ user, onMenuClick }) => {
   // Connect to notification WebSocket for real-time updates
   useNotificationSocket({
     enabled: true,
-    playSound: true,
-    showBrowserNotification: true,
   });
 
   const handleLogout = async () => {
@@ -126,9 +124,7 @@ export const Header: React.FC<HeaderProps> = ({ user, onMenuClick }) => {
             >
               <Bell className="w-4 h-4 text-gray-600 dark:text-gray-300 sm:w-5 sm:h-5" />
               {unreadCount > 0 && (
-                <span className="flex absolute -top-1 -right-1 justify-center items-center min-w-[1.25rem] h-5 px-1.5 text-xs font-bold text-white bg-red-500 rounded-full animate-pulse">
-                  {unreadCount > 99 ? '99+' : unreadCount}
-                </span>
+                <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white dark:border-gray-900"></span>
               )}
             </button>
 

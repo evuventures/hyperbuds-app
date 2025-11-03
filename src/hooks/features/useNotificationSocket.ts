@@ -11,43 +11,16 @@ import type { Notification } from '@/types/notifications.types';
 interface UseNotificationSocketOptions {
    enabled?: boolean;
    onNewNotification?: (notification: Notification) => void;
-   playSound?: boolean;
-   showBrowserNotification?: boolean;
 }
 
 export const useNotificationSocket = (options: UseNotificationSocketOptions = {}) => {
    const {
       enabled = true,
       onNewNotification,
-      playSound = true,
-      showBrowserNotification = true,
    } = options;
 
    const queryClient = useQueryClient();
    const { refetch: refetchUnreadCount } = useUnreadNotificationCount();
-   const notificationAudioRef = useRef<HTMLAudioElement | null>(null);
-   const permissionRef = useRef<NotificationPermission>('default');
-
-   // Initialize audio for notification sound
-   useEffect(() => {
-      if (playSound && typeof window !== 'undefined') {
-         notificationAudioRef.current = new Audio('/sounds/notification.mp3');
-         notificationAudioRef.current.volume = 0.5;
-      }
-   }, [playSound]);
-
-   // Request browser notification permission
-   useEffect(() => {
-      if (showBrowserNotification && typeof window !== 'undefined' && 'Notification' in window) {
-         if (Notification.permission === 'default') {
-            Notification.requestPermission().then((permission) => {
-               permissionRef.current = permission;
-            });
-         } else {
-            permissionRef.current = Notification.permission;
-         }
-      }
-   }, [showBrowserNotification]);
 
    // Connect to socket and set up listeners
    useEffect(() => {
@@ -79,27 +52,8 @@ export const useNotificationSocket = (options: UseNotificationSocketOptions = {}
          queryClient.invalidateQueries({ queryKey: notificationKeys.lists() });
          queryClient.invalidateQueries({ queryKey: notificationKeys.detail(notification.id) });
 
-         // Refetch unread count
+         // Refetch unread count (this will update the red dot indicator)
          refetchUnreadCount();
-
-         // Play notification sound
-         if (playSound && notificationAudioRef.current) {
-            notificationAudioRef.current.play().catch((error) => {
-               console.warn('Failed to play notification sound:', error);
-            });
-         }
-
-         // Show browser notification
-         if (showBrowserNotification && permissionRef.current === 'granted') {
-            new Notification(notification.title, {
-               body: notification.message,
-               icon: '/favicon.ico',
-               badge: '/favicon.ico',
-               tag: notification.id,
-               requireInteraction: false,
-               silent: false,
-            });
-         }
 
          // Call custom callback
          onNewNotification?.(notification);
@@ -146,7 +100,7 @@ export const useNotificationSocket = (options: UseNotificationSocketOptions = {}
          notificationSocket.off('notification:deleted', handleDeletedNotification);
          notificationSocket.off('notifications:read-all', handleReadAll);
       };
-   }, [enabled, queryClient, refetchUnreadCount, onNewNotification, playSound, showBrowserNotification]);
+   }, [enabled, queryClient, refetchUnreadCount, onNewNotification]);
 
    return {
       isConnected: notificationSocket.isConnected(),

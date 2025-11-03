@@ -6,6 +6,43 @@ This document outlines all backend requirements for the notification system impl
 
 The frontend notification system is **fully implemented** and ready to connect to the backend. This document specifies what the backend team needs to implement.
 
+### Quick Start for Backend Team
+
+**Priority Order:**
+1. **Start with REST API endpoints** (6 endpoints) - These are required first
+2. **Then implement WebSocket** (4 events) - For real-time updates
+3. **Database setup** - Notifications and preferences collections
+4. **Testing** - Use the testing checklist provided
+
+**Key Points:**
+- All endpoints require JWT Bearer token authentication
+- WebSocket connection uses `auth.token` in connection options
+- `notification:deleted` event sends **string ID only** (not an object)
+- Error responses must follow format: `{ success: false, message: "..." }`
+- Frontend handles visual indicators automatically (red dot badge)
+
+## ⚠️ Recent Changes (Frontend Updates)
+
+### Removed Features
+The following features have been **removed** from the frontend implementation:
+
+1. **Browser Notifications (Alert System)**
+   - ❌ Browser notification API integration removed
+   - ❌ Permission request dialogs removed
+   - ❌ Native browser alert notifications removed
+   - **Reason**: Simplified UX - notifications are now only visible in-app
+
+2. **Sound Notifications**
+   - ❌ Audio notification sounds removed
+   - ❌ Sound playback on new notifications removed
+   - **Reason**: Cleaner, less intrusive user experience
+
+### Current Frontend Implementation
+✅ **Visual Indicator Only**: The notification system now uses a **red dot indicator** in the header to show unread notification count
+- Simple, clean UI without sound or browser alerts
+- Users can click the bell icon to view notifications in-app
+- Real-time updates via WebSocket still work (without sound/alerts)
+
 ---
 
 ## 🔌 REST API Endpoints Required
@@ -24,6 +61,24 @@ Authorization: Bearer <access_token>
 ---
 
 ## 📡 API Endpoints
+
+### ⚠️ Important: Error Response Format
+All error responses across all endpoints follow this format:
+```json
+{
+  "success": false,
+  "message": "Human-readable error message"
+}
+```
+
+Common HTTP status codes:
+- `400 Bad Request` - Invalid parameters or request body
+- `401 Unauthorized` - Missing or invalid authentication token
+- `403 Forbidden` - User doesn't have permission
+- `404 Not Found` - Resource not found
+- `500 Internal Server Error` - Server-side error
+
+---
 
 ### 1. Get Notifications
 
@@ -67,8 +122,33 @@ Authorization: Bearer <access_token>
 ```
 
 **Error Responses:**
+- `400 Bad Request` - Invalid query parameters
+  ```json
+  {
+    "success": false,
+    "message": "Invalid parameter: 'limit' must be between 1 and 100"
+  }
+  ```
 - `401 Unauthorized` - Invalid or missing token
+  ```json
+  {
+    "success": false,
+    "message": "Unauthorized. Please login."
+  }
+  ```
 - `500 Internal Server Error` - Server error
+  ```json
+  {
+    "success": false,
+    "message": "Internal server error"
+  }
+  ```
+
+**Query Parameter Validation:**
+- `page`: Must be a positive integer ≥ 1 (default: 1)
+- `limit`: Must be between 1 and 100 (default: 20)
+- `type`: Must be a valid NotificationType (see Data Models section for allowed values)
+- `read`: Must be boolean string `"true"` or `"false"` in query params (e.g., `?read=false`)
 
 ---
 
@@ -254,9 +334,21 @@ Authorization: Bearer <access_token>
 socket = io('https://api-hyperbuds-backend.onrender.com', {
   auth: {
     token: accessToken  // JWT token from login
-  }
+  },
+  transports: ['websocket', 'polling'],  // Required: Support both transports
+  timeout: 10000,  // Connection timeout
+  reconnection: true,  // Enable auto-reconnection
+  reconnectionAttempts: 5,  // Max reconnection attempts
+  reconnectionDelay: 1000  // Delay between reconnection attempts
 });
 ```
+
+**Important Connection Requirements:**
+- ✅ Must support both WebSocket and polling transports
+- ✅ Must authenticate connection using JWT token in `auth.token`
+- ✅ Must verify token and extract userId before allowing connection
+- ✅ Must implement CORS for WebSocket connections
+- ✅ Should use Socket.IO rooms/namespaces per user: `io.to(userId).emit(...)`
 
 ### Events to Emit (Server → Client)
 
@@ -325,18 +417,16 @@ Emit when a notification is deleted.
 
 **Event:** `notification:deleted`
 
-**Payload:**
+**Payload:** Just the notification ID as a string (not an object)
+
 ```typescript
-{
-  notificationId: string;
-}
+string  // The notification ID directly
 ```
 
 **Example:**
 ```javascript
-io.to(userId).emit('notification:deleted', {
-  notificationId: '507f1f77bcf86cd799439011'
-});
+// Send just the string ID, NOT an object
+io.to(userId).emit('notification:deleted', '507f1f77bcf86cd799439011');
 ```
 
 #### 4. notifications:read-all
@@ -350,6 +440,61 @@ Emit when all notifications are marked as read.
 **Example:**
 ```javascript
 io.to(userId).emit('notifications:read-all');
+```
+
+---
+
+## 📝 Example API Requests
+
+### Get Notifications
+```bash
+curl -X GET "https://api-hyperbuds-backend.onrender.com/api/v1/notifications?page=1&limit=20&read=false" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -H "Content-Type: application/json"
+```
+
+### Mark Notification as Read
+```bash
+curl -X PUT "https://api-hyperbuds-backend.onrender.com/api/v1/notifications/507f1f77bcf86cd799439011/read" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -H "Content-Type: application/json"
+```
+
+### Mark All as Read
+```bash
+curl -X PUT "https://api-hyperbuds-backend.onrender.com/api/v1/notifications/read-all" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -H "Content-Type: application/json"
+```
+
+### Delete Notification
+```bash
+curl -X DELETE "https://api-hyperbuds-backend.onrender.com/api/v1/notifications/507f1f77bcf86cd799439011" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -H "Content-Type: application/json"
+```
+
+### Get Preferences
+```bash
+curl -X GET "https://api-hyperbuds-backend.onrender.com/api/v1/notifications/preferences" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -H "Content-Type: application/json"
+```
+
+### Update Preferences
+```bash
+curl -X PUT "https://api-hyperbuds-backend.onrender.com/api/v1/notifications/preferences" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": {
+      "match": true,
+      "message": false
+    },
+    "inApp": {
+      "collaboration": false
+    }
+  }'
 ```
 
 ---
@@ -594,28 +739,165 @@ interface NotificationPreferences {
 ## 🚨 Critical Implementation Notes
 
 1. **WebSocket Connection**
-   - Must authenticate with JWT token
-   - Must emit events to specific user rooms/namespaces
-   - Use Socket.IO rooms: `io.to(userId).emit(...)`
+   - ✅ Must authenticate with JWT token in `auth.token`
+   - ✅ Must verify token and extract `userId` from JWT payload
+   - ✅ Must emit events to specific user rooms/namespaces
+   - ✅ Use Socket.IO rooms: `io.to(userId).emit(...)`
+   - ✅ Must support both `websocket` and `polling` transports
+   - ✅ Implement CORS configuration for WebSocket origin
+   - ✅ Handle connection errors gracefully (frontend expects silent failures)
 
 2. **Real-time Updates**
-   - Emit WebSocket events immediately after database operations
-   - Ensure consistency between REST API and WebSocket data
+   - ✅ Emit WebSocket events **immediately** after database operations
+   - ✅ Ensure consistency between REST API and WebSocket data
+   - ✅ Always emit to the correct user room (verify userId matches)
+   - ✅ Emit even if user is offline (Socket.IO will queue or ignore)
 
 3. **Default Preferences**
-   - If user has no preferences, return all `true`
-   - Create default preferences on user registration
+   - ✅ If user has no preferences, return all `true` by default
+   - ✅ Create default preferences on user registration (optional but recommended)
+   - ✅ Return full preferences object even for partial updates
 
 4. **Action URLs**
-   - Use relative paths (e.g., `/matching/123`)
-   - Ensure URLs navigate to correct pages in frontend
+   - ✅ Use relative paths (e.g., `/matching/123`, `/profile/edit`)
+   - ✅ Ensure URLs navigate to correct pages in frontend
+   - ✅ Optional but recommended for better UX
+
+5. **Notification Payload Format**
+   - ✅ `notification:deleted` event must send **just the string ID**, not an object
+   - ✅ All other events send full notification objects
+   - ✅ Use ISO 8601 format for all timestamps (e.g., `2025-01-15T10:30:00.000Z`)
+   - ✅ `metadata` field can contain any JSON-serializable data
+
+6. **Error Handling**
+   - ✅ Return consistent error format: `{ success: false, message: "..." }`
+   - ✅ Use appropriate HTTP status codes (400, 401, 403, 404, 500)
+   - ✅ Validate all input parameters before processing
+   - ✅ Sanitize notification titles and messages to prevent XSS
 
 ---
 
-## 📞 Support
+## 🔧 Technical Specifications
 
-For questions or clarifications, please contact the frontend team.
+### WebSocket Implementation Details
+
+#### Connection Flow
+1. Client connects with JWT token in `auth.token`
+2. Server validates token and extracts `userId`
+3. Server joins socket to user-specific room: `socket.join(userId)`
+4. Server can now emit to user: `io.to(userId).emit(...)`
+
+#### Event Timing
+- Emit `notification:new` **immediately after** creating notification in database
+- Emit `notification:updated` **immediately after** updating notification
+- Emit `notification:deleted` **immediately after** deleting notification (send string ID only)
+- Emit `notifications:read-all` **immediately after** marking all as read
+
+#### User Room Management
+```javascript
+// Example Socket.IO implementation
+io.on('connection', (socket) => {
+  const token = socket.handshake.auth.token;
+  const userId = verifyTokenAndGetUserId(token);
+  
+  // Join user-specific room
+  socket.join(`user:${userId}`);
+  
+  // When creating notification, emit to user's room
+  socket.on('disconnect', () => {
+    socket.leave(`user:${userId}`);
+  });
+});
+
+// Emit notification to specific user
+function notifyUser(userId, event, data) {
+  io.to(`user:${userId}`).emit(event, data);
+}
+```
+
+### Response Format Standards
+
+All successful API responses must include:
+```json
+{
+  "success": true,
+  // ... response data
+}
+```
+
+All error responses must include:
+```json
+{
+  "success": false,
+  "message": "Human-readable error message"
+}
+```
+
+### CORS Configuration
+
+For WebSocket connections, ensure CORS allows:
+- Origin: Frontend domain (configure appropriately)
+- Methods: `GET`, `POST`
+- Headers: `Authorization`, `Content-Type`
+- Credentials: `true` (if using cookies)
+
+---
+
+## 📋 Summary: What Backend Team Needs to Implement
+
+### ✅ Required Implementation (No Changes)
+
+The backend team still needs to implement all the following features. **No changes are required** based on frontend updates - all API endpoints and WebSocket events remain the same.
+
+#### REST API Endpoints (6 endpoints required)
+1. ✅ `GET /api/v1/notifications` - Get user notifications with pagination and filtering
+2. ✅ `PUT /api/v1/notifications/:id/read` - Mark single notification as read
+3. ✅ `PUT /api/v1/notifications/read-all` - Mark all notifications as read
+4. ✅ `DELETE /api/v1/notifications/:id` - Delete a notification
+5. ✅ `GET /api/v1/notifications/preferences` - Get user notification preferences
+6. ✅ `PUT /api/v1/notifications/preferences` - Update notification preferences
+
+#### WebSocket Events (4 events required)
+1. ✅ `notification:new` - Emit when new notification is created
+2. ✅ `notification:updated` - Emit when notification is updated
+3. ✅ `notification:deleted` - Emit when notification is deleted
+4. ✅ `notifications:read-all` - Emit when all notifications are marked as read
+
+#### Database Schema
+- ✅ Notification collection/model with required fields (see Database Schema section)
+- ✅ Notification preferences collection/model
+- ✅ Proper indexing for performance
+
+### ❌ NOT Required (Removed from Frontend)
+
+The following features are **NOT needed** from the backend because the frontend has removed support for them:
+
+1. ❌ **Browser Notification API** - Backend does NOT need to support browser push notifications
+2. ❌ **Sound/Audio Alerts** - Backend does NOT need to send audio file URLs or sound metadata
+3. ❌ **Push Notification Service** - Backend does NOT need to integrate with FCM, APNs, or other push services
+
+**Important**: The backend can focus purely on the REST API and WebSocket events. The frontend handles all visual indicators (red dot badge) automatically based on the `unreadCount` returned from the API.
+
+---
+
+## ✅ Final Checklist Before Implementation
+
+Before starting implementation, ensure you understand:
+
+- [ ] All 6 REST API endpoints and their exact paths
+- [ ] All 4 WebSocket events and their payload formats
+- [ ] `notification:deleted` sends **string ID only** (not an object)
+- [ ] Error responses use consistent format: `{ success: false, message: "..." }`
+- [ ] WebSocket must support both `websocket` and `polling` transports
+- [ ] WebSocket authentication via `auth.token` in connection options
+- [ ] User room management for targeted WebSocket emissions
+- [ ] Default preferences return all `true` if user has no preferences
+- [ ] All timestamps in ISO 8601 format
+- [ ] Proper indexing on database for performance
+- [ ] Authorization checks on all endpoints
+
+---
 
 **Last Updated:** January 2025  
-**Version:** 1.0.0
+**Version:** 1.2.0 (Updated with detailed error formats, WebSocket specs, and implementation examples)
 

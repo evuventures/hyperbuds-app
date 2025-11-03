@@ -31,8 +31,6 @@ export const NotificationCenter: React.FC = () => {
    // Connect to WebSocket for real-time updates
    useNotificationSocket({
       enabled: true,
-      playSound: false, // Don't play sound on notification center page
-      showBrowserNotification: false, // Don't show browser notifications when on this page
    });
 
    // Accumulate notifications for infinite scroll
