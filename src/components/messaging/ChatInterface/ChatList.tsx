@@ -71,7 +71,7 @@ export const ChatList: React.FC<ChatListProps> = ({
 
    if (loading) {
       return (
-         <div className="flex flex-col h-full bg-white dark:bg-gray-900">
+         <div className="flex flex-col h-full w-full bg-white dark:bg-gray-900">
             <div className="p-4 border-b border-gray-200 dark:border-gray-700">
                <div className="mb-4 h-8 bg-gray-200 rounded animate-pulse dark:bg-gray-700"></div>
                <div className="h-10 bg-gray-200 rounded animate-pulse dark:bg-gray-700"></div>
@@ -92,9 +92,9 @@ export const ChatList: React.FC<ChatListProps> = ({
    }
 
    return (
-      <div className="flex flex-col h-full bg-white dark:bg-gray-900">
+      <div className="flex flex-col h-full w-full bg-white dark:bg-gray-900">
          {/* Header */}
-         <div className="p-3 md:p-4 border-b border-gray-200 dark:border-gray-700">
+         <div className="p-3 md:p-4 w-full border-b border-gray-200 dark:border-gray-700">
             <div className="flex justify-between items-center mb-3 md:mb-4">
                <h1 className="text-lg md:text-xl font-bold text-gray-900 dark:text-white">
                   Messages
@@ -164,7 +164,7 @@ export const ChatList: React.FC<ChatListProps> = ({
          </div>
 
          {/* Conversation List */}
-         <div className="overflow-y-auto flex-1 scrollbar-hide hover:scrollbar-thin hover:scrollbar-thumb-gray-300 hover:dark:scrollbar-thumb-gray-600">
+         <div className="overflow-y-auto flex-1 w-full scrollbar-hide hover:scrollbar-thin hover:scrollbar-thumb-gray-300 hover:dark:scrollbar-thumb-gray-600">
             {sortedConversations.length === 0 ? (
                <div className="flex flex-col justify-center items-center h-full text-gray-500 dark:text-gray-400">
                   <div className="text-center">
@@ -178,7 +178,7 @@ export const ChatList: React.FC<ChatListProps> = ({
                   </div>
                </div>
             ) : (
-               <div className="divide-y divide-gray-200 dark:divide-gray-700">
+               <div className="divide-y divide-gray-200 dark:divide-gray-700 w-full">
                   {sortedConversations.map((conversation) => {
                      const isSelected = conversation._id === selectedConversationId;
                      const displayName = getConversationDisplayName(conversation);
@@ -190,7 +190,7 @@ export const ChatList: React.FC<ChatListProps> = ({
                         <div
                            key={conversation._id}
                            onClick={() => onSelect(conversation._id)}
-                           className={`flex items-center gap-2 md:gap-3 p-3 md:p-4 cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-gray-800 ${isSelected ? 'bg-blue-50 border-r-2 border-blue-500 dark:bg-blue-900/20' : ''}`}
+                           className={`flex items-center gap-2 md:gap-3 p-3 md:p-4 w-full cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-gray-800 ${isSelected ? 'bg-blue-50 border-r-2 border-blue-500 dark:bg-blue-900/20' : ''}`}
                         >
                            {/* Avatar */}
                            <div className="relative flex-shrink-0">
