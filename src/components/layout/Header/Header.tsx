@@ -117,8 +117,8 @@ export const Header: React.FC<HeaderProps> = ({ user, onMenuClick }) => {
           {/* Notifications */}
           <div className="relative hidden min-[380px]:block">
             <button
-              ref={notificationButtonRef}
-              onClick={() => setShowNotifications(!showNotifications)}
+            // ref={notificationButtonRef}
+            //  onClick={() => setShowNotifications(!showNotifications)} 
               className="relative p-2 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors cursor-pointer sm:p-2.5"
               aria-label="Notifications"
             >
