@@ -9,7 +9,7 @@ import {
 import Trending from "@/components/dashboard/Trending";
 //import Recommended from "@/components/dashboard/Recommended";
 import Recommendations from "@/components/dashboard/Recommendations";
-
+import Link from "next/link";
 // Mock data for quick stats
 const mockStats = {
   totalCollaborations: 1247,
@@ -49,12 +49,10 @@ const MainContent: React.FC = () => {
                   </span>
                 </h1>
                 <p className="mb-6 max-w-xl text-lg text-white/90 dark:text-white/80">
-                  You have {mockStats.newMatches} new matches and{" "}
-                  {mockStats.pendingInvites} collaboration invites waiting for
-                  you.
+                  Discover new ideas, Collaborations, and opportunities waiting for you.
                 </p>
 
-                {/* Quick Action Buttons */}
+                {/* Quick Action Buttons 
                 <div className="flex flex-wrap gap-3">
                   <button className="flex gap-2 items-center px-6 py-3 font-semibold text-purple-600 bg-white rounded-xl shadow-lg transition-all duration-200 transform dark:bg-gray-100 dark:text-purple-700 hover:bg-gray-100 dark:hover:bg-gray-200 hover:scale-105">
                     <Video className="w-4 h-4" />
@@ -65,6 +63,13 @@ const MainContent: React.FC = () => {
                     New Collab
                   </button>
                 </div>
+                */}
+
+                <Link href="/profile" className="flex gap-2 items-center px-6 py-3 max-w-45 font-semibold text-purple-600 bg-white rounded-xl shadow-lg transition-all duration-200 transform dark:bg-gray-100 dark:text-purple-700 hover:bg-gray-100 dark:hover:bg-gray-200 hover:scale-105">
+                  <Plus  className="w-4 h-4" />
+                  Get Started
+                </Link>
+
               </div>
             </div>
           </div>
@@ -86,16 +91,16 @@ const MainContent: React.FC = () => {
             Ready to Start Your Next Collaboration?
           </h3>
           <p className="mx-auto mb-6 max-w-2xl text-purple-100 dark:text-purple-200">
-            Join thousands of creators who`&apos;`ve found their perfect collaboration
+            Join thousands of creators who&apos;ve found their perfect collaboration
             partners through HyperBuds.
           </p>
           <div className="flex flex-col gap-4 justify-center sm:flex-row">
-            <button className="px-8 py-3 font-semibold text-purple-600 bg-white rounded-xl transition-all duration-200 transform cursor-pointer dark:bg-gray-100 dark:text-purple-700 hover:bg-gray-100 dark:hover:bg-gray-200 hover:scale-105">
-              Browse Creators
-            </button>
-            <button className="px-8 py-3 font-semibold text-white rounded-xl border-2 transition-all duration-200 cursor-pointer border-white/30 dark:border-white/40 hover:bg-white/10 dark:hover:bg-white/20">
+            <Link href='/ai-matches' className="px-8 py-3 font-semibold text-purple-600 bg-white rounded-xl transition-all duration-200 transform cursor-pointer dark:bg-gray-100 dark:text-purple-700 hover:bg-gray-100 dark:hover:bg-gray-200 hover:scale-105">
+              Get Match
+            </Link>
+            <Link href='/profile' className="px-8 py-3 font-semibold text-white rounded-xl border-2 transition-all duration-200 cursor-pointer border-white/30 dark:border-white/40 hover:bg-white/10 dark:hover:bg-white/20">
               Create Profile
-            </button>
+            </Link>
           </div>
         </div>
       </div>

@@ -415,7 +415,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                   onKeyPress={handleKeyPress}
                   placeholder={placeholder}
                   disabled={disabled}
-                  className="px-3 py-2 w-full max-h-28 text-xs placeholder-gray-500 text-gray-900 bg-gray-50 rounded-2xl border border-gray-200 transition-all duration-200 resize-none lg:text-sm md:px-4 md:py-3 md:max-h-32 scrollbar-hide hover:scrollbar-thin hover:scrollbar-thumb-gray-300 hover:dark:scrollbar-thumb-gray-600 dark:bg-gray-800 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:bg-white dark:focus:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400"
+                  className={`px-3 py-2 w-full max-h-28 ${disabled ? 'text-[8px] sm:text-[9px] md:text-[10px] lg:text-xs' : 'text-xs lg:text-sm'} placeholder-gray-500 text-gray-900 bg-gray-50 rounded-2xl border border-gray-200 transition-all duration-200 resize-none md:px-4 md:py-3 md:max-h-32 scrollbar-hide hover:scrollbar-thin hover:scrollbar-thumb-gray-300 hover:dark:scrollbar-thumb-gray-600 dark:bg-gray-800 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:bg-white dark:focus:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400`}
                   rows={1}
                />
 

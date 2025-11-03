@@ -35,12 +35,14 @@ const platformIcons: Record<PlatformType, string> = {
    tiktok: '🎵',
    twitter: '🐦',
    twitch: '🎮',
+   instagram: '📷',
 };
 
 const platformColors: Record<PlatformType, string> = {
    tiktok: 'from-pink-500 to-red-500',
    twitter: 'from-blue-400 to-blue-600',
    twitch: 'from-purple-500 to-purple-700',
+   instagram: 'from-purple-600 via-pink-500 to-orange-400',
 };
 
 export function PlatformStats({
@@ -80,7 +82,7 @@ export function PlatformStats({
 
    if (platforms.length === 0) {
       return (
-         <div className="p-6 text-center rounded-xl bg-gray-50 dark:bg-gray-800">
+         <div className="p-6 text-center bg-gray-50 rounded-xl dark:bg-gray-800">
             <AlertCircle className="mx-auto mb-2 w-12 h-12 text-gray-400" />
             <p className="text-sm text-gray-600 dark:text-gray-400">
                No platform accounts connected
@@ -94,7 +96,7 @@ export function PlatformStats({
 
    if (loading) {
       return (
-         <div className="p-8 text-center rounded-xl bg-gray-50 dark:bg-gray-800">
+         <div className="p-8 text-center bg-gray-50 rounded-xl dark:bg-gray-800">
             <Loader2 className="mx-auto mb-3 w-12 h-12 text-blue-500 animate-spin" />
             <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
                Fetching platform data...
@@ -108,7 +110,7 @@ export function PlatformStats({
 
    if (errors.length > 0 && Object.values(data).every(d => d === null)) {
       return (
-         <div className="p-6 text-center rounded-xl bg-red-50 dark:bg-red-900/20">
+         <div className="p-6 text-center bg-red-50 rounded-xl dark:bg-red-900/20">
             <AlertCircle className="mx-auto mb-2 w-12 h-12 text-red-500" />
             <p className="mb-2 text-sm font-medium text-red-700 dark:text-red-400">
                Failed to load platform data
@@ -131,7 +133,7 @@ export function PlatformStats({
             <motion.div
                initial={{ opacity: 0, y: 20 }}
                animate={{ opacity: 1, y: 0 }}
-               className="p-6 rounded-2xl border shadow-lg bg-linear-to-br from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 border-purple-200 dark:border-purple-800"
+               className="p-6 bg-gradient-to-br from-purple-50 to-blue-50 rounded-2xl border border-purple-200 shadow-lg dark:from-purple-900/20 dark:to-blue-900/20 dark:border-purple-800"
             >
                <div className="flex gap-2 items-center mb-4">
                   <TrendingUp className="w-6 h-6 text-purple-600 dark:text-purple-400" />
@@ -200,7 +202,7 @@ export function PlatformStats({
                      >
                         <div className="flex justify-between items-center mb-4">
                            <div
-                              className={`p-3 rounded-xl bg-linear-to-br ${platform === "tiktok"
+                              className={`p-3 rounded-xl bg-gradient-to-br ${platform === "tiktok"
                                  ? "from-pink-100 to-rose-100 dark:from-pink-500/20 dark:to-rose-500/20"
                                  : platform === "twitter"
                                     ? "from-cyan-100 to-blue-100 dark:from-cyan-500/20 dark:to-blue-500/20"
@@ -219,8 +221,10 @@ export function PlatformStats({
                            </div>
                         </div>
 
-                        <div className="mb-2 text-xs font-bold tracking-wider text-gray-500 uppercase dark:text-gray-400">
-                           {platform}
+                        <div className="flex gap-2 justify-between items-center mb-2">
+                           <div className="text-xs font-bold tracking-wider text-gray-500 uppercase dark:text-gray-400">
+                              {platform}
+                           </div>
                         </div>
 
                         <div className="mb-1 text-2xl font-bold text-gray-900 dark:text-gray-100">
@@ -244,10 +248,10 @@ export function PlatformStats({
                      initial={{ opacity: 0, scale: 0.95 }}
                      animate={{ opacity: 1, scale: 1 }}
                      whileHover={{ scale: 1.02 }}
-                     className="overflow-hidden rounded-xl border shadow-md transition-shadow bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:shadow-lg"
+                     className="overflow-hidden bg-white rounded-xl border border-gray-200 shadow-md transition-shadow dark:bg-gray-800 dark:border-gray-700 hover:shadow-lg"
                   >
                      {/* Platform Header */}
-                     <div className={`p-4 bg-linear-to-r ${platformColors[platform]}`}>
+                     <div className={`p-4 bg-gradient-to-r ${platformColors[platform]}`}>
                         <div className="flex gap-3 items-center">
                            <span className="text-3xl">{platformIcons[platform]}</span>
                            <div className="flex-1 min-w-0">
@@ -259,7 +263,7 @@ export function PlatformStats({
                                     <CheckCircle2 className="w-5 h-5 text-white shrink-0" />
                                  )}
                               </div>
-                              <p className="text-sm text-white/90 truncate">
+                              <p className="text-sm truncate text-white/90">
                                  @{platformData.username}
                               </p>
                            </div>
@@ -361,4 +365,3 @@ export function PlatformStats({
       </div>
    );
 }
-

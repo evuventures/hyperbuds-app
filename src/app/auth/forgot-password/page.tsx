@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { BASE_URL } from '@/config/baseUrl';
 
 export default function ForgotPasswordPage() {
@@ -8,6 +8,18 @@ export default function ForgotPasswordPage() {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // Force light mode on this page
+  useEffect(() => {
+    document.documentElement.classList.remove('dark');
+    return () => {
+      // Restore theme on unmount if needed
+      const savedTheme = localStorage.getItem('hyperbuds-theme');
+      if (savedTheme === 'dark') {
+        document.documentElement.classList.add('dark');
+      }
+    };
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -38,16 +50,16 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="flex justify-center items-center p-4 min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+    <div className="flex justify-center items-center p-4 min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
       {/* Background Glow Effects */}
       <div className="overflow-hidden fixed inset-0 pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full blur-3xl bg-purple-300/30 dark:bg-purple-500/20" />
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 rounded-full blur-3xl bg-blue-300/30 dark:bg-blue-500/20" />
-        <div className="absolute top-1/2 left-1/2 w-96 h-96 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2 bg-indigo-200/20 dark:bg-indigo-500/10" />
+        <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full blur-3xl bg-purple-300/30" />
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 rounded-full blur-3xl bg-blue-300/30" />
+        <div className="absolute top-1/2 left-1/2 w-96 h-96 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2 bg-indigo-200/20" />
       </div>
 
       {/* Main Card */}
-      <div className="relative z-10 w-full max-w-md bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg rounded-3xl shadow-xl border border-white/30 dark:border-gray-700/50 p-8 space-y-6">
+      <div className="relative z-10 w-full max-w-md bg-white/80 backdrop-blur-lg rounded-3xl shadow-xl border border-white/30 p-8 space-y-6">
         <div className="text-center">
           <div className="inline-flex justify-center items-center mb-6 w-16 h-16 bg-gradient-to-r from-purple-500 to-blue-500 rounded-2xl shadow-lg shadow-purple-500/25">
             <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white lucide lucide-mail">
@@ -56,33 +68,33 @@ export default function ForgotPasswordPage() {
             </svg>
           </div>
 
-          <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-gray-900 to-gray-700 dark:from-gray-100 dark:to-gray-300">
+          <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-gray-900 to-gray-700">
             Forgot Password
           </h2>
-          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+          <p className="mt-2 text-sm text-gray-600">
             Enter your email address and we&apos;ll send you a link to reset your password.
           </p>
         </div>
 
         {/* Feedback Messages */}
         {message && (
-          <div className="p-4 bg-green-50 dark:bg-green-900/30 rounded-xl border border-green-200 dark:border-green-700">
+          <div className="p-4 bg-green-50 rounded-xl border border-green-200">
             <div className="flex items-start gap-3">
-              <svg className="w-5 h-5 text-green-600 dark:text-green-400 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 text-green-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              <p className="text-sm text-green-600 dark:text-green-400">{message}</p>
+              <p className="text-sm text-green-600">{message}</p>
             </div>
           </div>
         )}
 
         {error && (
-          <div className="p-4 bg-red-50 dark:bg-red-900/30 rounded-xl border border-red-200 dark:border-red-700">
+          <div className="p-4 bg-red-50 rounded-xl border border-red-200">
             <div className="flex items-start gap-3">
-              <svg className="w-5 h-5 text-red-600 dark:text-red-400 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 text-red-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+              <p className="text-sm text-red-600">{error}</p>
             </div>
           </div>
         )}
@@ -90,7 +102,7 @@ export default function ForgotPasswordPage() {
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label htmlFor="email" className="block text-sm font-semibold text-gray-700 dark:text-gray-300">Email Address</label>
+            <label htmlFor="email" className="block text-sm font-semibold text-gray-700">Email Address</label>
             <input
               id="email"
               name="email"
@@ -98,7 +110,7 @@ export default function ForgotPasswordPage() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="block px-4 py-2.5 mt-1 w-full rounded-xl border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white shadow-sm transition-colors duration-200 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+              className="block px-4 py-2.5 mt-1 w-full rounded-xl border border-gray-300 bg-white shadow-sm transition-colors duration-200 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
               placeholder="your.email@example.com"
             />
           </div>
@@ -128,11 +140,11 @@ export default function ForgotPasswordPage() {
         </form>
 
         {/* Back to login */}
-        <div className="mt-6 text-sm text-center text-gray-600 dark:text-gray-400">
+        <div className="mt-6 text-sm text-center text-gray-600">
           Remember your password?{' '}
           <a
             href="/auth/signin"
-            className="font-semibold text-purple-600 dark:text-purple-400 transition-colors duration-200 hover:text-purple-700 dark:hover:text-purple-300"
+            className="font-semibold text-purple-600 transition-colors duration-200 hover:text-purple-700"
           >
             Log in
           </a>

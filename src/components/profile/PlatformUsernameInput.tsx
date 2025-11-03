@@ -8,7 +8,7 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Loader2, CheckCircle2, XCircle, Shield, Lock, Sparkles, Video, MessageCircle, TrendingUp, Zap } from 'lucide-react';
+import { Loader2, CheckCircle2, XCircle, AlertTriangle, Shield, Lock, Sparkles, Video, MessageCircle, TrendingUp, Zap, Camera } from 'lucide-react';
 import { usePlatformData } from '@/hooks/features/usePlatformData';
 import type { PlatformType } from '@/types/platform.types';
 
@@ -70,7 +70,15 @@ export function PlatformUsernameInput({
    const getStatusIcon = () => {
       if (!value || !shouldValidate) return null;
       if (loading) return <Loader2 className="w-5 h-5 text-blue-500 animate-spin" />;
-      if (error) return <XCircle className="w-5 h-5 text-red-500" />;
+      if (error) {
+         // Show warning icon for quota errors (yellow/orange) instead of error
+         const isQuotaError = error.error?.toLowerCase().includes('quota') || 
+                            error.error?.toLowerCase().includes('exceeded');
+         if (isQuotaError) {
+            return <AlertTriangle className="w-5 h-5 text-yellow-500" />;
+         }
+         return <XCircle className="w-5 h-5 text-red-500" />;
+      }
       if (data) return <CheckCircle2 className="w-5 h-5 text-green-500" />;
       return null;
    };
@@ -78,7 +86,24 @@ export function PlatformUsernameInput({
    const getStatusMessage = () => {
       if (!value || !shouldValidate) return null;
       if (loading) return 'Validating username...';
-      if (error) return `Username not found or API error: ${error.error}`;
+      if (error) {
+         // Check if it's a quota error
+         const isQuotaError = error.error?.toLowerCase().includes('quota') || 
+                            error.error?.toLowerCase().includes('exceeded');
+         
+         if (isQuotaError) {
+            return '⚠️ API quota exceeded. You can still save this username and sync it later.';
+         }
+         
+         // Check if it's a username not found error
+         if (error.error?.toLowerCase().includes('not found') || 
+             error.error?.toLowerCase().includes('username')) {
+            return `Username "${value}" not found on ${platform}. Please check the spelling.`;
+         }
+         
+         // Generic API error
+         return `Unable to verify username. Error: ${error.error}`;
+      }
       if (data) return `✓ Found: ${data.displayName} (${data.followers.toLocaleString()} followers)`;
       return null;
    };
@@ -191,6 +216,7 @@ interface PlatformCredentials {
    tiktok?: string;
    twitter?: string;
    twitch?: string;
+   instagram?: string;
 }
 
 interface PlatformUsernameGroupProps {
@@ -239,6 +265,15 @@ export function PlatformUsernameGroup({
             color: 'from-purple-500 via-violet-500 to-indigo-600',
             gradient: 'from-purple-500/10 via-violet-500/10 to-indigo-600/10',
             borderGlow: 'group-hover:shadow-purple-500/50',
+         },
+         {
+            type: 'instagram',
+            label: 'Instagram',
+            placeholder: 'username',
+            icon: <Camera className="w-6 h-6" />,
+            color: 'from-purple-600 via-pink-500 to-orange-400',
+            gradient: 'from-purple-600/10 via-pink-500/10 to-orange-400/10',
+            borderGlow: 'group-hover:shadow-pink-500/50',
          },
       ];
 
@@ -326,7 +361,7 @@ export function PlatformUsernameGroup({
                   <div className="p-6 bg-white rounded-2xl border-2 border-gray-200 shadow-sm transition-shadow dark:bg-gray-800 dark:border-gray-700 hover:shadow-md">
                      <PlatformUsernameInput
                         platform={platform.type}
-                        value={values[platform.type] || ''}
+                        value={values[platform.type as keyof PlatformCredentials] || ''}
                         onChange={(value) => handleChange(platform.type, value)}
                         label=""
                         placeholder={platform.placeholder}

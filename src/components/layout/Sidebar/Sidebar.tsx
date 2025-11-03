@@ -242,13 +242,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ user, activeTab, collapsed, on
                               </span>
                             )}
                           </div>
-                          {
+                          {/* Notification badges removed */}
+                          {/* {
                             !isCollapsed && item.count && item.count > 0 && (
                               <div className="flex justify-center items-center w-5 h-5 text-xs font-bold text-white bg-red-500 rounded-full">
                                 {item.count > 9 ? '9+' : item.count}
                               </div>
                             )
-                          }
+                          } */}
                         </motion.div>
                       </Link>
                     ) : (
@@ -283,13 +284,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ user, activeTab, collapsed, on
                             </span>
                           )}
                         </div>
-                        {
+                        {/* Notification badges removed */}
+                        {/* {
                           !isCollapsed && item.count && item.count > 0 && (
                             <div className="flex justify-center items-center w-5 h-5 text-xs font-bold text-white bg-red-500 rounded-full">
                               {item.count > 9 ? '9+' : item.count}
                             </div>
                           )
-                        }
+                        } */}
                       </motion.div>
                     )}
                   </Tooltip >

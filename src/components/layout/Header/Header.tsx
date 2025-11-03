@@ -16,6 +16,9 @@ import {
 import { useTheme } from '@/context/Theme';
 import { useAuth } from '@/hooks/auth/useAuth';
 import { useRouter } from 'next/navigation';
+import { NotificationDropdown } from './NotificationDropdown';
+import { useUnreadNotificationCount } from '@/hooks/features/useNotifications';
+import { useNotificationSocket } from '@/hooks/features/useNotificationSocket';
 
 interface HeaderProps {
   user: {
@@ -34,6 +37,13 @@ export const Header: React.FC<HeaderProps> = ({ user, onMenuClick }) => {
   const { isDarkMode, toggleDarkMode } = useTheme();
   const { logout } = useAuth();
   const router = useRouter();
+  const { unreadCount } = useUnreadNotificationCount();
+  const notificationButtonRef = React.useRef<HTMLButtonElement>(null);
+
+  // Connect to notification WebSocket for real-time updates
+  useNotificationSocket({
+    enabled: true,
+  });
 
   const handleLogout = async () => {
     try {
@@ -45,13 +55,6 @@ export const Header: React.FC<HeaderProps> = ({ user, onMenuClick }) => {
     }
   };
 
-  const mockNotifications = [
-    { id: 1, type: 'match', message: 'New collaboration match found!', time: '2m ago', unread: true },
-    { id: 2, type: 'message', message: 'Sarah Kim sent you a message', time: '1h ago', unread: true },
-    { id: 3, type: 'collab', message: 'Your collaboration request was accepted', time: '2h ago', unread: false },
-  ];
-
-  const unreadCount = mockNotifications.filter(n => n.unread).length;
 
   return (
     <header className="sticky top-0 z-50 border-b shadow-sm backdrop-blur-lg transition-colors duration-200 bg-white/95 dark:bg-gray-900/95 border-gray-200/50 dark:border-gray-700/50">
@@ -114,48 +117,23 @@ export const Header: React.FC<HeaderProps> = ({ user, onMenuClick }) => {
           {/* Notifications */}
           <div className="relative hidden min-[380px]:block">
             <button
-              onClick={() => setShowNotifications(!showNotifications)}
+            // ref={notificationButtonRef}
+            //  onClick={() => setShowNotifications(!showNotifications)} 
               className="relative p-2 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors cursor-pointer sm:p-2.5"
+              aria-label="Notifications"
             >
               <Bell className="w-4 h-4 text-gray-600 dark:text-gray-300 sm:w-5 sm:h-5" />
               {unreadCount > 0 && (
-                <span className="flex absolute -top-1 -right-1 justify-center items-center w-5 h-5 text-xs font-bold text-white bg-red-500 rounded-full animate-pulse">
-                  {unreadCount}
-                </span>
+                <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white dark:border-gray-900"></span>
               )}
             </button>
 
             {/* Notifications Dropdown */}
-            {showNotifications && (
-              <div className="absolute right-0 z-50 py-2 mt-2 w-80 bg-white rounded-xl border border-gray-200 shadow-xl dark:bg-gray-800 dark:border-gray-700">
-                <div className="px-4 py-2 border-b border-gray-100 dark:border-gray-700">
-                  <h3 className="font-semibold text-gray-900 dark:text-gray-100">Notifications</h3>
-                </div>
-                <div className="overflow-y-auto max-h-80">
-                  {mockNotifications.map((notification) => (
-                    <div
-                      key={notification.id}
-                      className={`px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors ${notification.unread ? 'bg-purple-50 dark:bg-purple-900/20' : ''
-                        }`}
-                    >
-                      <div className="flex gap-3 items-start">
-                        <div className={`w-2 h-2 rounded-full mt-2 ${notification.unread ? 'bg-purple-500' : 'bg-gray-300 dark:bg-gray-600'
-                          }`} />
-                        <div className="flex-1">
-                          <p className="text-sm text-gray-900 dark:text-gray-100">{notification.message}</p>
-                          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">{notification.time}</p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <div className="px-4 py-2 border-t border-gray-100 dark:border-gray-700">
-                  <button className="text-sm font-medium text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300">
-                    View all notifications
-                  </button>
-                </div>
-              </div>
-            )}
+            <NotificationDropdown
+              isOpen={showNotifications}
+              onClose={() => setShowNotifications(false)}
+              anchorRef={notificationButtonRef}
+            />
           </div>
 
           {/* User Profile Dropdown */}
@@ -220,7 +198,7 @@ export const Header: React.FC<HeaderProps> = ({ user, onMenuClick }) => {
                 </div>
 
                 <div className="py-2 border-t border-gray-100 dark:border-gray-700">
-                  <button 
+                  <button
                     onClick={handleLogout}
                     className="flex gap-3 items-center px-4 py-2 w-full text-left text-red-600 transition-colors cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 dark:text-red-400"
                   >

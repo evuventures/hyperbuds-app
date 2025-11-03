@@ -19,6 +19,18 @@ export default function ResetPasswordPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [passwordStrength, setPasswordStrength] = useState({ score: 0, text: '', color: '' })
 
+  // Force light mode on this page
+  useEffect(() => {
+    document.documentElement.classList.remove('dark');
+    return () => {
+      // Restore theme on unmount if needed
+      const savedTheme = localStorage.getItem('hyperbuds-theme');
+      if (savedTheme === 'dark') {
+        document.documentElement.classList.add('dark');
+      }
+    };
+  }, []);
+
   // Check if token exists
   useEffect(() => {
     if (!token) {
@@ -120,15 +132,15 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <div className="flex justify-center items-center p-4 min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+    <div className="flex justify-center items-center p-4 min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
       {/* Background glow effects */}
       <div className="overflow-hidden fixed inset-0 pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full blur-3xl bg-purple-300/30 dark:bg-purple-500/20" />
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 rounded-full blur-3xl bg-blue-300/30 dark:bg-blue-500/20" />
-        <div className="absolute top-1/2 left-1/2 w-96 h-96 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2 bg-indigo-200/20 dark:bg-indigo-500/10" />
+        <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full blur-3xl bg-purple-300/30" />
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 rounded-full blur-3xl bg-blue-300/30" />
+        <div className="absolute top-1/2 left-1/2 w-96 h-96 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2 bg-indigo-200/20" />
       </div>
 
-      <div className="relative z-10 w-full max-w-md bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg rounded-3xl shadow-xl border border-white/30 dark:border-gray-700/50 p-8 space-y-6">
+      <div className="relative z-10 w-full max-w-md bg-white/80 backdrop-blur-lg rounded-3xl shadow-xl border border-white/30 p-8 space-y-6">
         <div className="text-center">
           <div className="inline-flex justify-center items-center mb-6 w-16 h-16 bg-gradient-to-r from-purple-500 to-blue-500 rounded-2xl shadow-lg shadow-purple-500/25">
             <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white lucide lucide-lock">
@@ -137,24 +149,24 @@ export default function ResetPasswordPage() {
             </svg>
           </div>
 
-          <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-gray-900 to-gray-700 dark:from-gray-100 dark:to-gray-300">
+          <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-gray-900 to-gray-700">
             Reset Password
           </h2>
-          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+          <p className="mt-2 text-sm text-gray-600">
             Create a new strong password for your account.
           </p>
         </div>
 
         {/* Feedback messages */}
         {message && (
-          <div className="p-4 bg-green-50 dark:bg-green-900/30 rounded-xl border border-green-200 dark:border-green-700">
-            <p className="text-sm text-green-600 dark:text-green-400">{message}</p>
+          <div className="p-4 bg-green-50 rounded-xl border border-green-200">
+            <p className="text-sm text-green-600">{message}</p>
           </div>
         )}
 
         {error && (
-          <div className="p-4 bg-red-50 dark:bg-red-900/30 rounded-xl border border-red-200 dark:border-red-700">
-            <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+          <div className="p-4 bg-red-50 rounded-xl border border-red-200">
+            <p className="text-sm text-red-600">{error}</p>
           </div>
         )}
 
@@ -162,7 +174,7 @@ export default function ResetPasswordPage() {
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* New password */}
           <div>
-            <label htmlFor="newPassword" className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+            <label htmlFor="newPassword" className="block text-sm font-semibold text-gray-700">
               New Password
             </label>
             <div className="relative mt-1">
@@ -173,14 +185,14 @@ export default function ResetPasswordPage() {
                 required
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                className="block px-4 py-2.5 pr-12 w-full rounded-xl border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white shadow-sm transition-colors duration-200 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+                className="block px-4 py-2.5 pr-12 w-full rounded-xl border border-gray-300 bg-white shadow-sm transition-colors duration-200 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
                 placeholder="Enter new password"
                 disabled={!token}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="flex absolute inset-y-0 right-0 items-center pr-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                className="flex absolute inset-y-0 right-0 items-center pr-3 text-gray-400 hover:text-gray-600"
               >
                 {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
@@ -193,16 +205,15 @@ export default function ResetPasswordPage() {
                   {[...Array(6)].map((_, i) => (
                     <div
                       key={i}
-                      className={`h-1 flex-1 rounded-full transition-all duration-300 ${
-                        i < passwordStrength.score ? passwordStrength.color : 'bg-gray-200 dark:bg-gray-700'
-                      }`}
+                      className={`h-1 flex-1 rounded-full transition-all duration-300 ${i < passwordStrength.score ? passwordStrength.color : 'bg-gray-200'
+                        }`}
                     />
                   ))}
                 </div>
-                <p className="text-xs font-medium text-gray-600 dark:text-gray-400">
+                <p className="text-xs font-medium text-gray-600">
                   Password strength: <span className={passwordStrength.score <= 2 ? 'text-red-600' : passwordStrength.score <= 4 ? 'text-yellow-600' : 'text-green-600'}>{passwordStrength.text}</span>
                 </p>
-                <ul className="text-xs text-gray-500 dark:text-gray-400 space-y-1">
+                <ul className="text-xs text-gray-500 space-y-1">
                   <li className={newPassword.length >= 8 ? 'text-green-600' : ''}>
                     ✓ At least 8 characters
                   </li>
@@ -222,7 +233,7 @@ export default function ResetPasswordPage() {
 
           {/* Confirm password */}
           <div>
-            <label htmlFor="confirmPassword" className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+            <label htmlFor="confirmPassword" className="block text-sm font-semibold text-gray-700">
               Confirm Password
             </label>
             <div className="relative mt-1">
@@ -233,14 +244,14 @@ export default function ResetPasswordPage() {
                 required
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="block px-4 py-2.5 pr-12 w-full rounded-xl border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white shadow-sm transition-colors duration-200 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+                className="block px-4 py-2.5 pr-12 w-full rounded-xl border border-gray-300 bg-white shadow-sm transition-colors duration-200 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
                 placeholder="Confirm new password"
                 disabled={!token}
               />
               <button
                 type="button"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="flex absolute inset-y-0 right-0 items-center pr-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                className="flex absolute inset-y-0 right-0 items-center pr-3 text-gray-400 hover:text-gray-600"
               >
                 {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
@@ -272,13 +283,13 @@ export default function ResetPasswordPage() {
 
         {/* Request new link if token is invalid */}
         {!token && (
-          <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-xl border border-yellow-200 dark:border-yellow-700">
-            <p className="text-sm text-yellow-800 dark:text-yellow-300 mb-2">
+          <div className="p-4 bg-yellow-50 rounded-xl border border-yellow-200">
+            <p className="text-sm text-yellow-800 mb-2">
               Missing or invalid reset token.
             </p>
             <a
               href="/auth/forgot-password"
-              className="inline-block text-sm font-semibold text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 transition-colors"
+              className="inline-block text-sm font-semibold text-purple-600 hover:text-purple-700 transition-colors"
             >
               Request a new password reset link →
             </a>
@@ -286,11 +297,11 @@ export default function ResetPasswordPage() {
         )}
 
         {/* Back to login */}
-        <div className="mt-6 text-sm text-center text-gray-600 dark:text-gray-400">
+        <div className="mt-6 text-sm text-center text-gray-600">
           Remember your password?{' '}
           <a
             href="/auth/signin"
-            className="font-semibold text-purple-600 dark:text-purple-400 transition-colors duration-200 hover:text-purple-700 dark:hover:text-purple-300"
+            className="font-semibold text-purple-600 transition-colors duration-200 hover:text-purple-700"
           >
             Log in
           </a>
