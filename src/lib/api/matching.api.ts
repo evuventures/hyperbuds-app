@@ -1,6 +1,8 @@
 // src/lib/api/matching.api.ts
 
 import { apiClient } from './client';
+import { AxiosError } from 'axios';
+import { generateMockMatchSuggestions, generateMockMatchHistory } from './matching.mock';
 import type {
   MatchSuggestion,
   MatchPreferences,
@@ -26,13 +28,42 @@ export const matchingApi = {
     limit?: number;
     refresh?: boolean;
   }): Promise<PaginatedResponse<MatchSuggestion>> => {
-    const searchParams = new URLSearchParams();
-    if (params?.page) searchParams.set('page', params.page.toString());
-    if (params?.limit) searchParams.set('limit', params.limit.toString());
-    if (params?.refresh) searchParams.set('refresh', params.refresh.toString());
+    try {
+      const searchParams = new URLSearchParams();
+      if (params?.page) searchParams.set('page', params.page.toString());
+      if (params?.limit) searchParams.set('limit', params.limit.toString());
+      if (params?.refresh) searchParams.set('refresh', params.refresh.toString());
 
-    const response = await apiClient.get(`/matching/suggestions?${searchParams}`);
-    return response.data;
+      const response = await apiClient.get(`/matching/suggestions?${searchParams}`);
+
+      // Check if response is empty or invalid
+      if (!response.data || !response.data.matches || response.data.matches.length === 0) {
+        console.warn(`⚠️ Backend API returned empty match suggestions. Using mock data for presentation.`);
+        const mockData = generateMockMatchSuggestions(params?.limit || 10, params?.page || 1);
+        console.log(`🎭 Using mock match suggestions:`, { count: mockData.matches.length, page: mockData.pagination.page });
+        return mockData;
+      }
+
+      return response.data;
+    } catch (error) {
+      const axiosError = error as AxiosError;
+      const errorMessage = axiosError.response?.data || axiosError.message || 'Unknown error';
+
+      // Check for network errors or API failures
+      if (axiosError.code === 'ECONNREFUSED' || axiosError.code === 'ENOTFOUND' ||
+        axiosError.response?.status === 404 || axiosError.response?.status === 500 ||
+        axiosError.response?.status === 503) {
+        console.warn(`⚠️ Backend API error for match suggestions (${axiosError.response?.status || axiosError.code}):`, errorMessage);
+        console.warn(`   Using mock data for presentation purposes.`);
+
+        const mockData = generateMockMatchSuggestions(params?.limit || 10, params?.page || 1);
+        console.log(`🎭 Using mock match suggestions:`, { count: mockData.matches.length, page: mockData.pagination.page });
+        return mockData;
+      }
+
+      // Re-throw other errors (like 401 unauthorized)
+      throw error;
+    }
   },
 
   // Set matching preferences
@@ -70,13 +101,50 @@ export const matchingApi = {
     limit?: number;
     status?: 'pending' | 'viewed' | 'liked' | 'passed' | 'mutual' | 'all';
   }): Promise<PaginatedResponse<MatchSuggestion>> => {
-    const searchParams = new URLSearchParams();
-    if (params?.page) searchParams.set('page', params.page.toString());
-    if (params?.limit) searchParams.set('limit', params.limit.toString());
-    if (params?.status) searchParams.set('status', params.status);
+    try {
+      const searchParams = new URLSearchParams();
+      if (params?.page) searchParams.set('page', params.page.toString());
+      if (params?.limit) searchParams.set('limit', params.limit.toString());
+      if (params?.status) searchParams.set('status', params.status);
 
-    const response = await apiClient.get(`/matching/history?${searchParams}`);
-    return response.data;
+      const response = await apiClient.get(`/matching/history?${searchParams}`);
+
+      // Check if response is empty or invalid
+      if (!response.data || !response.data.matches || response.data.matches.length === 0) {
+        console.warn(`⚠️ Backend API returned empty match history. Using mock data for presentation.`);
+        const mockData = generateMockMatchHistory(params?.limit || 8, params?.page || 1, params?.status);
+        console.log(`🎭 Using mock match history:`, {
+          count: mockData.matches.length,
+          page: mockData.pagination.page,
+          status: params?.status || 'all'
+        });
+        return mockData;
+      }
+
+      return response.data;
+    } catch (error) {
+      const axiosError = error as AxiosError;
+      const errorMessage = axiosError.response?.data || axiosError.message || 'Unknown error';
+
+      // Check for network errors or API failures
+      if (axiosError.code === 'ECONNREFUSED' || axiosError.code === 'ENOTFOUND' ||
+        axiosError.response?.status === 404 || axiosError.response?.status === 500 ||
+        axiosError.response?.status === 503) {
+        console.warn(`⚠️ Backend API error for match history (${axiosError.response?.status || axiosError.code}):`, errorMessage);
+        console.warn(`   Using mock data for presentation purposes.`);
+
+        const mockData = generateMockMatchHistory(params?.limit || 8, params?.page || 1, params?.status);
+        console.log(`🎭 Using mock match history:`, {
+          count: mockData.matches.length,
+          page: mockData.pagination.page,
+          status: params?.status || 'all'
+        });
+        return mockData;
+      }
+
+      // Re-throw other errors (like 401 unauthorized)
+      throw error;
+    }
   },
 
   // Update match status (like, pass, view)

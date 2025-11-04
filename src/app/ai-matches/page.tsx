@@ -32,7 +32,7 @@ const AIMatchesPage: React.FC = () => {
       isRefetching
    } = useMatchHistory({
       status: 'all',
-      limit: 50,
+      limit: 8,
       sortBy: 'compatibility',
       sortOrder: 'desc'
    });
@@ -79,9 +79,9 @@ const AIMatchesPage: React.FC = () => {
 
    return (
       <DashboardLayout>
-         <div className="min-h-screen bg-gray-50 dark:bg-slate-900">
-            <div className="p-6">
-               <div className="mx-auto max-w-4xl">
+         <div className="min-h-screen bg-gray-50 dark:bg-slate-900 pb-16 lg:pb-8">
+            <div className="p-4 sm:p-6 lg:p-8">
+               <div className="mx-auto w-full max-w-7xl lg:px-4">
                   {/* Header */}
                   <div className="flex justify-between items-center mb-1">
                      <Button
@@ -126,7 +126,7 @@ const AIMatchesPage: React.FC = () => {
                   </div>
 
                   {/* Content */}
-                  <div className="p-6 rounded-xl border border-gray-200 backdrop-blur-sm bg-white/80 dark:bg-white/5 dark:border-white/10">
+                  <div className="p-4 sm:p-6 lg:p-8 rounded-xl border border-gray-200 backdrop-blur-sm bg-white/80 dark:bg-white/5 dark:border-white/10">
                      {isLoading ? (
                         <div className="flex flex-col justify-center items-center py-16">
                            <div className="relative mb-6">
@@ -288,7 +288,7 @@ const AIMatchesPage: React.FC = () => {
 
                   {/* Pagination Info */}
                   {matchHistoryData?.pagination && historyMatches.length > 0 && (
-                     <div className="mt-6 p-4 rounded-lg bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border border-purple-200 dark:border-purple-800">
+                     <div className="mt-6 mb-8 p-4 rounded-lg bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border border-purple-200 dark:border-purple-800">
                         <div className="flex items-center justify-center text-sm text-gray-600 dark:text-gray-400">
                            <Users className="w-4 h-4 mr-2 text-purple-500" />
                            <span className="font-medium">

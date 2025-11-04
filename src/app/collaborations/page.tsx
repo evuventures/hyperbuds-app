@@ -32,7 +32,7 @@ const CollaborationsPage: React.FC = () => {
     isRefetching
   } = useMatchHistory({
     status: 'mutual', // Only get mutual matches
-    limit: 50,
+    limit: 8,
     sortBy: 'date',
     sortOrder: 'desc'
   });
