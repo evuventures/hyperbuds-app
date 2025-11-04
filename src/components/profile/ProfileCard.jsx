@@ -103,24 +103,41 @@ export default function UserProfileHeader({
         }
       }
 
-      // Extract Instagram username from URL
+      // Extract Instagram username from URL (handle various formats)
       if (socialLinks.instagram) {
-        const match = socialLinks.instagram.match(/instagram\.com\/([^/?]+)/);
+        const match = socialLinks.instagram.match(/instagram\.com\/@?([^/?]+)/) ||
+                     socialLinks.instagram.match(/instagram\.com\/([a-zA-Z0-9._]+)/);
         if (match) {
           creds.instagram = match[1];
           platformList.push({ type: 'instagram', username: match[1] });
+          console.log('✅ Instagram extracted in useEffect:', match[1]);
+        } else {
+          console.warn('⚠️ Instagram URL pattern not matched:', socialLinks.instagram);
         }
+      } else {
+        console.log('ℹ️ Instagram link not found in socialLinks (useEffect)');
       }
 
-      // Extract YouTube username from URL
+      // Extract YouTube username from URL (handle various formats)
       if (socialLinks.youtube) {
-        const match = socialLinks.youtube.match(/(?:youtube\.com\/@|youtube\.com\/c\/)([^/?]+)/) ||
-                     socialLinks.youtube.match(/youtube\.com\/user\/([^/?]+)/);
+        // Try @username format first, then /c/, /user/, or channel
+        const match = socialLinks.youtube.match(/youtube\.com\/@([^/?]+)/) ||
+                     socialLinks.youtube.match(/youtube\.com\/c\/([^/?]+)/) ||
+                     socialLinks.youtube.match(/youtube\.com\/user\/([^/?]+)/) ||
+                     socialLinks.youtube.match(/youtube\.com\/channel\/([^/?]+)/);
         if (match) {
           creds.youtube = match[1];
           platformList.push({ type: 'youtube', username: match[1] });
+          console.log('✅ YouTube extracted in useEffect:', match[1]);
+        } else {
+          console.warn('⚠️ YouTube URL pattern not matched:', socialLinks.youtube);
         }
+      } else {
+        console.log('ℹ️ YouTube link not found in socialLinks (useEffect)');
       }
+      
+      console.log('📊 Platform credentials extracted:', creds);
+      console.log('📋 Platform list:', platformList);
 
       setPlatformCredentials(creds);
       setPlatforms(platformList);
@@ -747,11 +764,14 @@ export default function UserProfileHeader({
         const platformCreds = {};
         const socialLinks = user.profile.socialLinks;
 
+        console.log('🔍 Extracting platform credentials from social links:', socialLinks);
+
         // Extract TikTok username from URL
         if (socialLinks.tiktok) {
           const match = socialLinks.tiktok.match(/tiktok\.com\/@?([^/?]+)/);
           if (match) {
             platformCreds.tiktok = match[1];
+            console.log('✅ TikTok extracted:', match[1]);
           }
         }
 
@@ -760,6 +780,7 @@ export default function UserProfileHeader({
           const match = socialLinks.twitter.match(/(?:twitter|x)\.com\/([^/?]+)/);
           if (match) {
             platformCreds.twitter = match[1];
+            console.log('✅ Twitter extracted:', match[1]);
           }
         }
 
@@ -768,25 +789,43 @@ export default function UserProfileHeader({
           const match = socialLinks.twitch.match(/twitch\.tv\/([^/?]+)/);
           if (match) {
             platformCreds.twitch = match[1];
+            console.log('✅ Twitch extracted:', match[1]);
           }
         }
 
-        // Extract Instagram username from URL
+        // Extract Instagram username from URL (handle various formats)
         if (socialLinks.instagram) {
-          const match = socialLinks.instagram.match(/instagram\.com\/([^/?]+)/);
+          // Try different patterns: instagram.com/username, instagram.com/@username, www.instagram.com/username
+          const match = socialLinks.instagram.match(/instagram\.com\/@?([^/?]+)/) ||
+                       socialLinks.instagram.match(/instagram\.com\/([a-zA-Z0-9._]+)/);
           if (match) {
             platformCreds.instagram = match[1];
+            console.log('✅ Instagram extracted:', match[1]);
+          } else {
+            console.warn('⚠️ Instagram URL pattern not matched:', socialLinks.instagram);
           }
+        } else {
+          console.log('ℹ️ Instagram link not found in socialLinks');
         }
 
-        // Extract YouTube username from URL
+        // Extract YouTube username from URL (handle various formats)
         if (socialLinks.youtube) {
-          const match = socialLinks.youtube.match(/(?:youtube\.com\/@|youtube\.com\/c\/)([^/?]+)/) ||
-                       socialLinks.youtube.match(/youtube\.com\/user\/([^/?]+)/);
+          // Try @username format first, then /c/, /user/, or channel
+          const match = socialLinks.youtube.match(/youtube\.com\/@([^/?]+)/) ||
+                       socialLinks.youtube.match(/youtube\.com\/c\/([^/?]+)/) ||
+                       socialLinks.youtube.match(/youtube\.com\/user\/([^/?]+)/) ||
+                       socialLinks.youtube.match(/youtube\.com\/channel\/([^/?]+)/);
           if (match) {
             platformCreds.youtube = match[1];
+            console.log('✅ YouTube extracted:', match[1]);
+          } else {
+            console.warn('⚠️ YouTube URL pattern not matched:', socialLinks.youtube);
           }
+        } else {
+          console.log('ℹ️ YouTube link not found in socialLinks');
         }
+
+        console.log('📊 Final platform credentials:', platformCreds);
 
         const hasPlatforms = Object.values(platformCreds).some(v => v);
 

@@ -1,6 +1,11 @@
 /**
  * Platform API Service
  * Integrates with Backend API (SocialData.Tools) for TikTok, Instagram, YouTube, Twitter, and Twitch data
+ * 
+ * 🎭 MOCK DATA MODE: This branch uses mock data for presentation purposes.
+ * When the backend API fails or returns errors, realistic mock data is automatically generated
+ * based on the platform and username. This allows the UI to work perfectly for demos while
+ * waiting for the backend SocialData.Tools integration to be fixed.
  */
 
 import axios, { AxiosError } from 'axios';
@@ -56,8 +61,52 @@ function setCachedData<T>(key: string, data: T): void {
 }
 
 /**
+ * Generate realistic mock data for presentation purposes
+ * This is used when the backend API is not available or returns errors
+ */
+function generateMockData(
+   platform: PlatformType,
+   username: string
+): BackendSocialResponse['data'] {
+   // Generate consistent mock data based on username hash
+   let hash = 0;
+   for (let i = 0; i < username.length; i++) {
+      hash = username.charCodeAt(i) + ((hash << 5) - hash);
+   }
+
+   // Platform-specific base ranges for realistic mock data
+   const platformRanges: Record<PlatformType, { followers: [number, number]; engagement: [number, number] }> = {
+      tiktok: { followers: [5000, 500000], engagement: [5.0, 12.0] },
+      instagram: { followers: [3000, 300000], engagement: [3.0, 8.0] },
+      youtube: { followers: [2000, 200000], engagement: [2.0, 6.0] },
+      twitter: { followers: [1000, 100000], engagement: [1.5, 5.0] },
+      twitch: { followers: [500, 50000], engagement: [4.0, 10.0] },
+   };
+
+   const range = platformRanges[platform] || { followers: [1000, 100000], engagement: [2.0, 6.0] };
+
+   // Generate consistent values based on hash
+   const normalizedHash = Math.abs(hash) % 1000;
+   const followerMultiplier = normalizedHash / 1000;
+   const engagementMultiplier = (normalizedHash % 500) / 500;
+
+   const followers = Math.round(
+      range.followers[0] + (range.followers[1] - range.followers[0]) * followerMultiplier
+   );
+   const engagement = Number(
+      (range.engagement[0] + (range.engagement[1] - range.engagement[0]) * engagementMultiplier).toFixed(1)
+   );
+
+   return {
+      followers,
+      engagement,
+   };
+}
+
+/**
  * Fetch social media data from backend API (SocialData.Tools)
  * This is a unified function that works for all supported platforms
+ * Falls back to mock data for presentation when backend is unavailable
  */
 async function fetchSocialDataFromBackend(
    platform: PlatformType,
@@ -128,9 +177,15 @@ async function fetchSocialDataFromBackend(
          return { success: true, data: response.data.data };
       }
 
+      // Backend returned success: false - use mock data for presentation
       const errorMessage = response.data.error || response.data.message || 'Failed to fetch social media data';
-      console.error(`❌ Backend API error for ${platform}/${username}:`, errorMessage);
-      return { success: false, error: errorMessage };
+      console.warn(`⚠️ Backend API returned success: false for ${platform}/${username}: ${errorMessage}`);
+      console.warn(`   Using mock data for presentation purposes.`);
+      
+      const mockData = generateMockData(platform, username);
+      console.log(`🎭 Using mock data for ${platform}/${username}:`, mockData);
+      setCachedData(cacheKey, mockData);
+      return { success: true, data: mockData };
    } catch (error) {
       const axiosError = error as AxiosError;
       console.error(`❌ Backend API request failed for ${platform}/${username}:`, {
@@ -150,32 +205,58 @@ async function fetchSocialDataFromBackend(
          errorMessage.toLowerCase().includes('quota') ||
          errorMessage.toLowerCase().includes('exceeded');
 
-      // Check if it's a network/connection error
+      // Check if it's a network/connection error - use mock data for presentation
       if (axiosError.code === 'ECONNREFUSED' || axiosError.code === 'ENOTFOUND') {
-         return {
-            success: false,
-            error: `Cannot connect to backend API. Please check if the backend server is running.`,
-         };
+         console.warn(`⚠️ Cannot connect to backend API (${axiosError.code}). Using mock data for presentation.`);
+         
+         const mockData = generateMockData(platform, username);
+         console.log(`🎭 Using mock data for ${platform}/${username}:`, mockData);
+         setCachedData(`${platform}:${username}`, mockData);
+         return { success: true, data: mockData };
       }
 
       // Check if it's a 404 (route not found on backend)
       if (axiosError.response?.status === 404) {
          // Log detailed info for debugging, but return user-friendly message
          console.warn(`⚠️ Backend API endpoint not found (404): ${BACKEND_API_URL}`);
-         console.warn(`   This is expected until the backend endpoint is deployed.`);
+         console.warn(`   Using mock data for presentation purposes.`);
          console.warn(`   See: docs/platform-integration/BACKEND-REQUIREMENTS.md`);
+         
+         // Return mock data for presentation
+         const mockData = generateMockData(platform, username);
+         console.log(`🎭 Using mock data for ${platform}/${username}:`, mockData);
+         setCachedData(`${platform}:${username}`, mockData);
+         return { success: true, data: mockData };
+      }
+
+      // For 500 errors or other backend failures, use mock data for presentation
+      if (axiosError.response?.status === 500 || axiosError.response?.status === 503) {
+         console.warn(`⚠️ Backend API error (${axiosError.response?.status}): ${errorMessage}`);
+         console.warn(`   Using mock data for presentation purposes.`);
+         
+         // Return mock data for presentation
+         const mockData = generateMockData(platform, username);
+         console.log(`🎭 Using mock data for ${platform}/${username}:`, mockData);
+         setCachedData(`${platform}:${username}`, mockData);
+         return { success: true, data: mockData };
+      }
+
+      // For rate limits, return error (don't use mock data)
+      if (isRateLimit) {
          return {
             success: false,
-            error: `Backend API endpoint not found: ${BACKEND_API_URL}. Please verify the endpoint URL.`,
+            error: `Rate limit exceeded: ${errorMessage}. Please try again later.`,
          };
       }
 
-      return {
-         success: false,
-         error: isRateLimit
-            ? `Rate limit exceeded: ${errorMessage}. Please try again later.`
-            : errorMessage,
-      };
+      // For other errors, use mock data for presentation
+      console.warn(`⚠️ Backend API error: ${errorMessage}`);
+      console.warn(`   Using mock data for presentation purposes.`);
+      
+      const mockData = generateMockData(platform, username);
+      console.log(`🎭 Using mock data for ${platform}/${username}:`, mockData);
+      setCachedData(`${platform}:${username}`, mockData);
+      return { success: true, data: mockData };
    }
 }
 
