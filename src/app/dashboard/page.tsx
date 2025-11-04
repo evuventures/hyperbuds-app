@@ -38,7 +38,7 @@ const MainContent: React.FC = () => {
                 <div className="flex gap-2 items-center mb-3">
                   <Zap className="w-6 h-6 text-yellow-300 dark:text-yellow-400" />
                   <span className="text-lg font-semibold">
-                    Good morning, Creator!
+                    Hello Creator!
                   </span>
                 </div>
                 <h1 className="mb-3 text-3xl font-bold leading-tight lg:text-4xl">
