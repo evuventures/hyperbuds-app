@@ -1,7 +1,8 @@
 /**
  * Platform API Route
- * Server-side endpoint for fetching platform data from RapidAPI
+ * Server-side endpoint for fetching platform data from Backend API (SocialData.Tools)
  * Route: /api/platform/[type]?username=xxx
+ * Supported platforms: tiktok, instagram, youtube, twitter, twitch
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -13,19 +14,22 @@ export async function GET(
    { params }: { params: Promise<{ type: string }> }
 ) {
    try {
+      console.log('🔍 Platform API GET route called');
+      
       const resolvedParams = await params;
       const { type } = resolvedParams;
       const { searchParams } = new URL(request.url);
       const username = searchParams.get('username');
 
       console.log(`🔍 Platform API called: ${type} with username: "${username}"`);
+      console.log(`🔍 Full URL: ${request.url}`);
 
-      // Validate platform type
-      const validPlatforms: PlatformType[] = ['tiktok', 'twitter', 'twitch'];
+      // Validate platform type (backend supports: tiktok, instagram, youtube, twitter, twitch)
+      const validPlatforms: PlatformType[] = ['tiktok', 'instagram', 'youtube', 'twitter', 'twitch'];
       if (!validPlatforms.includes(type as PlatformType)) {
          console.log(`❌ Invalid platform type: ${type}`);
          return NextResponse.json(
-            { success: false, error: 'Invalid platform type' },
+            { success: false, error: `Invalid platform type. Supported platforms: ${validPlatforms.join(', ')}` },
             { status: 400 }
          );
       }
@@ -39,21 +43,17 @@ export async function GET(
          );
       }
 
-      // Check if RapidAPI key is configured
-      const rapidApiKey = process.env.RAPIDAPI_KEY || process.env.NEXT_PUBLIC_RAPIDAPI_KEY;
-      if (!rapidApiKey) {
-         console.error(`❌ RapidAPI key not configured for ${type} (username: ${username})`);
-         return NextResponse.json(
-            { 
-               success: false, 
-               error: 'API configuration error. RapidAPI key is not configured.' 
-            },
-            { status: 500 }
-         );
-      }
+      // Get auth token from request headers if available
+      const authHeader = request.headers.get('authorization');
+      const authToken = authHeader?.replace('Bearer ', '') || undefined;
 
-      // Fetch platform data
-      const result = await fetchPlatformData(type as PlatformType, username.trim());
+      console.log(`📡 Calling fetchPlatformData for ${type} with username: ${username}`);
+      console.log(`🔑 Auth token present: ${!!authToken}`);
+      
+      // Fetch platform data (pass auth token if available)
+      const result = await fetchPlatformData(type as PlatformType, username.trim(), authToken);
+
+      console.log(`📥 fetchPlatformData result:`, { success: result.success, hasData: !!result.data, error: result.error });
 
       if (!result.success) {
          // Return the actual error message - no mock data fallback
@@ -62,10 +62,12 @@ export async function GET(
          
          return NextResponse.json(
             { success: false, error: errorMessage },
-            { status: 404 }
+            { status: 200 } // Return 200 to avoid frontend treating it as route error
          );
       }
 
+      console.log(`✅ Successfully fetched ${type} data for ${username}`);
+      
       return NextResponse.json({
          success: true,
          data: result.data,
@@ -73,7 +75,8 @@ export async function GET(
       });
 
    } catch (error) {
-      console.error('Platform API error:', error);
+      console.error('❌ Platform API error:', error);
+      console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
       return NextResponse.json(
          {
             success: false,
@@ -111,10 +114,17 @@ export async function POST(
          );
       }
 
-      // Fetch data for all platforms
+      // Get auth token from request headers if available (same as GET endpoint)
+      const authHeader = request.headers.get('authorization');
+      const authToken = authHeader?.replace('Bearer ', '') || undefined;
+
+      console.log(`📡 Batch fetch for ${platforms.length} platforms`);
+      console.log(`🔑 Auth token present: ${!!authToken}`);
+
+      // Fetch data for all platforms (pass auth token if available)
       const results = await Promise.allSettled(
          platforms.map(({ type, username }: { type: PlatformType; username: string }) =>
-            fetchPlatformData(type, username)
+            fetchPlatformData(type, username.trim(), authToken)
          )
       );
 
@@ -136,7 +146,8 @@ export async function POST(
       });
 
    } catch (error) {
-      console.error('Platform batch API error:', error);
+      console.error('❌ Platform batch API error:', error);
+      console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
       return NextResponse.json(
          {
             success: false,

@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useEffect } from 'react';
-import { FaCamera, FaUserCircle, FaUserPlus, FaUserEdit, FaLink, FaTiktok, FaInstagram, FaYoutube, FaTwitch, FaTwitter, FaLinkedin, FaCheckCircle, FaSpinner, FaArrowLeft, FaArrowRight } from 'react-icons/fa';
+import { FaCamera, FaUserCircle, FaUserPlus, FaUserEdit, FaLink, FaTiktok, FaInstagram, FaYoutube, FaTwitch, FaTwitter, FaCheckCircle, FaSpinner, FaArrowLeft, FaArrowRight } from 'react-icons/fa';
 import { useRouter } from 'next/navigation';
 import { BASE_URL } from '@/config/baseUrl';
 
@@ -11,7 +11,6 @@ const SOCIAL_PLATFORMS = [
   { id: 'youtube', name: 'YouTube', icon: FaYoutube, placeholder: 'https://youtube.com/@username' },
   { id: 'twitch', name: 'Twitch', icon: FaTwitch, placeholder: 'https://twitch.tv/username' },
   { id: 'twitter', name: 'Twitter', icon: FaTwitter, placeholder: 'https://twitter.com/username' },
-  { id: 'linkedin', name: 'LinkedIn', icon: FaLinkedin, placeholder: 'https://linkedin.com/in/username' },
 ];
 
 const MOCK_NICHES = [

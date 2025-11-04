@@ -8,7 +8,7 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Loader2, CheckCircle2, XCircle, AlertTriangle, Shield, Lock, Sparkles, Video, MessageCircle, TrendingUp, Zap, Camera } from 'lucide-react';
+import { Loader2, CheckCircle2, XCircle, AlertTriangle, Shield, Lock, Sparkles, Video, MessageCircle, TrendingUp, Zap, Camera, Play } from 'lucide-react';
 import { usePlatformData } from '@/hooks/features/usePlatformData';
 import type { PlatformType } from '@/types/platform.types';
 
@@ -217,6 +217,7 @@ interface PlatformCredentials {
    twitter?: string;
    twitch?: string;
    instagram?: string;
+   youtube?: string;
 }
 
 interface PlatformUsernameGroupProps {
@@ -249,6 +250,24 @@ export function PlatformUsernameGroup({
             borderGlow: 'group-hover:shadow-pink-500/50',
          },
          {
+            type: 'instagram',
+            label: 'Instagram',
+            placeholder: 'username',
+            icon: <Camera className="w-6 h-6" />,
+            color: 'from-purple-600 via-pink-500 to-orange-400',
+            gradient: 'from-purple-600/10 via-pink-500/10 to-orange-400/10',
+            borderGlow: 'group-hover:shadow-pink-500/50',
+         },
+         {
+            type: 'youtube',
+            label: 'YouTube',
+            placeholder: 'username',
+            icon: <Play className="w-6 h-6" />,
+            color: 'from-red-500 via-red-600 to-red-700',
+            gradient: 'from-red-500/10 via-red-600/10 to-red-700/10',
+            borderGlow: 'group-hover:shadow-red-500/50',
+         },
+         {
             type: 'twitter',
             label: 'Twitter / X',
             placeholder: 'username',
@@ -265,15 +284,6 @@ export function PlatformUsernameGroup({
             color: 'from-purple-500 via-violet-500 to-indigo-600',
             gradient: 'from-purple-500/10 via-violet-500/10 to-indigo-600/10',
             borderGlow: 'group-hover:shadow-purple-500/50',
-         },
-         {
-            type: 'instagram',
-            label: 'Instagram',
-            placeholder: 'username',
-            icon: <Camera className="w-6 h-6" />,
-            color: 'from-purple-600 via-pink-500 to-orange-400',
-            gradient: 'from-purple-600/10 via-pink-500/10 to-orange-400/10',
-            borderGlow: 'group-hover:shadow-pink-500/50',
          },
       ];
 
@@ -324,7 +334,7 @@ export function PlatformUsernameGroup({
                   </div>
                </div>
                <p className="max-w-3xl text-base leading-relaxed text-white/90">
-                  Connect your TikTok, Twitter, and Twitch accounts to unlock AI-powered collaboration matching.
+                  Connect your social media accounts to unlock AI-powered collaboration matching.
                   We analyze your public profile data to find perfect creative partners with <span className="font-bold text-yellow-300">95% accuracy</span>.
                </p>
             </div>

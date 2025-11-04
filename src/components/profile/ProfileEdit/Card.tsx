@@ -19,6 +19,8 @@ interface PlatformCredentials {
   tiktok?: string;
   twitter?: string;
   twitch?: string;
+  instagram?: string;
+  youtube?: string;
 }
 
 // Define the full user profile type based on the API response structure
@@ -42,7 +44,6 @@ const SOCIAL_PLATFORMS = [
   { id: "youtube", name: "YouTube", placeholder: "https://youtube.com/@username" },
   { id: "twitch", name: "Twitch", placeholder: "https://twitch.tv/username" },
   { id: "twitter", name: "Twitter", placeholder: "https://twitter.com/username" },
-  { id: "linkedin", name: "LinkedIn", placeholder: "https://linkedin.com/in/username" },
 ];
 
 const MOCK_NICHES = [
@@ -82,10 +83,6 @@ const isValidSocialUrl = (url: string, platform: string): boolean => {
       facebook: {
         domains: ['facebook.com', 'www.facebook.com', 'fb.com', 'www.fb.com'],
         pathPattern: /^\/[a-zA-Z0-9._-]+$/
-      },
-      linkedin: {
-        domains: ['linkedin.com', 'www.linkedin.com'],
-        pathPattern: /^\/in\/[a-zA-Z0-9._-]+$/
       },
       snapchat: {
         domains: ['snapchat.com', 'www.snapchat.com'],
@@ -223,6 +220,22 @@ export default function EditProfilePage() {
             if (match) platformCreds.twitch = match[1];
           }
 
+          // Extract username from Instagram URL
+          if (socialLinksData.instagram) {
+            const instagramUrl = socialLinksData.instagram as string;
+            const match = instagramUrl.match(/instagram\.com\/([^/?]+)/);
+            if (match) platformCreds.instagram = match[1];
+          }
+
+          // Extract username from YouTube URL
+          if (socialLinksData.youtube) {
+            const youtubeUrl = socialLinksData.youtube as string;
+            // Match both @username and /c/username formats
+            const match = youtubeUrl.match(/(?:youtube\.com\/@|youtube\.com\/c\/)([^/?]+)/) || 
+                         youtubeUrl.match(/youtube\.com\/user\/([^/?]+)/);
+            if (match) platformCreds.youtube = match[1];
+          }
+
           setSocialLinks(socialLinksData);
           setPlatformCredentials(platformCreds);
           setAvatar(data.avatar || null);
@@ -271,9 +284,7 @@ export default function EditProfilePage() {
         const username = cleanedValue.replace('@', '');
 
         // Platform-specific formatting
-        if (platformId === 'linkedin') {
-          cleanedValue = `https://linkedin.com/in/${username}`;
-        } else if (platformId === 'tiktok') {
+        if (platformId === 'tiktok') {
           cleanedValue = `https://tiktok.com/@${username}`;
         } else if (platformId === 'youtube') {
           cleanedValue = `https://youtube.com/@${username}`;
@@ -385,6 +396,19 @@ export default function EditProfilePage() {
         // User cleared Twitch, remove it from socialLinks
         delete cleanedSocialLinksWithPlatforms.twitch;
       }
+
+      if (platformCredentials.instagram?.trim()) {
+        cleanedSocialLinksWithPlatforms.instagram = `https://instagram.com/${platformCredentials.instagram.trim()}`;
+      } else {
+        delete cleanedSocialLinksWithPlatforms.instagram;
+      }
+
+      if (platformCredentials.youtube?.trim()) {
+        cleanedSocialLinksWithPlatforms.youtube = `https://youtube.com/@${platformCredentials.youtube.trim()}`;
+      } else {
+        delete cleanedSocialLinksWithPlatforms.youtube;
+      }
+
 
       const cleanedProfile: Partial<UserProfile> = {
         displayName,
@@ -754,70 +778,6 @@ export default function EditProfilePage() {
                 onChange={setPlatformCredentials}
                 showPreviews={true}
               />
-            </div>
-
-            {/* Social Links */}
-            <div className="mb-8">
-              <h3 className="mb-4 text-lg font-semibold text-gray-700 dark:text-gray-300">
-                Other Social Media Links (Optional)
-              </h3>
-              <p className="mb-4 text-sm text-gray-500 dark:text-gray-400">
-                Add links to Instagram, YouTube, and LinkedIn.
-              </p>
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                {SOCIAL_PLATFORMS.filter(p => ['instagram', 'youtube', 'linkedin'].includes(p.id)).map((platform) => {
-                  const currentValue = socialLinks[platform.id] || "";
-                  const isValid = !currentValue || isValidSocialUrl(currentValue, platform.id);
-
-                  return (
-                    <div key={platform.id}>
-                      <label className="block mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
-                        {platform.name}
-                        <span className="ml-1 text-xs text-gray-400">(optional)</span>
-                      </label>
-                      <div className="relative mb-6">
-                        <input
-                          type="text"
-                          value={currentValue}
-                          onChange={(e) => handleSocialChange(platform.id, e.target.value)}
-                          placeholder={`e.g., @username or ${platform.placeholder.replace('https://', '')}`}
-                          className={`px-4 py-3 w-full text-gray-800 bg-white rounded-xl border-2 transition-colors dark:bg-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-purple-200 dark:focus:ring-purple-800 ${currentValue && !isValid
-                            ? 'border-red-300 focus:border-red-500 dark:border-red-600 dark:focus:border-red-400'
-                            : 'border-gray-200 focus:border-purple-500 dark:border-gray-700 dark:focus:border-purple-600'
-                            }`}
-                        />
-                        {currentValue && !isValid && (
-                          <div className="mt-2 text-xs font-medium text-red-500">
-                            {platform.id === 'linkedin'
-                              ? 'Must be: linkedin.com/in/username'
-                              : platform.id === 'youtube'
-                                ? 'Must be: youtube.com/@username or youtube.com/c/username'
-                                : platform.id === 'facebook'
-                                  ? 'Must be: facebook.com/username'
-                                  : platform.id === 'snapchat'
-                                    ? 'Must be: snapchat.com/add/username'
-                                    : platform.id === 'discord'
-                                      ? 'Must be: discord.gg/servername or discord.com/invite/code'
-                                      : platform.id === 'telegram'
-                                        ? 'Must be: t.me/username'
-                                        : platform.id === 'reddit'
-                                          ? 'Must be: reddit.com/u/username'
-                                          : platform.id === 'pinterest'
-                                            ? 'Must be: pinterest.com/username'
-                                            : `Must be a valid ${platform.name} URL (e.g., ${platform.placeholder})`
-                            }
-                          </div>
-                        )}
-                        {currentValue && isValid && (
-                          <div className="mt-2 text-xs font-medium text-green-600">
-                            ✓ Valid {platform.name} URL
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
             </div>
 
             {/* Submit Button with Enhanced Animation */}

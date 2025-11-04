@@ -1,11 +1,12 @@
 // Platform API Types
-export type PlatformType = 'tiktok' | 'twitter' | 'twitch' | 'instagram';
+export type PlatformType = 'tiktok' | 'twitter' | 'twitch' | 'instagram' | 'youtube';
 
 export interface PlatformCredentials {
    tiktok?: string;
    twitter?: string;
    twitch?: string;
    instagram?: string;
+   youtube?: string;
 }
 
 // TikTok API Types (based on TikTok API23)
@@ -150,7 +151,7 @@ export interface PlatformAPIResponse<T> {
 export interface PlatformAPIError {
    platform: PlatformType;
    error: string;
-   type?: 'quota_error' | 'api_error' | 'network_error' | 'unknown';
+   type?: 'quota_error' | 'api_error' | 'network_error' | 'endpoint_not_available' | 'unknown';
    code?: string;
    details?: unknown;
 }

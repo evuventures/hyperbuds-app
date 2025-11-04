@@ -45,28 +45,81 @@ export function usePlatformData(
          const url = `/api/platform/${platform}?username=${encodeURIComponent(username)}`;
          console.log(`📡 API URL: ${url}`);
 
-         const response = await fetch(url);
+         // Get auth token from localStorage for client-side requests
+         const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+
+         const headers: Record<string, string> = {
+            'Content-Type': 'application/json',
+         };
+
+         // Add auth token if available
+         if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+         }
+
+         const response = await fetch(url, {
+            headers,
+         });
+
+         // Check if response is actually JSON before parsing
+         const contentType = response.headers.get('content-type');
+         if (!contentType || !contentType.includes('application/json')) {
+            const text = await response.text();
+            console.error(`❌ Non-JSON response for ${platform}:`, text);
+            throw new Error(`Invalid response format: ${text.substring(0, 100)}`);
+         }
+
          const result = await response.json();
 
          console.log(`📥 Response for ${platform}:`, {
             status: response.status,
             ok: response.ok,
-            result
+            success: result.success,
+            hasData: !!result.data,
+            error: result.error
          });
 
-         if (!response.ok || !result.success) {
-            throw new Error(result.error || 'Failed to fetch platform data');
+         if (!response.ok) {
+            // If response is not ok, it might be a Next.js route error
+            if (response.status === 404) {
+               throw new Error(`Route not found: ${url}. Please restart the dev server if you just added this route.`);
+            }
+            throw new Error(result.error || result.message || `HTTP ${response.status}: Failed to fetch platform data`);
+         }
+
+         if (!result.success) {
+            throw new Error(result.error || result.message || 'Failed to fetch platform data');
          }
 
          console.log(`✅ Successfully fetched ${platform} data:`, result.data);
          setData(result.data);
       } catch (err) {
          const errorMessage = err instanceof Error ? err.message : 'Unknown error';
-         console.error(`❌ Error fetching ${platform} data:`, errorMessage);
-         setError({
-            platform,
-            error: errorMessage,
-         });
+
+         // Handle specific error types
+         if (errorMessage.includes('Backend API endpoint not found') || errorMessage.includes('endpoint not found')) {
+            // Backend endpoint not deployed yet - log as warning, not error
+            console.warn(`⚠️ ${platform}: Backend API endpoint not yet available. Using stored profile data as fallback.`);
+            setError({
+               platform,
+               error: 'Platform integration pending. Using stored profile data.',
+               type: 'endpoint_not_available'
+            });
+         } else if (errorMessage.includes('quota') || errorMessage.includes('exceeded')) {
+            console.warn(`⚠️ ${platform} API quota exceeded. Consider upgrading plan or using cached data.`);
+            setError({
+               platform,
+               error: 'API quota exceeded. Please try again later or upgrade your plan.',
+               type: 'quota_error'
+            });
+         } else {
+            console.error(`❌ Error fetching ${platform} data:`, errorMessage);
+            setError({
+               platform,
+               error: errorMessage,
+               type: 'api_error'
+            });
+         }
          setData(null);
       } finally {
          setLoading(false);
@@ -122,6 +175,18 @@ export function useMultiplePlatformData(
       const results: Record<string, UnifiedPlatformData | null> = {};
       const fetchErrors: PlatformAPIError[] = [];
 
+      // Get auth token from localStorage for client-side requests (same as single platform hook)
+      const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+
+      const headers: Record<string, string> = {
+         'Content-Type': 'application/json',
+      };
+
+      // Add auth token if available
+      if (token) {
+         headers['Authorization'] = `Bearer ${token}`;
+      }
+
       // Fetch all platforms in parallel
       await Promise.all(
          platforms.map(async ({ type, username }) => {
@@ -129,7 +194,9 @@ export function useMultiplePlatformData(
                const url = `/api/platform/${type}?username=${encodeURIComponent(username)}`;
                console.log(`📡 Fetching ${type}: ${url}`);
 
-               const response = await fetch(url);
+               const response = await fetch(url, {
+                  headers,
+               });
                const result = await response.json();
 
                console.log(`📥 ${type} response:`, {
@@ -155,6 +222,14 @@ export function useMultiplePlatformData(
                      platform: type,
                      error: 'API quota exceeded. Please try again later or upgrade your plan.',
                      type: 'quota_error'
+                  });
+               } else if (errorMessage.includes('Backend API endpoint not found') || errorMessage.includes('endpoint not found')) {
+                  // Backend endpoint not deployed yet - log as warning, not error
+                  console.warn(`⚠️ ${type}: Backend API endpoint not yet available. Using stored profile data as fallback.`);
+                  fetchErrors.push({
+                     platform: type,
+                     error: 'Platform integration pending. Using stored profile data.',
+                     type: 'endpoint_not_available'
                   });
                } else {
                   console.error(`❌ ${type} error:`, errorMessage);

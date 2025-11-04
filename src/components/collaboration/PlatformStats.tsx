@@ -36,6 +36,7 @@ const platformIcons: Record<PlatformType, string> = {
    twitter: '🐦',
    twitch: '🎮',
    instagram: '📷',
+   youtube: '📺',
 };
 
 const platformColors: Record<PlatformType, string> = {
@@ -43,6 +44,7 @@ const platformColors: Record<PlatformType, string> = {
    twitter: 'from-blue-400 to-blue-600',
    twitch: 'from-purple-500 to-purple-700',
    instagram: 'from-purple-600 via-pink-500 to-orange-400',
+   youtube: 'from-red-500 to-red-700',
 };
 
 export function PlatformStats({
@@ -72,6 +74,12 @@ export function PlatformStats({
       }
       if (platformCredentials.twitch) {
          platformList.push({ type: 'twitch', username: platformCredentials.twitch });
+      }
+      if (platformCredentials.instagram) {
+         platformList.push({ type: 'instagram', username: platformCredentials.instagram });
+      }
+      if (platformCredentials.youtube) {
+         platformList.push({ type: 'youtube', username: platformCredentials.youtube });
       }
 
       setPlatforms(platformList);
@@ -202,21 +210,31 @@ export function PlatformStats({
                      >
                         <div className="flex justify-between items-center mb-4">
                            <div
-                              className={`p-3 rounded-xl bg-gradient-to-br ${platform === "tiktok"
-                                 ? "from-pink-100 to-rose-100 dark:from-pink-500/20 dark:to-rose-500/20"
-                                 : platform === "twitter"
-                                    ? "from-cyan-100 to-blue-100 dark:from-cyan-500/20 dark:to-blue-500/20"
-                                    : "from-purple-100 to-violet-100 dark:from-purple-500/20 dark:to-violet-500/20"
-                                 } group-hover:scale-110 transition-transform`}
+                              className={`p-3 rounded-xl bg-gradient-to-br ${
+                                 platform === "tiktok"
+                                    ? "from-pink-100 to-rose-100 dark:from-pink-500/20 dark:to-rose-500/20"
+                                    : platform === "twitter"
+                                       ? "from-cyan-100 to-blue-100 dark:from-cyan-500/20 dark:to-blue-500/20"
+                                       : platform === "twitch"
+                                          ? "from-purple-100 to-violet-100 dark:from-purple-500/20 dark:to-violet-500/20"
+                                          : platform === "instagram"
+                                             ? "from-purple-100 via-pink-100 to-orange-100 dark:from-purple-500/20 dark:via-pink-500/20 dark:to-orange-500/20"
+                                             : "from-red-100 to-red-200 dark:from-red-500/20 dark:to-red-500/20"
+                              } group-hover:scale-110 transition-transform`}
                            >
                               <Users
                                  size={24}
-                                 className={`${platform === "tiktok"
-                                    ? "text-pink-600 dark:text-pink-400"
-                                    : platform === "twitter"
-                                       ? "text-cyan-600 dark:text-cyan-400"
-                                       : "text-purple-600 dark:text-purple-400"
-                                    }`}
+                                 className={`${
+                                    platform === "tiktok"
+                                       ? "text-pink-600 dark:text-pink-400"
+                                       : platform === "twitter"
+                                          ? "text-cyan-600 dark:text-cyan-400"
+                                          : platform === "twitch"
+                                             ? "text-purple-600 dark:text-purple-400"
+                                             : platform === "instagram"
+                                                ? "text-purple-600 dark:text-purple-400"
+                                                : "text-red-600 dark:text-red-400"
+                                 }`}
                               />
                            </div>
                         </div>

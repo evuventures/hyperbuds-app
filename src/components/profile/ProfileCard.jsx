@@ -27,6 +27,8 @@ import {
   Sparkles,
   UserCheck,
   PartyPopper,
+  Info,
+  Database,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -98,6 +100,25 @@ export default function UserProfileHeader({
         if (match) {
           creds.twitch = match[1];
           platformList.push({ type: 'twitch', username: match[1] });
+        }
+      }
+
+      // Extract Instagram username from URL
+      if (socialLinks.instagram) {
+        const match = socialLinks.instagram.match(/instagram\.com\/([^/?]+)/);
+        if (match) {
+          creds.instagram = match[1];
+          platformList.push({ type: 'instagram', username: match[1] });
+        }
+      }
+
+      // Extract YouTube username from URL
+      if (socialLinks.youtube) {
+        const match = socialLinks.youtube.match(/(?:youtube\.com\/@|youtube\.com\/c\/)([^/?]+)/) ||
+                     socialLinks.youtube.match(/youtube\.com\/user\/([^/?]+)/);
+        if (match) {
+          creds.youtube = match[1];
+          platformList.push({ type: 'youtube', username: match[1] });
         }
       }
 
@@ -423,6 +444,8 @@ export default function UserProfileHeader({
                 color: "blue",
                 icon: Users,
                 change: "+12%",
+                isFromAPI: !platformLoading && combinedMetrics.totalFollowers > 0,
+                isFromFallback: !platformLoading && combinedMetrics.totalFollowers === 0 && user.stats?.totalFollowers > 0,
               },
               {
                 label: "Engagement Rate",
@@ -430,6 +453,8 @@ export default function UserProfileHeader({
                 color: "green",
                 icon: TrendingUp,
                 change: "+5%",
+                isFromAPI: !platformLoading && combinedMetrics.averageEngagementRate > 0,
+                isFromFallback: !platformLoading && combinedMetrics.averageEngagementRate === 0 && user.stats?.avgEngagement > 0,
               },
               {
                 label: "Rizz Score",
@@ -475,11 +500,43 @@ export default function UserProfileHeader({
                         }`}
                     />
                   </div>
-                  {stat.change && (
-                    <span className="flex-shrink-0 px-2 py-1 text-xs font-medium text-green-600 bg-green-50 rounded-full dark:text-green-400 dark:bg-green-500/20">
-                      {stat.change}
-                    </span>
-                  )}
+                  <div className="flex gap-2 items-center">
+                    {stat.change && (
+                      <span className="flex-shrink-0 px-2 py-1 text-xs font-medium text-green-600 bg-green-50 rounded-full dark:text-green-400 dark:bg-green-500/20">
+                        {stat.change}
+                      </span>
+                    )}
+                    {/* Data Source Indicator */}
+                    {stat.isFromFallback && (stat.label === "Total Followers" || stat.label === "Engagement Rate") && (
+                      <div className="group/indicator relative">
+                        <div className="flex items-center justify-center w-5 h-5 text-gray-400 transition-colors cursor-help hover:text-amber-500 dark:text-gray-500 dark:hover:text-amber-400">
+                          <Database size={14} />
+                        </div>
+                        <div className="absolute right-0 top-6 z-10 hidden w-48 p-2 text-xs text-white bg-gray-900 rounded-lg shadow-lg group-hover/indicator:block dark:bg-gray-800">
+                          <div className="flex items-center gap-2">
+                            <Database size={12} className="text-amber-400" />
+                            <span>From stored profile data</span>
+                          </div>
+                          <div className="mt-1 text-xs text-gray-400">
+                            Connect platforms for real-time updates
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    {stat.isFromAPI && (stat.label === "Total Followers" || stat.label === "Engagement Rate") && (
+                      <div className="group/indicator relative">
+                        <div className="flex items-center justify-center w-5 h-5 text-green-500 transition-colors cursor-help hover:text-green-600 dark:text-green-400 dark:hover:text-green-300">
+                          <Info size={14} />
+                        </div>
+                        <div className="absolute right-0 top-6 z-10 hidden w-48 p-2 text-xs text-white bg-gray-900 rounded-lg shadow-lg group-hover/indicator:block dark:bg-gray-800">
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                            <span>Live data from platforms</span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <div
                   className={`text-2xl sm:text-3xl font-bold mb-2 break-words overflow-visible ${stat.color === "blue"
@@ -651,7 +708,6 @@ export default function UserProfileHeader({
                 youtube: { name: "YouTube", color: "from-red-500 to-red-700", icon: "📺" },
                 twitch: { name: "Twitch", color: "from-purple-500 to-purple-700", icon: "🎮" },
                 twitter: { name: "Twitter", color: "from-blue-400 to-blue-600", icon: "🐦" },
-                linkedin: { name: "LinkedIn", color: "from-blue-600 to-blue-800", icon: "💼" },
               };
 
               const info = platformInfo[platform] || { name: platform, color: "from-gray-500 to-gray-700", icon: "🔗" };
@@ -712,6 +768,23 @@ export default function UserProfileHeader({
           const match = socialLinks.twitch.match(/twitch\.tv\/([^/?]+)/);
           if (match) {
             platformCreds.twitch = match[1];
+          }
+        }
+
+        // Extract Instagram username from URL
+        if (socialLinks.instagram) {
+          const match = socialLinks.instagram.match(/instagram\.com\/([^/?]+)/);
+          if (match) {
+            platformCreds.instagram = match[1];
+          }
+        }
+
+        // Extract YouTube username from URL
+        if (socialLinks.youtube) {
+          const match = socialLinks.youtube.match(/(?:youtube\.com\/@|youtube\.com\/c\/)([^/?]+)/) ||
+                       socialLinks.youtube.match(/youtube\.com\/user\/([^/?]+)/);
+          if (match) {
+            platformCreds.youtube = match[1];
           }
         }
 

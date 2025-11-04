@@ -1,31 +1,33 @@
 /**
  * Platform API Service
- * Integrates with RapidAPI for TikTok, Twitter, and Twitch data
+ * Integrates with Backend API (SocialData.Tools) for TikTok, Instagram, YouTube, Twitter, and Twitch data
  */
 
 import axios, { AxiosError } from 'axios';
 import type {
-   TikTokUserInfo,
-   TwitterUserInfo,
-   TwitchChannelInfo,
    UnifiedPlatformData,
    PlatformAPIResponse,
    PlatformType,
 } from '@/types/platform.types';
+import { BASE_URL } from '@/config/baseUrl';
 
-// RapidAPI Configuration
-const RAPIDAPI_HOST = {
-   tiktok: 'tiktok-api23.p.rapidapi.com',
-   twitter: 'twitter241.p.rapidapi.com',
-   twitch: 'twitch-scraper2.p.rapidapi.com',
-};
-
-// API Keys from environment
-const RAPIDAPI_KEY = process.env.NEXT_PUBLIC_RAPIDAPI_KEY || process.env.RAPIDAPI_KEY || '';
+// Backend API Configuration
+const BACKEND_API_URL = `${BASE_URL}/api/v1/social/fetch`;
 
 // Cache duration (5 minutes)
 const CACHE_DURATION = 5 * 60 * 1000;
 const platformCache = new Map<string, { data: unknown; timestamp: number }>();
+
+// Backend API Response Interface
+interface BackendSocialResponse {
+   success: boolean;
+   data?: {
+      followers: number;
+      engagement: number;
+   };
+   error?: string;
+   message?: string;
+}
 
 /**
  * Get cached data if available and not expired
@@ -46,7 +48,7 @@ function getCachedData<T>(key: string): T | null {
 /**
  * Set cache data
  */
-function setCachedData(key: string, data: unknown): void {
+function setCachedData<T>(key: string, data: T): void {
    platformCache.set(key, {
       data,
       timestamp: Date.now(),
@@ -54,291 +56,201 @@ function setCachedData(key: string, data: unknown): void {
 }
 
 /**
- * Fetch TikTok user information
+ * Fetch social media data from backend API (SocialData.Tools)
+ * This is a unified function that works for all supported platforms
  */
-export async function fetchTikTokUserInfo(username: string): Promise<PlatformAPIResponse<TikTokUserInfo>> {
+async function fetchSocialDataFromBackend(
+   platform: PlatformType,
+   username: string,
+   authToken?: string
+): Promise<PlatformAPIResponse<BackendSocialResponse['data']>> {
    try {
-      const cacheKey = `tiktok:${username}`;
-      const cached = getCachedData<TikTokUserInfo>(cacheKey);
+      const cacheKey = `${platform}:${username}`;
+      const cached = getCachedData<BackendSocialResponse['data']>(cacheKey);
 
       if (cached) {
          return { success: true, data: cached };
       }
 
-      const options = {
-         method: 'GET',
-         url: `https://${RAPIDAPI_HOST.tiktok}/api/user/info`,
-         params: { uniqueId: username },
-         headers: {
-            'x-rapidapi-key': RAPIDAPI_KEY,
-            'x-rapidapi-host': RAPIDAPI_HOST.tiktok,
-         },
-      };
+      // Map platform names (backend uses 'twitter' but we might need 'x' for some cases)
+      const backendPlatform = platform === 'twitter' ? 'twitter' : platform;
 
-      const response = await axios.request<TikTokUserInfo>(options);
-
-      if (response.data) {
-         setCachedData(cacheKey, response.data);
-         return { success: true, data: response.data };
+      // Validate platform is supported by backend
+      const supportedPlatforms = ['tiktok', 'instagram', 'youtube', 'twitter', 'twitch'];
+      if (!supportedPlatforms.includes(backendPlatform)) {
+         return {
+            success: false,
+            error: `Platform ${platform} is not supported by the backend API. Supported platforms: ${supportedPlatforms.join(', ')}`,
+         };
       }
 
-      return { success: false, error: 'No data returned from TikTok API' };
+      // Get authentication token if not provided (for client-side calls)
+      let token = authToken;
+      if (!token && typeof window !== 'undefined') {
+         token = localStorage.getItem('accessToken') || undefined;
+      }
+
+      const headers: Record<string, string> = {
+         'Content-Type': 'application/json',
+      };
+
+      // Add authentication if token is available
+      if (token) {
+         headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      console.log(`📡 Calling backend API: ${BACKEND_API_URL}`);
+      console.log(`📤 Request payload:`, { platform: backendPlatform, username: username.trim() });
+      console.log(`📤 Request headers:`, { ...headers, Authorization: token ? 'Bearer ***' : 'None' });
+
+      const response = await axios.post<BackendSocialResponse>(
+         BACKEND_API_URL,
+         {
+            platform: backendPlatform,
+            username: username.trim(),
+         },
+         {
+            headers,
+         }
+      );
+
+      console.log(`📥 Backend API response:`, {
+         status: response.status,
+         success: response.data.success,
+         hasData: !!response.data.data,
+         error: response.data.error,
+         message: response.data.message,
+         fullResponse: response.data
+      });
+
+      if (response.data.success && response.data.data) {
+         setCachedData(cacheKey, response.data.data);
+         return { success: true, data: response.data.data };
+      }
+
+      const errorMessage = response.data.error || response.data.message || 'Failed to fetch social media data';
+      console.error(`❌ Backend API error for ${platform}/${username}:`, errorMessage);
+      return { success: false, error: errorMessage };
    } catch (error) {
       const axiosError = error as AxiosError;
-      const errorData = axiosError.response?.data as { message?: string } | undefined;
-      const errorMessage = errorData?.message || axiosError.message || 'Failed to fetch TikTok user info';
-      
-      // Check if it's a quota error
-      const isQuotaError = errorMessage.toLowerCase().includes('quota') || 
-                          errorMessage.toLowerCase().includes('exceeded') ||
-                          axiosError.response?.status === 429;
-      
+      console.error(`❌ Backend API request failed for ${platform}/${username}:`, {
+         status: axiosError.response?.status,
+         statusText: axiosError.response?.statusText,
+         data: axiosError.response?.data,
+         message: axiosError.message,
+         url: BACKEND_API_URL
+      });
+
+      const errorData = axiosError.response?.data as BackendSocialResponse | { error?: string; message?: string } | undefined;
+      const errorMessage = errorData?.error || errorData?.message || axiosError.message || 'Failed to fetch social media data';
+
+      // Check if it's a rate limit error
+      const isRateLimit = axiosError.response?.status === 429 ||
+         errorMessage.toLowerCase().includes('rate limit') ||
+         errorMessage.toLowerCase().includes('quota') ||
+         errorMessage.toLowerCase().includes('exceeded');
+
+      // Check if it's a network/connection error
+      if (axiosError.code === 'ECONNREFUSED' || axiosError.code === 'ENOTFOUND') {
+         return {
+            success: false,
+            error: `Cannot connect to backend API. Please check if the backend server is running.`,
+         };
+      }
+
+      // Check if it's a 404 (route not found on backend)
+      if (axiosError.response?.status === 404) {
+         // Log detailed info for debugging, but return user-friendly message
+         console.warn(`⚠️ Backend API endpoint not found (404): ${BACKEND_API_URL}`);
+         console.warn(`   This is expected until the backend endpoint is deployed.`);
+         console.warn(`   See: docs/platform-integration/BACKEND-REQUIREMENTS.md`);
+         return {
+            success: false,
+            error: `Backend API endpoint not found: ${BACKEND_API_URL}. Please verify the endpoint URL.`,
+         };
+      }
+
       return {
          success: false,
-         error: isQuotaError 
-            ? `API quota exceeded: ${errorMessage}` 
+         error: isRateLimit
+            ? `Rate limit exceeded: ${errorMessage}. Please try again later.`
             : errorMessage,
       };
    }
 }
 
 /**
- * Fetch Twitter user information
+ * Normalize backend API response to unified format
+ * Backend returns: { followers: number, engagement: number }
+ * We convert this to UnifiedPlatformData format
  */
-export async function fetchTwitterUserInfo(username: string): Promise<PlatformAPIResponse<TwitterUserInfo>> {
-   try {
-      const cacheKey = `twitter:${username}`;
-      const cached = getCachedData<TwitterUserInfo>(cacheKey);
-
-      if (cached) {
-         return { success: true, data: cached };
-      }
-
-      const options = {
-         method: 'GET',
-         url: `https://${RAPIDAPI_HOST.twitter}/user`,
-         params: { username },
-         headers: {
-            'x-rapidapi-key': RAPIDAPI_KEY,
-            'x-rapidapi-host': RAPIDAPI_HOST.twitter,
-         },
-      };
-
-      const response = await axios.request<TwitterUserInfo>(options);
-
-      if (response.data) {
-         setCachedData(cacheKey, response.data);
-         return { success: true, data: response.data };
-      }
-
-      return { success: false, error: 'No data returned from Twitter API' };
-   } catch (error) {
-      const axiosError = error as AxiosError;
-      const errorData = axiosError.response?.data as { message?: string } | undefined;
-      return {
-         success: false,
-         error: errorData?.message || axiosError.message || 'Failed to fetch Twitter user info',
-      };
-   }
-}
-
-/**
- * Fetch Twitch channel information
- */
-export async function fetchTwitchChannelInfo(channelName: string): Promise<PlatformAPIResponse<TwitchChannelInfo>> {
-   try {
-      const cacheKey = `twitch:${channelName}`;
-      const cached = getCachedData<TwitchChannelInfo>(cacheKey);
-
-      if (cached) {
-         return { success: true, data: cached };
-      }
-
-      const options = {
-         method: 'GET',
-         url: `https://${RAPIDAPI_HOST.twitch}/api/channels/info`,
-         params: { channel: channelName },
-         headers: {
-            'x-rapidapi-key': RAPIDAPI_KEY,
-            'x-rapidapi-host': RAPIDAPI_HOST.twitch,
-         },
-      };
-
-      const response = await axios.request<TwitchChannelInfo>(options);
-
-      if (response.data) {
-         setCachedData(cacheKey, response.data);
-         return { success: true, data: response.data };
-      }
-
-      return { success: false, error: 'No data returned from Twitch API' };
-   } catch (error) {
-      const axiosError = error as AxiosError;
-      const errorData = axiosError.response?.data as { message?: string } | undefined;
-      return {
-         success: false,
-         error: errorData?.message || axiosError.message || 'Failed to fetch Twitch channel info',
-      };
-   }
-}
-
-/**
- * Normalize platform data to unified format
- * Note: Uses 'any' type to handle dynamic API response structures
- */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 export function normalizePlatformData(
    platform: PlatformType,
-   data: TikTokUserInfo | TwitterUserInfo | TwitchChannelInfo,
+   backendData: BackendSocialResponse['data'],
    username: string
 ): UnifiedPlatformData {
-   switch (platform) {
-      case 'tiktok': {
-         const tiktokData = data as unknown as Record<string, any>;
-
-         // Log raw response for debugging
-         console.log('🔍 TikTok API Raw Response:', JSON.stringify(tiktokData, null, 2));
-
-         // TikTok API structure: response contains userInfo object
-         const userInfo = (tiktokData.userInfo || tiktokData) as Record<string, any>;
-         const user = (userInfo.user || tiktokData.user || tiktokData) as Record<string, any>;
-         
-         // Use statsV2 for accurate large numbers (avoids integer overflow)
-         const statsV2 = (userInfo.statsV2 || {}) as Record<string, any>;
-         const stats = (userInfo.stats || tiktokData.stats || {}) as Record<string, any>;
-         
-         // Log extracted values for debugging
-         console.log('📊 TikTok Data Extraction:', {
-            hasUserInfo: !!tiktokData.userInfo,
-            hasUser: !!user,
-            statsV2: statsV2,
-            stats: stats,
-            user: user
-         });
-         
-         // Parse followers and engagement (prefer statsV2 for accuracy)
-         const followerCount = parseInt(String(statsV2.followerCount || stats.followerCount || user?.followerCount || '0'));
-         const followingCount = parseInt(String(statsV2.followingCount || stats.followingCount || user?.followingCount || '0'));
-         const videoCount = parseInt(String(statsV2.videoCount || stats.videoCount || user?.videoCount || '0'));
-         const heartCount = parseInt(String(statsV2.heartCount || statsV2.heart || stats.heart || stats.heartCount || user?.heartCount || '0'));
-
-         console.log('✅ TikTok Normalized Values:', {
-            followers: followerCount,
-            following: followingCount,
-            videos: videoCount,
-            hearts: heartCount
-         });
-
-         return {
-            platform: 'tiktok',
-            username: user?.uniqueId || username,
-            displayName: user?.nickname || user?.uniqueId || username,
-            profileImage: user?.avatarThumb || user?.avatarMedium || user?.avatarLarger || '',
-            bio: user?.signature || '',
-            verified: user?.verified || false,
-            followers: followerCount,
-            following: followingCount,
-            totalContent: videoCount,
-            totalEngagement: heartCount,
-            averageEngagement: videoCount > 0 ? heartCount / videoCount : 0,
-            lastFetched: new Date(),
-            raw: tiktokData,
-         };
-      }
-
-      case 'twitter': {
-         const twitterData = data as unknown as Record<string, any>;
-
-         // Twitter API structure: result.data.user.result contains the user data
-         const userResult = (twitterData?.result?.data?.user?.result || twitterData) as Record<string, any>;
-         const core = (userResult?.core || {}) as Record<string, any>;
-         const legacy = (userResult?.legacy || {}) as Record<string, any>;
-         const avatar = (userResult?.avatar || {}) as Record<string, any>;
-
-         // Extract metrics from legacy object
-         const followers = legacy.followers_count || legacy.followersCount || 0;
-         const following = legacy.friends_count || legacy.friendsCount || 0;
-         const tweets = legacy.statuses_count || legacy.statusesCount || 0;
-         const likes = legacy.favourites_count || legacy.favoritesCount || 0;
-
-         const totalEngagement = likes + (tweets * 10);
-
-         return {
-            platform: 'twitter',
-            username: core.screen_name || legacy.screen_name || username,
-            displayName: core.name || legacy.name || username,
-            profileImage: avatar.image_url || legacy.profile_image_url_https || '',
-            bio: legacy.description || '',
-            verified: userResult?.is_blue_verified || legacy.verified || false,
-            followers: followers,
-            following: following,
-            totalContent: tweets,
-            totalEngagement: totalEngagement,
-            averageEngagement: tweets > 0 ? totalEngagement / tweets : 0,
-            lastFetched: new Date(),
-            raw: twitterData,
-         };
-      }
-
-      case 'twitch': {
-         const twitchData = data as unknown as Record<string, any>;
-
-         // Twitch API structure: data.user contains the channel data
-         const user = (twitchData?.data?.user || twitchData?.user || twitchData) as Record<string, any>;
-         const followers = (user?.followers || {}) as Record<string, any>;
-         const roles = (user?.roles || {}) as Record<string, any>;
-
-         return {
-            platform: 'twitch',
-            username: user?.login || username,
-            displayName: user?.displayName || user?.display_name || username,
-            profileImage: user?.profileImageURL || user?.profile_image_url || '',
-            bio: user?.description || user?.bio || '',
-            verified: roles.isPartner || roles.is_partner || false,
-            followers: followers.totalCount || followers.total_count || 0,
-            following: 0, // Twitch doesn't provide following count
-            totalContent: 0, // Would need additional API call
-            totalEngagement: user?.view_count || 0,
-            averageEngagement: user?.view_count || 0,
-            lastFetched: new Date(),
-            raw: twitchData,
-         };
-      }
-
-      default:
-         throw new Error(`Unsupported platform: ${platform}`);
+   if (!backendData) {
+      throw new Error('No data provided for normalization');
    }
+
+   const followers = backendData.followers || 0;
+   const engagement = backendData.engagement || 0;
+
+   // Calculate estimated metrics based on engagement rate
+   // Engagement rate is typically a percentage, so we use it to estimate total engagement
+   const estimatedTotalEngagement = Math.round(followers * (engagement / 100));
+
+   // Platform-specific display names
+   const getDisplayName = (platform: PlatformType, username: string): string => {
+      // Capitalize first letter and remove special characters for display
+      return username.charAt(0).toUpperCase() + username.slice(1).replace(/[^a-zA-Z0-9]/g, '');
+   };
+
+   return {
+      platform,
+      username: username,
+      displayName: getDisplayName(platform, username),
+      profileImage: '', // Backend doesn't provide profile images
+      bio: '', // Backend doesn't provide bio
+      verified: false, // Backend doesn't provide verification status
+      followers: followers,
+      following: 0, // Backend doesn't provide following count
+      totalContent: 0, // Backend doesn't provide content count
+      totalEngagement: estimatedTotalEngagement,
+      averageEngagement: engagement, // Use engagement rate directly
+      lastFetched: new Date(),
+      raw: backendData, // Store raw backend data
+   };
 }
-/* eslint-enable @typescript-eslint/no-explicit-any */
 
 /**
- * Fetch and normalize platform data
+ * Fetch and normalize platform data from backend API
+ * Supports: tiktok, instagram, youtube, twitter, twitch
  */
 export async function fetchPlatformData(
    platform: PlatformType,
-   username: string
+   username: string,
+   authToken?: string
 ): Promise<PlatformAPIResponse<UnifiedPlatformData>> {
    try {
-      let response;
+      // Check if platform is supported by backend
+      const supportedPlatforms = ['tiktok', 'instagram', 'youtube', 'twitter', 'twitch'];
 
-      switch (platform) {
-         case 'tiktok':
-            response = await fetchTikTokUserInfo(username);
-            break;
-         case 'twitter':
-            response = await fetchTwitterUserInfo(username);
-            break;
-         case 'twitch':
-            response = await fetchTwitchChannelInfo(username);
-            break;
-         default:
-            return { success: false, error: `Unsupported platform: ${platform}` };
+      if (!supportedPlatforms.includes(platform)) {
+         return {
+            success: false,
+            error: `Platform ${platform} is not supported. Supported platforms: ${supportedPlatforms.join(', ')}`,
+         };
       }
+
+      // Fetch data from backend (auth token is optional)
+      const response = await fetchSocialDataFromBackend(platform, username, authToken);
 
       if (!response.success || !response.data) {
-         return { success: false, error: response.error };
+         return { success: false, error: response.error || 'Failed to fetch platform data' };
       }
 
+      // Normalize the backend response to UnifiedPlatformData format
       const normalizedData = normalizePlatformData(platform, response.data, username);
 
       return { success: true, data: normalizedData };
