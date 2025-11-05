@@ -245,30 +245,39 @@ export default function MultiStepProfileForm() {
       setMessage('Saving profile information...');
 
       const profileData = {
-        username: username || undefined,
-        displayName: displayName || undefined,
-        bio: bio || undefined,
+        username: username?.trim() || undefined,
+        displayName: displayName?.trim() || undefined,
+        bio: bio?.trim() || undefined,
         niche: selectedNiches.length > 0 ? selectedNiches : undefined,
         socialLinks: Object.keys(socialLinks).length > 0 ?
           Object.fromEntries(
-            Object.entries(socialLinks).filter(([, value]) => value && value.trim())
+            Object.entries(socialLinks)
+              .filter(([, value]) => value && value.trim())
+              .map(([key, value]) => [key, value.trim()])
           ) : undefined,
         location: (location.city || location.state || location.country) ? {
-          city: location.city || undefined,
-          state: location.state || undefined,
-          country: location.country || undefined
+          city: location.city?.trim() || undefined,
+          state: location.state?.trim() || undefined,
+          country: location.country?.trim() || undefined
         } : undefined,
         avatar: avatarUrl || undefined,
 
       };
 
-      // Remove undefined values
+      // Remove undefined values and empty strings
       const cleanedProfileData = Object.fromEntries(
-        Object.entries(profileData).filter(([, value]) => value !== undefined)
+        Object.entries(profileData).filter(([, value]) => {
+          if (value === undefined) return false;
+          if (typeof value === 'string' && value.trim() === '') return false;
+          if (Array.isArray(value) && value.length === 0) return false;
+          if (typeof value === 'object' && value !== null && Object.keys(value).length === 0) return false;
+          return true;
+        })
       );
 
-      // Try PUT first (for existing profiles), then POST if profile doesn't exist
-      let response = await fetch(`${BASE_URL}/api/v1/profiles/me`, {
+      // For first-time profile setup, use PUT /profiles/me directly
+      // Backend should handle both create and update operations
+      const response = await fetch(`${BASE_URL}/api/v1/profiles/me`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -277,42 +286,34 @@ export default function MultiStepProfileForm() {
         body: JSON.stringify(cleanedProfileData)
       });
 
-      // If profile doesn't exist (404), try POST to create it
-      if (!response.ok) {
-        const errorData = await response.json();
-        if (response.status === 404 || errorData.error === 'Profile not found') {
-          console.log('Profile not found, creating new profile...');
-          response = await fetch(`${BASE_URL}/api/v1/profiles/me`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
-            },
-            body: JSON.stringify(cleanedProfileData)
-          });
-        } else {
-          // Other error - show it
-          console.error('❌ Profile update failed:', errorData);
-          setError(errorData.message || 'Failed to create profile');
-          return;
-        }
-      }
-
+      // Handle response
       if (response.ok) {
         const responseData = await response.json();
+        console.log('✅ Profile created/updated successfully:', responseData);
         setMessage('Profile created successfully!');
         setCurrentStep(5); // Success screen
       } else {
-        const errorData = await response.json();
-        console.error('❌ Profile creation failed:', errorData);
-        
-        // Handle username already taken error
-        if (errorData.message && errorData.message.toLowerCase().includes('username')) {
+        // Handle error response
+        let errorData;
+        try {
+          errorData = await response.json();
+        } catch {
+          errorData = { message: 'Failed to create profile' };
+        }
+
+        console.error('❌ Profile creation/update failed:', {
+          status: response.status,
+          errorData
+        });
+
+        // Handle specific error cases
+        const errorMsg = errorData.message || errorData.error || 'Failed to create profile. Please try again.';
+        if (errorMsg.toLowerCase().includes('username')) {
           setError('This username is already taken. Please choose another one.');
           setIsUsernameAvailable(false);
           setCurrentStep(2); // Go back to username step
         } else {
-          setError(errorData.message || 'Failed to create profile');
+          setError(errorMsg);
         }
       }
     } catch (error) {
