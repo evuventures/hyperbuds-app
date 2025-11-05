@@ -613,32 +613,34 @@ export default function MultiStepProfileForm() {
             {currentStep === 4 && renderStep4()}
           </div>
 
-          <div className="flex justify-between items-center space-x-4">
+          <div className="flex gap-2 justify-between items-center sm:gap-4">
             <button
               onClick={prevStep}
               disabled={currentStep === 1}
-              className="flex gap-2 items-center px-6 py-3 font-semibold text-gray-600 rounded-xl transition-all duration-200 cursor-pointer hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex gap-1 items-center px-3 py-2 text-sm font-semibold text-gray-600 rounded-xl transition-all duration-200 cursor-pointer sm:gap-2 sm:px-6 sm:py-3 sm:text-base hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <FaArrowLeft className="w-4 h-4" />
-              Back
+              <FaArrowLeft className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline">Back</span>
             </button>
 
-            <div className="flex space-x-3">
+            <div className="flex space-x-2 sm:space-x-3">
               {currentStep === 4 ? (
                 <button
                   onClick={handleSubmit}
                   disabled={isLoading}
-                  className="flex gap-2 items-center px-8 py-3 font-semibold text-white bg-gradient-to-r from-purple-500 to-blue-500 rounded-xl shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex gap-1 items-center px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-purple-500 to-blue-500 rounded-xl shadow-lg transition-all duration-300 sm:gap-2 sm:px-8 sm:py-3 sm:text-base hover:shadow-xl hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isLoading ? (
                     <>
-                      <FaSpinner className="w-4 h-4 animate-spin" />
-                      Creating...
+                      <FaSpinner className="w-3 h-3 animate-spin sm:w-4 sm:h-4" />
+                      <span className="hidden sm:inline">Creating...</span>
+                      <span className="sm:hidden">...</span>
                     </>
                   ) : (
                     <>
-                      Complete Profile
-                      <FaCheckCircle className="w-4 h-4" />
+                      <span className="hidden sm:inline">Complete Profile</span>
+                      <span className="sm:hidden">Complete</span>
+                      <FaCheckCircle className="w-3 h-3 sm:w-4 sm:h-4" />
                     </>
                   )}
                 </button>
@@ -646,26 +648,14 @@ export default function MultiStepProfileForm() {
                 <button
                   onClick={nextStep}
                   disabled={!canProceed()}
-                  className="flex gap-2 items-center px-8 py-3 font-semibold text-white bg-gradient-to-r from-purple-500 to-blue-500 rounded-xl shadow-lg transition-all duration-300 cursor-pointer hover:shadow-xl hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex gap-1 items-center px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-purple-500 to-blue-500 rounded-xl shadow-lg transition-all duration-300 cursor-pointer sm:gap-2 sm:px-8 sm:py-3 sm:text-base hover:shadow-xl hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Continue
-                  <FaArrowRight className="w-4 h-4" />
+                  Next
+                  <FaArrowRight className="w-3 h-3 sm:w-4 sm:h-4" />
                 </button>
               )}
             </div>
           </div>
-
-          {/* Skip option for optional steps */}
-          {(currentStep === 1 || currentStep === 4) && (
-            <div className="mt-4 text-center">
-              <button
-                onClick={currentStep === 4 ? handleSubmit : nextStep}
-                className="font-medium text-gray-500 transition-colors duration-200 cursor-pointer hover:text-gray-700"
-              >
-                Skip for now
-              </button>
-            </div>
-          )}
         </div>
       </div>
     </div>
