@@ -149,9 +149,17 @@ export default function MultiStepProfileForm() {
           user.profile?.username?.toLowerCase() === username.toLowerCase()
         );
         setIsUsernameAvailable(isAvailable);
+      } else if (response.status === 404) {
+        // Endpoint doesn't exist - treat as available (will be validated on submit)
+        console.log('Username check endpoint not available, will validate on submit');
+        setIsUsernameAvailable(null); // Unknown state
+      } else {
+        // Other error - don't block user
+        setIsUsernameAvailable(null);
       }
     } catch (error) {
       console.error('Username check error:', error);
+      // Don't block user if check fails - will be validated on submit
       setIsUsernameAvailable(null);
     } finally {
       setIsCheckingUsername(false);
@@ -259,7 +267,8 @@ export default function MultiStepProfileForm() {
         Object.entries(profileData).filter(([, value]) => value !== undefined)
       );
 
-      const response = await fetch(`${BASE_URL}/api/v1/profiles/me`, {
+      // Try PUT first (for existing profiles), then POST if profile doesn't exist
+      let response = await fetch(`${BASE_URL}/api/v1/profiles/me`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -268,6 +277,27 @@ export default function MultiStepProfileForm() {
         body: JSON.stringify(cleanedProfileData)
       });
 
+      // If profile doesn't exist (404), try POST to create it
+      if (!response.ok) {
+        const errorData = await response.json();
+        if (response.status === 404 || errorData.error === 'Profile not found') {
+          console.log('Profile not found, creating new profile...');
+          response = await fetch(`${BASE_URL}/api/v1/profiles/me`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+            },
+            body: JSON.stringify(cleanedProfileData)
+          });
+        } else {
+          // Other error - show it
+          console.error('❌ Profile update failed:', errorData);
+          setError(errorData.message || 'Failed to create profile');
+          return;
+        }
+      }
+
       if (response.ok) {
         const responseData = await response.json();
         setMessage('Profile created successfully!');
@@ -275,7 +305,15 @@ export default function MultiStepProfileForm() {
       } else {
         const errorData = await response.json();
         console.error('❌ Profile creation failed:', errorData);
-        setError(errorData.message || 'Failed to create profile');
+        
+        // Handle username already taken error
+        if (errorData.message && errorData.message.toLowerCase().includes('username')) {
+          setError('This username is already taken. Please choose another one.');
+          setIsUsernameAvailable(false);
+          setCurrentStep(2); // Go back to username step
+        } else {
+          setError(errorData.message || 'Failed to create profile');
+        }
       }
     } catch (error) {
       console.error('Profile creation error:', error);
@@ -290,7 +328,8 @@ export default function MultiStepProfileForm() {
       case 1:
         return true; // Avatar is optional
       case 2:
-        return username && displayName && (isUsernameAvailable === true || isUsernameAvailable === null);
+        // Allow proceeding if username is valid length, availability check is optional
+        return username && displayName && username.length >= 3;
       case 3:
         return bio && selectedNiches.length > 0;
       case 4:
