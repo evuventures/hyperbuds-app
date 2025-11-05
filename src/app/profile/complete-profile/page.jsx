@@ -275,9 +275,8 @@ export default function MultiStepProfileForm() {
         })
       );
 
-      // For first-time profile setup, use PUT /profiles/me directly
-      // Backend should handle both create and update operations
-      const response = await fetch(`${BASE_URL}/api/v1/profiles/me`, {
+      // Try PUT first (for updating existing profiles)
+      let response = await fetch(`${BASE_URL}/api/v1/profiles/me`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -286,14 +285,8 @@ export default function MultiStepProfileForm() {
         body: JSON.stringify(cleanedProfileData)
       });
 
-      // Handle response
-      if (response.ok) {
-        const responseData = await response.json();
-        console.log('✅ Profile created/updated successfully:', responseData);
-        setMessage('Profile created successfully!');
-        setCurrentStep(5); // Success screen
-      } else {
-        // Handle error response
+      // If PUT fails with "Profile not found", try POST to create new profile
+      if (!response.ok) {
         let errorData;
         try {
           errorData = await response.json();
@@ -301,7 +294,72 @@ export default function MultiStepProfileForm() {
           errorData = { message: 'Failed to create profile' };
         }
 
-        console.error('❌ Profile creation/update failed:', {
+        // Check if profile doesn't exist yet
+        const errorMessage = errorData.message || errorData.error || '';
+        const errorMessageLower = errorMessage.toLowerCase();
+        const isProfileNotFound =
+          response.status === 404 ||
+          errorData.error === 'Profile not found' ||
+          errorMessageLower.includes('profile not found');
+
+        if (isProfileNotFound) {
+          console.log('Profile not found, trying POST to create new profile...');
+          // Try POST to create new profile
+          response = await fetch(`${BASE_URL}/api/v1/profiles`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+            },
+            body: JSON.stringify(cleanedProfileData)
+          });
+
+          // If POST also fails, show error
+          if (!response.ok) {
+            let postErrorData;
+            try {
+              postErrorData = await response.json();
+            } catch {
+              postErrorData = { message: 'Failed to create profile' };
+            }
+            console.error('❌ Profile creation failed (both PUT and POST):', {
+              putStatus: 'failed - profile not found',
+              postStatus: response.status,
+              postErrorData
+            });
+
+            const postErrorMessage = postErrorData.message || postErrorData.error || 'Failed to create profile';
+            setError(postErrorMessage);
+            return;
+          }
+        } else {
+          // Other error from PUT - show it
+          console.error('❌ Profile update failed:', {
+            status: response.status,
+            errorData
+          });
+          const errorMsg = errorData.message || errorData.error || 'Failed to update profile';
+          setError(errorMsg);
+          return;
+        }
+      }
+
+      // Handle success response
+      if (response.ok) {
+        const responseData = await response.json();
+        console.log('✅ Profile created/updated successfully:', responseData);
+        setMessage('Profile created successfully!');
+        setCurrentStep(5); // Success screen
+      } else {
+        // This should not happen after the above checks, but handle it anyway
+        let errorData;
+        try {
+          errorData = await response.json();
+        } catch {
+          errorData = { message: 'Failed to create profile' };
+        }
+
+        console.error('❌ Unexpected profile creation failure:', {
           status: response.status,
           errorData
         });
