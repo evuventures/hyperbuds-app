@@ -275,8 +275,14 @@ export default function MultiStepProfileForm() {
         })
       );
 
-      // Try PUT first (for updating existing profiles)
-      let response = await fetch(`${BASE_URL}/api/v1/profiles/me`, {
+      // Try different endpoint variations to handle profile creation
+      // Some backends require different endpoints or the profile must be initialized first
+      let response;
+      let lastError = null;
+
+      // Strategy 1: Try PUT /profiles/me (upsert - should create if doesn't exist)
+      console.log('Attempting PUT /api/v1/profiles/me...');
+      response = await fetch(`${BASE_URL}/api/v1/profiles/me`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -285,7 +291,6 @@ export default function MultiStepProfileForm() {
         body: JSON.stringify(cleanedProfileData)
       });
 
-      // If PUT fails with "Profile not found", try POST to create new profile
       if (!response.ok) {
         let errorData;
         try {
@@ -293,18 +298,20 @@ export default function MultiStepProfileForm() {
         } catch {
           errorData = { message: 'Failed to create profile' };
         }
+        lastError = { status: response.status, errorData };
+        console.log('PUT /api/v1/profiles/me failed:', lastError);
 
-        // Check if profile doesn't exist yet
+        // Check if profile doesn't exist
         const errorMessage = errorData.message || errorData.error || '';
         const errorMessageLower = errorMessage.toLowerCase();
-        const isProfileNotFound =
+        const isProfileNotFound = 
           response.status === 404 ||
           errorData.error === 'Profile not found' ||
           errorMessageLower.includes('profile not found');
 
         if (isProfileNotFound) {
-          console.log('Profile not found, trying POST to create new profile...');
-          // Try POST to create new profile
+          // Strategy 2: Try POST /profiles (create new)
+          console.log('Profile not found, trying POST /api/v1/profiles...');
           response = await fetch(`${BASE_URL}/api/v1/profiles`, {
             method: 'POST',
             headers: {
@@ -314,7 +321,6 @@ export default function MultiStepProfileForm() {
             body: JSON.stringify(cleanedProfileData)
           });
 
-          // If POST also fails, show error
           if (!response.ok) {
             let postErrorData;
             try {
@@ -322,22 +328,50 @@ export default function MultiStepProfileForm() {
             } catch {
               postErrorData = { message: 'Failed to create profile' };
             }
-            console.error('❌ Profile creation failed (both PUT and POST):', {
-              putStatus: 'failed - profile not found',
-              postStatus: response.status,
-              postErrorData
-            });
+            lastError = { status: response.status, errorData: postErrorData };
+            console.log('POST /api/v1/profiles failed:', lastError);
 
-            const postErrorMessage = postErrorData.message || postErrorData.error || 'Failed to create profile';
-            setError(postErrorMessage);
-            return;
+            // Strategy 3: Try POST /profiles/me (some backends use this)
+            if (response.status === 404) {
+              console.log('POST /api/v1/profiles returned 404, trying POST /api/v1/profiles/me...');
+              response = await fetch(`${BASE_URL}/api/v1/profiles/me`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+                },
+                body: JSON.stringify(cleanedProfileData)
+              });
+
+              if (!response.ok) {
+                let postMeErrorData;
+                try {
+                  postMeErrorData = await response.json();
+                } catch {
+                  postMeErrorData = { message: 'Failed to create profile' };
+                }
+                lastError = { status: response.status, errorData: postMeErrorData };
+                console.error('❌ All profile creation attempts failed:', {
+                  putProfilesMe: 'failed - profile not found',
+                  postProfiles: '404 - route not found',
+                  postProfilesMe: lastError
+                });
+
+                // Show comprehensive error message
+                const errorMsg = postMeErrorData.message || postMeErrorData.error || 
+                  'Unable to create profile. The backend may not support profile creation through these endpoints. Please contact support.';
+                setError(errorMsg);
+                return;
+              }
+            } else {
+              // POST /profiles failed with non-404 error
+              const errorMsg = postErrorData.message || postErrorData.error || 'Failed to create profile';
+              setError(errorMsg);
+              return;
+            }
           }
         } else {
-          // Other error from PUT - show it
-          console.error('❌ Profile update failed:', {
-            status: response.status,
-            errorData
-          });
+          // PUT failed with other error (not "profile not found")
           const errorMsg = errorData.message || errorData.error || 'Failed to update profile';
           setError(errorMsg);
           return;
