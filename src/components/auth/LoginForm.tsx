@@ -7,12 +7,21 @@ import { useRouter } from 'next/navigation'
 import { BASE_URL } from '@/config/baseUrl';
 
 const handleGoogleLogin = () => {
-  const clientId = "265404811439-3a6feinek5pckg02bjg7mfrva4esuqh0.apps.googleusercontent.com";
-  const redirectUri = "http://localhost:3000";
+  // Store redirect destination for after login
+  const currentPath = window.location.pathname;
+  sessionStorage.setItem("authRedirect", currentPath || "/dashboard");
+
+  // Get Google OAuth configuration from environment variables or use defaults
+  const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "265404811439-3a6feinek5pckg02bjg7mfrva4esuqh0.apps.googleusercontent.com";
+  
+  // Get redirect URI from environment or construct from current origin
+  const baseUrl = typeof window !== "undefined" ? window.location.origin : "http://localhost:3000";
+  const redirectUri = process.env.NEXT_PUBLIC_GOOGLE_REDIRECT_URI || `${baseUrl}/auth/google-callback`;
+  
   const scope = "email profile";
   const responseType = "code";
 
-  const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=${responseType}&scope=${scope}&access_type=offline&prompt=consent`;
+  const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=${responseType}&scope=${scope}&access_type=offline&prompt=consent`;
 
   window.location.href = googleAuthUrl;
 };

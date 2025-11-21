@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { PlatformStats } from "@/components/collaboration/PlatformStats";
 import { useMultiplePlatformData, useCombinedPlatformMetrics } from "@/hooks/features/usePlatformData";
 import {
@@ -239,11 +240,24 @@ export default function UserProfileHeader({
 
               {/* Enhanced Avatar*/}
               <div className="relative flex-shrink-0">
-                <div className="flex justify-center items-center text-3xl font-bold text-white bg-gradient-to-br from-blue-400 via-purple-500 to-pink-400 rounded-3xl ring-4 ring-white ring-offset-4 ring-offset-gray-50 shadow-2xl transition-all w-28 h-28 sm:w-32 sm:h-32 md:w-32 md:h-32 dark:from-blue-500 dark:via-purple-600 dark:to-pink-500 dark:ring-gray-800 dark:ring-offset-gray-900">
-                  {user.displayName?.charAt(0) ||
-                    user.username?.charAt(0) ||
-                    "U"}
-                </div>
+                {user.avatar ? (
+                  <div className="relative overflow-hidden rounded-3xl ring-4 ring-white ring-offset-4 ring-offset-gray-50 shadow-2xl transition-all w-28 h-28 sm:w-32 sm:h-32 md:w-32 md:h-32 dark:ring-gray-800 dark:ring-offset-gray-900">
+                    <Image
+                      src={user.avatar}
+                      alt={`${user.displayName || user.username}'s avatar`}
+                      width={128}
+                      height={128}
+                      className="object-cover w-full h-full"
+                      priority
+                    />
+                  </div>
+                ) : (
+                  <div className="flex justify-center items-center text-3xl font-bold text-white bg-gradient-to-br from-blue-400 via-purple-500 to-pink-400 rounded-3xl ring-4 ring-white ring-offset-4 ring-offset-gray-50 shadow-2xl transition-all w-28 h-28 sm:w-32 sm:h-32 md:w-32 md:h-32 dark:from-blue-500 dark:via-purple-600 dark:to-pink-500 dark:ring-gray-800 dark:ring-offset-gray-900">
+                    {user.displayName?.charAt(0) ||
+                      user.username?.charAt(0) ||
+                      "U"}
+                  </div>
+                )}
 
                 {/* Status Indicators */}
                 {user.isActive && (

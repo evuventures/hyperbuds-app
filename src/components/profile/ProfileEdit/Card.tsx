@@ -314,36 +314,45 @@ export default function EditProfilePage() {
 
   const handleAvatarUpload = async (file: File) => {
     console.log("File selected:", file.name, file.type, file.size);
-
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("type", "avatar");
+    setMessage("");
+    setError("");
 
     try {
-      const token = localStorage.getItem("accessToken");
-      console.log("Uploading to:", `${BASE_URL}/api/v1/profiles/upload-media`);
+      // Import UploadThing utility
+      const { uploadAvatar } = await import("@/lib/utils/uploadthing");
+      const { profileApi } = await import("@/lib/api/profile.api");
 
-      const response = await fetch(`${BASE_URL}/api/v1/profiles/upload-media`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-        body: formData,
-      });
+      // Step 1: Upload to UploadThing to get CDN URL
+      setMessage("Uploading image...");
+      const avatarUrl = await uploadAvatar(file);
+      console.log("UploadThing URL received:", avatarUrl);
 
-      console.log("Upload response status:", response.status);
+      // Step 2: Send URL to backend to save in profile
+      setMessage("Saving to profile...");
+      await profileApi.updateAvatar(avatarUrl);
 
-      if (response.ok) {
-        const data = await response.json();
-        console.log("Upload successful:", data);
-        setAvatar(data.url);
-        setMessage("Profile picture uploaded successfully!");
-      } else {
-        const errorData = await response.text();
-        console.error("Upload failed:", response.status, errorData);
-        setError("Failed to upload profile picture. Please try again.");
-      }
+      // Step 3: Update local state
+      setAvatar(avatarUrl);
+      setMessage("Profile picture uploaded successfully!");
+
+      // Step 4: Trigger profile refresh for other pages
+      // Set a flag in localStorage to trigger refresh on profile pages
+      localStorage.setItem('profileUpdated', 'true');
+      
+      // Dispatch storage event for cross-tab communication
+      window.dispatchEvent(new StorageEvent('storage', {
+        key: 'profileUpdated',
+        newValue: 'true'
+      }));
+
+      // Clear message after 3 seconds
+      setTimeout(() => setMessage(""), 3000);
     } catch (err) {
       console.error("Avatar upload failed:", err);
-      setError("Failed to upload profile picture. Please try again.");
+      const errorMessage = err instanceof Error ? err.message : "Failed to upload profile picture. Please try again.";
+      setError(errorMessage);
+      // Clear error after 5 seconds
+      setTimeout(() => setError(""), 5000);
     }
   };
 

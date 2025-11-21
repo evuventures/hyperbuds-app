@@ -32,14 +32,22 @@ apiClient.interceptors.request.use(
 );
 
 // Response interceptor (e.g. handle errors globally)
+// Note: Tokens now last 3 days - no refresh logic needed
 apiClient.interceptors.response.use(
   (response) => response,
   (error: AxiosError) => {
     if (error.response?.status === 401) {
-      // Handle unauthorized globally
-      console.warn("Unauthorized. Maybe redirect to login?");
-      // e.g. clear token, redirect, or trigger logout store action
+      // Token expired or invalid - clear token and redirect to login
+      // No refresh attempt since tokens now last 3 days
       localStorage.removeItem("accessToken");
+      
+      // Redirect to login if we're in the browser
+      if (typeof window !== "undefined") {
+        const currentPath = window.location.pathname;
+        if (!currentPath.startsWith("/auth/")) {
+          window.location.href = "/auth/signin";
+        }
+      }
     }
 
     // Optionally normalize error shape

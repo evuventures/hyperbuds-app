@@ -196,27 +196,24 @@ export default function MultiStepProfileForm() {
   const uploadAvatar = async () => {
     if (!selectedFile) return null;
 
-    const formData = new FormData();
-    formData.append('file', selectedFile);
-    formData.append('type', 'avatar');
-
     try {
-      const response = await fetch(`${BASE_URL}/api/v1/profiles/upload-media`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
-        },
-        body: formData
-      });
+      // Import UploadThing utility
+      const { uploadAvatar: uploadToUploadThing } = await import('@/lib/utils/uploadthing');
 
-      if (response.ok) {
-        const data = await response.json();
-        return data.url;
-      }
+      // Step 1: Upload to UploadThing to get CDN URL
+      setMessage('Uploading image to UploadThing...');
+      const avatarUrl = await uploadToUploadThing(selectedFile);
+      console.log('UploadThing URL received:', avatarUrl);
+
+      // Step 2: Send URL to backend to save in profile
+      // This will be done in handleSubmit when profile is created/updated
+      return avatarUrl;
     } catch (error) {
       console.error('Avatar upload error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to upload avatar';
+      setError(errorMessage);
+      return null;
     }
-    return null;
   };
 
   const handleSubmit = async () => {

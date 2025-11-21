@@ -1,30 +1,44 @@
 // utils/api.ts
 const BASE_URL = 'https://api-hyperbuds-backend.onrender.com';
 
+/**
+ * Get access token from localStorage
+ * Note: Tokens now last 3 days - no refresh needed
+ */
 async function getAccessToken() {
-  let token = localStorage.getItem("accessToken");
-
-  if (!token) {
-    // Try refreshing if no token
-    const res = await fetch(`${BASE_URL}/api/v1/auth/refresh`, {
-      method: "POST",
-      credentials: "include",
-    });
-
-    if (res.ok) {
-      const data = await res.json();
-      localStorage.setItem("accessToken", data.accessToken);
-      token = data.accessToken;
-    }
-  }
-
-  return token;
+  return localStorage.getItem("accessToken");
 }
 
+/**
+ * Clear authentication and redirect to login
+ */
+function clearAuthAndRedirect() {
+  localStorage.removeItem("accessToken");
+  
+  // Only redirect if we're in the browser and not already on auth pages
+  if (typeof window !== 'undefined') {
+    const currentPath = window.location.pathname;
+    if (!currentPath.startsWith('/auth/')) {
+      window.location.href = '/auth/signin';
+    }
+  }
+}
+
+/**
+ * API fetch with automatic token handling
+ * Note: Tokens last 3 days - no refresh logic needed
+ * On 401, token is cleared and user is redirected to login
+ */
 export async function apiFetch(endpoint: string, options: RequestInit = {}) {
   const token = await getAccessToken();
 
-  let res = await fetch(`${BASE_URL}${endpoint}`, {
+  // If no token, return early
+  if (!token) {
+    clearAuthAndRedirect();
+    throw new Error('No access token available');
+  }
+
+  const res = await fetch(`${BASE_URL}${endpoint}`, {
     ...options,
     headers: {
       ...options.headers,
@@ -34,27 +48,11 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}) {
     credentials: "include",
   });
 
-  // If token expired → refresh & retry once
+  // If token expired or invalid → clear token and redirect to login
+  // No refresh attempt since tokens now last 3 days
   if (res.status === 401) {
-    const refreshRes = await fetch(`${BASE_URL}/api/v1/auth/refresh`, {
-      method: "POST",
-      credentials: "include",
-    });
-
-    if (refreshRes.ok) {
-      const data = await refreshRes.json();
-      localStorage.setItem("accessToken", data.accessToken);
-
-      res = await fetch(`${BASE_URL}${endpoint}`, {
-        ...options,
-        headers: {
-          ...options.headers,
-          Authorization: `Bearer ${data.accessToken}`,
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-      });
-    }
+    clearAuthAndRedirect();
+    throw new Error('Unauthorized - please log in again');
   }
 
   return res.json();

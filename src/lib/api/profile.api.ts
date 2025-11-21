@@ -117,6 +117,14 @@ export const profileApi = {
     const response = await apiClient.put('/profiles/me', profileData);
     return response.data;
   },
+
+  /**
+   * Update avatar URL in backend
+   */
+  updateAvatar: async (avatarUrl: string) => {
+    const response = await apiClient.put('/profiles/me', { avatar: avatarUrl });
+    return response.data;
+  },
 };
 
 export default profileApi;
