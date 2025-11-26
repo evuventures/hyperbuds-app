@@ -261,7 +261,7 @@ export default function UserProfileHeader({
 
                 {/* Status Indicators */}
                 {user.isActive && (
-                  <div className="flex absolute -right-2 -bottom-2 justify-center items-center w-10 h-10 bg-green-500 rounded-full border-4 border-white shadow-xl animate-pulse dark:border-gray-800">
+                  <div className="flex absolute -right-2 -bottom-2 justify-center items-center w-10 h-10 bg-purple-500 rounded-full border-4 border-white shadow-xl animate-pulse dark:border-gray-800">
                     <Activity size={14} className="text-white" />
                   </div>
                 )}
@@ -294,13 +294,13 @@ export default function UserProfileHeader({
                     </p>
                     <div
                       className={`px-3 py-1 rounded-full text-sm font-medium flex items-center gap-2 ${user.isActive
-                        ? "bg-green-50 dark:bg-green-500/20 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-500/30"
+                        ? "bg-purple-50 dark:bg-purple-500/20 text-purple-500 dark:text-purple-300 border border-purple-200 dark:border-purple-500/30"
                         : "bg-gray-50 dark:bg-gray-500/20 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-500/30"
                         }`}
                     >
                       <div
                         className={`w-2 h-2 rounded-full ${user.isActive
-                          ? "bg-green-500 animate-pulse"
+                          ? "bg-purple-500 animate-pulse"
                           : "bg-gray-400"
                           }`}
                       ></div>
@@ -455,18 +455,18 @@ export default function UserProfileHeader({
               {
                 label: "Total Followers",
                 value: platformLoading ? "..." : (combinedMetrics.totalFollowers > 0 ? combinedMetrics.totalFollowers.toLocaleString() : (user.stats?.totalFollowers?.toLocaleString() || "0")),
-                color: "blue",
+                color: "purple",
                 icon: Users,
-                change: "+12%",
+                change: "soon",
                 isFromAPI: !platformLoading && combinedMetrics.totalFollowers > 0,
                 isFromFallback: !platformLoading && combinedMetrics.totalFollowers === 0 && user.stats?.totalFollowers > 0,
               },
               {
                 label: "Engagement Rate",
                 value: platformLoading ? "..." : (combinedMetrics.averageEngagementRate > 0 ? `${combinedMetrics.averageEngagementRate.toFixed(1)}%` : `${user.stats?.avgEngagement || "0"}%`),
-                color: "green",
+                color: "purple",
                 icon: TrendingUp,
-                change: "+5%",
+                change: "soon",
                 isFromAPI: !platformLoading && combinedMetrics.averageEngagementRate > 0,
                 isFromFallback: !platformLoading && combinedMetrics.averageEngagementRate === 0 && user.stats?.avgEngagement > 0,
               },
@@ -480,7 +480,7 @@ export default function UserProfileHeader({
               {
                 label: "Content Niches",
                 value: user.niche?.length || "0",
-                color: "orange",
+                color: "purple",
                 icon: Target,
                 change: null,
               },
@@ -509,14 +509,14 @@ export default function UserProfileHeader({
                         : stat.color === "green"
                           ? "text-green-600 dark:text-green-400"
                           : stat.color === "purple"
-                            ? "text-purple-600 dark:text-purple-400"
-                            : "text-orange-600 dark:text-orange-400"
+                            ? "text-gray-600 dark:text-gray-400"
+                            : "text-gray-600 dark:text-gray-400 "
                         }`}
                     />
                   </div>
                   <div className="flex gap-2 items-center">
                     {stat.change && (
-                      <span className="flex-shrink-0 px-2 py-1 text-xs font-medium text-green-600 bg-green-50 rounded-full dark:text-green-400 dark:bg-green-500/20">
+                      <span className="flex-shrink-0 px-2 py-1 text-xs font-medium text-gray-600 bg-purple-50 rounded-full dark:text-gray-400 dark:bg-gray-500/20">
                         {stat.change}
                       </span>
                     )}
@@ -709,8 +709,8 @@ export default function UserProfileHeader({
       {user.socialLinks && Object.keys(user.socialLinks).length > 0 && (
         <div className="p-6 bg-white rounded-2xl border shadow-lg backdrop-blur-sm dark:bg-gray-800/50 border-gray-200/60 dark:border-gray-700/60">
           <h3 className="flex gap-3 items-center mb-6 text-xl font-bold text-gray-900 dark:text-gray-100">
-            <div className="p-2 bg-gradient-to-br from-pink-100 to-purple-100 rounded-lg dark:from-pink-500/20 dark:to-purple-500/20">
-              <Share2 size={24} className="text-pink-600 dark:text-pink-400" />
+            <div className="p-2 bg-gradient-to-br from-purple-100 to-purple-100 rounded-lg dark:from-purple-500/20 dark:to-purple-500/20">
+              <Share2 size={24} className="text-purple-600 dark:text-purple-400" />
             </div>
             Social Media
           </h3>
@@ -749,13 +749,13 @@ export default function UserProfileHeader({
                     <ExternalLink size={16} className="text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300" />
                   </div>
                 </a>
-              );
+              ); 
             })}
           </div>
         </div>
       )}
 
-      {/* Enhanced Platform Performance */}
+      {/* Enhanced Platform Performance
       {user?.profile?.socialLinks && (() => {
         // Extract usernames from social links URLs for connected platforms only
         const platformCreds = {};
@@ -801,7 +801,7 @@ export default function UserProfileHeader({
             platformCreds.youtube = match[1];
           }
         }
-
+{/*
         const hasPlatforms = Object.values(platformCreds).some(v => v);
 
         return hasPlatforms && (
@@ -822,8 +822,8 @@ export default function UserProfileHeader({
               compact={true}
             />
           </div>
-        );
-      })()}
+        ); 
+      })()} */}
     </div >
   );
 }

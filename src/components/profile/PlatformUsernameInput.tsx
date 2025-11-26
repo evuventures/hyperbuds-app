@@ -245,7 +245,7 @@ export function PlatformUsernameGroup({
             label: 'TikTok',
             placeholder: 'username',
             icon: <Video className="w-6 h-6" />,
-            color: 'from-pink-500 via-rose-500 to-red-500',
+            color: 'from-purple-500 via-violet-500 to-indigo-600',
             gradient: 'from-pink-500/10 via-rose-500/10 to-red-500/10',
             borderGlow: 'group-hover:shadow-pink-500/50',
          },
@@ -254,7 +254,7 @@ export function PlatformUsernameGroup({
             label: 'Instagram',
             placeholder: 'username',
             icon: <Camera className="w-6 h-6" />,
-            color: 'from-purple-600 via-pink-500 to-orange-400',
+            color: 'from-purple-500 via-violet-500 to-indigo-600',
             gradient: 'from-purple-600/10 via-pink-500/10 to-orange-400/10',
             borderGlow: 'group-hover:shadow-pink-500/50',
          },
@@ -263,7 +263,7 @@ export function PlatformUsernameGroup({
             label: 'YouTube',
             placeholder: 'username',
             icon: <Play className="w-6 h-6" />,
-            color: 'from-red-500 via-red-600 to-red-700',
+            color: 'from-purple-500 via-violet-500 to-indigo-600',
             gradient: 'from-red-500/10 via-red-600/10 to-red-700/10',
             borderGlow: 'group-hover:shadow-red-500/50',
          },
@@ -272,7 +272,7 @@ export function PlatformUsernameGroup({
             label: 'Twitter / X',
             placeholder: 'username',
             icon: <MessageCircle className="w-6 h-6" />,
-            color: 'from-blue-400 via-cyan-400 to-sky-500',
+            color: 'from-purple-500 via-violet-500 to-indigo-600',
             gradient: 'from-blue-500/10 via-cyan-500/10 to-sky-500/10',
             borderGlow: 'group-hover:shadow-blue-500/50',
          },
@@ -383,18 +383,18 @@ export function PlatformUsernameGroup({
          </div>
 
          {/* Premium Privacy & Security Section */}
-         <motion.div
+         {/* <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
             className="relative overflow-hidden p-8 bg-gradient-to-br from-slate-50 via-gray-50 to-slate-100 dark:from-slate-800 dark:via-slate-900 dark:to-slate-950 rounded-3xl border-2 shadow-2xl md:p-10 border-orange-400/40 dark:border-orange-500/30"
          >
-            {/* Decorative elements */}
+             Decorative elements 
             <div className="absolute top-0 right-0 w-64 h-64 bg-orange-400/20 dark:bg-orange-500/10 rounded-full blur-3xl" />
             <div className="absolute bottom-0 left-0 w-48 h-48 bg-yellow-400/20 dark:bg-yellow-500/10 rounded-full blur-3xl" />
 
             <div className="relative z-10">
-               {/* Header */}
+               {/* Header 
                <div className="flex flex-col gap-6 items-start mb-8 md:flex-row md:items-center">
                   <motion.div
                      className="flex justify-center items-center w-20 h-20 bg-gradient-to-br from-orange-400 to-yellow-500 rounded-2xl shadow-2xl shrink-0"
@@ -422,9 +422,9 @@ export function PlatformUsernameGroup({
                   </div>
                </div>
 
-               {/* Features Grid */}
+               {/* Features Grid 
                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  {/* AI Matching */}
+                  {/* AI Matching 
                   <motion.div
                      whileHover={{ scale: 1.02, y: -4 }}
                      className="flex gap-4 items-start p-5 bg-gradient-to-br from-green-100 to-emerald-100 dark:from-green-500/10 dark:to-emerald-500/10 rounded-2xl border border-green-300 dark:border-green-500/30 backdrop-blur-sm"
@@ -438,7 +438,7 @@ export function PlatformUsernameGroup({
                      </div>
                   </motion.div>
 
-                  {/* Verified Stats */}
+                  {/* Verified Stats 
                   <motion.div
                      whileHover={{ scale: 1.02, y: -4 }}
                      className="flex gap-4 items-start p-5 bg-gradient-to-br from-green-100 to-teal-100 dark:from-green-500/10 dark:to-teal-500/10 rounded-2xl border border-green-300 dark:border-green-500/30 backdrop-blur-sm"
@@ -452,7 +452,7 @@ export function PlatformUsernameGroup({
                      </div>
                   </motion.div>
 
-                  {/* Smart Analytics */}
+                  {/* Smart Analytics 
                   <motion.div
                      whileHover={{ scale: 1.02, y: -4 }}
                      className="flex gap-4 items-start p-5 bg-gradient-to-br from-green-100 to-cyan-100 dark:from-green-500/10 dark:to-cyan-500/10 rounded-2xl border border-green-300 dark:border-green-500/30 backdrop-blur-sm"
@@ -466,7 +466,7 @@ export function PlatformUsernameGroup({
                      </div>
                   </motion.div>
 
-                  {/* Never Private */}
+                  {/* Never Private 
                   <motion.div
                      whileHover={{ scale: 1.02, y: -4 }}
                      className="flex gap-4 items-start p-5 bg-gradient-to-br from-red-100 to-rose-100 dark:from-red-500/10 dark:to-rose-500/10 rounded-2xl border border-red-300 dark:border-red-500/30 backdrop-blur-sm"
@@ -481,7 +481,7 @@ export function PlatformUsernameGroup({
                   </motion.div>
                </div>
             </div>
-         </motion.div>
+         </motion.div> */}
       </div>
    );
 }
