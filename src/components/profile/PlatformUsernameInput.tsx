@@ -291,7 +291,7 @@ export function PlatformUsernameGroup({
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5, type: 'spring' }}
-            className="overflow-hidden relative p-8 bg-gradient-to-br from-purple-600 via-blue-600 to-cyan-500 rounded-3xl shadow-2xl md:p-10"
+            className="overflow-hidden relative p-8 bg-linear-to-br from-purple-600 via-blue-600 to-cyan-500 rounded-3xl shadow-2xl md:p-10"
          >
             {/* Animated background */}
             <div className="absolute inset-0 opacity-30">
@@ -342,7 +342,7 @@ export function PlatformUsernameGroup({
                >
                   {/* Platform Header */}
                   <div className="flex gap-3 items-center mb-3">
-                     <div className={`flex justify-center items-center w-12 h-12 bg-gradient-to-br ${platform.color} rounded-xl shadow-md`}>
+                     <div className={`flex justify-center items-center w-12 h-12 bg-linear-to-br ${platform.color} rounded-xl shadow-md`}>
                         <div className="text-white">
                            {platform.icon}
                         </div>
@@ -377,7 +377,7 @@ export function PlatformUsernameGroup({
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
-            className="relative overflow-hidden p-8 bg-gradient-to-br from-slate-50 via-gray-50 to-slate-100 dark:from-slate-800 dark:via-slate-900 dark:to-slate-950 rounded-3xl border-2 shadow-2xl md:p-10 border-orange-400/40 dark:border-orange-500/30"
+            className="relative overflow-hidden p-8 bg-linear-to-br from-slate-50 via-gray-50 to-slate-100 dark:from-slate-800 dark:via-slate-900 dark:to-slate-950 rounded-3xl border-2 shadow-2xl md:p-10 border-orange-400/40 dark:border-orange-500/30"
          >
             {/* Decorative elements */}
             <div className="absolute top-0 right-0 w-64 h-64 bg-orange-400/20 dark:bg-orange-500/10 rounded-full blur-3xl" />
@@ -387,7 +387,7 @@ export function PlatformUsernameGroup({
                {/* Header */}
                <div className="flex flex-col gap-6 items-start mb-8 md:flex-row md:items-center">
                   <motion.div
-                     className="flex justify-center items-center w-20 h-20 bg-gradient-to-br from-orange-400 to-yellow-500 rounded-2xl shadow-2xl shrink-0"
+                     className="flex justify-center items-center w-20 h-20 bg-linear-to-br from-orange-400 to-yellow-500 rounded-2xl shadow-2xl shrink-0"
                      whileHover={{ scale: 1.05, rotate: 5 }}
                      transition={{ type: "spring", stiffness: 300 }}
                   >
@@ -417,7 +417,7 @@ export function PlatformUsernameGroup({
                   {/* AI Matching */}
                   <motion.div
                      whileHover={{ scale: 1.02, y: -4 }}
-                     className="flex gap-4 items-start p-5 bg-gradient-to-br from-green-100 to-emerald-100 dark:from-green-500/10 dark:to-emerald-500/10 rounded-2xl border border-green-300 dark:border-green-500/30 backdrop-blur-sm"
+                     className="flex gap-4 items-start p-5 bg-linear-to-br from-green-100 to-emerald-100 dark:from-green-500/10 dark:to-emerald-500/10 rounded-2xl border border-green-300 dark:border-green-500/30 backdrop-blur-sm"
                   >
                      <div className="flex justify-center items-center w-10 h-10 bg-green-200 dark:bg-green-500/20 rounded-xl shrink-0">
                         <CheckCircle2 className="w-6 h-6 text-green-700 dark:text-green-400" />
@@ -431,7 +431,7 @@ export function PlatformUsernameGroup({
                   {/* Verified Stats */}
                   <motion.div
                      whileHover={{ scale: 1.02, y: -4 }}
-                     className="flex gap-4 items-start p-5 bg-gradient-to-br from-green-100 to-teal-100 dark:from-green-500/10 dark:to-teal-500/10 rounded-2xl border border-green-300 dark:border-green-500/30 backdrop-blur-sm"
+                     className="flex gap-4 items-start p-5 bg-linear-to-br from-green-100 to-teal-100 dark:from-green-500/10 dark:to-teal-500/10 rounded-2xl border border-green-300 dark:border-green-500/30 backdrop-blur-sm"
                   >
                      <div className="flex justify-center items-center w-10 h-10 bg-green-200 dark:bg-green-500/20 rounded-xl shrink-0">
                         <CheckCircle2 className="w-6 h-6 text-green-700 dark:text-green-400" />
@@ -445,7 +445,7 @@ export function PlatformUsernameGroup({
                   {/* Smart Analytics */}
                   <motion.div
                      whileHover={{ scale: 1.02, y: -4 }}
-                     className="flex gap-4 items-start p-5 bg-gradient-to-br from-green-100 to-cyan-100 dark:from-green-500/10 dark:to-cyan-500/10 rounded-2xl border border-green-300 dark:border-green-500/30 backdrop-blur-sm"
+                     className="flex gap-4 items-start p-5 bg-linear-to-br from-green-100 to-cyan-100 dark:from-green-500/10 dark:to-cyan-500/10 rounded-2xl border border-green-300 dark:border-green-500/30 backdrop-blur-sm"
                   >
                      <div className="flex justify-center items-center w-10 h-10 bg-green-200 dark:bg-green-500/20 rounded-xl shrink-0">
                         <CheckCircle2 className="w-6 h-6 text-green-700 dark:text-green-400" />
@@ -459,7 +459,7 @@ export function PlatformUsernameGroup({
                   {/* Never Private */}
                   <motion.div
                      whileHover={{ scale: 1.02, y: -4 }}
-                     className="flex gap-4 items-start p-5 bg-gradient-to-br from-red-100 to-rose-100 dark:from-red-500/10 dark:to-rose-500/10 rounded-2xl border border-red-300 dark:border-red-500/30 backdrop-blur-sm"
+                     className="flex gap-4 items-start p-5 bg-linear-to-br from-red-100 to-rose-100 dark:from-red-500/10 dark:to-rose-500/10 rounded-2xl border border-red-300 dark:border-red-500/30 backdrop-blur-sm"
                   >
                      <div className="flex justify-center items-center w-10 h-10 bg-red-200 dark:bg-red-500/20 rounded-xl shrink-0">
                         <XCircle className="w-6 h-6 text-red-700 dark:text-red-400" />
