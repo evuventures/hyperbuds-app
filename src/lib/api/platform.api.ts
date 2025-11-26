@@ -58,125 +58,137 @@ function setCachedData<T>(key: string, data: T): void {
 /**
  * Fetch social media data from backend API (SocialData.Tools)
  * This is a unified function that works for all supported platforms
+ * 
+ * TEMPORARILY COMMENTED OUT - Backend not ready yet
+ * TODO: Uncomment when backend is working
  */
 async function fetchSocialDataFromBackend(
    platform: PlatformType,
    username: string,
    authToken?: string
 ): Promise<PlatformAPIResponse<BackendSocialResponse['data']>> {
-   try {
-      const cacheKey = `${platform}:${username}`;
-      const cached = getCachedData<BackendSocialResponse['data']>(cacheKey);
-
-      if (cached) {
-         return { success: true, data: cached };
-      }
-
-      // Map platform names (backend uses 'twitter' but we might need 'x' for some cases)
-      const backendPlatform = platform === 'twitter' ? 'twitter' : platform;
-
-      // Validate platform is supported by backend
-      const supportedPlatforms = ['tiktok', 'instagram', 'youtube', 'twitter', 'twitch'];
-      if (!supportedPlatforms.includes(backendPlatform)) {
-         return {
-            success: false,
-            error: `Platform ${platform} is not supported by the backend API. Supported platforms: ${supportedPlatforms.join(', ')}`,
-         };
-      }
-
-      // Get authentication token if not provided (for client-side calls)
-      let token = authToken;
-      if (!token && typeof window !== 'undefined') {
-         token = localStorage.getItem('accessToken') || undefined;
-      }
-
-      const headers: Record<string, string> = {
-         'Content-Type': 'application/json',
-      };
-
-      // Add authentication if token is available
-      if (token) {
-         headers['Authorization'] = `Bearer ${token}`;
-      }
-
-      console.log(`📡 Calling backend API: ${BACKEND_API_URL}`);
-      console.log(`📤 Request payload:`, { platform: backendPlatform, username: username.trim() });
-      console.log(`📤 Request headers:`, { ...headers, Authorization: token ? 'Bearer ***' : 'None' });
-
-      const response = await axios.post<BackendSocialResponse>(
-         BACKEND_API_URL,
-         {
-            platform: backendPlatform,
-            username: username.trim(),
-         },
-         {
-            headers,
-         }
-      );
-
-      console.log(`📥 Backend API response:`, {
-         status: response.status,
-         success: response.data.success,
-         hasData: !!response.data.data,
-         error: response.data.error,
-         message: response.data.message,
-         fullResponse: response.data
-      });
-
-      if (response.data.success && response.data.data) {
-         setCachedData(cacheKey, response.data.data);
-         return { success: true, data: response.data.data };
-      }
-
-      const errorMessage = response.data.error || response.data.message || 'Failed to fetch social media data';
-      console.error(`❌ Backend API error for ${platform}/${username}:`, errorMessage);
-      return { success: false, error: errorMessage };
-   } catch (error) {
-      const axiosError = error as AxiosError;
-      console.error(`❌ Backend API request failed for ${platform}/${username}:`, {
-         status: axiosError.response?.status,
-         statusText: axiosError.response?.statusText,
-         data: axiosError.response?.data,
-         message: axiosError.message,
-         url: BACKEND_API_URL
-      });
-
-      const errorData = axiosError.response?.data as BackendSocialResponse | { error?: string; message?: string } | undefined;
-      const errorMessage = errorData?.error || errorData?.message || axiosError.message || 'Failed to fetch social media data';
-
-      // Check if it's a rate limit error
-      const isRateLimit = axiosError.response?.status === 429 ||
-         errorMessage.toLowerCase().includes('rate limit') ||
-         errorMessage.toLowerCase().includes('quota') ||
-         errorMessage.toLowerCase().includes('exceeded');
-
-      // Check if it's a network/connection error
-      if (axiosError.code === 'ECONNREFUSED' || axiosError.code === 'ENOTFOUND') {
-         return {
-            success: false,
-            error: `Cannot connect to backend API. Please check if the backend server is running.`,
-         };
-      }
-
-      // Check if it's a 404 (route not found on backend)
-      if (axiosError.response?.status === 404) {
-         // Log detailed info for debugging, but return user-friendly message
-         console.warn(`⚠️ Backend API endpoint not found (404): ${BACKEND_API_URL}`);
-         console.warn(`   This is expected until the backend endpoint is deployed.`);
-         console.warn(`   See: docs/platform-integration/BACKEND-REQUIREMENTS.md`);
-         return {
-            success: false,
-            error: `Backend API endpoint not found: ${BACKEND_API_URL}. Please verify the endpoint URL.`,
-         };
-      }
-
-      return {
-         success: false,
-         error: isRateLimit
-            ? `Rate limit exceeded: ${errorMessage}. Please try again later.`
-            : errorMessage,
-      };
-   }
+   // TEMPORARILY DISABLED - Backend not ready
+   // TODO: Uncomment when backend is working
+   console.log(`📡 Social media API call disabled for ${platform}/${username} - backend not ready`);
+   
+   return {
+      success: false,
+      error: 'Social media API is temporarily disabled - backend not ready',
+   };
+   
+   // try {
+   //    const cacheKey = `${platform}:${username}`;
+   //    const cached = getCachedData<BackendSocialResponse['data']>(cacheKey);
+   // 
+   //    if (cached) {
+   //       return { success: true, data: cached };
+   //    }
+   // 
+   //    // Map platform names (backend uses 'twitter' but we might need 'x' for some cases)
+   //    const backendPlatform = platform === 'twitter' ? 'twitter' : platform;
+   // 
+   //    // Validate platform is supported by backend
+   //    const supportedPlatforms = ['tiktok', 'instagram', 'youtube', 'twitter', 'twitch'];
+   //    if (!supportedPlatforms.includes(backendPlatform)) {
+   //       return {
+   //          success: false,
+   //          error: `Platform ${platform} is not supported by the backend API. Supported platforms: ${supportedPlatforms.join(', ')}`,
+   //       };
+   //    }
+   // 
+   //    // Get authentication token if not provided (for client-side calls)
+   //    let token = authToken;
+   //    if (!token && typeof window !== 'undefined') {
+   //       token = localStorage.getItem('accessToken') || undefined;
+   //    }
+   // 
+   //    const headers: Record<string, string> = {
+   //       'Content-Type': 'application/json',
+   //    };
+   // 
+   //    // Add authentication if token is available
+   //    if (token) {
+   //       headers['Authorization'] = `Bearer ${token}`;
+   //    }
+   // 
+   //    console.log(`📡 Calling backend API: ${BACKEND_API_URL}`);
+   //    console.log(`📤 Request payload:`, { platform: backendPlatform, username: username.trim() });
+   //    console.log(`📤 Request headers:`, { ...headers, Authorization: token ? 'Bearer ***' : 'None' });
+   // 
+   //    const response = await axios.post<BackendSocialResponse>(
+   //       BACKEND_API_URL,
+   //       {
+   //          platform: backendPlatform,
+   //          username: username.trim(),
+   //       },
+   //       {
+   //          headers,
+   //       }
+   //    );
+   // 
+   //    console.log(`📥 Backend API response:`, {
+   //       status: response.status,
+   //       success: response.data.success,
+   //       hasData: !!response.data.data,
+   //       error: response.data.error,
+   //       message: response.data.message,
+   //       fullResponse: response.data
+   //    });
+   // 
+   //    if (response.data.success && response.data.data) {
+   //       setCachedData(cacheKey, response.data.data);
+   //       return { success: true, data: response.data.data };
+   //    }
+   // 
+   //    const errorMessage = response.data.error || response.data.message || 'Failed to fetch social media data';
+   //    console.error(`❌ Backend API error for ${platform}/${username}:`, errorMessage);
+   //    return { success: false, error: errorMessage };
+   // } catch (error) {
+   //    const axiosError = error as AxiosError;
+   //    console.error(`❌ Backend API request failed for ${platform}/${username}:`, {
+   //       status: axiosError.response?.status,
+   //       statusText: axiosError.response?.statusText,
+   //       data: axiosError.response?.data,
+   //       message: axiosError.message,
+   //       url: BACKEND_API_URL
+   //    });
+   // 
+   //    const errorData = axiosError.response?.data as BackendSocialResponse | { error?: string; message?: string } | undefined;
+   //    const errorMessage = errorData?.error || errorData?.message || axiosError.message || 'Failed to fetch social media data';
+   // 
+   //    // Check if it's a rate limit error
+   //    const isRateLimit = axiosError.response?.status === 429 ||
+   //       errorMessage.toLowerCase().includes('rate limit') ||
+   //       errorMessage.toLowerCase().includes('quota') ||
+   //       errorMessage.toLowerCase().includes('exceeded');
+   // 
+   //    // Check if it's a network/connection error
+   //    if (axiosError.code === 'ECONNREFUSED' || axiosError.code === 'ENOTFOUND') {
+   //       return {
+   //          success: false,
+   //          error: `Cannot connect to backend API. Please check if the backend server is running.`,
+   //       };
+   //    }
+   // 
+   //    // Check if it's a 404 (route not found on backend)
+   //    if (axiosError.response?.status === 404) {
+   //       // Log detailed info for debugging, but return user-friendly message
+   //       console.warn(`⚠️ Backend API endpoint not found (404): ${BACKEND_API_URL}`);
+   //       console.warn(`   This is expected until the backend endpoint is deployed.`);
+   //       console.warn(`   See: docs/platform-integration/BACKEND-REQUIREMENTS.md`);
+   //       return {
+   //          success: false,
+   //          error: `Backend API endpoint not found: ${BACKEND_API_URL}. Please verify the endpoint URL.`,
+   //       };
+   //    }
+   // 
+   //    return {
+   //       success: false,
+   //       error: isRateLimit
+   //          ? `Rate limit exceeded: ${errorMessage}. Please try again later.`
+   //          : errorMessage,
+   //    };
+   // }
 }
 
 /**

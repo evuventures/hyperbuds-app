@@ -10,24 +10,30 @@ class NotificationSocketService {
   private listeners: Map<string, Set<(data?: unknown) => void>> = new Map();
 
   connect(token: string): Socket {
+    // TEMPORARILY DISABLED - Backend not ready yet
+    // TODO: Uncomment when backend is working
     if (this.socket?.connected) {
       return this.socket;
     }
 
-    const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL || 'https://api-hyperbuds-backend.onrender.com';
-
-    this.socket = io(SOCKET_URL, {
-      auth: { token },
-      transports: ['websocket', 'polling'],
-      timeout: 10000,
-      reconnection: true,
-      reconnectionAttempts: this.maxReconnectAttempts,
-      reconnectionDelay: this.reconnectDelay,
-      forceNew: true,
-    });
-
-    this.setupEventListeners();
-    return this.socket;
+    // Return a mock socket to prevent errors
+    // const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL || 'https://api-hyperbuds-backend.onrender.com';
+    // 
+    // this.socket = io(SOCKET_URL, {
+    //   auth: { token },
+    //   transports: ['websocket', 'polling'],
+    //   timeout: 10000,
+    //   reconnection: true,
+    //   reconnectionAttempts: this.maxReconnectAttempts,
+    //   reconnectionDelay: this.reconnectDelay,
+    //   forceNew: true,
+    // });
+    // 
+    // this.setupEventListeners();
+    // return this.socket;
+    
+    // Return null socket (will be handled gracefully by components)
+    return null as unknown as Socket;
   }
 
   disconnect(): void {

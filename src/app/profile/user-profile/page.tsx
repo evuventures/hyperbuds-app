@@ -4,8 +4,9 @@ import DashboardLayout from "@/components/layout/Dashboard/Dashboard";
 import { useState, useEffect } from "react";
 import { apiFetch } from "@/lib/utils/api";
 import UserProfileHeader from "@/components/profile/ProfileCard";
-import { PlatformStats } from "@/components/collaboration/PlatformStats";
-import { TrendingUp } from "lucide-react";
+// TEMPORARILY COMMENTED OUT - Backend not ready yet
+// import { PlatformStats } from "@/components/collaboration/PlatformStats";
+// import { TrendingUp } from "lucide-react";
 
 export default function UserProfilePage() {
   // Initialize as null instead of array
@@ -88,7 +89,9 @@ export default function UserProfilePage() {
         />
 
         {/* Platform Performance Section */}
-        {user && (user as { profile?: { socialLinks?: Record<string, string> } }).profile?.socialLinks && (() => {
+        {/* TEMPORARILY COMMENTED OUT - Backend not ready yet */}
+        {/* TODO: Uncomment when backend is working */}
+        {/* {user && (user as { profile?: { socialLinks?: Record<string, string> } }).profile?.socialLinks && (() => {
           // Extract usernames from social links URLs for connected platforms only
           const platformCreds: Record<string, string> = {};
           const userTyped = user as { profile: { socialLinks: Record<string, string> } };
@@ -152,7 +155,7 @@ export default function UserProfilePage() {
               />
             </div>
           );
-        })()}
+        })()} */}
 
       </div>
     </DashboardLayout>

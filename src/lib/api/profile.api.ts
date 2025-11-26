@@ -28,76 +28,161 @@ export interface SocialSyncResponse {
 export const profileApi = {
   /**
    * Sync TikTok follower data to database
+   * 
+   * TEMPORARILY COMMENTED OUT - Backend not ready yet
+   * TODO: Uncomment when backend is working
    */
   syncTikTok: async (data: SocialSyncRequest): Promise<SocialSyncResponse> => {
-    const response = await apiClient.post('/profiles/social-sync/tiktok', data);
-    return response.data;
+    // TEMPORARILY DISABLED - Backend not ready
+    // const response = await apiClient.post('/profiles/social-sync/tiktok', data);
+    // return response.data;
+    
+    // Return mock response until backend is ready
+    return {
+      success: false,
+      message: 'Social media sync is temporarily disabled - backend not ready',
+      profile: {
+        stats: {
+          platformBreakdown: {},
+          totalFollowers: 0,
+          avgEngagement: 0,
+        },
+      },
+    };
   },
 
   /**
    * Sync Twitch follower data to database
+   * 
+   * TEMPORARILY COMMENTED OUT - Backend not ready yet
+   * TODO: Uncomment when backend is working
    */
   syncTwitch: async (data: SocialSyncRequest): Promise<SocialSyncResponse> => {
-    const response = await apiClient.post('/profiles/social-sync/twitch', data);
-    return response.data;
+    // TEMPORARILY DISABLED - Backend not ready
+    // const response = await apiClient.post('/profiles/social-sync/twitch', data);
+    // return response.data;
+    
+    // Return mock response until backend is ready
+    return {
+      success: false,
+      message: 'Social media sync is temporarily disabled - backend not ready',
+      profile: {
+        stats: {
+          platformBreakdown: {},
+          totalFollowers: 0,
+          avgEngagement: 0,
+        },
+      },
+    };
   },
 
   /**
    * Sync Twitter follower data to database
+   * 
+   * TEMPORARILY COMMENTED OUT - Backend not ready yet
+   * TODO: Uncomment when backend is working
    */
   syncTwitter: async (data: SocialSyncRequest): Promise<SocialSyncResponse> => {
-    const response = await apiClient.post('/profiles/social-sync/twitter', data);
-    return response.data;
+    // TEMPORARILY DISABLED - Backend not ready
+    // const response = await apiClient.post('/profiles/social-sync/twitter', data);
+    // return response.data;
+    
+    // Return mock response until backend is ready
+    return {
+      success: false,
+      message: 'Social media sync is temporarily disabled - backend not ready',
+      profile: {
+        stats: {
+          platformBreakdown: {},
+          totalFollowers: 0,
+          avgEngagement: 0,
+        },
+      },
+    };
   },
 
   /**
    * Sync Instagram follower data to database
+   * 
+   * TEMPORARILY COMMENTED OUT - Backend not ready yet
+   * TODO: Uncomment when backend is working
    */
   syncInstagram: async (data: SocialSyncRequest): Promise<SocialSyncResponse> => {
-    const response = await apiClient.post('/profiles/social-sync/instagram', data);
-    return response.data;
+    // TEMPORARILY DISABLED - Backend not ready
+    // const response = await apiClient.post('/profiles/social-sync/instagram', data);
+    // return response.data;
+    
+    // Return mock response until backend is ready
+    return {
+      success: false,
+      message: 'Social media sync is temporarily disabled - backend not ready',
+      profile: {
+        stats: {
+          platformBreakdown: {},
+          totalFollowers: 0,
+          avgEngagement: 0,
+        },
+      },
+    };
   },
 
   /**
    * Sync all platforms at once
+   * 
+   * TEMPORARILY COMMENTED OUT - Backend not ready yet
+   * TODO: Uncomment when backend is working
    */
   syncAllPlatforms: async (platformData: Record<string, SocialSyncRequest>): Promise<{
     success: boolean;
     results: Record<string, SocialSyncResponse | { error: string }>;
   }> => {
+    // TEMPORARILY DISABLED - Backend not ready
+    // const results: Record<string, SocialSyncResponse | { error: string }> = {};
+    // 
+    // const syncPromises = Object.entries(platformData).map(async ([platform, data]) => {
+    //   try {
+    //     let result;
+    //     switch (platform) {
+    //       case 'tiktok':
+    //         result = await profileApi.syncTikTok(data);
+    //         break;
+    //       case 'twitch':
+    //         result = await profileApi.syncTwitch(data);
+    //         break;
+    //       case 'twitter':
+    //         result = await profileApi.syncTwitter(data);
+    //         break;
+    //       case 'instagram':
+    //         result = await profileApi.syncInstagram(data);
+    //         break;
+    //       default:
+    //         throw new Error(`Unsupported platform: ${platform}`);
+    //     }
+    //     results[platform] = result;
+    //   } catch (error) {
+    //     results[platform] = {
+    //       error: error instanceof Error ? error.message : 'Sync failed'
+    //     };
+    //   }
+    // });
+    // 
+    // await Promise.all(syncPromises);
+    // 
+    // return {
+    //   success: Object.values(results).some(r => 'success' in r && r.success),
+    //   results,
+    // };
+    
+    // Return mock response until backend is ready
     const results: Record<string, SocialSyncResponse | { error: string }> = {};
-
-    const syncPromises = Object.entries(platformData).map(async ([platform, data]) => {
-      try {
-        let result;
-        switch (platform) {
-          case 'tiktok':
-            result = await profileApi.syncTikTok(data);
-            break;
-          case 'twitch':
-            result = await profileApi.syncTwitch(data);
-            break;
-          case 'twitter':
-            result = await profileApi.syncTwitter(data);
-            break;
-          case 'instagram':
-            result = await profileApi.syncInstagram(data);
-            break;
-          default:
-            throw new Error(`Unsupported platform: ${platform}`);
-        }
-        results[platform] = result;
-      } catch (error) {
-        results[platform] = {
-          error: error instanceof Error ? error.message : 'Sync failed'
-        };
-      }
+    Object.keys(platformData).forEach(platform => {
+      results[platform] = {
+        error: 'Social media sync is temporarily disabled - backend not ready'
+      };
     });
-
-    await Promise.all(syncPromises);
-
+    
     return {
-      success: Object.values(results).some(r => 'success' in r && r.success),
+      success: false,
       results,
     };
   },

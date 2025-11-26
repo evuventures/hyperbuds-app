@@ -22,9 +22,12 @@ export const useNotifications = (params?: GetNotificationsParams) => {
     queryKey: notificationKeys.list(params),
     queryFn: () => notificationsApi.getNotifications(params),
     staleTime: 30000, // 30 seconds
-    refetchInterval: 60000, // Refetch every minute for real-time updates
-    retry: 2, // Retry failed requests up to 2 times
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff
+    // TEMPORARILY DISABLED - Backend not ready yet
+    // refetchInterval: 60000, // Refetch every minute for real-time updates
+    refetchInterval: false, // Disabled until backend is ready
+    retry: false, // Disabled retries until backend is ready
+    // retry: 2, // Retry failed requests up to 2 times
+    // retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff
   });
 };
 
@@ -33,6 +36,7 @@ export const useNotificationPreferences = () => {
     queryKey: notificationKeys.preferences(),
     queryFn: () => notificationsApi.getPreferences(),
     staleTime: 5 * 60 * 1000, // 5 minutes
+    retry: false, // Disabled retries until backend is ready
   });
 };
 
