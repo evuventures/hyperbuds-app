@@ -515,7 +515,7 @@ export default function EditProfilePage() {
           >
             {/* Background animation */}
             <motion.div
-              className="absolute inset-0 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full opacity-0 group-hover:opacity-10"
+              className="absolute inset-0 bg-linear-to-r from-purple-500 to-blue-500 rounded-full opacity-0 group-hover:opacity-10"
               initial={{ scale: 0 }}
               whileHover={{ scale: 1 }}
               transition={{ duration: 0.2 }}
@@ -553,7 +553,7 @@ export default function EditProfilePage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2, duration: 0.4 }}
           >
-            <h1 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-600 md:text-3xl">
+            <h1 className="text-2xl font-bold text-transparent bg-clip-text bg-linear-to-r from-purple-600 to-blue-600 md:text-3xl">
               Edit Your Profile
             </h1>
           </motion.div>
@@ -738,7 +738,7 @@ export default function EditProfilePage() {
                       onClick={() => handleNicheToggle(niche)}
                       disabled={!isSelected && niches.length >= 5}
                       className={`px-4 cursor-pointer py-2 text-sm font-medium rounded-full transition ${isSelected
-                        ? "text-white bg-gradient-to-r from-purple-500 to-blue-500 shadow-lg"
+                        ? "text-white bg-linear-to-r from-purple-500 to-blue-500 shadow-lg"
                         : "text-gray-700 bg-gray-100 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
                         }`}
                       whileHover={{ scale: isSelected ? 1 : 1.05 }}
@@ -793,7 +793,7 @@ export default function EditProfilePage() {
             <motion.button
               onClick={handleSubmit}
               disabled={isLoading || isNavigating}
-              className="overflow-hidden relative py-4 w-full font-semibold text-white bg-gradient-to-r from-purple-500 to-blue-500 rounded-xl shadow-lg transition-all disabled:opacity-50"
+              className="overflow-hidden relative py-4 w-full font-semibold text-white bg-linear-to-r from-purple-500 to-blue-500 rounded-xl shadow-lg transition-all disabled:opacity-50"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               initial={{ opacity: 0, y: 20 }}
@@ -802,7 +802,7 @@ export default function EditProfilePage() {
             >
               {/* Button background animation */}
               <motion.div
-                className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 opacity-0"
+                className="absolute inset-0 bg-linear-to-r from-blue-500 to-purple-500 opacity-0"
                 whileHover={{ opacity: 0.1 }}
                 transition={{ duration: 0.2 }}
               />

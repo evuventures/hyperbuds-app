@@ -301,7 +301,7 @@ export function PlatformUsernameGroup({
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5, type: 'spring' }}
-            className="overflow-hidden relative p-8 bg-gradient-to-br from-purple-600 via-blue-600 to-cyan-500 rounded-3xl shadow-2xl md:p-10"
+            className="overflow-hidden relative p-8 bg-linear-to-br from-purple-600 via-blue-600 to-cyan-500 rounded-3xl shadow-2xl md:p-10"
          >
             {/* Animated background */}
             <div className="absolute inset-0 opacity-30">
@@ -352,7 +352,7 @@ export function PlatformUsernameGroup({
                >
                   {/* Platform Header */}
                   <div className="flex gap-3 items-center mb-3">
-                     <div className={`flex justify-center items-center w-12 h-12 bg-gradient-to-br ${platform.color} rounded-xl shadow-md`}>
+                     <div className={`flex justify-center items-center w-12 h-12 bg-linear-to-br ${platform.color} rounded-xl shadow-md`}>
                         <div className="text-white">
                            {platform.icon}
                         </div>

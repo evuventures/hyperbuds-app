@@ -1,10 +1,14 @@
 "use client"
 
 import React, { useState, useEffect } from 'react';
-import { FaCamera, FaUserCircle, FaUserPlus, FaUserEdit, FaLink, FaTiktok, FaInstagram, FaYoutube, FaTwitch, FaTwitter, FaCheckCircle, FaSpinner, FaArrowLeft, FaArrowRight } from 'react-icons/fa';
+import { FaCamera, FaUserCircle, FaUserPlus, FaUserEdit, 
+  FaLink, FaTiktok, FaInstagram, FaYoutube, FaTwitch, FaTwitter,
+   FaCheckCircle, FaSpinner, FaArrowLeft, FaArrowRight, } from 'react-icons/fa';
 import { useRouter } from 'next/navigation';
 import { BASE_URL } from '@/config/baseUrl';
+import {  LucideAArrowDown, X } from 'lucide-react';
 
+import { motion, AnimatePresence } from 'framer-motion';
 const SOCIAL_PLATFORMS = [
   { id: 'tiktok', name: 'TikTok', icon: FaTiktok, placeholder: 'https://tiktok.com/@username' },
   { id: 'instagram', name: 'Instagram', icon: FaInstagram, placeholder: 'https://instagram.com/username' },
@@ -14,8 +18,28 @@ const SOCIAL_PLATFORMS = [
 ];
 
 const MOCK_NICHES = [
-  'beauty', 'gaming', 'music', 'fitness', 'food', 'travel', 'fashion', 'tech',
-  'comedy', 'education', 'lifestyle', 'art', 'dance', 'sports', 'business', 'health', 'other'
+  "Lifestyle", "Tech", "Beauty", "Finance", "Vlogging", "Comedy", "Business",
+  "Travel", "Fashion", "Food", "Music", "Gaming", "Fitness", "Education",
+  "Photography", "Motivation", "Cars", "Sports", "Health", "Real Estate",
+  "Parenting", "Art", "Dance", "Reviews", "DIY", "Spirituality", "Movies",
+  "Marketing", "Crypto", "AI", "Productivity", "Cooking", "Career", "Luxury",
+  "Environment", "Gardening", "Pets", "Mental Health", "Self Improvement",
+  "Science", "Tech Reviews", "Startups", "Entrepreneurship", "Investing",
+  "Writing", "Books", "Podcasts", "Languages", "Culture", "History",
+  "Political Commentary", "Philosophy", "Minimalism", "Home Decor",
+  "Fitness Challenges", "Yoga", "Meditation", "Nutrition", "Diet Plans",
+  "Streetwear", "Sneakers", "Jewelry", "Interior Design", "Architecture",
+  "Web Development", "Mobile Apps", "Software Tutorials", "Gadgets",
+  "AR/VR", "Blockchain", "NFTs", "Stock Market", "Trading", "Economics",
+  "Legal Advice", "Relationships", "Dating", "Marriage", "Parenting Tips",
+  "Travel Vlogs", "Adventure Sports", "Hiking", "Camping", "Photography Tips",
+  "Film Reviews", "TV Shows", "Streaming Recommendations", "Anime", "Comics",
+  "Board Games", "Card Games", "Esports", "Motorsports", "Luxury Cars",
+  "Watches", "Fashion Hacks", "Beauty Tutorials", "Skincare", "Haircare",
+  "Makeup", "Mental Exercises", "Life Hacks", "Motivational Stories",
+  "Social Media Tips", "SEO", "Content Creation", "Affiliate Marketing",
+  "Dropshipping", "E-commerce", "Cooking Hacks", "Recipes", "Baking",
+  "Smoothies", "Veganism", "Sustainable Living", "Charity", "Non-profits"
 ];
 
 export default function MultiStepProfileForm() {
@@ -35,7 +59,7 @@ export default function MultiStepProfileForm() {
 
   // Step 3 - Profile Details
   const [bio, setBio] = useState('');
-  const [selectedNiches, setSelectedNiches] = useState([]);
+ 
   const [location, setLocation] = useState({
     city: '',
     state: '',
@@ -88,6 +112,28 @@ export default function MultiStepProfileForm() {
 
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+
+  // niche
+   const [selectedNiches, setSelectedNiches] = useState([]);
+  const [isOpen, setIsOpen] = useState(false);
+  const [search, setSearch] = useState("");
+
+  const filteredNiches = MOCK_NICHES.filter(n =>
+    n.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const toggleNiche = (niche) => {
+    setSelectedNiches(prev =>
+      prev.includes(niche)
+        ? prev.filter(n => n !== niche)
+        : [...prev, niche]
+    );
+  };
+
+  const removeNiche = (niche) => {
+    setSelectedNiches(prev => prev.filter(n => n !== niche));
+  };
+
 
   const steps = [
     { id: 1, title: 'Profile Picture', icon: FaUserCircle },
@@ -303,7 +349,7 @@ export default function MultiStepProfileForm() {
           <React.Fragment key={step.id}>
             <div className="flex flex-col items-center">
               <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 ${currentStep >= step.id
-                ? 'bg-gradient-to-r from-purple-500 to-blue-500 text-white shadow-lg'
+                ? 'bg-linear-to-r from-purple-500 to-blue-500 text-white shadow-lg'
                 : 'bg-gray-200 text-gray-500'
                 }`}>
                 <step.icon className="w-5 h-5" />
@@ -315,7 +361,7 @@ export default function MultiStepProfileForm() {
             </div>
             {index < steps.length - 1 && (
               <div className={`flex-1 h-1 mx-4 rounded-full transition-all duration-300 ${currentStep > step.id
-                ? 'bg-gradient-to-r from-purple-500 to-blue-500'
+                ? 'bg-linear-to-r from-purple-500 to-blue-500'
                 : 'bg-gray-200'
                 }`} />
             )}
@@ -328,14 +374,14 @@ export default function MultiStepProfileForm() {
   const renderStep1 = () => (
     <div className="space-y-8">
       <div className="text-center">
-        <h2 className="mb-2 text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-600">
+        <h2 className="mb-2 text-3xl font-bold text-transparent bg-clip-text bg-linear-to-r from-purple-600 to-blue-600">
           Add Your Profile Picture
         </h2>
         <p className="text-gray-600">This will be your public profile photo (Max 5MB)</p>
       </div>
 
       <div className="flex justify-center">
-        <div className="flex overflow-hidden relative justify-center items-center w-32 h-32 bg-gradient-to-r from-purple-100 to-blue-100 rounded-full border-4 border-white shadow-xl transition-all duration-300 hover:scale-105">
+        <div className="flex overflow-hidden relative justify-center items-center w-32 h-32 bg-linear-to-r from-purple-100 to-blue-100 rounded-full border-4 border-white shadow-xl transition-all duration-300 hover:scale-105">
           {previewUrl ? (
             <img src={previewUrl} alt="Profile Preview" className="object-cover w-full h-full" />
           ) : (
@@ -345,7 +391,7 @@ export default function MultiStepProfileForm() {
       </div>
 
       <div className="text-center">
-        <label htmlFor="file-upload" className="inline-flex gap-2 items-center px-6 py-3 font-semibold text-white bg-gradient-to-r from-purple-500 to-blue-500 rounded-xl shadow-lg transition-all duration-300 cursor-pointer hover:shadow-xl hover:scale-105">
+        <label htmlFor="file-upload" className="inline-flex gap-2 items-center px-6 py-3 font-semibold text-white bg-linear-to-r from-purple-500 to-blue-500 rounded-xl shadow-lg transition-all duration-300 cursor-pointer hover:shadow-xl hover:scale-105">
           <FaCamera className="w-4 h-4" />
           Choose Photo
         </label>
@@ -363,7 +409,7 @@ export default function MultiStepProfileForm() {
   const renderStep2 = () => (
     <div className="space-y-8">
       <div className="text-center">
-        <h2 className="mb-2 text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-600">
+        <h2 className="mb-2 text-3xl font-bold text-transparent bg-clip-text bg-linear-to-r from-purple-600 to-blue-600">
           Basic Information
         </h2>
         <p className="text-gray-600">Choose your username and display name</p>
@@ -418,7 +464,7 @@ export default function MultiStepProfileForm() {
   const renderStep3 = () => (
     <div className="space-y-8">
       <div className="text-center">
-        <h2 className="mb-2 text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-600">
+        <h2 className="mb-2 text-3xl font-bold text-transparent bg-clip-text bg-linear-to-r from-purple-600 to-blue-600">
           Tell Us About You
         </h2>
         <p className="text-gray-600">Share your story and interests</p>
@@ -440,32 +486,95 @@ export default function MultiStepProfileForm() {
           </p>
         </div>
 
-        <div>
-          <label className="block mb-3 text-sm font-semibold text-gray-700">
-            Select your niches (max 5)
-          </label>
-          <div className="flex flex-wrap gap-2">
-            {MOCK_NICHES.map(niche => (
-              <button
-                key={niche}
-                type="button"
-                onClick={() => handleNicheToggle(niche)}
-                disabled={!selectedNiches.includes(niche) && selectedNiches.length >= 5}
-                className={`px-4 py-2 text-sm font-medium rounded-full transition-all duration-200 ${selectedNiches.includes(niche)
-                  ? 'bg-gradient-to-r from-purple-500 to-blue-500 text-white shadow-lg'
-                  : selectedNiches.length >= 5
-                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-              >
-                {niche}
-              </button>
-            ))}
-          </div>
-          <p className="mt-2 text-xs text-gray-500">
-            {selectedNiches.length} / 5 niches selected
-          </p>
-        </div>
+    <div className="relative w-full mx-auto">
+      <label className="block mb-3 text-sm font-semibold text-gray-700">
+        Select your niches
+      </label>
+      <p className='text-xs text-gray-500 mb-4'>Select as many niches as possible; the more you choose, the better we can match you with the right opportunities.</p>
+
+      {/* Selected Chips */}
+      <div
+        onClick={() => setIsOpen(!isOpen)}
+        className="border border-gray-300 rounded-xl bg-white px-4 py-4 min-h-12 flex flex-wrap items-center gap-2 cursor-pointer hover:border-purple-500 transition"
+      >
+        {selectedNiches.length > 0 ? (
+          selectedNiches.map(niche => (
+            <span
+              key={niche}
+              className="bg-linear-to-r from-purple-500 to-blue-500 text-white px-3 py-2 rounded-full text-xs flex items-center gap-1"
+            >
+              {niche}
+              <X
+                className="h-3 w-3 cursor-pointer hover:text-gray-200"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  removeNiche(niche);
+                }}
+              />
+            </span>
+          ))
+        ) : (
+          <span className="text-gray-400 text-sm">Select niches...</span>
+        )}
+        <LucideAArrowDown
+          className={`h-5 w-5 ml-auto text-gray-500 transition-transform ${
+            isOpen ? "rotate-180" : ""
+          }`}
+        />
+      </div>
+
+      {/* Dropdown Menu */}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.15 }}
+            className="absolute z-50 mt-2 w-full bg-white border border-gray-200 rounded-xl shadow-lg max-h-72 overflow-y-auto"
+          >
+            {/* Search Bar */}
+            <div className="sticky top-0 bg-white z-10 p-2 border-b border-gray-100">
+              <input
+                type="text"
+                placeholder="Search..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+              />
+            </div>
+
+            {/* Niche List */}
+            <div className="p-2">
+              {filteredNiches.length > 0 ? (
+                filteredNiches.map(niche => (
+                  <div
+                    key={niche}
+                    onClick={() => toggleNiche(niche)}
+                    className={`px-3 py-2 rounded-lg cursor-pointer text-sm mb-1 ${
+                      selectedNiches.includes(niche)
+                        ? "bg-purple-500 text-white"
+                        : "hover:bg-purple-50 text-gray-700"
+                    }`}
+                  >
+                    {niche}
+                  </div>
+                ))
+              ) : (
+                <p className="text-gray-400 text-sm text-center py-4">
+                  No results found
+                </p>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <p className="mt-2 text-xs text-gray-500">
+        {selectedNiches.length} niche{selectedNiches.length !== 1 ? "s" : ""} selected
+      </p>
+    </div>
+
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           <div>
@@ -506,7 +615,7 @@ export default function MultiStepProfileForm() {
   const renderStep4 = () => (
     <div className="space-y-8">
       <div className="text-center">
-        <h2 className="mb-2 text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-600">
+        <h2 className="mb-2 text-3xl font-bold text-transparent bg-clip-text bg-linear-to-r from-purple-600 to-blue-600">
           Connect Your Socials
         </h2>
         <p className="text-gray-600">Link your profiles to showcase your work</p>
@@ -537,13 +646,13 @@ export default function MultiStepProfileForm() {
   const renderSuccessScreen = () => (
     <div className="space-y-8 text-center">
       <div className="flex justify-center">
-        <div className="flex justify-center items-center w-24 h-24 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full shadow-2xl">
+        <div className="flex justify-center items-center w-24 h-24 bg-linear-to-r from-purple-500 to-blue-500 rounded-full shadow-2xl">
           <FaCheckCircle className="w-12 h-12 text-white" />
         </div>
       </div>
 
       <div>
-        <h2 className="mb-4 text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-600">
+        <h2 className="mb-4 text-4xl font-bold text-transparent bg-clip-text bg-linear-to-r from-purple-600 to-blue-600">
           Profile Complete!
         </h2>
         <p className="mx-auto max-w-md text-lg text-gray-600">
@@ -552,7 +661,7 @@ export default function MultiStepProfileForm() {
       </div>
 
       <button
-        className="px-8 py-4 w-full font-semibold text-white bg-gradient-to-r from-purple-500 to-blue-500 rounded-xl shadow-lg transition-all duration-300 transform hover:shadow-xl hover:scale-105"
+        className="px-8 py-4 w-full font-semibold text-white bg-linear-to-r from-purple-500 to-blue-500 rounded-xl shadow-lg transition-all duration-300 transform hover:shadow-xl hover:scale-105"
         onClick={() => {
           // Force redirect with page reload to refresh profile data
           setTimeout(() => {
@@ -567,7 +676,7 @@ export default function MultiStepProfileForm() {
 
   if (currentStep === 5) {
     return (
-      <div className="flex justify-center items-center p-4 min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50">
+      <div className="flex justify-center items-center p-4 min-h-screen bg-linear-to-br from-purple-50 via-white to-blue-50">
         <div className="w-full max-w-lg">
           <div className="p-12 rounded-3xl border shadow-2xl backdrop-blur-sm bg-white/80 border-white/50">
             {renderSuccessScreen()}
@@ -578,12 +687,12 @@ export default function MultiStepProfileForm() {
   }
 
   return (
-    <div className="flex justify-center items-center p-4 min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50">
+    <div className="flex justify-center items-center p-4 min-h-screen bg-linear-to-br from-purple-50 via-white to-blue-50">
       {/* Background decorative elements */}
       <div className="overflow-hidden fixed inset-0 pointer-events-none">
         <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full blur-3xl bg-purple-300/20" />
         <div className="absolute -bottom-40 -left-40 w-80 h-80 rounded-full blur-3xl bg-blue-300/20" />
-        <div className="absolute top-1/2 left-1/2 w-96 h-96 bg-gradient-to-r rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2 from-purple-200/10 to-blue-200/10" />
+        <div className="absolute top-1/2 left-1/2 w-96 h-96 bg-linear-to-r rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2 from-purple-200/10 to-blue-200/10" />
       </div>
 
       <div className="relative z-10 w-full max-w-2xl">
@@ -624,7 +733,7 @@ export default function MultiStepProfileForm() {
                 <button
                   onClick={handleSubmit}
                   disabled={isLoading}
-                  className="flex gap-2 items-center px-8 py-3 font-semibold text-white bg-gradient-to-r from-purple-500 to-blue-500 rounded-xl shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex gap-2 items-center px-8 py-3 font-semibold text-white bg-linear-to-r from-purple-500 to-blue-500 rounded-xl shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isLoading ? (
                     <>
@@ -642,7 +751,7 @@ export default function MultiStepProfileForm() {
                 <button
                   onClick={nextStep}
                   disabled={!canProceed()}
-                  className="flex gap-2 items-center px-8 py-3 font-semibold text-white bg-gradient-to-r from-purple-500 to-blue-500 rounded-xl shadow-lg transition-all duration-300 cursor-pointer hover:shadow-xl hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex gap-2 items-center px-8 py-3 font-semibold text-white bg-linear-to-r from-purple-500 to-blue-500 rounded-xl shadow-lg transition-all duration-300 cursor-pointer hover:shadow-xl hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Continue
                   <FaArrowRight className="w-4 h-4" />
@@ -651,7 +760,7 @@ export default function MultiStepProfileForm() {
             </div>
           </div>
 
-          {/* Skip option for optional steps */}
+          {/* Skip option for optional steps 
           {(currentStep === 1 || currentStep === 4) && (
             <div className="mt-4 text-center">
               <button
@@ -661,7 +770,7 @@ export default function MultiStepProfileForm() {
                 Skip for now
               </button>
             </div>
-          )}
+          )} */}
         </div>
       </div>
     </div>
