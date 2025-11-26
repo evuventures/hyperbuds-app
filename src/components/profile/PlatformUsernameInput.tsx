@@ -8,7 +8,7 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Loader2, CheckCircle2, XCircle, AlertTriangle, Shield, Lock, Sparkles, Video, MessageCircle, TrendingUp, Zap, Camera, Play } from 'lucide-react';
+import { Loader2, CheckCircle2, XCircle, AlertTriangle, Sparkles, Video, MessageCircle, TrendingUp, Zap, Camera, Play } from 'lucide-react';
 import { usePlatformData } from '@/hooks/features/usePlatformData';
 import type { PlatformType } from '@/types/platform.types';
 

@@ -2,7 +2,7 @@
 
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect} from 'react';
 import { notificationSocket } from '@/lib/socket/notificationSocket';
 import { useQueryClient } from '@tanstack/react-query';
 import { useUnreadNotificationCount, notificationKeys } from './useNotifications';

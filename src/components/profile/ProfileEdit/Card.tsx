@@ -263,7 +263,7 @@ export default function EditProfilePage() {
     }
   };
 
-  const handleSocialChange = (platformId: string, value: string) => {
+{/*const handleSocialChange = (platformId: string, value: string) => {
     // Clean the URL and validate format
     let cleanedValue = value.trim();
 
@@ -305,7 +305,7 @@ export default function EditProfilePage() {
 
     // Save the value (validation will be shown in UI)
     setSocialLinks((prev: SocialLinks) => ({ ...prev, [platformId]: cleanedValue }));
-  };
+  };*/}
 
   const handleAvatarClick = () => {
     console.log("Avatar clicked - opening file picker");
