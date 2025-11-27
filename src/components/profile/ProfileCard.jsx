@@ -183,11 +183,11 @@ export default function UserProfileHeader({
     <div className="space-y-6">
       {/* Enhanced Header Profile Card */}
 
-      <div className="overflow-hidden relative bg-gradient-to-br from-white to-white rounded-3xl border shadow-xl backdrop-blur-sm via-gray-50/50 dark:from-gray-800 dark:via-gray-800/80 dark:to-gray-900 border-gray-200/60 dark:border-gray-700/60">
+      <div className="overflow-hidden relative bg-linear-to-br from-white to-white rounded-3xl border shadow-xl backdrop-blur-sm via-gray-50/50 dark:from-gray-800 dark:via-gray-800/80 dark:to-gray-900 border-gray-200/60 dark:border-gray-700/60">
         {/* Decorative Background Pattern */}
         <div className="absolute inset-0 opacity-5 dark:opacity-10">
-          <div className="absolute -top-24 -right-24 w-96 h-96 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full blur-3xl"></div>
-          <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-gradient-to-tr from-pink-500 to-blue-500 rounded-full blur-3xl"></div>
+          <div className="absolute -top-24 -right-24 w-96 h-96 bg-linear-to-br from-blue-500 to-purple-500 rounded-full blur-3xl"></div>
+          <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-linear-to-tr from-pink-500 to-blue-500 rounded-full blur-3xl"></div>
         </div>
 
         <div className="relative p-4 sm:p-6 md:p-8">
@@ -239,7 +239,7 @@ export default function UserProfileHeader({
             <div className="flex flex-row gap-4 sm:gap-6 md:gap-8 items-start w-full md:items-center md:w-auto">
 
               {/* Enhanced Avatar*/}
-              <div className="relative flex-shrink-0">
+              <div className="relative shrink-0">
                 {user.avatar ? (
                   <div className="relative overflow-hidden rounded-3xl ring-4 ring-white ring-offset-4 ring-offset-gray-50 shadow-2xl transition-all w-28 h-28 sm:w-32 sm:h-32 md:w-32 md:h-32 dark:ring-gray-800 dark:ring-offset-gray-900">
                     <Image
@@ -252,7 +252,7 @@ export default function UserProfileHeader({
                     />
                   </div>
                 ) : (
-                  <div className="flex justify-center items-center text-3xl font-bold text-white bg-gradient-to-br from-blue-400 via-purple-500 to-pink-400 rounded-3xl ring-4 ring-white ring-offset-4 ring-offset-gray-50 shadow-2xl transition-all w-28 h-28 sm:w-32 sm:h-32 md:w-32 md:h-32 dark:from-blue-500 dark:via-purple-600 dark:to-pink-500 dark:ring-gray-800 dark:ring-offset-gray-900">
+                  <div className="flex justify-center items-center text-3xl font-bold text-white bg-linear-to-br from-blue-400 via-purple-500 to-pink-400 rounded-3xl ring-4 ring-white ring-offset-4 ring-offset-gray-50 shadow-2xl transition-all w-28 h-28 sm:w-32 sm:h-32 md:w-32 md:h-32 dark:from-blue-500 dark:via-purple-600 dark:to-pink-500 dark:ring-gray-800 dark:ring-offset-gray-900">
                     {user.displayName?.charAt(0) ||
                       user.username?.charAt(0) ||
                       "U"}
@@ -277,7 +277,7 @@ export default function UserProfileHeader({
               <div className="flex-1 space-y-3 text-left w-full md:w-auto">
                 <div>
                   <div className="flex gap-3 justify-start items-center mb-2 mt-2 md:mt-0">
-                    <h1 className="text-2xl sm:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-gray-900 to-gray-600 dark:from-gray-100 dark:to-gray-300">
+                    <h1 className="text-2xl sm:text-3xl font-bold text-transparent bg-clip-text bg-linear-to-r from-gray-900 to-gray-600 dark:from-gray-100 dark:to-gray-300">
                       {user.displayName || user.username}
                     </h1>
                     {user.isVerified && (
@@ -402,7 +402,7 @@ export default function UserProfileHeader({
           {isOwnProfile ? (
             <div className="flex justify-start">
               <Link href="/matching">
-                <button className="flex gap-2 justify-center items-center px-6 py-3 text-sm font-semibold text-white bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg shadow-lg transition-all transform cursor-pointer hover:scale-105 hover:from-purple-600 hover:to-pink-600 dark:from-purple-600 dark:to-pink-600 dark:hover:from-purple-700 dark:hover:to-pink-700 hover:shadow-xl">
+                <button className="flex gap-2 justify-center items-center px-6 py-3 text-sm font-semibold text-white bg-linear-to-r from-purple-500 to-pink-500 rounded-lg shadow-lg transition-all transform cursor-pointer hover:scale-105 hover:from-purple-600 hover:to-pink-600 dark:from-purple-600 dark:to-pink-600 dark:hover:from-purple-700 dark:hover:to-pink-700 hover:shadow-xl">
                   <Heart size={18} />
                   Get Match
                 </button>
@@ -414,7 +414,7 @@ export default function UserProfileHeader({
                 onClick={handleConnect}
                 className={`px-8 py-4 rounded-xl font-semibold transition-all transform hover:scale-105 shadow-xl hover:shadow-2xl flex items-center gap-3 justify-center ${isFollowing
                   ? "text-gray-700 bg-gray-200 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
-                  : "text-white bg-gradient-to-r from-blue-500 to-purple-500 dark:from-blue-600 dark:to-purple-600 hover:from-blue-600 hover:to-purple-600 dark:hover:from-blue-700 dark:hover:to-purple-700"
+                  : "text-white bg-linear-to-r from-blue-500 to-purple-500 dark:from-blue-600 dark:to-purple-600 hover:from-blue-600 hover:to-purple-600 dark:hover:from-blue-700 dark:hover:to-purple-700"
                   }`}
               >
                 {isFollowing ? (
@@ -493,7 +493,7 @@ export default function UserProfileHeader({
               >
                 <div className="flex justify-between items-center mb-3 sm:mb-4">
                   <div
-                    className={`p-2 sm:p-3 rounded-xl bg-gradient-to-br flex-shrink-0 ${stat.color === "blue"
+                    className={`p-2 sm:p-3 rounded-xl bg-linear-to-br shrink-0 ${stat.color === "blue"
                       ? "from-blue-100 to-blue-200 dark:from-blue-500/20 dark:to-blue-600/20"
                       : stat.color === "green"
                         ? "from-green-100 to-green-200 dark:from-green-500/20 dark:to-green-600/20"
@@ -516,7 +516,7 @@ export default function UserProfileHeader({
                   </div>
                   <div className="flex gap-2 items-center">
                     {stat.change && (
-                      <span className="flex-shrink-0 px-2 py-1 text-xs font-medium text-gray-600 bg-purple-50 rounded-full dark:text-gray-400 dark:bg-gray-500/20">
+                      <span className="shrink-0 px-2 py-1 text-xs font-medium text-gray-600 bg-purple-50 rounded-full dark:text-gray-400 dark:bg-gray-500/20">
                         {stat.change}
                       </span>
                     )}
@@ -553,7 +553,7 @@ export default function UserProfileHeader({
                   </div>
                 </div>
                 <div
-                  className={`text-2xl sm:text-3xl font-bold mb-2 break-words overflow-visible ${stat.color === "blue"
+                  className={`text-2xl sm:text-3xl font-bold mb-2 wrap-break-word overflow-visible ${stat.color === "blue"
                     ? "text-blue-600 dark:text-blue-400"
                     : stat.color === "green"
                       ? "text-green-600 dark:text-green-400"
@@ -579,7 +579,7 @@ export default function UserProfileHeader({
 
                 {/* Hover Effect Background */}
                 <div
-                  className={`absolute inset-0 opacity-0 group-hover:opacity-5 transition-opacity bg-gradient-to-br ${stat.color === "blue"
+                  className={`absolute inset-0 opacity-0 group-hover:opacity-5 transition-opacity bg-linear-to-br ${stat.color === "blue"
                     ? "from-blue-500 to-blue-700"
                     : stat.color === "green"
                       ? "from-green-500 to-green-700"
@@ -599,7 +599,7 @@ export default function UserProfileHeader({
         user.niche && user.niche.length > 0 && (
           <div className="p-6 bg-white rounded-2xl border shadow-lg backdrop-blur-sm dark:bg-gray-800/50 border-gray-200/60 dark:border-gray-700/60">
             <h3 className="flex gap-3 items-center mb-6 text-xl font-bold text-gray-900 dark:text-gray-100">
-              <div className="p-2 bg-gradient-to-br from-blue-100 to-purple-100 rounded-lg dark:from-blue-500/20 dark:to-purple-500/20">
+              <div className="p-2 bg-linear-to-br from-blue-100 to-purple-100 rounded-lg dark:from-blue-500/20 dark:to-purple-500/20">
                 <Target size={24} className="text-blue-600 dark:text-blue-400" />
               </div>
               Content Specializations
@@ -608,9 +608,9 @@ export default function UserProfileHeader({
               {user.niche.map((tag, index) => (
                 <span
                   key={index}
-                  className="px-4 py-3 text-sm font-medium text-blue-700 bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 rounded-xl border transition-all cursor-pointer group hover:scale-105 dark:from-blue-500/10 dark:via-purple-500/10 dark:to-pink-500/10 dark:text-blue-300 border-blue-200/50 dark:border-blue-500/30 hover:border-blue-300 dark:hover:border-blue-400/50 hover:shadow-lg"
+                  className="px-4 py-3 text-sm font-medium text-blue-700 bg-linear-to-r from-blue-50 via-purple-50 to-pink-50 rounded-xl border transition-all cursor-pointer group hover:scale-105 dark:from-blue-500/10 dark:via-purple-500/10 dark:to-pink-500/10 dark:text-blue-300 border-blue-200/50 dark:border-blue-500/30 hover:border-blue-300 dark:hover:border-blue-400/50 hover:shadow-lg"
                 >
-                  <span className="transition-all group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-blue-600 group-hover:to-purple-600 group-hover:bg-clip-text">
+                  <span className="transition-all group-hover:text-transparent group-hover:bg-linear-to-r group-hover:from-blue-600 group-hover:to-purple-600 group-hover:bg-clip-text">
                     #{tag}
                   </span>
                 </span>
@@ -709,7 +709,7 @@ export default function UserProfileHeader({
       {user.socialLinks && Object.keys(user.socialLinks).length > 0 && (
         <div className="p-6 bg-white rounded-2xl border shadow-lg backdrop-blur-sm dark:bg-gray-800/50 border-gray-200/60 dark:border-gray-700/60">
           <h3 className="flex gap-3 items-center mb-6 text-xl font-bold text-gray-900 dark:text-gray-100">
-            <div className="p-2 bg-gradient-to-br from-purple-100 to-purple-100 rounded-lg dark:from-purple-500/20 dark:to-purple-500/20">
+            <div className="p-2 bg-linear-to-br from-purple-100 to-purple-100 rounded-lg dark:from-purple-500/20 dark:to-purple-500/20">
               <Share2 size={24} className="text-purple-600 dark:text-purple-400" />
             </div>
             Social Media
@@ -735,7 +735,7 @@ export default function UserProfileHeader({
                   className="group p-4 rounded-xl transition-all hover:scale-[1.02] bg-gray-50/80 dark:bg-gray-700/40 border border-gray-200 dark:border-gray-600/50 hover:border-gray-300 dark:hover:border-gray-500/70 hover:shadow-lg"
                 >
                   <div className="flex gap-3 items-center">
-                    <div className={`p-3 rounded-xl bg-gradient-to-br ${info.color} group-hover:scale-110 transition-transform`}>
+                    <div className={`p-3 rounded-xl bg-linear-to-br ${info.color} group-hover:scale-110 transition-transform`}>
                       <span className="text-lg text-white">{info.icon}</span>
                     </div>
                     <div className="flex-1">

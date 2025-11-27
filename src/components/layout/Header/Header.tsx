@@ -74,10 +74,10 @@ export const Header: React.FC<HeaderProps> = ({ user, onMenuClick }) => {
           {/* Logo */}
           <div className="flex gap-2 items-center cursor-pointer sm:gap-3" onClick={() => window.location.href = '/'}>
             <div className="flex gap-2 items-center" >
-              <div className="flex justify-center items-center w-7 h-7 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg cursor-pointer sm:w-8 sm:h-8">
+              <div className="flex justify-center items-center w-7 h-7 bg-linear-to-r from-purple-600 to-pink-600 rounded-lg cursor-pointer sm:w-8 sm:h-8">
                 <span className="text-xs font-bold text-white cursor-pointer sm:text-sm">H</span>
               </div>
-              <h1 className="hidden text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-600 cursor-pointer min-[400px]:block sm:text-2xl">
+              <h1 className="hidden text-xl font-bold text-transparent bg-clip-text bg-linear-to-r from-purple-600 to-blue-600 cursor-pointer min-[400px]:block sm:text-2xl">
                 HyperBuds
               </h1>
             </div>
@@ -143,7 +143,7 @@ export const Header: React.FC<HeaderProps> = ({ user, onMenuClick }) => {
               className="flex items-center gap-3 p-1.5 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
             >
               <div className="flex gap-2 items-center">
-                <div className="flex justify-center items-center w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full">
+                <div className="flex justify-center items-center w-8 h-8 bg-linear-to-r from-purple-500 to-pink-500 rounded-full">
                   <span className="text-sm font-medium text-white">
                     {user.username?.[0]?.toUpperCase() || user.email[0].toUpperCase()}
                   </span>
@@ -163,12 +163,12 @@ export const Header: React.FC<HeaderProps> = ({ user, onMenuClick }) => {
               <div className="absolute right-0 z-50 py-2 mt-2 w-64 bg-white rounded-xl border border-gray-200 shadow-xl dark:bg-gray-800 dark:border-gray-700">
                 <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700">
                   <div className="flex gap-3 items-center">
-                    <div className="flex justify-center items-center w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full">
+                    <div className="flex justify-center items-center w-10 h-10 bg-linear-to-r from-purple-500 to-pink-500 rounded-full">
                       <span className="font-medium text-white">
                         {user.username?.[0]?.toUpperCase() || user.email[0].toUpperCase()}
                       </span>
                     </div>
-                    <div className='max-w-[10rem]'>
+                    <div className='max-w-40'>
                       <p className="font-medium text-gray-900 dark:text-gray-100">
                         {user.displayName || user.username || 'User'}
                       </p>

@@ -8,7 +8,7 @@ const Trending: React.FC = () => {
       <div className="flex flex-col gap-2 md:gap-4 justify-center items-center p-2 md:p-6 rounded-xl sm:flex-row sm:justify-center sm:p-6 theme-transition">
         <div className="flex gap-4 items-center">
           {/* Icon */}
-          <div className="flex-shrink-0 p-2.5 bg-gradient-to-br from-orange-500 to-red-500 rounded-lg dark:from-orange-600 dark:to-red-600">
+          <div className="shrink-0 p-2.5 bg-linear-to-br from-orange-500 to-red-500 rounded-lg dark:from-orange-600 dark:to-red-600">
             <TrendingUp className="w-5 h-5 text-white" />
           </div>
 
@@ -33,7 +33,7 @@ const Trending: React.FC = () => {
       </div>
 
       {/* Coming Soon Container */}
-      <div className="p-10 space-y-6 text-center rounded-2xl text-white bg-gradient-to-r from-purple-600 to-indigo-600  shadow-lg dark:from-purple-700 dark:to-indigo-700">
+      <div className="p-10 space-y-6 text-center rounded-2xl text-white bg-linear-to-r from-purple-600 to-indigo-600  shadow-lg dark:from-purple-700 dark:to-indigo-700">
         <Zap className="mx-auto w-12 h-12 text-purple-300 dark:text-blue-300" />
         <h3 className="text-3xl font-extrabold text-white dark:text-white">
           Get Ready to Connect!
