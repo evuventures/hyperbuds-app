@@ -1,12 +1,12 @@
 "use client"
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { FaCamera, FaUserCircle, FaUserPlus, FaUserEdit, 
   FaLink, FaTiktok, FaInstagram, FaYoutube, FaTwitch, FaTwitter,
-   FaCheckCircle, FaSpinner, FaArrowLeft, FaArrowRight, } from 'react-icons/fa';
+   FaCheckCircle, FaSpinner, FaArrowLeft, FaArrowRight, FaSearch } from 'react-icons/fa';
 import { useRouter } from 'next/navigation';
 import { BASE_URL } from '@/config/baseUrl';
-import {  LucideAArrowDown, X } from 'lucide-react';
+import {  LucideAArrowDown, X, Check } from 'lucide-react';
 
 import { motion, AnimatePresence } from 'framer-motion';
 const SOCIAL_PLATFORMS = [
@@ -17,29 +17,10 @@ const SOCIAL_PLATFORMS = [
   { id: 'twitter', name: 'Twitter', icon: FaTwitter, placeholder: 'https://twitter.com/username' },
 ];
 
+// Backend-validated niche list (must be lowercase and match backend validation)
 const MOCK_NICHES = [
-  "Lifestyle", "Tech", "Beauty", "Finance", "Vlogging", "Comedy", "Business",
-  "Travel", "Fashion", "Food", "Music", "Gaming", "Fitness", "Education",
-  "Photography", "Motivation", "Cars", "Sports", "Health", "Real Estate",
-  "Parenting", "Art", "Dance", "Reviews", "DIY", "Spirituality", "Movies",
-  "Marketing", "Crypto", "AI", "Productivity", "Cooking", "Career", "Luxury",
-  "Environment", "Gardening", "Pets", "Mental Health", "Self Improvement",
-  "Science", "Tech Reviews", "Startups", "Entrepreneurship", "Investing",
-  "Writing", "Books", "Podcasts", "Languages", "Culture", "History",
-  "Political Commentary", "Philosophy", "Minimalism", "Home Decor",
-  "Fitness Challenges", "Yoga", "Meditation", "Nutrition", "Diet Plans",
-  "Streetwear", "Sneakers", "Jewelry", "Interior Design", "Architecture",
-  "Web Development", "Mobile Apps", "Software Tutorials", "Gadgets",
-  "AR/VR", "Blockchain", "NFTs", "Stock Market", "Trading", "Economics",
-  "Legal Advice", "Relationships", "Dating", "Marriage", "Parenting Tips",
-  "Travel Vlogs", "Adventure Sports", "Hiking", "Camping", "Photography Tips",
-  "Film Reviews", "TV Shows", "Streaming Recommendations", "Anime", "Comics",
-  "Board Games", "Card Games", "Esports", "Motorsports", "Luxury Cars",
-  "Watches", "Fashion Hacks", "Beauty Tutorials", "Skincare", "Haircare",
-  "Makeup", "Mental Exercises", "Life Hacks", "Motivational Stories",
-  "Social Media Tips", "SEO", "Content Creation", "Affiliate Marketing",
-  "Dropshipping", "E-commerce", "Cooking Hacks", "Recipes", "Baking",
-  "Smoothies", "Veganism", "Sustainable Living", "Charity", "Non-profits"
+  "beauty", "gaming", "music", "fitness", "food", "travel", "fashion", "tech",
+  "comedy", "education", "lifestyle", "art", "dance", "sports", "business", "health", "other"
 ];
 
 export default function MultiStepProfileForm() {
@@ -117,21 +98,69 @@ export default function MultiStepProfileForm() {
    const [selectedNiches, setSelectedNiches] = useState([]);
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const dropdownRef = useRef(null);
+  const searchInputRef = useRef(null);
 
   const filteredNiches = MOCK_NICHES.filter(n =>
     n.toLowerCase().includes(search.toLowerCase())
   );
 
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+        setSearch(""); // Clear search when closing
+      }
+    };
+
+    if (isOpen) {
+      // Use setTimeout to avoid immediate closure
+      setTimeout(() => {
+        document.addEventListener('mousedown', handleClickOutside);
+        document.addEventListener('touchstart', handleClickOutside);
+        // Auto-focus search input when dropdown opens
+        searchInputRef.current?.focus();
+      }, 0);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, [isOpen]);
+
+  // Handle keyboard navigation
+  useEffect(() => {
+    const handleEscape = (event) => {
+      if (event.key === 'Escape' && isOpen) {
+        setIsOpen(false);
+        setSearch("");
+      }
+    };
+
+    document.addEventListener('keydown', handleEscape);
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [isOpen]);
+
   const toggleNiche = (niche) => {
-    setSelectedNiches(prev =>
-      prev.includes(niche)
-        ? prev.filter(n => n !== niche)
-        : [...prev, niche]
-    );
+    if (selectedNiches.includes(niche)) {
+      setSelectedNiches(prev => prev.filter(n => n !== niche));
+    } else if (selectedNiches.length < 5) {
+      setSelectedNiches(prev => [...prev, niche]);
+      // Clear search after selection for better UX
+      setSearch("");
+    }
   };
 
   const removeNiche = (niche) => {
     setSelectedNiches(prev => prev.filter(n => n !== niche));
+  };
+
+  const capitalizeFirst = (str) => {
+    return str.charAt(0).toUpperCase() + str.slice(1);
   };
 
 
@@ -278,11 +307,16 @@ export default function MultiStepProfileForm() {
       // Step 2: Create/update profile
       setMessage('Saving profile information...');
 
+      // Normalize niches to lowercase and ensure max 5 (backend requirement)
+      const normalizedNiches = selectedNiches.length > 0 
+        ? selectedNiches.slice(0, 5).map(niche => niche.toLowerCase().trim())
+        : undefined;
+
       const profileData = {
         username: username || undefined,
         displayName: displayName || undefined,
         bio: bio || undefined,
-        niche: selectedNiches.length > 0 ? selectedNiches : undefined,
+        niche: normalizedNiches,
         socialLinks: Object.keys(socialLinks).length > 0 ?
           Object.fromEntries(
             Object.entries(socialLinks).filter(([, value]) => value && value.trim())
@@ -317,7 +351,29 @@ export default function MultiStepProfileForm() {
       } else {
         const errorData = await response.json();
         console.error('❌ Profile creation failed:', errorData);
-        setError(errorData.message || 'Failed to create profile');
+        
+        // Display validation errors in a user-friendly way
+        if (errorData.details && Array.isArray(errorData.details)) {
+          const validationErrors = errorData.details
+            .filter(detail => typeof detail === 'string')
+            .map(detail => {
+              // Extract readable error message
+              if (detail.includes('must be one of')) {
+                return 'Some selected niches are not valid. Please select from the available options.';
+              }
+              if (detail.includes('must contain less than or equal to 5')) {
+                return 'You can select a maximum of 5 niches.';
+              }
+              return detail;
+            });
+          
+          setError(validationErrors.length > 0 
+            ? validationErrors.join(' ') 
+            : errorData.message || 'Failed to create profile'
+          );
+        } else {
+          setError(errorData.message || 'Failed to create profile');
+        }
       }
     } catch (error) {
       console.error('Profile creation error:', error);
@@ -486,93 +542,177 @@ export default function MultiStepProfileForm() {
           </p>
         </div>
 
-    <div className="relative w-full mx-auto">
-      <label className="block mb-3 text-sm font-semibold text-gray-700">
+    <div className="relative w-full mx-auto" ref={dropdownRef}>
+      <label className="block mb-2 text-sm font-semibold text-gray-700">
         Select your niches
       </label>
-      <p className='text-xs text-gray-500 mb-4'>Select as many niches as possible; the more you choose, the better we can match you with the right opportunities.</p>
+      <p className='text-xs text-gray-500 mb-3'>
+        Select up to 5 niches to help us match you with the right opportunities.
+      </p>
 
-      {/* Selected Chips */}
+      {/* Selected Chips Container */}
       <div
         onClick={() => setIsOpen(!isOpen)}
-        className="border border-gray-300 rounded-xl bg-white px-4 py-4 min-h-12 flex flex-wrap items-center gap-2 cursor-pointer hover:border-purple-500 transition"
+        className={`relative border-2 rounded-xl bg-white px-4 py-3 min-h-[56px] flex flex-wrap items-center gap-2 cursor-pointer transition-all duration-200 ${
+          isOpen 
+            ? "border-purple-500 ring-2 ring-purple-200" 
+            : "border-gray-300 hover:border-purple-400"
+        }`}
       >
         {selectedNiches.length > 0 ? (
           selectedNiches.map(niche => (
-            <span
+            <motion.span
               key={niche}
-              className="bg-linear-to-r from-purple-500 to-blue-500 text-white px-3 py-2 rounded-full text-xs flex items-center gap-1"
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+              className="bg-gradient-to-r from-purple-500 to-blue-500 text-white px-3 py-1.5 rounded-full text-xs font-medium flex items-center gap-1.5 shadow-sm"
             >
-              {niche}
-              <X
-                className="h-3 w-3 cursor-pointer hover:text-gray-200"
+              <span>{capitalizeFirst(niche)}</span>
+              <button
+                type="button"
                 onClick={(e) => {
                   e.stopPropagation();
                   removeNiche(niche);
                 }}
-              />
-            </span>
+                className="hover:bg-white/20 rounded-full p-0.5 transition-colors"
+                aria-label={`Remove ${niche}`}
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </motion.span>
           ))
         ) : (
-          <span className="text-gray-400 text-sm">Select niches...</span>
+          <span className="text-gray-400 text-sm">
+            Click to select niches...
+          </span>
         )}
-        <LucideAArrowDown
-          className={`h-5 w-5 ml-auto text-gray-500 transition-transform ${
-            isOpen ? "rotate-180" : ""
-          }`}
-        />
+        <div className="flex items-center gap-2 ml-auto pl-2">
+          {selectedNiches.length > 0 && (
+            <span className="text-xs text-gray-500 font-medium">
+              {selectedNiches.length}/5
+            </span>
+          )}
+          <motion.div
+            animate={{ rotate: isOpen ? 180 : 0 }}
+            transition={{ duration: 0.2 }}
+            className="flex items-center justify-center"
+          >
+            <LucideAArrowDown className="h-5 w-5 text-gray-400" />
+          </motion.div>
+        </div>
       </div>
 
       {/* Dropdown Menu */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.15 }}
-            className="absolute z-50 mt-2 w-full bg-white border border-gray-200 rounded-xl shadow-lg max-h-72 overflow-y-auto"
+            initial={{ opacity: 0, y: -10, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -10, scale: 0.95 }}
+            transition={{ duration: 0.2 }}
+            className="absolute z-50 mt-2 w-full bg-white border-2 border-gray-200 rounded-xl shadow-xl max-h-80 overflow-hidden"
           >
             {/* Search Bar */}
-            <div className="sticky top-0 bg-white z-10 p-2 border-b border-gray-100">
-              <input
-                type="text"
-                placeholder="Search..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-              />
+            <div className="sticky top-0 bg-white z-10 p-3 border-b border-gray-200">
+              <div className="relative">
+                <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  placeholder="Search niches..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2.5 text-sm border border-gray-300 rounded-lg bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                />
+              </div>
             </div>
 
             {/* Niche List */}
-            <div className="p-2">
+            <div className="p-2 max-h-64 overflow-y-auto custom-scrollbar">
               {filteredNiches.length > 0 ? (
-                filteredNiches.map(niche => (
-                  <div
-                    key={niche}
-                    onClick={() => toggleNiche(niche)}
-                    className={`px-3 py-2 rounded-lg cursor-pointer text-sm mb-1 ${
-                      selectedNiches.includes(niche)
-                        ? "bg-purple-500 text-white"
-                        : "hover:bg-purple-50 text-gray-700"
-                    }`}
-                  >
-                    {niche}
-                  </div>
-                ))
+                filteredNiches.map(niche => {
+                  const isSelected = selectedNiches.includes(niche);
+                  const isDisabled = !isSelected && selectedNiches.length >= 5;
+                  
+                  return (
+                    <motion.div
+                      key={niche}
+                      onClick={() => !isDisabled && toggleNiche(niche)}
+                      className={`group relative px-4 py-2.5 rounded-lg cursor-pointer text-sm mb-1 flex items-center justify-between transition-all ${
+                        isSelected
+                          ? "bg-gradient-to-r from-purple-500 to-blue-500 text-white shadow-sm"
+                          : isDisabled
+                          ? "bg-gray-50 text-gray-400 cursor-not-allowed opacity-60"
+                          : "hover:bg-purple-50 text-gray-700 active:bg-purple-100"
+                      }`}
+                      whileHover={!isDisabled ? { scale: 1.02 } : {}}
+                      whileTap={!isDisabled ? { scale: 0.98 } : {}}
+                    >
+                      <span className="font-medium">{capitalizeFirst(niche)}</span>
+                      {isSelected && (
+                        <motion.div
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          className="flex items-center"
+                        >
+                          <Check className="h-4 w-4" />
+                        </motion.div>
+                      )}
+                      {isDisabled && (
+                        <span className="text-xs opacity-75">Max reached</span>
+                      )}
+                    </motion.div>
+                  );
+                })
               ) : (
-                <p className="text-gray-400 text-sm text-center py-4">
-                  No results found
-                </p>
+                <div className="text-center py-8">
+                  <p className="text-gray-400 text-sm">
+                    No niches found
+                  </p>
+                  <p className="text-gray-300 text-xs mt-1">
+                    Try a different search term
+                  </p>
+                </div>
               )}
             </div>
+
+            {/* Footer with count */}
+            {selectedNiches.length > 0 && (
+              <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-4 py-2.5">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-gray-600">
+                    {selectedNiches.length} of 5 selected
+                  </span>
+                  {selectedNiches.length >= 5 && (
+                    <span className="text-orange-600 font-semibold">
+                      Maximum reached
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
 
-      <p className="mt-2 text-xs text-gray-500">
-        {selectedNiches.length} niche{selectedNiches.length !== 1 ? "s" : ""} selected
-      </p>
+      {/* Helper Text */}
+      <div className="mt-2 flex items-center justify-between">
+        <p className="text-xs text-gray-500">
+          {selectedNiches.length === 0 && "Select at least 1 niche"}
+          {selectedNiches.length > 0 && selectedNiches.length < 5 && `${5 - selectedNiches.length} more can be selected`}
+          {selectedNiches.length === 5 && "All niches selected"}
+        </p>
+        {selectedNiches.length > 0 && (
+          <button
+            type="button"
+            onClick={() => setSelectedNiches([])}
+            className="text-xs text-red-500 hover:text-red-600 font-medium transition-colors cursor-pointer"
+          >
+            Clear all
+          </button>
+        )}
+      </div>
     </div>
 
 
