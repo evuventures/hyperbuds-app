@@ -145,10 +145,12 @@ export default function MultiStepProfileForm() {
     };
   }, [isOpen]);
 
+  const MAX_NICHES = 10; // Backend allows up to 10 niches
+
   const toggleNiche = (niche) => {
     if (selectedNiches.includes(niche)) {
       setSelectedNiches(prev => prev.filter(n => n !== niche));
-    } else if (selectedNiches.length < 5) {
+    } else if (selectedNiches.length < MAX_NICHES) {
       setSelectedNiches(prev => [...prev, niche]);
       // Clear search after selection for better UX
       setSearch("");
@@ -256,7 +258,7 @@ export default function MultiStepProfileForm() {
   const handleNicheToggle = (niche) => {
     if (selectedNiches.includes(niche)) {
       setSelectedNiches(selectedNiches.filter(item => item !== niche));
-    } else if (selectedNiches.length < 5) { // Max 5 niches from API
+    } else if (selectedNiches.length < MAX_NICHES) {
       setSelectedNiches([...selectedNiches, niche]);
     }
   };
@@ -307,9 +309,9 @@ export default function MultiStepProfileForm() {
       // Step 2: Create/update profile
       setMessage('Saving profile information...');
 
-      // Normalize niches to lowercase and ensure max 5 (backend requirement)
+      // Normalize niches to lowercase (backend allows up to 10)
       const normalizedNiches = selectedNiches.length > 0 
-        ? selectedNiches.slice(0, 5).map(niche => niche.toLowerCase().trim())
+        ? selectedNiches.slice(0, MAX_NICHES).map(niche => niche.toLowerCase().trim())
         : undefined;
 
       const profileData = {
@@ -361,8 +363,8 @@ export default function MultiStepProfileForm() {
               if (detail.includes('must be one of')) {
                 return 'Some selected niches are not valid. Please select from the available options.';
               }
-              if (detail.includes('must contain less than or equal to 5')) {
-                return 'You can select a maximum of 5 niches.';
+              if (detail.includes('must contain less than or equal to')) {
+                return `You can select a maximum of ${MAX_NICHES} niches.`;
               }
               return detail;
             });
@@ -547,7 +549,7 @@ export default function MultiStepProfileForm() {
         Select your niches
       </label>
       <p className='text-xs text-gray-500 mb-3'>
-        Select up to 5 niches to help us match you with the right opportunities.
+        Select up to {MAX_NICHES} niches to help us match you with the right opportunities.
       </p>
 
       {/* Selected Chips Container */}
@@ -590,7 +592,7 @@ export default function MultiStepProfileForm() {
         <div className="flex items-center gap-2 ml-auto pl-2">
           {selectedNiches.length > 0 && (
             <span className="text-xs text-gray-500 font-medium">
-              {selectedNiches.length}/5
+              {selectedNiches.length}/{MAX_NICHES}
             </span>
           )}
           <motion.div
@@ -633,7 +635,7 @@ export default function MultiStepProfileForm() {
               {filteredNiches.length > 0 ? (
                 filteredNiches.map(niche => {
                   const isSelected = selectedNiches.includes(niche);
-                  const isDisabled = !isSelected && selectedNiches.length >= 5;
+                  const isDisabled = !isSelected && selectedNiches.length >= MAX_NICHES;
                   
                   return (
                     <motion.div
@@ -682,9 +684,9 @@ export default function MultiStepProfileForm() {
               <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-4 py-2.5">
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-gray-600">
-                    {selectedNiches.length} of 5 selected
+                    {selectedNiches.length} of {MAX_NICHES} selected
                   </span>
-                  {selectedNiches.length >= 5 && (
+                  {selectedNiches.length >= MAX_NICHES && (
                     <span className="text-orange-600 font-semibold">
                       Maximum reached
                     </span>
@@ -700,8 +702,8 @@ export default function MultiStepProfileForm() {
       <div className="mt-2 flex items-center justify-between">
         <p className="text-xs text-gray-500">
           {selectedNiches.length === 0 && "Select at least 1 niche"}
-          {selectedNiches.length > 0 && selectedNiches.length < 5 && `${5 - selectedNiches.length} more can be selected`}
-          {selectedNiches.length === 5 && "All niches selected"}
+          {selectedNiches.length > 0 && selectedNiches.length < MAX_NICHES && `${MAX_NICHES - selectedNiches.length} more can be selected`}
+          {selectedNiches.length >= MAX_NICHES && "Maximum niches selected"}
         </p>
         {selectedNiches.length > 0 && (
           <button

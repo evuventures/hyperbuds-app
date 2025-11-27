@@ -258,7 +258,7 @@ export default function EditProfilePage() {
   const handleNicheToggle = (niche: string) => {
     if (niches.includes(niche)) {
       setNiches(niches.filter((n) => n !== niche));
-    } else if (niches.length < 5) {
+    } else if (niches.length < 10) { // Backend allows up to 10 niches
       setNiches([...niches, niche]);
     }
   };
@@ -726,7 +726,7 @@ export default function EditProfilePage() {
               className="mb-6"
             >
               <label className="block mb-3 text-sm font-semibold text-gray-700 dark:text-gray-300">
-                Select Niches (max 5)
+                Select Niches (max 10)
               </label>
               <div className="flex flex-wrap gap-2">
                 {MOCK_NICHES.map((niche) => {
@@ -736,7 +736,7 @@ export default function EditProfilePage() {
                       key={niche}
                       type="button"
                       onClick={() => handleNicheToggle(niche)}
-                      disabled={!isSelected && niches.length >= 5}
+                      disabled={!isSelected && niches.length >= 10}
                       className={`px-4 cursor-pointer py-2 text-sm font-medium rounded-full transition ${isSelected
                         ? "text-white bg-linear-to-r from-purple-500 to-blue-500 shadow-lg"
                         : "text-gray-700 bg-gray-100 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
