@@ -49,7 +49,7 @@ export const profileApi = {
    * TEMPORARILY COMMENTED OUT - Backend not ready yet
    * TODO: Uncomment when backend is working
    */
-  syncTikTok: async (data: SocialSyncRequest): Promise<SocialSyncResponse> => {
+  syncTikTok: async (_data: SocialSyncRequest): Promise<SocialSyncResponse> => {
     // TEMPORARILY DISABLED - Backend not ready
     // const response = await apiClient.post('/profiles/social-sync/tiktok', data);
     // return response.data;
@@ -74,7 +74,7 @@ export const profileApi = {
    * TEMPORARILY COMMENTED OUT - Backend not ready yet
    * TODO: Uncomment when backend is working
    */
-  syncTwitch: async (data: SocialSyncRequest): Promise<SocialSyncResponse> => {
+  syncTwitch: async (_data: SocialSyncRequest): Promise<SocialSyncResponse> => {
     // TEMPORARILY DISABLED - Backend not ready
     // const response = await apiClient.post('/profiles/social-sync/twitch', data);
     // return response.data;
@@ -99,7 +99,7 @@ export const profileApi = {
    * TEMPORARILY COMMENTED OUT - Backend not ready yet
    * TODO: Uncomment when backend is working
    */
-  syncTwitter: async (data: SocialSyncRequest): Promise<SocialSyncResponse> => {
+  syncTwitter: async (_data: SocialSyncRequest): Promise<SocialSyncResponse> => {
     // TEMPORARILY DISABLED - Backend not ready
     // const response = await apiClient.post('/profiles/social-sync/twitter', data);
     // return response.data;
@@ -124,7 +124,7 @@ export const profileApi = {
    * TEMPORARILY COMMENTED OUT - Backend not ready yet
    * TODO: Uncomment when backend is working
    */
-  syncInstagram: async (data: SocialSyncRequest): Promise<SocialSyncResponse> => {
+  syncInstagram: async (_data: SocialSyncRequest): Promise<SocialSyncResponse> => {
     // TEMPORARILY DISABLED - Backend not ready
     // const response = await apiClient.post('/profiles/social-sync/instagram', data);
     // return response.data;

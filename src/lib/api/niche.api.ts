@@ -58,8 +58,6 @@ export const nicheApi = {
       `${BASE_URL}/api/v1/niches`,
     ];
 
-    let lastError: Error | null = null;
-
     for (const endpoint of endpoints) {
       try {
         const response = await fetch(endpoint, {
@@ -78,7 +76,6 @@ export const nicheApi = {
         // If 404, try next endpoint
         if (response.status === 404) {
           console.warn(`⚠️ Endpoint not found: ${endpoint}, trying fallback...`);
-          lastError = new Error(`Endpoint not found: ${endpoint}`);
           continue;
         }
 
@@ -93,7 +90,7 @@ export const nicheApi = {
           console.error(`❌ Error fetching niches from ${endpoint}:`, error);
           throw error;
         }
-        lastError = error as Error;
+        // Continue to next endpoint if this one fails with 404
       }
     }
 
@@ -141,10 +138,10 @@ export const nicheApi = {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         const errorMessage = errorData.message || `Failed to update niches: ${response.statusText}`;
-        const error = new Error(errorMessage);
+        const error = new Error(errorMessage) as Error & { status?: number; statusCode?: number };
         // Add status code to error for easier detection
-        (error as any).status = response.status;
-        (error as any).statusCode = response.status;
+        error.status = response.status;
+        error.statusCode = response.status;
         throw error;
       }
 

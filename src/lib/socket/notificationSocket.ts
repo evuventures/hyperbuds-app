@@ -1,6 +1,8 @@
 // src/lib/socket/notificationSocket.ts
 
-import { io, Socket } from 'socket.io-client';
+// TEMPORARILY COMMENTED OUT - Backend not ready yet
+// import { io, Socket } from 'socket.io-client';
+import type { Socket } from 'socket.io-client';
 
 class NotificationSocketService {
   private socket: Socket | null = null;
@@ -9,7 +11,7 @@ class NotificationSocketService {
   private reconnectDelay = 1000;
   private listeners: Map<string, Set<(data?: unknown) => void>> = new Map();
 
-  connect(token: string): Socket {
+  connect(_token: string): Socket {
     // TEMPORARILY DISABLED - Backend not ready yet
     // TODO: Uncomment when backend is working
     if (this.socket?.connected) {
@@ -17,7 +19,8 @@ class NotificationSocketService {
     }
 
     // Return a mock socket to prevent errors
-    const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL || 'https://api-hyperbuds-backend.onrender.com';
+    // TEMPORARILY COMMENTED OUT - Backend not ready yet
+    // const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL || 'https://api-hyperbuds-backend.onrender.com';
     // 
     // this.socket = io(SOCKET_URL, {
     //   auth: { token },

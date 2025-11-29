@@ -93,7 +93,7 @@ export default function ProfileByUsernamePage() {
               Profile Not Found
             </h1>
             <p className="text-gray-600 dark:text-gray-400 mb-6">
-              The profile you're looking for doesn't exist.
+              The profile you&apos;re looking for doesn&apos;t exist.
             </p>
             <button
               onClick={() => router.back()}
@@ -141,7 +141,14 @@ export default function ProfileByUsernamePage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
         >
-          <UserProfileHeader user={profileData} />
+          <UserProfileHeader 
+            userData={profileData}
+            isLoading={false}
+            isOwnProfile={false}
+            onEditProfile={() => {}}
+            onConnect={() => {}}
+            onMessage={() => {}}
+          />
           
           {/* Additional profile information */}
           <div className="mt-8 bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">

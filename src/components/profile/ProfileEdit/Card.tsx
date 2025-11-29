@@ -555,9 +555,10 @@ export default function EditProfilePage() {
                 await nicheApi.updateNiches(userId, normalizedNiches);
                 console.log('✅ Niches updated successfully');
               } catch (nicheError) {
-                // Handle 404 gracefully (backend not ready yet)
-                const errorMessage = nicheError?.message || String(nicheError || '');
-                const statusCode = nicheError?.status || nicheError?.statusCode;
+                // Handle 404 gracefully (backend not ready yet)        
+                const error = nicheError as Error & { status?: number; statusCode?: number };
+                const errorMessage = error?.message || String(nicheError || '');
+                const statusCode = error?.status || error?.statusCode;
                 
                 // Check for 404 status code or "not found" in message (case-insensitive)
                 const is404Error = statusCode === 404 || 
@@ -580,8 +581,9 @@ export default function EditProfilePage() {
             }
           } catch (nicheError) {
             // Handle 404 gracefully (backend not ready yet)
-            const errorMessage = nicheError instanceof Error ? nicheError.message : String(nicheError);
-            const statusCode = nicheError?.status || nicheError?.statusCode;
+            const error = nicheError as Error & { status?: number; statusCode?: number };
+            const errorMessage = error instanceof Error ? error.message : String(nicheError);
+            const statusCode = error?.status || error?.statusCode;
             
             // Check for 404 status code or "not found" in message (case-insensitive)
             const is404Error = statusCode === 404 || 
@@ -637,9 +639,10 @@ export default function EditProfilePage() {
         }
       }
     } catch (error) {
-      // Only show network error if it's not a handled 404 from niche update
-      const errorMessage = error instanceof Error ? error.message : String(error || '');
-      const statusCode = error?.status || error?.statusCode;
+      // Only show network error if it's not a handled 404 from niche update                                                                            
+      const errorObj = error as Error & { status?: number; statusCode?: number };
+      const errorMessage = errorObj instanceof Error ? errorObj.message : String(error || '');                                                                
+      const statusCode = errorObj?.status || errorObj?.statusCode;
       
       // Check if this is a 404 error from niche update (already handled)
       const is404NicheError = statusCode === 404 || 

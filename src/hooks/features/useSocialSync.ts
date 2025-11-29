@@ -4,7 +4,6 @@ import { useState, useCallback } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 // TEMPORARILY COMMENTED OUT - Backend not ready yet
 // import { profileApi, type SocialSyncRequest } from '@/lib/api/profile.api';
-import type { SocialSyncRequest } from '@/lib/api/profile.api';
 import { useToast } from '../ui/useToast';
 import type { PlatformType, UnifiedPlatformData } from '@/types/platform.types';
 

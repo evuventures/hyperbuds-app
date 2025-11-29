@@ -1,6 +1,7 @@
 // src/lib/api/notifications.api.ts
 
-import { apiClient } from './client';
+// TEMPORARILY COMMENTED OUT - Backend not ready yet
+// import { apiClient } from './client';
 import type {
   NotificationsResponse,
   NotificationPreferences,
@@ -59,7 +60,7 @@ export const notificationsApi = {
    * TEMPORARILY COMMENTED OUT - Backend not ready yet
    * TODO: Uncomment when backend is working
    */
-  markAsRead: async (notificationId: string): Promise<MarkAsReadResponse> => {
+  markAsRead: async (_notificationId: string): Promise<MarkAsReadResponse> => {
     // TEMPORARILY DISABLED - Backend not ready
     // const response = await apiClient.put<MarkAsReadResponse>(
     //   `/notifications/${notificationId}/read`
@@ -98,7 +99,7 @@ export const notificationsApi = {
    * TEMPORARILY COMMENTED OUT - Backend not ready yet
    * TODO: Uncomment when backend is working
    */
-  deleteNotification: async (notificationId: string): Promise<DeleteNotificationResponse> => {
+  deleteNotification: async (_notificationId: string): Promise<DeleteNotificationResponse> => {
     // TEMPORARILY DISABLED - Backend not ready
     // const response = await apiClient.delete<DeleteNotificationResponse>(
     //   `/notifications/${notificationId}`
