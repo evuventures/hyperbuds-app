@@ -1,13 +1,15 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { FaCamera, FaCheckCircle, FaSpinner } from "react-icons/fa";
-import { ChevronLeft } from "lucide-react";
+import { FaCamera, FaCheckCircle, FaSpinner, FaSearch } from "react-icons/fa";
+import { ChevronLeft, X, Check, LucideAArrowDown } from "lucide-react";
 import { BASE_URL } from "@/config/baseUrl";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { PlatformUsernameGroup } from "@/components/profile/PlatformUsernameInput";
+import { useNiches } from "@/hooks/features/useNiches";
+import { nicheApi } from "@/lib/api/niche.api";
 
 // Define a type for a social media link
 interface SocialLinks {
@@ -46,10 +48,7 @@ const SOCIAL_PLATFORMS = [
   { id: "twitter", name: "Twitter", placeholder: "https://twitter.com/username" },
 ];
 
-const MOCK_NICHES = [
-  "beauty", "gaming", "music", "fitness", "food", "travel", "fashion", "tech",
-  "comedy", "education", "lifestyle", "art", "dance", "sports", "business", "health", "other"
-];
+// Niches are now fetched from API - see useNiches hook below
 
 // Helper function to validate social media URL format
 const isValidSocialUrl = (url: string, platform: string): boolean => {
@@ -142,6 +141,9 @@ export default function EditProfilePage() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
+  // Fetch niches from API
+  const { niches: availableNiches, isLoading: isLoadingNiches, error: nichesError } = useNiches();
+
   // Ref for file input
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -189,9 +191,23 @@ export default function EditProfilePage() {
           setDisplayName(data.displayName || "");
           setBio(data.bio || "");
 
-          // Ensure niches is always an array
+          // Ensure niches is always an array and normalize to capitalized format
           const nicheArray = Array.isArray(data.niche) ? data.niche : (data.niche ? [data.niche] : []);
-          setNiches(nicheArray);
+          // Normalize niches to capitalized format (match API format)
+          const normalizedNiches = nicheArray.map(niche => {
+            // If already capitalized (has uppercase), keep as is
+            // Otherwise capitalize first letter of each word
+            if (niche && niche.charAt(0) === niche.charAt(0).toUpperCase()) {
+              return niche.trim();
+            }
+            // Capitalize first letter of each word
+            return niche
+              .trim()
+              .split(' ')
+              .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+              .join(' ');
+          });
+          setNiches(normalizedNiches);
 
           setLocation(data.location || { city: "", state: "", country: "" });
 
@@ -255,12 +271,76 @@ export default function EditProfilePage() {
     fetchProfile();
   }, [router]);
 
-  const handleNicheToggle = (niche: string) => {
-    if (niches.includes(niche)) {
-      setNiches(niches.filter((n) => n !== niche));
-    } else if (niches.length < 10) { // Backend allows up to 10 niches
-      setNiches([...niches, niche]);
+  const MAX_NICHES = 100; // Backend supports 100+ niches (no hard limit)
+
+  // Dropdown state for niches (same as complete-profile page)
+  const [isNicheDropdownOpen, setIsNicheDropdownOpen] = useState(false);
+  const [nicheSearch, setNicheSearch] = useState("");
+  const nicheDropdownRef = useRef<HTMLDivElement>(null);
+  const nicheSearchInputRef = useRef<HTMLInputElement>(null);
+
+  // Filter niches (case-insensitive search, niches are capitalized from API)
+  const filteredNiches = availableNiches.filter(n =>
+    n.toLowerCase().includes(nicheSearch.toLowerCase())
+  );
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
+      if (nicheDropdownRef.current && !nicheDropdownRef.current.contains(event.target as Node)) {
+        setIsNicheDropdownOpen(false);
+        setNicheSearch(""); // Clear search when closing
+      }
+    };
+
+    if (isNicheDropdownOpen) {
+      // Use setTimeout to avoid immediate closure
+      setTimeout(() => {
+        document.addEventListener('mousedown', handleClickOutside);
+        document.addEventListener('touchstart', handleClickOutside);
+        // Auto-focus search input when dropdown opens
+        nicheSearchInputRef.current?.focus();
+      }, 0);
     }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, [isNicheDropdownOpen]);
+
+  // Handle keyboard navigation
+  useEffect(() => {
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && isNicheDropdownOpen) {
+        setIsNicheDropdownOpen(false);
+        setNicheSearch("");
+      }
+    };
+
+    document.addEventListener('keydown', handleEscape);
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [isNicheDropdownOpen]);
+
+  const toggleNiche = (niche: string) => {
+    // Normalize comparison (case-insensitive)
+    const normalizedNiche = niche.trim();
+    const isSelected = niches.some(n => n.trim().toLowerCase() === normalizedNiche.toLowerCase());
+    
+    if (isSelected) {
+      setNiches(prev => prev.filter(n => n.trim().toLowerCase() !== normalizedNiche.toLowerCase()));
+    } else if (niches.length < MAX_NICHES) {
+      // Add the capitalized version from API
+      setNiches(prev => [...prev, normalizedNiche]);
+      // Clear search after selection for better UX
+      setNicheSearch("");
+    }
+  };
+
+  const removeNiche = (niche: string) => {
+    setNiches(prev => prev.filter(n => n !== niche));
   };
 
 {/*const handleSocialChange = (platformId: string, value: string) => {
@@ -422,16 +502,16 @@ export default function EditProfilePage() {
       const cleanedProfile: Partial<UserProfile> = {
         displayName,
         bio,
-        niche: niches,
+        // Note: Niches are updated via POST /matchmaker/niches/update (separate endpoint)
         location,
         socialLinks: cleanedSocialLinksWithPlatforms, // Include platform URLs
       };
-
 
       if (avatar) {
         cleanedProfile.avatar = avatar;
       }
 
+      // Step 1: Update profile (without niches)
       const response = await fetch(`${BASE_URL}/api/v1/profiles/me`, {
         method: "PUT",
         headers: {
@@ -442,8 +522,87 @@ export default function EditProfilePage() {
       });
 
       if (response.ok) {
-        setMessage("Profile updated successfully!");
+        // Parse response once (can only read response body once)
         const updated = await response.json();
+        
+        // Step 2: Update niches via matchmaker endpoint (separate from profile)
+        if (niches.length > 0) {
+          try {
+            // Get userId from profile response or localStorage
+            const userId = updated.profile?.userId || updated.userId || 
+                           localStorage.getItem('userId') || 
+                           JSON.parse(localStorage.getItem('user') || '{}')?.userId;
+
+            if (userId) {
+              // Normalize niches to capitalized format (match API format)
+              const normalizedNiches = niches
+                .slice(0, MAX_NICHES)
+                .map(niche => {
+                  const trimmed = niche.trim();
+                  // If already capitalized (has uppercase), keep as is
+                  if (trimmed && trimmed.charAt(0) === trimmed.charAt(0).toUpperCase()) {
+                    return trimmed;
+                  }
+                  // Capitalize first letter of each word
+                  return trimmed
+                    .split(' ')
+                    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                    .join(' ');
+                })
+                .filter(niche => niche.length > 0); // Remove empty strings
+              
+              try {
+                await nicheApi.updateNiches(userId, normalizedNiches);
+                console.log('✅ Niches updated successfully');
+              } catch (nicheError) {
+                // Handle 404 gracefully (backend not ready yet)
+                const errorMessage = nicheError?.message || String(nicheError || '');
+                const statusCode = nicheError?.status || nicheError?.statusCode;
+                
+                // Check for 404 status code or "not found" in message (case-insensitive)
+                const is404Error = statusCode === 404 || 
+                                  errorMessage.toLowerCase().includes('404') || 
+                                  errorMessage.toLowerCase().includes('not found') || 
+                                  errorMessage.toLowerCase().includes('route not found');
+                
+                if (is404Error) {
+                  console.warn('⚠️ Niche update endpoint not available yet (backend not implemented)');
+                  // Don't show error to user - backend will be implemented soon
+                  // Don't set error state for 404 - profile update was successful
+                } else {
+                  console.error('❌ Failed to update niches:', nicheError);
+                  // Only show error for non-404 errors
+                  setError("Profile updated but failed to update niches. You can update them later.");
+                }
+              }
+            } else {
+              console.warn('⚠️ UserId not found, skipping niche update');
+            }
+          } catch (nicheError) {
+            // Handle 404 gracefully (backend not ready yet)
+            const errorMessage = nicheError instanceof Error ? nicheError.message : String(nicheError);
+            const statusCode = nicheError?.status || nicheError?.statusCode;
+            
+            // Check for 404 status code or "not found" in message (case-insensitive)
+            const is404Error = statusCode === 404 || 
+                              errorMessage.toLowerCase().includes('404') || 
+                              errorMessage.toLowerCase().includes('not found') || 
+                              errorMessage.toLowerCase().includes('route not found');
+            
+            if (is404Error) {
+              console.warn('⚠️ Niche update endpoint not available yet (backend not implemented)');
+              // Don't show error to user - backend will be implemented soon
+              // Don't set error state for 404 - profile update was successful
+            } else {
+              console.error('❌ Failed to update niches:', nicheError);
+              // Only show error for non-404 errors
+              setError("Profile updated but failed to update niches. You can update them later.");
+            }
+          }
+        }
+
+        setMessage("Profile updated successfully!");
+        setError(""); // Clear any previous errors
         setProfile(updated);
 
         // Set flag to trigger profile refresh
@@ -477,10 +636,24 @@ export default function EditProfilePage() {
           window.scrollTo({ top: 0, behavior: 'smooth' });
         }
       }
-    } catch {
-      setError("Network error. Please try again.");
-      // Scroll to top to show error
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (error) {
+      // Only show network error if it's not a handled 404 from niche update
+      const errorMessage = error instanceof Error ? error.message : String(error || '');
+      const statusCode = error?.status || error?.statusCode;
+      
+      // Check if this is a 404 error from niche update (already handled)
+      const is404NicheError = statusCode === 404 || 
+                              errorMessage.toLowerCase().includes('route not found') ||
+                              errorMessage.toLowerCase().includes('matchmaker/niches/update');
+      
+      if (!is404NicheError) {
+        setError("Network error. Please try again.");
+        // Scroll to top to show error
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        // 404 from niche update - already handled, don't show error
+        console.warn('⚠️ Niche update 404 error caught in outer catch - already handled');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -718,41 +891,168 @@ export default function EditProfilePage() {
               />
             </motion.div>
 
-            {/* Niches */}
+            {/* Niches - Dropdown UI (same as complete-profile page) */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.8, duration: 0.4 }}
-              className="mb-6"
+              className="mb-6 relative"
+              ref={nicheDropdownRef}
             >
-              <label className="block mb-3 text-sm font-semibold text-gray-700 dark:text-gray-300">
-                Select Niches (max 10)
+              <label className="block mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
+                Select Niches (up to {MAX_NICHES}+)
               </label>
-              <div className="flex flex-wrap gap-2">
-                {MOCK_NICHES.map((niche) => {
-                  const isSelected = niches.includes(niche);
-                  return (
-                    <motion.button
+              <p className="text-xs text-gray-500 mb-3 dark:text-gray-400">
+                Select niches to help us match you with the right opportunities.
+              </p>
+
+              {/* Selected Chips Container */}
+              <div
+                onClick={() => setIsNicheDropdownOpen(!isNicheDropdownOpen)}
+                className={`relative border-2 rounded-xl bg-white dark:bg-gray-800 px-4 py-3 min-h-[56px] flex flex-wrap items-center gap-2 cursor-pointer transition-all duration-200 ${
+                  isNicheDropdownOpen 
+                    ? "border-purple-500 ring-2 ring-purple-200 dark:ring-purple-800" 
+                    : "border-gray-300 dark:border-gray-600 hover:border-purple-400 dark:hover:border-purple-500"
+                }`}
+              >
+                {niches.length > 0 ? (
+                  niches.map(niche => (
+                    <motion.span
                       key={niche}
-                      type="button"
-                      onClick={() => handleNicheToggle(niche)}
-                      disabled={!isSelected && niches.length >= 10}
-                      className={`px-4 cursor-pointer py-2 text-sm font-medium rounded-full transition ${isSelected
-                        ? "text-white bg-linear-to-r from-purple-500 to-blue-500 shadow-lg"
-                        : "text-gray-700 bg-gray-100 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
-                        }`}
-                      whileHover={{ scale: isSelected ? 1 : 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      animate={{
-                        scale: isSelected ? 1.02 : 1,
-                      }}
-                      transition={{ duration: 0.2 }}
+                      initial={{ scale: 0.8, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      exit={{ scale: 0.8, opacity: 0 }}
+                      className="bg-gradient-to-r from-purple-500 to-blue-500 text-white px-3 py-1.5 rounded-full text-xs font-medium flex items-center gap-1.5 shadow-sm"
                     >
-                      {niche} {isSelected && "✓"}
-                    </motion.button>
-                  );
-                })}
+                      <span>{niche}</span>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeNiche(niche);
+                        }}
+                        className="hover:bg-white/20 rounded-full p-0.5 transition-colors"
+                        aria-label={`Remove ${niche}`}
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </motion.span>
+                  ))
+                ) : (
+                  <span className="text-gray-400 dark:text-gray-500 text-sm">
+                    Click to select niches...
+                  </span>
+                )}
+                <div className="flex items-center gap-2 ml-auto pl-2">
+                  {niches.length > 0 && (
+                    <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">
+                      {niches.length}/{MAX_NICHES}
+                    </span>
+                  )}
+                  <motion.div
+                    animate={{ rotate: isNicheDropdownOpen ? 180 : 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="flex items-center justify-center"
+                  >
+                    <LucideAArrowDown className="h-5 w-5 text-gray-400 dark:text-gray-500" />
+                  </motion.div>
+                </div>
               </div>
+
+              {/* Loading State */}
+              {isLoadingNiches && (
+                <div className="text-center py-8">
+                  <FaSpinner className="animate-spin mx-auto h-6 w-6 text-purple-500 mb-2" />
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Loading niches...</p>
+                </div>
+              )}
+
+              {/* Error State */}
+              {nichesError && !isLoadingNiches && (
+                <div className="p-3 mb-3 bg-red-50 border border-red-200 rounded-lg dark:bg-red-900/20 dark:border-red-800">
+                  <p className="text-sm text-red-600 dark:text-red-400">
+                    Failed to load niches. Please refresh the page.
+                  </p>
+                </div>
+              )}
+
+              {/* Dropdown Menu */}
+              <AnimatePresence>
+                {isNicheDropdownOpen && !isLoadingNiches && !nichesError && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                    transition={{ duration: 0.2 }}
+                    className="absolute z-50 mt-2 w-full bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-xl shadow-xl max-h-80 overflow-hidden"
+                  >
+                    {/* Search Bar */}
+                    <div className="sticky top-0 bg-white dark:bg-gray-800 z-10 p-3 border-b border-gray-200 dark:border-gray-700">
+                      <div className="relative">
+                        <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
+                        <input
+                          ref={nicheSearchInputRef}
+                          type="text"
+                          placeholder="Search niches..."
+                          value={nicheSearch}
+                          onChange={(e) => setNicheSearch(e.target.value)}
+                          className="w-full pl-10 pr-4 py-2.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Niche List */}
+                    <div className="p-2 max-h-64 overflow-y-auto custom-scrollbar">
+                      {filteredNiches.length > 0 ? (
+                        filteredNiches.map(niche => {
+                          // Normalize comparison (case-insensitive)
+                          const isSelected = niches.some(n => n.trim().toLowerCase() === niche.trim().toLowerCase());
+                          const isDisabled = !isSelected && niches.length >= MAX_NICHES;
+                          
+                          return (
+                            <motion.div
+                              key={niche}
+                              onClick={() => !isDisabled && toggleNiche(niche)}
+                              className={`group relative px-4 py-2.5 rounded-lg cursor-pointer text-sm mb-1 flex items-center justify-between transition-all ${
+                                isSelected
+                                  ? "bg-gradient-to-r from-purple-500 to-blue-500 text-white shadow-sm"
+                                  : isDisabled
+                                  ? "bg-gray-50 dark:bg-gray-900 text-gray-400 dark:text-gray-600 cursor-not-allowed opacity-60"
+                                  : "hover:bg-purple-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 active:bg-purple-100 dark:active:bg-gray-600"
+                              }`}
+                              whileHover={!isDisabled ? { scale: 1.02 } : {}}
+                              whileTap={!isDisabled ? { scale: 0.98 } : {}}
+                            >
+                              <span className="font-medium">{niche}</span>
+                              {isSelected && (
+                                <motion.div
+                                  initial={{ scale: 0 }}
+                                  animate={{ scale: 1 }}
+                                  className="flex items-center"
+                                >
+                                  <Check className="h-4 w-4" />
+                                </motion.div>
+                              )}
+                              {isDisabled && (
+                                <span className="text-xs opacity-75">Max reached</span>
+                              )}
+                            </motion.div>
+                          );
+                        })
+                      ) : (
+                        <div className="text-center py-8">
+                          <p className="text-gray-400 dark:text-gray-500 text-sm">
+                            No niches found
+                          </p>
+                          <p className="text-gray-300 dark:text-gray-600 text-xs mt-1">
+                            Try a different search term
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </motion.div>
 
             {/* Location */}

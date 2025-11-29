@@ -17,7 +17,7 @@ class NotificationSocketService {
     }
 
     // Return a mock socket to prevent errors
-    // const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL || 'https://api-hyperbuds-backend.onrender.com';
+    const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL || 'https://api-hyperbuds-backend.onrender.com';
     // 
     // this.socket = io(SOCKET_URL, {
     //   auth: { token },

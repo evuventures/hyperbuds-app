@@ -14,6 +14,8 @@ import ProfileModal from "@/components/matching/ProfileModal";
 import CompatibilityModal from "@/components/matching/CompatibilityModal";
 import FunLoader from "@/components/matching/FunLoader";
 import DashboardLayout from "@/components/layout/Dashboard/Dashboard";
+import { suggestionsApi } from "@/lib/api/suggestions.api";
+import { profileApi } from "@/lib/api/profile.api";
 
 // Mock data removed - now using real API data
 /* const mockMatches: MatchSuggestion[] = [
@@ -205,57 +207,46 @@ const MatchmakingPage: React.FC = () => {
           return;
         }
 
-        const [profileRes, suggestionsRes] = await Promise.all([
-          fetch(`${BASE_URL}/api/v1/users/me`, {
-            headers: { Authorization: `Bearer ${accessToken}` },
-          }),
-          fetch(`${BASE_URL}/api/v1/matching/suggestions?limit=10`, {
-            headers: { Authorization: `Bearer ${accessToken}` },
-          })
-        ]);
+        // Get user profile first to get userId
+        const profileRes = await fetch(`${BASE_URL}/api/v1/users/me`, {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
+
+        let currentUserId: string | null = null;
+        let currentProfile: CreatorProfile | null = null;
 
         if (profileRes.ok) {
           const profileData = await profileRes.json();
 
           // Handle different response structures
           if (profileData.profile) {
-            setUserProfile(profileData.profile as CreatorProfile);
+            currentProfile = profileData.profile as CreatorProfile;
+            currentUserId = currentProfile.userId;
           } else if (profileData.data?.profile) {
-            setUserProfile(profileData.data.profile as CreatorProfile);
+            currentProfile = profileData.data.profile as CreatorProfile;
+            currentUserId = currentProfile.userId;
           } else if (profileData.data) {
-            setUserProfile(profileData.data as CreatorProfile);
-          } else {
-            // Use mock profile as fallback
-            setUserProfile({
-              userId: "current-user",
-              username: "currentuser",
-              displayName: "Current User",
-              avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face",
-              bio: "Content creator looking for amazing collaborations!",
-              niche: ["gaming", "tech", "lifestyle"],
-              location: {
-                city: "San Francisco",
-                state: "California",
-                country: "US"
-              },
-              stats: {
-                totalFollowers: 50000,
-                avgEngagement: 6.5,
-                platformBreakdown: {
-                  tiktok: { followers: 30000, engagement: 7.0 },
-                  instagram: { followers: 15000, engagement: 6.0 },
-                  youtube: { followers: 5000, engagement: 6.5 }
-                }
-              },
-              rizzScore: 78,
-              isPublic: true,
-              isActive: true
-            });
+            currentProfile = profileData.data as CreatorProfile;
+            currentUserId = currentProfile.userId;
+          } else if (profileData.userId) {
+            currentUserId = profileData.userId;
           }
+        }
+
+        // Fallback: get userId from localStorage or profile response
+        if (!currentUserId) {
+          currentUserId = localStorage.getItem('userId') || 
+                         JSON.parse(localStorage.getItem('user') || '{}')?.userId ||
+                         null;
+        }
+
+        // Set user profile (use fallback if needed)
+        if (currentProfile) {
+          setUserProfile(currentProfile);
         } else {
-          // Use mock profile as fallback
+          // Use minimal profile as fallback
           setUserProfile({
-            userId: "current-user",
+            userId: currentUserId || "current-user",
             username: "currentuser",
             displayName: "Current User",
             avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face",
@@ -281,22 +272,90 @@ const MatchmakingPage: React.FC = () => {
           });
         }
 
-        if (suggestionsRes.ok) {
-          const suggestionsData = await suggestionsRes.json();
+        // Fetch suggestions using new API endpoint
+        if (currentUserId) {
+          try {
+            const suggestionsData = await suggestionsApi.getSuggestions(currentUserId);
+            
+            // Transform API response to MatchSuggestion format
+            const transformedMatches: MatchSuggestion[] = await Promise.all(
+              suggestionsData.suggestions.map(async (suggestion) => {
+                // Fetch full profile for each suggestion
+                let targetProfile: CreatorProfile | undefined;
+                try {
+                  const profileData = await profileApi.getProfileByUsername(suggestion.username);
+                  targetProfile = {
+                    userId: suggestion.userId,
+                    username: suggestion.username,
+                    displayName: profileData.displayName || suggestion.username,
+                    avatar: profileData.avatar,
+                    bio: profileData.bio,
+                    niche: profileData.niche || [],
+                    location: profileData.location,
+                    stats: {
+                      totalFollowers: 0,
+                      avgEngagement: 0,
+                      platformBreakdown: {}
+                    },
+                    socialLinks: profileData.socialLinks,
+                    rizzScore: profileData.profileRizzScore,
+                    isPublic: true,
+                    isActive: true
+                  };
+                } catch (err) {
+                  console.warn(`Failed to fetch profile for ${suggestion.username}:`, err);
+                  // Create minimal profile from suggestion data
+                  targetProfile = {
+                    userId: suggestion.userId,
+                    username: suggestion.username,
+                    displayName: suggestion.username,
+                    niche: suggestion.sharedNiches || [],
+                    stats: {
+                      totalFollowers: 0,
+                      avgEngagement: 0,
+                      platformBreakdown: {}
+                    },
+                    isPublic: true,
+                    isActive: true
+                  };
+                }
 
-          // Handle different response structures
-          if (suggestionsData.matches && suggestionsData.matches.length > 0) {
-            setMatches(suggestionsData.matches as MatchSuggestion[]);
-          } else if (suggestionsData.data?.matches && suggestionsData.data.matches.length > 0) {
-            setMatches(suggestionsData.data.matches as MatchSuggestion[]);
-          } else if (suggestionsData.data && Array.isArray(suggestionsData.data) && suggestionsData.data.length > 0) {
-            setMatches(suggestionsData.data as MatchSuggestion[]);
-          } else {
-            // No matches available - set empty array
+                return {
+                  _id: `match-${suggestion.userId}`,
+                  userId: currentUserId || "current-user",
+                  targetUserId: suggestion.userId,
+                  compatibilityScore: suggestion.matchingScore,
+                  matchType: 'niche-based' as const,
+                  scoreBreakdown: {
+                    audienceOverlap: 0,
+                    nicheCompatibility: suggestion.matchingScore,
+                    engagementStyle: 0,
+                    geolocation: 0,
+                    activityTime: 0,
+                    rizzScoreCompatibility: 0
+                  },
+                  status: 'pending' as const,
+                  metadata: {
+                    algorithm: 'matchmaker-v1',
+                    confidence: suggestion.matchingScore / 100,
+                    features: suggestion.sharedNiches.length > 0 
+                      ? [`Shared niches: ${suggestion.sharedNiches.join(', ')}`]
+                      : []
+                  },
+                  targetProfile,
+                  createdAt: new Date().toISOString(),
+                  updatedAt: new Date().toISOString()
+                };
+              })
+            );
+
+            setMatches(transformedMatches);
+          } catch (suggestionsError) {
+            console.error("Error fetching suggestions:", suggestionsError);
             setMatches([]);
           }
         } else {
-          // API error - set empty array
+          console.warn("No userId available, cannot fetch suggestions");
           setMatches([]);
         }
 
@@ -424,36 +483,96 @@ const MatchmakingPage: React.FC = () => {
     setShowAILoader(true); // Show AI loader when refreshing matches
 
     try {
-      // Simulate AI processing time for better UX
-      await new Promise(resolve => setTimeout(resolve, 3000));
+      // Get userId
+      const userId = userProfile?.userId || 
+                     localStorage.getItem('userId') || 
+                     JSON.parse(localStorage.getItem('user') || '{}')?.userId;
 
-      const accessToken = localStorage.getItem("accessToken");
-      if (accessToken) {
-        const response = await fetch(`${BASE_URL}/api/v1/matching/suggestions?limit=10`, {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-
-          // Handle different response structures
-          if (data.matches) {
-            setMatches(data.matches as MatchSuggestion[]);
-          } else if (data.data?.matches) {
-            setMatches(data.data.matches as MatchSuggestion[]);
-          } else if (data.data) {
-            setMatches(data.data as MatchSuggestion[]);
-          } else {
-            // No matches available
-            setMatches([]);
-          }
-        } else {
-          // API error - show empty
-          setMatches([]);
-        }
+      if (!userId) {
+        console.warn("No userId available for refresh");
+        setMatches([]);
+        return;
       }
+
+      // Fetch suggestions using new API endpoint
+      const suggestionsData = await suggestionsApi.getSuggestions(userId);
+      
+      // Transform API response to MatchSuggestion format
+      const transformedMatches: MatchSuggestion[] = await Promise.all(
+        suggestionsData.suggestions.map(async (suggestion) => {
+          // Fetch full profile for each suggestion
+          let targetProfile: CreatorProfile | undefined;
+          try {
+            const profileData = await profileApi.getProfileByUsername(suggestion.username);
+            targetProfile = {
+              userId: suggestion.userId,
+              username: suggestion.username,
+              displayName: profileData.displayName || suggestion.username,
+              avatar: profileData.avatar,
+              bio: profileData.bio,
+              niche: profileData.niche || [],
+              location: profileData.location,
+              stats: {
+                totalFollowers: 0,
+                avgEngagement: 0,
+                platformBreakdown: {}
+              },
+              socialLinks: profileData.socialLinks,
+              rizzScore: profileData.profileRizzScore,
+              isPublic: true,
+              isActive: true
+            };
+          } catch (err) {
+            console.warn(`Failed to fetch profile for ${suggestion.username}:`, err);
+            // Create minimal profile from suggestion data
+            targetProfile = {
+              userId: suggestion.userId,
+              username: suggestion.username,
+              displayName: suggestion.username,
+              niche: suggestion.sharedNiches || [],
+              stats: {
+                totalFollowers: 0,
+                avgEngagement: 0,
+                platformBreakdown: {}
+              },
+              isPublic: true,
+              isActive: true
+            };
+          }
+
+          return {
+            _id: `match-${suggestion.userId}`,
+            userId: userId,
+            targetUserId: suggestion.userId,
+            compatibilityScore: suggestion.matchingScore,
+            matchType: 'niche-based' as const,
+            scoreBreakdown: {
+              audienceOverlap: 0,
+              nicheCompatibility: suggestion.matchingScore,
+              engagementStyle: 0,
+              geolocation: 0,
+              activityTime: 0,
+              rizzScoreCompatibility: 0
+            },
+            status: 'pending' as const,
+            metadata: {
+              algorithm: 'matchmaker-v1',
+              confidence: suggestion.matchingScore / 100,
+              features: suggestion.sharedNiches.length > 0 
+                ? [`Shared niches: ${suggestion.sharedNiches.join(', ')}`]
+                : []
+            },
+            targetProfile,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          };
+        })
+      );
+
+      setMatches(transformedMatches);
     } catch (err) {
       console.error("Refresh failed:", err);
+      setMatches([]);
     } finally {
       setIsRefreshing(false);
       setShowAILoader(false); // Hide AI loader when done

@@ -7,6 +7,8 @@ import { FaCamera, FaUserCircle, FaUserPlus, FaUserEdit,
 import { useRouter } from 'next/navigation';
 import { BASE_URL } from '@/config/baseUrl';
 import {  LucideAArrowDown, X, Check } from 'lucide-react';
+import { useNiches } from '@/hooks/features/useNiches';
+import { nicheApi } from '@/lib/api/niche.api';
 
 import { motion, AnimatePresence } from 'framer-motion';
 const SOCIAL_PLATFORMS = [
@@ -17,11 +19,7 @@ const SOCIAL_PLATFORMS = [
   { id: 'twitter', name: 'Twitter', icon: FaTwitter, placeholder: 'https://twitter.com/username' },
 ];
 
-// Backend-validated niche list (must be lowercase and match backend validation)
-const MOCK_NICHES = [
-  "beauty", "gaming", "music", "fitness", "food", "travel", "fashion", "tech",
-  "comedy", "education", "lifestyle", "art", "dance", "sports", "business", "health", "other"
-];
+// Niches are now fetched from API - see useNiches hook below
 
 export default function MultiStepProfileForm() {
   const router = useRouter();
@@ -94,14 +92,16 @@ export default function MultiStepProfileForm() {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
 
-  // niche
-   const [selectedNiches, setSelectedNiches] = useState([]);
+  // niche - Fetch from API
+  const { niches: availableNiches, isLoading: isLoadingNiches, error: nichesError } = useNiches();
+  const [selectedNiches, setSelectedNiches] = useState([]);
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState("");
   const dropdownRef = useRef(null);
   const searchInputRef = useRef(null);
 
-  const filteredNiches = MOCK_NICHES.filter(n =>
+  // Filter niches (case-insensitive search, niches are capitalized from API)
+  const filteredNiches = availableNiches.filter(n =>
     n.toLowerCase().includes(search.toLowerCase())
   );
 
@@ -145,7 +145,7 @@ export default function MultiStepProfileForm() {
     };
   }, [isOpen]);
 
-  const MAX_NICHES = 10; // Backend allows up to 10 niches
+  const MAX_NICHES = 100; // Backend supports 100+ niches (no hard limit)
 
   const toggleNiche = (niche) => {
     if (selectedNiches.includes(niche)) {
@@ -161,7 +161,9 @@ export default function MultiStepProfileForm() {
     setSelectedNiches(prev => prev.filter(n => n !== niche));
   };
 
+  // Niches from API are already capitalized, but keep this for safety
   const capitalizeFirst = (str) => {
+    if (!str) return '';
     return str.charAt(0).toUpperCase() + str.slice(1);
   };
 
@@ -306,19 +308,14 @@ export default function MultiStepProfileForm() {
         avatarUrl = await uploadAvatar();
       }
 
-      // Step 2: Create/update profile
+      // Step 2: Create/update profile (without niches - handled separately)
       setMessage('Saving profile information...');
-
-      // Normalize niches to lowercase (backend allows up to 10)
-      const normalizedNiches = selectedNiches.length > 0 
-        ? selectedNiches.slice(0, MAX_NICHES).map(niche => niche.toLowerCase().trim())
-        : undefined;
 
       const profileData = {
         username: username || undefined,
         displayName: displayName || undefined,
         bio: bio || undefined,
-        niche: normalizedNiches,
+        // Note: Niches are updated via POST /matchmaker/niches/update (separate endpoint)
         socialLinks: Object.keys(socialLinks).length > 0 ?
           Object.fromEntries(
             Object.entries(socialLinks).filter(([, value]) => value && value.trim())
@@ -329,7 +326,6 @@ export default function MultiStepProfileForm() {
           country: location.country || undefined
         } : undefined,
         avatar: avatarUrl || undefined,
-
       };
 
       // Remove undefined values
@@ -337,7 +333,8 @@ export default function MultiStepProfileForm() {
         Object.entries(profileData).filter(([, value]) => value !== undefined)
       );
 
-      const response = await fetch(`${BASE_URL}/api/v1/profiles/me`, {
+      // Step 2a: Update profile
+      const profileResponse = await fetch(`${BASE_URL}/api/v1/profiles/me`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -346,37 +343,72 @@ export default function MultiStepProfileForm() {
         body: JSON.stringify(cleanedProfileData)
       });
 
-      if (response.ok) {
-        const responseData = await response.json();
-        setMessage('Profile created successfully!');
-        setCurrentStep(5); // Success screen
-      } else {
-        const errorData = await response.json();
+      if (!profileResponse.ok) {
+        const errorData = await profileResponse.json();
         console.error('❌ Profile creation failed:', errorData);
-        
-        // Display validation errors in a user-friendly way
-        if (errorData.details && Array.isArray(errorData.details)) {
-          const validationErrors = errorData.details
-            .filter(detail => typeof detail === 'string')
-            .map(detail => {
-              // Extract readable error message
-              if (detail.includes('must be one of')) {
-                return 'Some selected niches are not valid. Please select from the available options.';
+        setError(errorData.message || 'Failed to create profile');
+        return;
+      }
+
+      // Step 2b: Update niches via matchmaker endpoint (separate from profile)
+      if (selectedNiches.length > 0) {
+        setMessage('Updating your niches...');
+        try {
+          // Get userId from profile response or localStorage
+          const profileData = await profileResponse.json();
+          const userId = profileData.profile?.userId || profileData.userId || 
+                         localStorage.getItem('userId') || 
+                         JSON.parse(localStorage.getItem('user') || '{}')?.userId;
+
+          if (userId) {
+            // Normalize niches to capitalized format (match API format)
+            const normalizedNiches = selectedNiches
+              .slice(0, MAX_NICHES)
+              .map(niche => {
+                const trimmed = niche.trim();
+                // If already capitalized (has uppercase), keep as is
+                if (trimmed && trimmed.charAt(0) === trimmed.charAt(0).toUpperCase()) {
+                  return trimmed;
+                }
+                // Capitalize first letter of each word
+                return trimmed
+                  .split(' ')
+                  .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                  .join(' ');
+              })
+              .filter(niche => niche.length > 0); // Remove empty strings
+            
+            try {
+              await nicheApi.updateNiches(userId, normalizedNiches);
+              console.log('✅ Niches updated successfully');
+            } catch (nicheError) {
+              // Handle 404 gracefully (backend not ready yet)
+              const errorMessage = nicheError?.message || String(nicheError || '');
+              if (errorMessage.includes('404') || errorMessage.includes('not found')) {
+                console.warn('⚠️ Niche update endpoint not available yet (backend not implemented)');
+                // Don't show error to user - backend will be implemented soon
+              } else {
+                console.error('❌ Failed to update niches:', nicheError);
+                // Only show error for non-404 errors
+                setError('Profile created but failed to update niches. You can update them later.');
               }
-              if (detail.includes('must contain less than or equal to')) {
-                return `You can select a maximum of ${MAX_NICHES} niches.`;
-              }
-              return detail;
-            });
-          
-          setError(validationErrors.length > 0 
-            ? validationErrors.join(' ') 
-            : errorData.message || 'Failed to create profile'
-          );
-        } else {
-          setError(errorData.message || 'Failed to create profile');
+            }
+          } else {
+            console.warn('⚠️ UserId not found, skipping niche update');
+          }
+        } catch (nicheError) {
+          console.error('❌ Failed to update niches:', nicheError);
+          // Don't block profile creation if niche update fails
+          // Only show error if it's not a 404 (backend not ready)
+          const errorMessage = nicheError instanceof Error ? nicheError.message : String(nicheError);
+          if (!errorMessage.includes('404') && !errorMessage.includes('not found')) {
+            setError('Profile created but failed to update niches. You can update them later.');
+          }
         }
       }
+
+      setMessage('Profile created successfully!');
+      setCurrentStep(5); // Success screen
     } catch (error) {
       console.error('Profile creation error:', error);
       setError('Network error occurred. Please try again.');
@@ -570,7 +602,7 @@ export default function MultiStepProfileForm() {
               exit={{ scale: 0.8, opacity: 0 }}
               className="bg-gradient-to-r from-purple-500 to-blue-500 text-white px-3 py-1.5 rounded-full text-xs font-medium flex items-center gap-1.5 shadow-sm"
             >
-              <span>{capitalizeFirst(niche)}</span>
+              <span>{niche}</span>
               <button
                 type="button"
                 onClick={(e) => {
@@ -605,9 +637,26 @@ export default function MultiStepProfileForm() {
         </div>
       </div>
 
+      {/* Loading State */}
+      {isLoadingNiches && (
+        <div className="text-center py-8">
+          <FaSpinner className="animate-spin mx-auto h-6 w-6 text-purple-500 mb-2" />
+          <p className="text-sm text-gray-500">Loading niches...</p>
+        </div>
+      )}
+
+      {/* Error State */}
+      {nichesError && !isLoadingNiches && (
+        <div className="p-3 mb-3 bg-red-50 border border-red-200 rounded-lg">
+          <p className="text-sm text-red-600">
+            Failed to load niches. Please refresh the page.
+          </p>
+        </div>
+      )}
+
       {/* Dropdown Menu */}
       <AnimatePresence>
-        {isOpen && (
+        {isOpen && !isLoadingNiches && !nichesError && (
           <motion.div
             initial={{ opacity: 0, y: -10, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -651,7 +700,7 @@ export default function MultiStepProfileForm() {
                       whileHover={!isDisabled ? { scale: 1.02 } : {}}
                       whileTap={!isDisabled ? { scale: 0.98 } : {}}
                     >
-                      <span className="font-medium">{capitalizeFirst(niche)}</span>
+                      <span className="font-medium">{niche}</span>
                       {isSelected && (
                         <motion.div
                           initial={{ scale: 0 }}

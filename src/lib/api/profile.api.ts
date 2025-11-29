@@ -25,6 +25,23 @@ export interface SocialSyncResponse {
   };
 }
 
+export interface ProfileByUsernameResponse {
+  id: string;
+  username: string;
+  displayName?: string;
+  bio?: string;
+  avatar?: string;
+  niche?: string[];
+  location?: {
+    city?: string;
+    state?: string;
+    country?: string;
+  };
+  socialLinks?: Record<string, string>;
+  profileRizzScore?: number;
+  [key: string]: unknown;
+}
+
 export const profileApi = {
   /**
    * Sync TikTok follower data to database
@@ -209,6 +226,36 @@ export const profileApi = {
   updateAvatar: async (avatarUrl: string) => {
     const response = await apiClient.put('/profiles/me', { avatar: avatarUrl });
     return response.data;
+  },
+
+  /**
+   * Get profile by username (public profile)
+   * Endpoint: GET /profile/:username
+   */
+  getProfileByUsername: async (username: string): Promise<ProfileByUsernameResponse> => {
+    if (!username || username.trim() === '') {
+      throw new Error('Username is required');
+    }
+
+    try {
+      const response = await apiClient.get(`/profile/${encodeURIComponent(username.trim())}`);
+      return response.data;
+    } catch (error: unknown) {
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as { response?: { status?: number } };
+        if (axiosError.response?.status === 400) {
+          throw new Error('Username is missing or invalid');
+        }
+        if (axiosError.response?.status === 404) {
+          throw new Error('Profile not found');
+        }
+        if (axiosError.response?.status === 500) {
+          throw new Error('Server error while fetching profile');
+        }
+      }
+      console.error('Error fetching profile by username:', error);
+      throw error instanceof Error ? error : new Error('Failed to fetch profile');
+    }
   },
 };
 
