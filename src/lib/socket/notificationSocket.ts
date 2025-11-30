@@ -11,7 +11,10 @@ class NotificationSocketService {
   private reconnectDelay = 1000;
   private listeners: Map<string, Set<(data?: unknown) => void>> = new Map();
 
-  connect(_token: string): Socket {
+  connect(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _token: string
+  ): Socket {
     // TEMPORARILY DISABLED - Backend not ready yet
     // TODO: Uncomment when backend is working
     if (this.socket?.connected) {

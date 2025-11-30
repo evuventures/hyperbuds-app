@@ -71,6 +71,7 @@ interface BackendSocialResponse {
 async function fetchSocialDataFromBackend(
    platform: PlatformType,
    username: string,
+   // eslint-disable-next-line @typescript-eslint/no-unused-vars
    _authToken?: string
 ): Promise<PlatformAPIResponse<BackendSocialResponse['data']>> {
    // TEMPORARILY DISABLED - Backend not ready
@@ -341,7 +342,12 @@ export function calculateCombinedMetrics(
  * Clear cache for a specific platform and username
  */
 // TEMPORARILY COMMENTED OUT - Backend not ready yet
-export function clearPlatformCache(_platform: PlatformType, _username: string): void {
+export function clearPlatformCache(
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _platform: PlatformType,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _username: string
+): void {
    // TEMPORARILY DISABLED - Backend not ready
    // const cacheKey = `${platform}:${username}`;
    // platformCache.delete(cacheKey);

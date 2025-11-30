@@ -103,6 +103,7 @@ export const useSocialSync = () => {
 
   // Function to sync all platforms
   const syncAllPlatforms = useCallback(async (
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _platformsData: Record<PlatformType, UnifiedPlatformData | null>
   ) => {
     // TEMPORARILY DISABLED - Backend not ready yet

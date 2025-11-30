@@ -49,7 +49,10 @@ export const profileApi = {
    * TEMPORARILY COMMENTED OUT - Backend not ready yet
    * TODO: Uncomment when backend is working
    */
-  syncTikTok: async (_data: SocialSyncRequest): Promise<SocialSyncResponse> => {
+  syncTikTok: async (
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _data: SocialSyncRequest
+  ): Promise<SocialSyncResponse> => {
     // TEMPORARILY DISABLED - Backend not ready
     // const response = await apiClient.post('/profiles/social-sync/tiktok', data);
     // return response.data;
@@ -74,7 +77,10 @@ export const profileApi = {
    * TEMPORARILY COMMENTED OUT - Backend not ready yet
    * TODO: Uncomment when backend is working
    */
-  syncTwitch: async (_data: SocialSyncRequest): Promise<SocialSyncResponse> => {
+  syncTwitch: async (
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _data: SocialSyncRequest
+  ): Promise<SocialSyncResponse> => {
     // TEMPORARILY DISABLED - Backend not ready
     // const response = await apiClient.post('/profiles/social-sync/twitch', data);
     // return response.data;
@@ -99,7 +105,10 @@ export const profileApi = {
    * TEMPORARILY COMMENTED OUT - Backend not ready yet
    * TODO: Uncomment when backend is working
    */
-  syncTwitter: async (_data: SocialSyncRequest): Promise<SocialSyncResponse> => {
+  syncTwitter: async (
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _data: SocialSyncRequest
+  ): Promise<SocialSyncResponse> => {
     // TEMPORARILY DISABLED - Backend not ready
     // const response = await apiClient.post('/profiles/social-sync/twitter', data);
     // return response.data;
@@ -124,7 +133,10 @@ export const profileApi = {
    * TEMPORARILY COMMENTED OUT - Backend not ready yet
    * TODO: Uncomment when backend is working
    */
-  syncInstagram: async (_data: SocialSyncRequest): Promise<SocialSyncResponse> => {
+  syncInstagram: async (
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _data: SocialSyncRequest
+  ): Promise<SocialSyncResponse> => {
     // TEMPORARILY DISABLED - Backend not ready
     // const response = await apiClient.post('/profiles/social-sync/instagram', data);
     // return response.data;

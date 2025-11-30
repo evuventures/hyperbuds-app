@@ -39,15 +39,6 @@ interface UserProfile {
   [key: string]: unknown;
 }
 
-// Only platforms that backend accepts (based on backend validation)
-const SOCIAL_PLATFORMS = [
-  { id: "tiktok", name: "TikTok", placeholder: "https://tiktok.com/@username" },
-  { id: "instagram", name: "Instagram", placeholder: "https://instagram.com/username" },
-  { id: "youtube", name: "YouTube", placeholder: "https://youtube.com/@username" },
-  { id: "twitch", name: "Twitch", placeholder: "https://twitch.tv/username" },
-  { id: "twitter", name: "Twitter", placeholder: "https://twitter.com/username" },
-];
-
 // Niches are now fetched from API - see useNiches hook below
 
 // Helper function to validate social media URL format
