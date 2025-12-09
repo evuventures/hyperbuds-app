@@ -25,6 +25,23 @@ export interface SocialSyncResponse {
   };
 }
 
+export interface ProfileByUsernameResponse {
+  id: string;
+  username: string;
+  displayName?: string;
+  bio?: string;
+  avatar?: string;
+  niche?: string[];
+  location?: {
+    city?: string;
+    state?: string;
+    country?: string;
+  };
+  socialLinks?: Record<string, string>;
+  profileRizzScore?: number;
+  [key: string]: unknown;
+}
+
 export const profileApi = {
   /**
    * Sync TikTok follower data to database
@@ -32,7 +49,10 @@ export const profileApi = {
    * TEMPORARILY COMMENTED OUT - Backend not ready yet
    * TODO: Uncomment when backend is working
    */
-  syncTikTok: async (data: SocialSyncRequest): Promise<SocialSyncResponse> => {
+  syncTikTok: async (
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _data: SocialSyncRequest
+  ): Promise<SocialSyncResponse> => {
     // TEMPORARILY DISABLED - Backend not ready
     // const response = await apiClient.post('/profiles/social-sync/tiktok', data);
     // return response.data;
@@ -57,7 +77,10 @@ export const profileApi = {
    * TEMPORARILY COMMENTED OUT - Backend not ready yet
    * TODO: Uncomment when backend is working
    */
-  syncTwitch: async (data: SocialSyncRequest): Promise<SocialSyncResponse> => {
+  syncTwitch: async (
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _data: SocialSyncRequest
+  ): Promise<SocialSyncResponse> => {
     // TEMPORARILY DISABLED - Backend not ready
     // const response = await apiClient.post('/profiles/social-sync/twitch', data);
     // return response.data;
@@ -82,7 +105,10 @@ export const profileApi = {
    * TEMPORARILY COMMENTED OUT - Backend not ready yet
    * TODO: Uncomment when backend is working
    */
-  syncTwitter: async (data: SocialSyncRequest): Promise<SocialSyncResponse> => {
+  syncTwitter: async (
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _data: SocialSyncRequest
+  ): Promise<SocialSyncResponse> => {
     // TEMPORARILY DISABLED - Backend not ready
     // const response = await apiClient.post('/profiles/social-sync/twitter', data);
     // return response.data;
@@ -107,7 +133,10 @@ export const profileApi = {
    * TEMPORARILY COMMENTED OUT - Backend not ready yet
    * TODO: Uncomment when backend is working
    */
-  syncInstagram: async (data: SocialSyncRequest): Promise<SocialSyncResponse> => {
+  syncInstagram: async (
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _data: SocialSyncRequest
+  ): Promise<SocialSyncResponse> => {
     // TEMPORARILY DISABLED - Backend not ready
     // const response = await apiClient.post('/profiles/social-sync/instagram', data);
     // return response.data;
@@ -209,6 +238,36 @@ export const profileApi = {
   updateAvatar: async (avatarUrl: string) => {
     const response = await apiClient.put('/profiles/me', { avatar: avatarUrl });
     return response.data;
+  },
+
+  /**
+   * Get profile by username (public profile)
+   * Endpoint: GET /profile/:username
+   */
+  getProfileByUsername: async (username: string): Promise<ProfileByUsernameResponse> => {
+    if (!username || username.trim() === '') {
+      throw new Error('Username is required');
+    }
+
+    try {
+      const response = await apiClient.get(`/profile/${encodeURIComponent(username.trim())}`);
+      return response.data;
+    } catch (error: unknown) {
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as { response?: { status?: number } };
+        if (axiosError.response?.status === 400) {
+          throw new Error('Username is missing or invalid');
+        }
+        if (axiosError.response?.status === 404) {
+          throw new Error('Profile not found');
+        }
+        if (axiosError.response?.status === 500) {
+          throw new Error('Server error while fetching profile');
+        }
+      }
+      console.error('Error fetching profile by username:', error);
+      throw error instanceof Error ? error : new Error('Failed to fetch profile');
+    }
   },
 };
 

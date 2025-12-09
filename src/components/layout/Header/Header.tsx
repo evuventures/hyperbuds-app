@@ -16,6 +16,7 @@ import {
 import { useTheme } from '@/context/Theme';
 import { useAuth } from '@/hooks/auth/useAuth';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { NotificationDropdown } from './NotificationDropdown';
 import { useUnreadNotificationCount } from '@/hooks/features/useNotifications';
 import { useNotificationSocket } from '@/hooks/features/useNotificationSocket';
@@ -180,10 +181,10 @@ export const Header: React.FC<HeaderProps> = ({ user, onMenuClick }) => {
                 </div>
 
                 <div className="py-2">
-                  <button className="flex gap-3 items-center px-4 py-2 w-full text-left transition-colors hover:bg-gray-50 dark:hover:bg-gray-700">
+                  <Link href="/profile" className="flex gap-3 items-center px-4 py-2 w-full text-left transition-colors hover:bg-gray-50 dark:hover:bg-gray-700">
                     <User className="w-4 h-4 text-gray-500 dark:text-gray-400" />
-                    <a href="/profile"><span className="text-sm text-gray-700 dark:text-gray-300">View Profile</span></a>
-                  </button>
+                    <span className="text-sm text-gray-700 dark:text-gray-300">View Profile</span>
+                  </Link>
                   <button className="flex gap-3 items-center px-4 py-2 w-full text-left transition-colors hover:bg-gray-50 dark:hover:bg-gray-700">
                     <Settings className="w-4 h-4 text-gray-500 dark:text-gray-400" />
                     <span className="text-sm text-gray-700 cursor-pointer dark:text-gray-300">Account Settings</span>

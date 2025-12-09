@@ -3,20 +3,24 @@
  * Integrates with Backend API (SocialData.Tools) for TikTok, Instagram, YouTube, Twitter, and Twitch data
  */
 
-import axios, { AxiosError } from 'axios';
+// TEMPORARILY COMMENTED OUT - Backend not ready yet
+// import axios, { AxiosError } from 'axios';
 import type {
    UnifiedPlatformData,
    PlatformAPIResponse,
    PlatformType,
 } from '@/types/platform.types';
-import { BASE_URL } from '@/config/baseUrl';
+// TEMPORARILY COMMENTED OUT - Backend not ready yet
+// import { BASE_URL } from '@/config/baseUrl';
 
 // Backend API Configuration
-const BACKEND_API_URL = `${BASE_URL}/api/v1/social/fetch`;
+// TEMPORARILY COMMENTED OUT - Backend not ready yet
+// const BACKEND_API_URL = `${BASE_URL}/api/v1/social/fetch`;
 
 // Cache duration (5 minutes)
-const CACHE_DURATION = 5 * 60 * 1000;
-const platformCache = new Map<string, { data: unknown; timestamp: number }>();
+// TEMPORARILY COMMENTED OUT - Backend not ready yet
+// const CACHE_DURATION = 5 * 60 * 1000;
+// const platformCache = new Map<string, { data: unknown; timestamp: number }>();
 
 // Backend API Response Interface
 interface BackendSocialResponse {
@@ -31,29 +35,31 @@ interface BackendSocialResponse {
 
 /**
  * Get cached data if available and not expired
+ * TEMPORARILY COMMENTED OUT - Backend not ready yet
  */
-function getCachedData<T>(key: string): T | null {
-   const cached = platformCache.get(key);
-   if (!cached) return null;
-
-   const now = Date.now();
-   if (now - cached.timestamp > CACHE_DURATION) {
-      platformCache.delete(key);
-      return null;
-   }
-
-   return cached.data as T;
-}
+// function getCachedData<T>(key: string): T | null {
+//    const cached = platformCache.get(key);
+//    if (!cached) return null;
+//
+//    const now = Date.now();
+//    if (now - cached.timestamp > CACHE_DURATION) {
+//       platformCache.delete(key);
+//       return null;
+//    }
+//
+//    return cached.data as T;
+// }
 
 /**
  * Set cache data
+ * TEMPORARILY COMMENTED OUT - Backend not ready yet
  */
-function setCachedData<T>(key: string, data: T): void {
-   platformCache.set(key, {
-      data,
-      timestamp: Date.now(),
-   });
-}
+// function setCachedData<T>(key: string, data: T): void {
+//    platformCache.set(key, {
+//       data,
+//       timestamp: Date.now(),
+//    });
+// }
 
 /**
  * Fetch social media data from backend API (SocialData.Tools)
@@ -65,7 +71,8 @@ function setCachedData<T>(key: string, data: T): void {
 async function fetchSocialDataFromBackend(
    platform: PlatformType,
    username: string,
-   authToken?: string
+   // eslint-disable-next-line @typescript-eslint/no-unused-vars
+   _authToken?: string
 ): Promise<PlatformAPIResponse<BackendSocialResponse['data']>> {
    // TEMPORARILY DISABLED - Backend not ready
    // TODO: Uncomment when backend is working
@@ -334,15 +341,24 @@ export function calculateCombinedMetrics(
 /**
  * Clear cache for a specific platform and username
  */
-export function clearPlatformCache(platform: PlatformType, username: string): void {
-   const cacheKey = `${platform}:${username}`;
-   platformCache.delete(cacheKey);
+// TEMPORARILY COMMENTED OUT - Backend not ready yet
+export function clearPlatformCache(
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _platform: PlatformType,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _username: string
+): void {
+   // TEMPORARILY DISABLED - Backend not ready
+   // const cacheKey = `${platform}:${username}`;
+   // platformCache.delete(cacheKey);
 }
 
 /**
  * Clear all platform caches
+ * TEMPORARILY COMMENTED OUT - Backend not ready yet
  */
 export function clearAllPlatformCaches(): void {
-   platformCache.clear();
+   // TEMPORARILY DISABLED - Backend not ready
+   // platformCache.clear();
 }
 

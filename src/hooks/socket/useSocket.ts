@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
 
-const SOCKET_URL = 'https://api-hyperbuds-backend.onrender.com';
+const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL || 'https://api-hyperbuds-backend.onrender.com';
 
 export function useSocket(accessToken?: string): { socket: Socket | null; isConnected: boolean } {
    const [isConnected, setIsConnected] = useState(false);

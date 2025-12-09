@@ -4,7 +4,6 @@ import { useState, useCallback } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 // TEMPORARILY COMMENTED OUT - Backend not ready yet
 // import { profileApi, type SocialSyncRequest } from '@/lib/api/profile.api';
-import type { SocialSyncRequest } from '@/lib/api/profile.api';
 import { useToast } from '../ui/useToast';
 import type { PlatformType, UnifiedPlatformData } from '@/types/platform.types';
 
@@ -104,6 +103,7 @@ export const useSocialSync = () => {
 
   // Function to sync all platforms
   const syncAllPlatforms = useCallback(async (
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _platformsData: Record<PlatformType, UnifiedPlatformData | null>
   ) => {
     // TEMPORARILY DISABLED - Backend not ready yet
