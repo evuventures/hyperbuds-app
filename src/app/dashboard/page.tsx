@@ -8,10 +8,10 @@ import { Zap, Rocket } from "lucide-react";
 
 const MainContent: React.FC = () => {
   return (
-    <div className="p-4 pb-16 w-full min-h-full bg-gradient-to-br from-gray-50 via-white transition-colors duration-200 to-purple-50/10 dark:from-gray-900 dark:via-gray-900 dark:to-purple-900/10 lg:p-6 lg:pb-34">
+    <div className="p-4 pb-16 w-full min-h-full bg-linear-to-br from-gray-50 via-white transition-colors duration-200 to-purple-50/10 dark:from-gray-900 dark:via-gray-900 dark:to-purple-900/10 lg:p-6 lg:pb-34">
       <div className="mx-auto space-y-8 max-w-full">
         {/* Welcome Header */}
-        <div className="overflow-hidden relative p-8 rounded-2xl shadow-lg bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-700 dark:from-purple-700 dark:via-indigo-700 dark:to-blue-800 theme-transition">
+        <div className="overflow-hidden relative p-8 rounded-2xl shadow-lg bg-linear-to-r from-purple-600 via-indigo-600 to-blue-700 dark:from-purple-700 dark:via-indigo-700 dark:to-blue-800 theme-transition">
 
           <div className="relative z-10">
             <div className="flex flex-col gap-6 justify-between items-start lg:flex-row lg:items-center">
@@ -25,7 +25,7 @@ const MainContent: React.FC = () => {
                 <h1 className="mb-3 text-3xl font-bold leading-tight text-white lg:text-4xl">
                   Ready to create something
                   <br />
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-pink-400">
+                  <span className="text-transparent bg-clip-text bg-linear-to-r from-yellow-400 to-pink-400">
                     amazing today?
                   </span>
                 </h1>
@@ -57,7 +57,7 @@ const MainContent: React.FC = () => {
         {/* Call to Action */}
         <div className="overflow-hidden relative rounded-2xl border border-gray-100 shadow-lg bg-background dark:border-gray-800 theme-transition">
           {/* Background Gradient */}
-          <div className="absolute inset-0 bg-gradient-to-br from-purple-600/10 via-indigo-600/10 to-blue-700/10 dark:from-purple-600/20 dark:via-indigo-600/20 dark:to-blue-700/20"></div>
+          <div className="absolute inset-0 bg-linear-to-br from-purple-600/10 via-indigo-600/10 to-blue-700/10 dark:from-purple-600/20 dark:via-indigo-600/20 dark:to-blue-700/20"></div>
 
           {/* Decorative elements */}
           <div className="absolute top-8 right-8 w-32 h-32 rounded-full blur-2xl bg-purple-400/20 dark:bg-purple-400/10"></div>

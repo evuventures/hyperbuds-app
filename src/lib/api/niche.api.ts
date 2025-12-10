@@ -47,14 +47,29 @@ export const nicheApi = {
   /**
    * Fetch all available niches from backend (100+ AI-generated niches)
    * Tries multiple endpoints as fallback:
-   * 1. GET /api/v1/matchmaker/niches (preferred)
+   * 1. GET /api/v1/update/niches (preferred)
    * 2. GET /api/v1/niches (fallback)
-   * 
-   * Note: Niches are returned capitalized (e.g., "Gaming", "Tech Reviews")
+   *    * Note: Niches are returned capitalized (e.g., "Gaming", "Tech Reviews")
+   * REQUIRED: Access Token in Authorization Header
    */
   getNiches: async (): Promise<NichesResponse> => {
+    // --- 🔑 START: Access Token Logic Added ---
+    const token = localStorage.getItem('accessToken');
+
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    } else {
+      // Log a warning if no token is found, but proceed with the request
+      console.warn("⚠️ No access token found. Fetching niches might fail if authentication is strictly required.");
+    }
+    // --- 🔑 END: Access Token Logic Added ---
+
     const endpoints = [
-      `${BASE_URL}/api/v1/matchmaker/niches`,
+      `${BASE_URL}/api/v1/update/niches`,
       `${BASE_URL}/api/v1/niches`,
     ];
 
@@ -62,15 +77,19 @@ export const nicheApi = {
       try {
         const response = await fetch(endpoint, {
           method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: headers, // <-- Use the prepared headers
         });
 
         if (response.ok) {
           const data = await response.json();
           console.log(`✅ Successfully fetched niches from: ${endpoint}`);
           return data;
+        }
+
+        // If 401 Unauthorized, throw immediately as the token is likely missing or expired.
+        if (response.status === 401 && !token) {
+          // This is the specific case that matches your initial error when no token is present
+          throw new Error('No access token provided or token is invalid. Authentication failed.');
         }
 
         // If 404, try next endpoint
@@ -98,7 +117,7 @@ export const nicheApi = {
     console.warn('⚠️ All niche endpoints failed, using fallback list');
     console.warn('💡 Backend endpoints not implemented yet. Using hardcoded niche list.');
     console.warn('📝 Contact backend team to implement: GET /api/v1/matchmaker/niches');
-    
+
     return {
       niches: FALLBACK_NICHES,
     };
@@ -107,8 +126,7 @@ export const nicheApi = {
   /**
    * Update user's selected niches
    * POST /api/v1/matchmaker/niches/update
-   * 
-   * Note: This is separate from /api/v1/profiles/me endpoint
+   *    * Note: This is separate from /api/v1/profiles/me endpoint
    * Niches should be capitalized (e.g., "Gaming", "Tech Reviews")
    * Requires authentication
    */
@@ -118,13 +136,13 @@ export const nicheApi = {
   ): Promise<UpdateNichesResponse> => {
     try {
       const token = localStorage.getItem('accessToken');
-      
+
       if (!token) {
         throw new Error('Authentication required');
       }
 
-      const response = await fetch(`${BASE_URL}/api/v1/matchmaker/niches/update`, {
-        method: 'POST',
+      const response = await fetch(`${BASE_URL}/api/v1/update/niches`, {
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
@@ -151,5 +169,4 @@ export const nicheApi = {
       throw error;
     }
   },
-};
-
+}; 

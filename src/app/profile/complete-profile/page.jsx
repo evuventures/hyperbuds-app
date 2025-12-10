@@ -587,7 +587,7 @@ export default function MultiStepProfileForm() {
       {/* Selected Chips Container */}
       <div
         onClick={() => setIsOpen(!isOpen)}
-        className={`relative border-2 rounded-xl bg-white px-4 py-3 min-h-[56px] flex flex-wrap items-center gap-2 cursor-pointer transition-all duration-200 ${
+        className={`relative border-2 rounded-xl bg-white px-4 py-3 min-h-14 flex flex-wrap items-center gap-2 cursor-pointer transition-all duration-200 ${
           isOpen 
             ? "border-purple-500 ring-2 ring-purple-200" 
             : "border-gray-300 hover:border-purple-400"
@@ -600,7 +600,7 @@ export default function MultiStepProfileForm() {
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.8, opacity: 0 }}
-              className="bg-gradient-to-r from-purple-500 to-blue-500 text-white px-3 py-1.5 rounded-full text-xs font-medium flex items-center gap-1.5 shadow-sm"
+              className="bg-linear-to-r from-purple-500 to-blue-500 text-white px-3 py-1.5 rounded-full text-xs font-medium flex items-center gap-1.5 shadow-sm"
             >
               <span>{niche}</span>
               <button
@@ -692,7 +692,7 @@ export default function MultiStepProfileForm() {
                       onClick={() => !isDisabled && toggleNiche(niche)}
                       className={`group relative px-4 py-2.5 rounded-lg cursor-pointer text-sm mb-1 flex items-center justify-between transition-all ${
                         isSelected
-                          ? "bg-gradient-to-r from-purple-500 to-blue-500 text-white shadow-sm"
+                          ? "bg-linear-to-r from-purple-500 to-blue-500 text-white shadow-sm"
                           : isDisabled
                           ? "bg-gray-50 text-gray-400 cursor-not-allowed opacity-60"
                           : "hover:bg-purple-50 text-gray-700 active:bg-purple-100"
