@@ -44,14 +44,7 @@ export interface UpdateNichesResponse {
 }
 
 export const nicheApi = {
-  /**
-   * Fetch all available niches from backend (100+ AI-generated niches)
-   * Tries multiple endpoints as fallback:
-   * 1. GET /api/v1/update/niches (preferred)
-   * 2. GET /api/v1/niches (fallback)
-   *    * Note: Niches are returned capitalized (e.g., "Gaming", "Tech Reviews")
-   * REQUIRED: Access Token in Authorization Header
-   */
+  
   getNiches: async (): Promise<NichesResponse> => {
     // --- 🔑 START: Access Token Logic Added ---
     const token = localStorage.getItem('accessToken');
@@ -63,21 +56,21 @@ export const nicheApi = {
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
     } else {
-      // Log a warning if no token is found, but proceed with the request
+     
       console.warn("⚠️ No access token found. Fetching niches might fail if authentication is strictly required.");
     }
-    // --- 🔑 END: Access Token Logic Added ---
+    
 
     const endpoints = [
       `${BASE_URL}/api/v1/update/niches`,
-      `${BASE_URL}/api/v1/niches`,
+      
     ];
 
     for (const endpoint of endpoints) {
       try {
         const response = await fetch(endpoint, {
           method: 'GET',
-          headers: headers, // <-- Use the prepared headers
+          headers: headers, 
         });
 
         if (response.ok) {
@@ -98,18 +91,18 @@ export const nicheApi = {
           continue;
         }
 
-        // For other errors, throw immediately
+        
         const errorData = await response.json().catch(() => ({}));
         throw new Error(
           errorData.message || `Failed to fetch niches: ${response.statusText} (${response.status})`
         );
       } catch (error) {
-        // If it's a network error or non-404, throw immediately
+        
         if (error instanceof TypeError || (error instanceof Error && !error.message.includes('not found'))) {
           console.error(`❌ Error fetching niches from ${endpoint}:`, error);
           throw error;
         }
-        // Continue to next endpoint if this one fails with 404
+        
       }
     }
 
