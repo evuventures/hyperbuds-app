@@ -296,126 +296,83 @@ export default function MultiStepProfileForm() {
   };
 
   const handleSubmit = async () => {
-    setIsLoading(true);
-    setMessage('Creating your profile...');
-    setError('');
+  setIsLoading(true);
+  setMessage('Creating your profile...');
+  setError('');
 
-    try {
-      // Step 1: Upload avatar if selected
-      let avatarUrl = null;
-      if (selectedFile) {
-        setMessage('Uploading profile picture...');
-        avatarUrl = await uploadAvatar();
-      }
-
-      // Step 2: Create/update profile (without niches - handled separately)
-      setMessage('Saving profile information...');
-
-      const profileData = {
-        username: username || undefined,
-        displayName: displayName || undefined,
-        bio: bio || undefined,
-        // Note: Niches are updated via POST /matchmaker/niches/update (separate endpoint)
-        socialLinks: Object.keys(socialLinks).length > 0 ?
-          Object.fromEntries(
-            Object.entries(socialLinks).filter(([, value]) => value && value.trim())
-          ) : undefined,
-        location: (location.city || location.state || location.country) ? {
-          city: location.city || undefined,
-          state: location.state || undefined,
-          country: location.country || undefined
-        } : undefined,
-        avatar: avatarUrl || undefined,
-      };
-
-      // Remove undefined values
-      const cleanedProfileData = Object.fromEntries(
-        Object.entries(profileData).filter(([, value]) => value !== undefined)
-      );
-
-      // Step 2a: Update profile
-      const profileResponse = await fetch(`${BASE_URL}/api/v1/profiles/me`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
-        },
-        body: JSON.stringify(cleanedProfileData)
-      });
-
-      if (!profileResponse.ok) {
-        const errorData = await profileResponse.json();
-        console.error('❌ Profile creation failed:', errorData);
-        setError(errorData.message || 'Failed to create profile');
-        return;
-      }
-
-      // Step 2b: Update niches via matchmaker endpoint (separate from profile)
-      if (selectedNiches.length > 0) {
-        setMessage('Updating your niches...');
-        try {
-          // Get userId from profile response or localStorage
-          const profileData = await profileResponse.json();
-          const userId = profileData.profile?.userId || profileData.userId || 
-                         localStorage.getItem('userId') || 
-                         JSON.parse(localStorage.getItem('user') || '{}')?.userId;
-
-          if (userId) {
-            // Normalize niches to capitalized format (match API format)
-            const normalizedNiches = selectedNiches
-              .slice(0, MAX_NICHES)
-              .map(niche => {
-                const trimmed = niche.trim();
-                // If already capitalized (has uppercase), keep as is
-                if (trimmed && trimmed.charAt(0) === trimmed.charAt(0).toUpperCase()) {
-                  return trimmed;
-                }
-                // Capitalize first letter of each word
-                return trimmed
-                  .split(' ')
-                  .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-                  .join(' ');
-              })
-              .filter(niche => niche.length > 0); // Remove empty strings
-            
-            try {
-              await nicheApi.updateNiches(userId, normalizedNiches);
-              console.log('✅ Niches updated successfully');
-            } catch (nicheError) {
-              // Handle 404 gracefully (backend not ready yet)
-              const errorMessage = nicheError?.message || String(nicheError || '');
-              if (errorMessage.includes('404') || errorMessage.includes('not found')) {
-                console.warn('⚠️ Niche update endpoint not available yet (backend not implemented)');
-                // Don't show error to user - backend will be implemented soon
-              } else {
-                console.error('❌ Failed to update niches:', nicheError);
-                // Only show error for non-404 errors
-                setError('Profile created but failed to update niches. You can update them later.');
-              }
-            }
-          } else {
-            console.warn('⚠️ UserId not found, skipping niche update');
-          }
-        } catch (nicheError) {
-          console.error('❌ Failed to update niches:', nicheError);
-          // Don't block profile creation if niche update fails
-          // Only show error if it's not a 404 (backend not ready)
-          const errorMessage = nicheError instanceof Error ? nicheError.message : String(nicheError);
-          if (!errorMessage.includes('404') && !errorMessage.includes('not found')) {
-            setError('Profile created but failed to update niches. You can update them later.');
-          }
-        }
-      }
-
-      setMessage('Profile created successfully!');
-      setCurrentStep(5); // Success screen
-    } catch (error) {
-      console.error('Profile creation error:', error);
-      setError('Network error occurred. Please try again.');
-    } finally {
-      setIsLoading(false);
+  try {
+    // Step 1: Upload avatar if selected
+    let avatarUrl = null;
+    if (selectedFile) {
+      setMessage('Uploading profile picture...');
+      avatarUrl = await uploadAvatar();
     }
-  };
+
+    // Step 2: Create/update profile
+    setMessage('Saving profile information...');
+
+    const profileData = {
+      username: username || undefined,
+      displayName: displayName || undefined,
+      bio: bio || undefined,
+
+      // --- ✅ ADDED: Include selected niches in main profile update ---
+      niche: selectedNiches.length > 0 ? selectedNiches : undefined,
+      // ---------------------------------------------------------------
+
+      socialLinks: Object.keys(socialLinks).length > 0
+        ? Object.fromEntries(
+            Object.entries(socialLinks).filter(([, value]) => value && value.trim())
+          )
+        : undefined,
+
+      location: (location.city || location.state || location.country)
+        ? {
+            city: location.city || undefined,
+            state: location.state || undefined,
+            country: location.country || undefined,
+          }
+        : undefined,
+
+      avatar: avatarUrl || undefined,
+    };
+
+    // Remove undefined values
+    const cleanedProfileData = Object.fromEntries(
+      Object.entries(profileData).filter(([, value]) => value !== undefined)
+    );
+
+    // Step 2a: Update profile
+    const profileResponse = await fetch(`${BASE_URL}/api/v1/profiles/me`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+      },
+      body: JSON.stringify(cleanedProfileData),
+    });
+
+    if (!profileResponse.ok) {
+      const errorData = await profileResponse.json();
+      console.error('❌ Profile creation failed:', errorData);
+      setError(errorData.message || 'Failed to create profile');
+      return;
+    }
+
+    // --- ❌ REMOVED: Separate call to nicheApi.updateNiches ---
+    // because we now send niches directly in cleanedProfileData
+    // ----------------------------------------------------------
+
+    setMessage('Profile created successfully!');
+    setCurrentStep(5); // Success screen
+  } catch (error) {
+    console.error('Profile creation error:', error);
+    setError('Network error occurred. Please try again.');
+  } finally {
+    setIsLoading(false);
+  }
+};
+
 
   const canProceed = () => {
     switch (currentStep) {
