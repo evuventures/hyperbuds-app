@@ -2,6 +2,8 @@
 
 export interface MatchSuggestion {
   _id: string;
+  id:string;
+  profile?: CreatorProfile;
   userId: string;
   targetUserId: string;
   compatibilityScore: number;
@@ -457,4 +459,44 @@ export interface MatchExpiry {
   matchId: string;
   expiresAt: string;
   warningAt: string;
+}
+
+// Update API Types
+export interface CalculateProfileRizzScoreRequest {
+  niches: string[];
+}
+
+export interface CalculateProfileRizzScoreResponse {
+  profileRizzScore: number;
+}
+
+export interface CalculateMatchingRizzScoreRequest {
+  userA: string;
+  userB: string;
+}
+
+export interface CalculateMatchingRizzScoreResponse {
+  matchingRizzScore: number;
+}
+
+export interface GetNichesResponse {
+  niches: string[];
+}
+
+export interface UpdateNichesRequest {
+  niches: string[];
+}
+
+export interface UpdateNichesResponse {
+  message: string;
+  niches: string[];
+}
+
+export interface ConnectSocialMediaRequest {
+  platform: string;
+  url: string;
+}
+
+export interface ConnectSocialMediaResponse {
+  message: string;
 }

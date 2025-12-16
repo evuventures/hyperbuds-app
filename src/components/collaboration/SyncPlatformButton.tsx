@@ -122,8 +122,8 @@ export const SyncPlatformButton: React.FC<SyncPlatformButtonProps> = ({
         ${!hasValidData
           ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
           : justSynced
-            ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white cursor-pointer hover:shadow-xl'
-            : 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white hover:from-blue-600 hover:to-cyan-600 cursor-pointer hover:shadow-xl'
+            ? 'bg-linear-to-r from-green-500 to-emerald-500 text-white cursor-pointer hover:shadow-xl'
+            : 'bg-linear-to-r from-blue-500 to-cyan-500 text-white hover:from-blue-600 hover:to-cyan-600 cursor-pointer hover:shadow-xl'
         }
         disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg
       `}

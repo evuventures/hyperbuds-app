@@ -32,10 +32,15 @@ export const useRizzScore = (userId?: string): UseRizzScoreReturn => {
       try {
          setLoading(true);
          setError(null);
+         // Don't clear existing score - keep it visible during recalculation
          const score = await rizzScoreService.recalculateRizzScore();
          setRizzScore(score);
       } catch (err) {
-         setError(err instanceof Error ? err.message : 'Failed to recalculate Rizz Score');
+         // Set error but don't clear existing score
+         const errorMessage = err instanceof Error ? err.message : 'Failed to recalculate Rizz Score';
+         setError(errorMessage);
+         console.error('Recalculate error:', err);
+         // Keep existing rizzScore so content doesn't disappear
       } finally {
          setLoading(false);
       }

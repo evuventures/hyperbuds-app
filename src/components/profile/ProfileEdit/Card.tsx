@@ -910,28 +910,42 @@ export default function EditProfilePage() {
                 }`}
               >
                 {niches.length > 0 ? (
-                  niches.map(niche => (
+                  niches.map(niche => {
+                    const isSelected = selectedNiches.includes(niche);
+                    return (
                     <motion.span
                       key={niche}
-                      initial={{ scale: 0.8, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      exit={{ scale: 0.8, opacity: 0 }}
-                      className="bg-gradient-to-r from-purple-500 to-blue-500 text-white px-3 py-1.5 rounded-full text-xs font-medium flex items-center gap-1.5 shadow-sm"
+                      type="button"
+                      onClick={() => handleNicheToggle(niche)}
+                      disabled={!isSelected && selectedNiches.length >= 5}
+                      className={`px-4 cursor-pointer py-2 text-sm font-medium rounded-full transition ${isSelected
+                        ? "text-white bg-gradient-to-r from-purple-500 to-blue-500 shadow-lg"
+                        : "text-gray-700 bg-gray-100 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                        }`}
+                      whileHover={{ scale: isSelected ? 1 : 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      animate={{
+                        scale: isSelected ? 1.02 : 1,
+                      }}
+                      transition={{ duration: 0.2 }}
                     >
                       <span>{niche}</span>
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          removeNiche(niche);
-                        }}
-                        className="hover:bg-white/20 rounded-full p-0.5 transition-colors"
-                        aria-label={`Remove ${niche}`}
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
+                      {isSelected && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removeNiche(niche);
+                          }}
+                          className="hover:bg-white/20 rounded-full p-0.5 transition-colors"
+                          aria-label={`Remove ${niche}`}
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      )}
                     </motion.span>
-                  ))
+                    );
+                  })
                 ) : (
                   <span className="text-gray-400 dark:text-gray-500 text-sm">
                     Click to select niches...

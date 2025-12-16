@@ -79,7 +79,8 @@ const RizzScorePage: React.FC = () => {
                               <span className="hidden text-sm font-medium sm:inline">Refresh</span>
                            </motion.button>
 
-                           <motion.button
+                           {/* Recalculate button commented out */}
+                           {/* <motion.button
                               onClick={handleRecalculate}
                               disabled={loading}
                               className="flex gap-1 items-center px-3 py-2 text-purple-700 bg-purple-100 rounded-lg transition-all duration-200 cursor-pointer dark:bg-purple-900/30 dark:text-purple-300 hover:bg-purple-200 dark:hover:bg-purple-900/50 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -88,7 +89,7 @@ const RizzScorePage: React.FC = () => {
                            >
                               <Zap className="w-4 h-4" />
                               <span className="hidden text-sm font-medium sm:inline">Recalc</span>
-                           </motion.button>
+                           </motion.button> */}
                         </div>
                      </div>
 
@@ -130,7 +131,8 @@ const RizzScorePage: React.FC = () => {
                               <span className="text-sm font-medium">Refresh</span>
                            </motion.button>
 
-                           <motion.button
+                           {/* Recalculate button commented out */}
+                           {/* <motion.button
                               onClick={handleRecalculate}
                               disabled={loading}
                               className="flex gap-1 items-center px-3 py-2 text-purple-700 bg-purple-100 rounded-lg transition-all duration-200 cursor-pointer dark:bg-purple-900/30 dark:text-purple-300 hover:bg-purple-200 dark:hover:bg-purple-900/50 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -139,7 +141,7 @@ const RizzScorePage: React.FC = () => {
                            >
                               <Zap className="w-4 h-4" />
                               <span className="text-sm font-medium">Recalculate</span>
-                           </motion.button>
+                           </motion.button> */}
                         </div>
                      </div>
 
@@ -191,7 +193,8 @@ const RizzScorePage: React.FC = () => {
                            <span className="font-medium">Refresh</span>
                         </motion.button>
 
-                        <motion.button
+                        {/* Recalculate button commented out */}
+                        {/* <motion.button
                            onClick={handleRecalculate}
                            disabled={loading}
                            className="flex gap-2 items-center px-4 py-2 text-purple-700 bg-purple-100 rounded-lg transition-all duration-200 cursor-pointer dark:bg-purple-900/30 dark:text-purple-300 hover:bg-purple-200 dark:hover:bg-purple-900/50 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -200,7 +203,7 @@ const RizzScorePage: React.FC = () => {
                         >
                            <Zap className="w-4 h-4" />
                            <span className="font-medium">Recalculate</span>
-                        </motion.button>
+                        </motion.button> */}
                      </div>
                   </div>
                </div>
@@ -213,7 +216,7 @@ const RizzScorePage: React.FC = () => {
                animate={{ opacity: 1, y: 0 }}
                transition={{ duration: 0.6, ease: "easeOut", delay: 0.2 }}
             >
-               {/* Loading State */}
+               {/* Loading State - Only show when we don't have data yet */}
                {loading && !rizzScore && (
                   <div className="flex flex-col justify-center items-center py-20">
                      <motion.div
@@ -227,8 +230,8 @@ const RizzScorePage: React.FC = () => {
                   </div>
                )}
 
-               {/* Error State */}
-               {error && (
+               {/* Error State - Only show when we don't have data */}
+               {error && !rizzScore && (
                   <div className="flex flex-col justify-center items-center py-20">
                      <div className="flex justify-center items-center mb-4 w-16 h-16 bg-red-100 rounded-full dark:bg-red-900/20">
                         <span className="text-2xl">⚠️</span>
@@ -250,9 +253,49 @@ const RizzScorePage: React.FC = () => {
                   </div>
                )}
 
-               {/* Rizz Score Content */}
-               {rizzScore && !loading && (
-                  <div className="space-y-8">
+               {/* Error Banner - Show at top if error occurs during recalculation */}
+               {error && rizzScore && (
+                  <motion.div
+                     initial={{ opacity: 0, y: -20 }}
+                     animate={{ opacity: 1, y: 0 }}
+                     className="p-4 mb-6 bg-red-50 border border-red-200 rounded-xl dark:bg-red-900/20 dark:border-red-700"
+                  >
+                     <div className="flex gap-3 items-center">
+                        <span className="text-xl">⚠️</span>
+                        <div className="flex-1">
+                           <p className="text-sm font-medium text-red-800 dark:text-red-300">
+                              {error}
+                           </p>
+                        </div>
+                        <button
+                           onClick={() => window.location.reload()}
+                           className="px-3 py-1 text-xs font-medium text-red-700 bg-red-100 rounded-lg hover:bg-red-200 dark:text-red-300 dark:bg-red-900/30 dark:hover:bg-red-900/50"
+                        >
+                           Reload
+                        </button>
+                     </div>
+                  </motion.div>
+               )}
+
+               {/* Rizz Score Content - Always show if we have data */}
+               {rizzScore && (
+                  <div className="relative space-y-8">
+                     {/* Loading Overlay - Show when recalculating */}
+                     {loading && (
+                        <div className="absolute inset-0 z-50 flex justify-center items-center bg-white/80 backdrop-blur-sm rounded-2xl dark:bg-gray-900/80">
+                           <div className="flex flex-col gap-3 items-center">
+                              <motion.div
+                                 className="w-12 h-12 rounded-full border-4 border-purple-200 animate-spin border-t-purple-600"
+                                 animate={{ rotate: 360 }}
+                                 transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                              />
+                              <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                 Recalculating...
+                              </p>
+                           </div>
+                        </div>
+                     )}
+                     
                      {/* Enhanced Rizz Score Display */}
                      <div className="overflow-hidden bg-white rounded-2xl border border-gray-200 shadow-xl dark:bg-gray-900 dark:border-gray-700">
                         <RizzScoreDisplay

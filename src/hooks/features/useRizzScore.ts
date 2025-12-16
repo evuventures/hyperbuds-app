@@ -1,40 +1,196 @@
-import { useState } from 'react';
-import { rizzApi } from '@/lib/api/rizz.api';
-import type { RizzScoreResponse } from '@/lib/api/rizz.api';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { matchingApi } from '../../lib/api/matching.api';
+import { updateApi } from '../../lib/api/update.api';
+import { useToast } from '../ui/useToast';
+import type {
+  LeaderboardQuery,
+  CalculateProfileRizzScoreRequest,
+  CalculateMatchingRizzScoreRequest,
+} from '../../types/matching.types';
 
+// Query Keys
+const RIZZ_KEYS = {
+  all: ['rizzScore'] as const,
+  score: () => [...RIZZ_KEYS.all, 'score'] as const,
+  leaderboard: (query?: LeaderboardQuery) => [...RIZZ_KEYS.all, 'leaderboard', query] as const,
+};
+
+/**
+ * Main hook for fetching Rizz Score
+ * GET /api/v1/update/rizz-score
+ */
 export const useRizzScore = () => {
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
-  const [rizzScoreData, setRizzScoreData] = useState<RizzScoreResponse | null>(null);
+  return useQuery({
+    queryKey: RIZZ_KEYS.score(),
+    queryFn: () => matchingApi.getRizzScore(),
+    select: (data) => data.rizzScore,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+};
 
-  /**
-   * Get user's Rizz score (includes profileScore, matchingScore, and suggestions)
-   * GET /api/v1/matchmaker/rizz-score/:userId
-   */
-  const getRizzScore = async (userId: string): Promise<RizzScoreResponse> => {
-    if (!userId || userId.trim() === '') {
-      throw new Error('UserId is required');
-    }
+/**
+ * Hook for recalculating Rizz Score
+ * POST /api/v1/matching/rizz-score/recalculate
+ */
+export const useRecalculateRizzScore = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
 
-    try {
-      setIsLoading(true);
-      setError(null);
-      const response = await rizzApi.getRizzScore(userId.trim());
-      setRizzScoreData(response);
-      return response;
-    } catch (err) {
-      const error = err instanceof Error ? err : new Error('Failed to fetch Rizz score');
-      setError(error);
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
+  return useMutation({
+    mutationFn: () => matchingApi.recalculateRizzScore(),
+    onSuccess: (data) => {
+      queryClient.setQueryData(RIZZ_KEYS.score(), { rizzScore: data.rizzScore });
+      toast({
+        title: 'Rizz Score Recalculated!',
+        description: data.message || 'Your Rizz Score has been updated',
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Failed to Recalculate',
+        description: error instanceof Error ? error.message : 'An error occurred',
+        variant: 'destructive',
+      });
+    },
+  });
+};
+
+/**
+ * Hook for Rizz Score Leaderboard
+ * GET /api/v1/matching/rizz-score/leaderboard
+ */
+export const useRizzLeaderboard = (query?: LeaderboardQuery) => {
+  return useQuery({
+    queryKey: RIZZ_KEYS.leaderboard(query),
+    queryFn: () => matchingApi.getRizzLeaderboard(query),
+    select: (data) => data.leaderboard || [],
+    staleTime: 2 * 60 * 1000, // 2 minutes
+  });
+};
+
+/**
+ * Hook for Rizz Score Analytics
+ */
+export const useRizzScoreAnalytics = () => {
+  const { data: score } = useRizzScore();
+
+  const analytics = score
+    ? {
+        engagement: score.factors?.engagement?.engagementRate || 0,
+        growth: score.factors?.growth?.followerGrowthRate || 0,
+        collaboration: score.factors?.collaboration?.completionRate || 0,
+        quality: score.factors?.quality?.contentScore || 0,
+        trending: score.trending?.trendingScore || 0,
+      }
+    : null;
+
+  return { analytics };
+};
+
+// Hook for comparing Rizz Scores
+export const useRizzScoreComparison = () => {
+  const { data: myScore } = useRizzScore();
+
+  // In a real app, you'd fetch the target user's public score
+  // For now, we'll just provide comparison utilities
+
+  const compareScores = (targetScore: number) => {
+    if (!myScore) return null;
+
+    const difference = myScore.currentScore - targetScore;
+    const percentage = ((difference / targetScore) * 100);
+
+    return {
+      difference: Math.abs(difference),
+      isHigher: difference > 0,
+      percentageDiff: Math.abs(percentage),
+      compatibility: Math.max(0, 100 - Math.abs(difference)), // Higher when scores are similar
+    };
   };
 
   return {
-    getRizzScore,
-    rizzScoreData,
-    isLoading,
-    error,
+    myScore,
+    compareScores,
   };
+};
+
+// Main Rizz Score hook
+export const useRizzScoreFeatures = () => {
+  const rizzScore = useRizzScore();
+  const recalculate = useRecalculateRizzScore();
+  const analytics = useRizzScoreAnalytics();
+  const leaderboard = useRizzLeaderboard();
+
+  return {
+    // Score data
+    score: rizzScore.data,
+    isLoading: rizzScore.isLoading,
+    error: rizzScore.error,
+
+    // Actions
+    recalculateScore: recalculate.mutate,
+    isRecalculating: recalculate.isPending,
+
+    // Analytics
+    analytics: analytics.analytics,
+
+    // Leaderboard
+    leaderboard: leaderboard.data || [],
+    isLeaderboardLoading: leaderboard.isLoading,
+
+    // Refetch
+    refetch: rizzScore.refetch,
+  };
+};
+
+// Hook for calculating Profile Rizz Score
+// POST /api/v1/update/rizz/profile-score
+// Score = niches × 5
+export const useCalculateProfileRizzScore = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: (request: CalculateProfileRizzScoreRequest) =>
+      updateApi.calculateProfileRizzScore(request),
+    onSuccess: (data) => {
+      toast({
+        title: 'Profile Rizz Score Calculated',
+        description: `Your profile rizz score is ${data.profileRizzScore}`,
+      });
+      queryClient.invalidateQueries({ queryKey: RIZZ_KEYS.score() });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Failed to Calculate Profile Rizz Score',
+        description: error instanceof Error ? error.message : 'An error occurred',
+        variant: 'destructive',
+      });
+    },
+  });
+};
+
+// Hook for calculating Matching Rizz Score between two users
+// POST /api/v1/update/rizz/matching-score
+// Based on niche overlap + location
+export const useCalculateMatchingRizzScore = () => {
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: (request: CalculateMatchingRizzScoreRequest) =>
+      updateApi.calculateMatchingRizzScore(request),
+    onSuccess: (data) => {
+      toast({
+        title: 'Matching Rizz Score Calculated',
+        description: `Matching rizz score is ${data.matchingRizzScore}`,
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Failed to Calculate Matching Rizz Score',
+        description: error instanceof Error ? error.message : 'An error occurred',
+        variant: 'destructive',
+      });
+    },
+  });
 };

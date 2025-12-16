@@ -21,6 +21,16 @@ const SOCIAL_PLATFORMS = [
 
 // Niches are now fetched from API - see useNiches hook below
 
+/**
+ * Complete Profile Page - First-time profile setup
+ * 
+ * IMPORTANT: This page does NOT fetch existing profile data (no GET requests)
+ * - We skip GET /users/me or GET /profiles/me because the profile doesn't exist yet
+ * - We only use PUT /profiles/me to create the profile
+ * - User verification happens in Dashboard/LoginForm, not here
+ * 
+ * For editing existing profiles, use /profile/edit which fetches profile data first
+ */
 export default function MultiStepProfileForm() {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
@@ -227,9 +237,17 @@ export default function MultiStepProfileForm() {
           user.profile?.username?.toLowerCase() === username.toLowerCase()
         );
         setIsUsernameAvailable(isAvailable);
+      } else if (response.status === 404) {
+        // Endpoint doesn't exist - treat as available (will be validated on submit)
+        console.log('Username check endpoint not available, will validate on submit');
+        setIsUsernameAvailable(null); // Unknown state
+      } else {
+        // Other error - don't block user
+        setIsUsernameAvailable(null);
       }
     } catch (error) {
       console.error('Username check error:', error);
+      // Don't block user if check fails - will be validated on submit
       setIsUsernameAvailable(null);
     } finally {
       setIsCheckingUsername(false);
@@ -312,6 +330,113 @@ export default function MultiStepProfileForm() {
     setMessage('Saving profile information...');
 
     const profileData = {
+      username: username?.trim() || undefined,
+      displayName: displayName?.trim() || undefined,
+      bio: bio?.trim() || undefined,
+      niche: selectedNiches.length > 0 ? selectedNiches : undefined,
+      socialLinks: Object.keys(socialLinks).length > 0 ?
+        Object.fromEntries(
+          Object.entries(socialLinks)
+            .filter(([, value]) => value && value.trim())
+            .map(([key, value]) => [key, value.trim()])
+        ) : undefined,
+      location: (location.city || location.state || location.country) ? {
+        city: location.city?.trim() || undefined,
+        state: location.state?.trim() || undefined,
+        country: location.country?.trim() || undefined
+      } : undefined,
+      avatar: avatarUrl || undefined,
+
+    };
+
+    // Remove undefined values and empty strings
+    const cleanedProfileData = Object.fromEntries(
+      Object.entries(profileData).filter(([, value]) => {
+        if (value === undefined) return false;
+        if (typeof value === 'string' && value.trim() === '') return false;
+        if (Array.isArray(value) && value.length === 0) return false;
+        if (typeof value === 'object' && value !== null && Object.keys(value).length === 0) return false;
+        return true;
+      })
+    );
+
+    // Use PUT /profiles/me to create/update profile
+    // NOTE: We do NOT fetch profile data first (no GET request) because:
+    // 1. This is first-time profile creation - profile doesn't exist yet
+    // 2. User verification happens in Dashboard/LoginForm, not here
+    // 3. For editing existing profiles, use /profile/edit which fetches data first
+    //
+    // If backend returns "Profile not found", it means the profile record needs to be initialized first
+    // This should be handled by the backend during user registration or by implementing upsert logic
+    const response = await fetch(`${BASE_URL}/api/v1/profiles/me`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+      },
+      body: JSON.stringify(cleanedProfileData)
+    });
+
+    if (!response.ok) {
+      let errorData;
+      try {
+        errorData = await response.json();
+      } catch {
+        errorData = { message: 'Failed to create profile' };
+      }
+
+      console.error('❌ Profile creation failed:', {
+        status: response.status,
+        errorData,
+        endpoint: 'PUT /api/v1/profiles/me'
+      });
+
+      // Handle "Profile not found" error - backend needs to support upsert or initialize profile
+      const errorMessage = errorData.message || errorData.error || '';
+      const errorMessageLower = errorMessage.toLowerCase();
+      const isProfileNotFound =
+        response.status === 404 ||
+        errorData.error === 'Profile not found' ||
+        errorMessageLower.includes('profile not found');
+
+      if (isProfileNotFound) {
+        setError(
+          'Profile not found. Please contact support - your profile needs to be initialized. ' +
+          'The backend should automatically create a profile record when you register or support creating profiles via PUT request.'
+        );
+        return;
+      }
+
+      // Handle username conflicts
+      if (errorMessageLower.includes('username')) {
+        setError('This username is already taken. Please choose another one.');
+        setIsUsernameAvailable(false);
+        setCurrentStep(2);
+        return;
+      }
+
+      // Handle other errors
+      const errorMsg = errorData.message || errorData.error || 'Failed to create profile. Please try again.';
+      setError(errorMsg);
+      return;
+    }
+
+    // Success - profile created/updated
+    const responseData = await response.json();
+    console.log('✅ Profile created/updated successfully:', responseData);
+    setMessage('Profile created successfully!');
+    setCurrentStep(5); // Success screen
+  } catch (error) {
+    console.error('Profile creation error:', error);
+    setError('Network error occurred. Please try again.');
+  } finally {
+    setIsLoading(false);
+  }
+
+    // Step 2: Create/update profile
+    setMessage('Saving profile information...');
+
+    const profileData = {
       username: username || undefined,
       displayName: displayName || undefined,
       bio: bio || undefined,
@@ -379,7 +504,8 @@ export default function MultiStepProfileForm() {
       case 1:
         return true; // Avatar is optional
       case 2:
-        return username && displayName && (isUsernameAvailable === true || isUsernameAvailable === null);
+        // Allow proceeding if username is valid length, availability check is optional
+        return username && displayName && username.length >= 3;
       case 3:
         return bio && selectedNiches.length > 0;
       case 4:
@@ -562,12 +688,14 @@ export default function MultiStepProfileForm() {
               <span>{niche}</span>
               <button
                 type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  removeNiche(niche);
-                }}
-                className="hover:bg-white/20 rounded-full p-0.5 transition-colors"
-                aria-label={`Remove ${niche}`}
+                onClick={() => handleNicheToggle(niche)}
+                disabled={!selectedNiches.includes(niche) && selectedNiches.length >= 5}
+                className={`px-4 py-2 text-sm font-medium rounded-full transition-all duration-200 ${selectedNiches.includes(niche)
+                  ? 'bg-gradient-to-r from-purple-500 to-blue-500 text-white shadow-lg'
+                  : selectedNiches.length >= 5
+                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
               >
                 <X className="h-3 w-3" />
               </button>
@@ -866,32 +994,34 @@ export default function MultiStepProfileForm() {
             {currentStep === 4 && renderStep4()}
           </div>
 
-          <div className="flex justify-between items-center space-x-4">
+          <div className="flex gap-2 justify-between items-center sm:gap-4">
             <button
               onClick={prevStep}
               disabled={currentStep === 1}
-              className="flex gap-2 items-center px-6 py-3 font-semibold text-gray-600 rounded-xl transition-all duration-200 cursor-pointer hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex gap-1 items-center px-3 py-2 text-sm font-semibold text-gray-600 rounded-xl transition-all duration-200 cursor-pointer sm:gap-2 sm:px-6 sm:py-3 sm:text-base hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <FaArrowLeft className="w-4 h-4" />
-              Back
+              <FaArrowLeft className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline">Back</span>
             </button>
 
-            <div className="flex space-x-3">
+            <div className="flex space-x-2 sm:space-x-3">
               {currentStep === 4 ? (
                 <button
                   onClick={handleSubmit}
                   disabled={isLoading}
-                  className="flex gap-2 items-center px-8 py-3 font-semibold text-white bg-linear-to-r from-purple-500 to-blue-500 rounded-xl shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex gap-1 items-center px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-purple-500 to-blue-500 rounded-xl shadow-lg transition-all duration-300 sm:gap-2 sm:px-8 sm:py-3 sm:text-base hover:shadow-xl hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isLoading ? (
                     <>
-                      <FaSpinner className="w-4 h-4 animate-spin" />
-                      Creating...
+                      <FaSpinner className="w-3 h-3 animate-spin sm:w-4 sm:h-4" />
+                      <span className="hidden sm:inline">Creating...</span>
+                      <span className="sm:hidden">...</span>
                     </>
                   ) : (
                     <>
-                      Complete Profile
-                      <FaCheckCircle className="w-4 h-4" />
+                      <span className="hidden sm:inline">Complete Profile</span>
+                      <span className="sm:hidden">Complete</span>
+                      <FaCheckCircle className="w-3 h-3 sm:w-4 sm:h-4" />
                     </>
                   )}
                 </button>
@@ -899,26 +1029,14 @@ export default function MultiStepProfileForm() {
                 <button
                   onClick={nextStep}
                   disabled={!canProceed()}
-                  className="flex gap-2 items-center px-8 py-3 font-semibold text-white bg-linear-to-r from-purple-500 to-blue-500 rounded-xl shadow-lg transition-all duration-300 cursor-pointer hover:shadow-xl hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex gap-1 items-center px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-purple-500 to-blue-500 rounded-xl shadow-lg transition-all duration-300 cursor-pointer sm:gap-2 sm:px-8 sm:py-3 sm:text-base hover:shadow-xl hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Continue
-                  <FaArrowRight className="w-4 h-4" />
+                  Next
+                  <FaArrowRight className="w-3 h-3 sm:w-4 sm:h-4" />
                 </button>
               )}
             </div>
           </div>
-
-          {/* Skip option for optional steps 
-          {(currentStep === 1 || currentStep === 4) && (
-            <div className="mt-4 text-center">
-              <button
-                onClick={currentStep === 4 ? handleSubmit : nextStep}
-                className="font-medium text-gray-500 transition-colors duration-200 cursor-pointer hover:text-gray-700"
-              >
-                Skip for now
-              </button>
-            </div>
-          )} */}
         </div>
       </div>
     </div>

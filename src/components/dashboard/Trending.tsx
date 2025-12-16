@@ -33,7 +33,7 @@ const Trending: React.FC = () => {
       </div>
 
       {/* Coming Soon Container */}
-      <div className="p-10 space-y-6 text-center rounded-2xl text-white bg-linear-to-r from-purple-600 to-indigo-600  shadow-lg dark:from-purple-700 dark:to-indigo-700">
+      <div className="p-10 space-y-6 text-center rounded-2xl text-white bg-gradient-to-r from-purple-600 to-indigo-600  shadow-lg dark:from-purple-700 dark:to-indigo-700">
         <Zap className="mx-auto w-12 h-12 text-purple-300 dark:text-blue-300" />
         <h3 className="text-3xl font-extrabold text-white dark:text-white">
           Get Ready to Connect!
