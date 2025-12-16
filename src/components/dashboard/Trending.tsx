@@ -41,7 +41,7 @@ const Trending: React.FC = () => {
         <p className="max-w-xl mx-auto text-lg text-gray-300 dark:text-gray-300">
           The Trending Collaborations feed is designed to help you discover top-tier creators, track viral content trends, and find the perfect co-creator for your next project.
         </p>
-        
+
       </div>
     </div>
   );

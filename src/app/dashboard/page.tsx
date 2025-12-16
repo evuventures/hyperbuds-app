@@ -66,7 +66,7 @@ const MainContent: React.FC = () => {
                 */}
 
                 <Link href="/profile" className="flex gap-2 items-center px-6 py-3 max-w-45 font-semibold text-purple-600 bg-white rounded-xl shadow-lg transition-all duration-200 transform dark:bg-gray-100 dark:text-purple-700 hover:bg-gray-100 dark:hover:bg-gray-200 hover:scale-105">
-                  <Plus  className="w-4 h-4" />
+                  <Plus className="w-4 h-4" />
                   Get Started
                 </Link>
 
