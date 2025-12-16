@@ -122,9 +122,63 @@ export const matchingApi = {
   },
 
   // ✅ 8. Get user's Rizz Score
+  // Updated to use new endpoint: GET /api/v1/update/rizz-score
   getRizzScore: async (): Promise<{ rizzScore: RizzScore }> => {
-    const response = await apiClient.get("/matching/rizz-score");
-    return response.data;
+    const response = await apiClient.get("/update/rizz-score");
+    const data = response.data;
+    
+    // Handle case where backend returns just a number: { rizzScore: 37 }
+    // Convert it to full RizzScore object structure
+    if (typeof data.rizzScore === 'number') {
+      const scoreValue = data.rizzScore;
+      const now = new Date().toISOString();
+      
+      // Create a normalized RizzScore object with default values
+      const normalizedRizzScore: RizzScore = {
+        _id: '',
+        userId: '',
+        currentScore: scoreValue,
+        factors: {
+          engagement: {
+            avgLikes: 0,
+            avgComments: 0,
+            avgShares: 0,
+            avgViews: 0,
+            engagementRate: 0,
+          },
+          growth: {
+            followerGrowthRate: 0,
+            contentFrequency: 0,
+            consistencyScore: 0,
+          },
+          collaboration: {
+            successfulCollabs: 0,
+            avgPartnerRating: 0,
+            responseRate: 0,
+            completionRate: 0,
+          },
+          quality: {
+            contentScore: 0,
+            technicalQuality: 0,
+            originality: 0,
+          },
+        },
+        trending: {
+          isViral: false,
+          trendingScore: 0,
+          viralContent: [],
+        },
+        lastCalculated: now,
+        calculationVersion: '1.0',
+        createdAt: now,
+        updatedAt: now,
+      };
+      
+      return { rizzScore: normalizedRizzScore };
+    }
+    
+    // If it's already a full object, return as is
+    return data;
   },
 
   // ✅ 9. Recalculate Rizz Score
@@ -132,8 +186,74 @@ export const matchingApi = {
     message: string;
     rizzScore: RizzScore;
   }> => {
-    const response = await apiClient.post("/matching/rizz-score/recalculate");
-    return response.data;
+    try {
+      const response = await apiClient.post("/matching/rizz-score/recalculate");
+      const data = response.data;
+      
+      // Handle case where backend returns just a number: { rizzScore: 37 }
+      // Convert it to full RizzScore object structure
+      if (data.rizzScore && typeof data.rizzScore === 'number') {
+        const scoreValue = data.rizzScore;
+        const now = new Date().toISOString();
+        
+        // Create a normalized RizzScore object with default values
+        const normalizedRizzScore: RizzScore = {
+          _id: '',
+          userId: '',
+          currentScore: scoreValue,
+          factors: {
+            engagement: {
+              avgLikes: 0,
+              avgComments: 0,
+              avgShares: 0,
+              avgViews: 0,
+              engagementRate: 0,
+            },
+            growth: {
+              followerGrowthRate: 0,
+              contentFrequency: 0,
+              consistencyScore: 0,
+            },
+            collaboration: {
+              successfulCollabs: 0,
+              avgPartnerRating: 0,
+              responseRate: 0,
+              completionRate: 0,
+            },
+            quality: {
+              contentScore: 0,
+              technicalQuality: 0,
+              originality: 0,
+            },
+          },
+          trending: {
+            isViral: false,
+            trendingScore: 0,
+            viralContent: [],
+          },
+          lastCalculated: now,
+          calculationVersion: '1.0',
+          createdAt: now,
+          updatedAt: now,
+        };
+        
+        return {
+          message: data.message || 'Rizz Score recalculated successfully',
+          rizzScore: normalizedRizzScore,
+        };
+      }
+      
+      // If it's already a full object, return as is
+      return data;
+    } catch (error: unknown) {
+      // If recalculate endpoint doesn't exist or fails, just refetch the current score
+      console.warn('Recalculate endpoint not available, fetching current score instead:', error);
+      const currentScore = await matchingApi.getRizzScore();
+      return {
+        message: 'Score refreshed (recalculate endpoint not available)',
+        rizzScore: currentScore.rizzScore,
+      };
+    }
   },
 
   // ✅ 10. Leaderboard (Rizz Rankings)

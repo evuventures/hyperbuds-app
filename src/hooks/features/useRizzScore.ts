@@ -2,8 +2,13 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { matchingApi } from '../../lib/api/matching.api';
+import { updateApi } from '../../lib/api/update.api';
 import { useToast } from '../ui/useToast';
-import type {LeaderboardQuery} from '../../types/matching.types';
+import type {
+  LeaderboardQuery,
+  CalculateProfileRizzScoreRequest,
+  CalculateMatchingRizzScoreRequest,
+} from '../../types/matching.types';
 
 
 
@@ -234,6 +239,56 @@ export const useRizzScoreFeatures = () => {
     // Refetch
     refetch: rizzScore.refetch,
   };
+};
+
+// Hook for calculating Profile Rizz Score
+// POST /api/v1/update/rizz/profile-score
+// Score = niches × 5
+export const useCalculateProfileRizzScore = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: (request: CalculateProfileRizzScoreRequest) =>
+      updateApi.calculateProfileRizzScore(request),
+    onSuccess: (data) => {
+      toast({
+        title: 'Profile Rizz Score Calculated',
+        description: `Your profile rizz score is ${data.profileRizzScore}`,
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Failed to Calculate Profile Rizz Score',
+        description: error instanceof Error ? error.message : 'An error occurred',
+      });
+    },
+  });
+};
+
+// Hook for calculating Matching Rizz Score between two users
+// POST /api/v1/update/rizz/matching-score
+// Based on niche overlap + location
+export const useCalculateMatchingRizzScore = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: (request: CalculateMatchingRizzScoreRequest) =>
+      updateApi.calculateMatchingRizzScore(request),
+    onSuccess: (data) => {
+      toast({
+        title: 'Matching Rizz Score Calculated',
+        description: `Matching rizz score is ${data.matchingRizzScore}`,
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Failed to Calculate Matching Rizz Score',
+        description: error instanceof Error ? error.message : 'An error occurred',
+      });
+    },
+  });
 };
 
 // export {
