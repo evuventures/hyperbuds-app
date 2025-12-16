@@ -119,7 +119,7 @@ const MatchingInterface: React.FC<MatchingInterfaceProps> = ({
           >
             <Card className="overflow-hidden h-full bg-white border-0 shadow-2xl">
               {/* Top section */}
-              <div className="relative h-64 bg-gradient-to-br from-purple-400 to-pink-400">
+              <div className="relative h-64 bg-linear-to-br from-purple-400 to-pink-400">
                 <div className="absolute inset-0 bg-black/20" />
                 <Avatar className="absolute top-4 left-4 w-16 h-16 border-4 border-white">
                   <Image

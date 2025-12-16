@@ -208,7 +208,7 @@ const DashboardSkeleton: React.FC<{ collapsed?: boolean }> = ({ collapsed = fals
           className={`
             fixed inset-y-0 left-0 z-40 transform transition-all duration-300 ease-in-out
             lg:relative lg:translate-x-0 lg:z-auto lg:pt-0
-            translate-x-0
+            translate-x-0 hidden md:flex
             ${collapsed ? 'lg:w-16' : 'w-60'}
           `}
         >

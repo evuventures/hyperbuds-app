@@ -1,46 +1,48 @@
 // src/lib/api/client.ts
 import axios, { AxiosError } from "axios";
 
-// You can set this from .env.local (Next.js) or .env (Node)
-// Example: NEXT_PUBLIC_API_BASE_URL=https://api.example.com
+// ✅ 1. Base URL (auto from .env or fallback)
 const baseURL =
-  process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api-hyperbuds-backend.onrender.com/api/v1';
+  process.env.NEXT_PUBLIC_API_BASE_URL ||
+  "https://api-hyperbuds-backend.onrender.com/api/v1";
 
+// ✅ 2. Create Axios instance
 export const apiClient = axios.create({
   baseURL,
-  withCredentials: true, // send cookies if needed
   headers: {
     "Content-Type": "application/json",
   },
+  // ❌ Remove withCredentials unless you’re using cookies for auth
+  // (since you’re using Bearer tokens, not cookies)
+  withCredentials: false,
 });
 
-// Request interceptor (e.g. attach token)
+// ✅ 3. Request Interceptor — attach token
 apiClient.interceptors.request.use(
   (config) => {
-    // Grab token from localStorage/Zustand/NextAuth/etc.
-    const token =
-      typeof window !== "undefined"
-        ? localStorage.getItem("accessToken")
-        : null;
-
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    if (typeof window !== "undefined") {
+      const token = localStorage.getItem("accessToken");
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
     }
     return config;
   },
   (error) => Promise.reject(error)
 );
 
-// Response interceptor (e.g. handle errors globally)
+// ✅ 4. Response Interceptor — global error handling
 // Note: Tokens now last 3 days - no refresh logic needed
 apiClient.interceptors.response.use(
   (response) => response,
   (error: AxiosError) => {
-    if (error.response?.status === 401) {
-      // Token expired or invalid - clear token and redirect to login
-      // No refresh attempt since tokens now last 3 days
+    const status = error.response?.status;
+
+    // 🔒 Handle expired or invalid tokens
+    if (status === 401) {
+      console.warn("⚠️ Unauthorized. Clearing token and redirecting...");
       localStorage.removeItem("accessToken");
-      
+
       // Redirect to login if we're in the browser
       if (typeof window !== "undefined") {
         const currentPath = window.location.pathname;
@@ -50,12 +52,17 @@ apiClient.interceptors.response.use(
       }
     }
 
-    // Optionally normalize error shape
-    return Promise.reject(
-      error.response?.data || {
-        message: error.message || "Unexpected error occurred",
-      }
-    );
+    // 🧹 Normalize error output
+    const normalizedError = {
+      message:
+        (error.response?.data as any)?.message ||
+        error.message ||
+        "Unexpected error occurred",
+      status,
+      data: error.response?.data,
+    };
+
+    return Promise.reject(normalizedError);
   }
 );
 

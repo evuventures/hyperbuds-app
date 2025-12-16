@@ -18,6 +18,16 @@ const MOCK_NICHES = [
   'comedy', 'education', 'lifestyle', 'art', 'dance', 'sports', 'business', 'health', 'other'
 ];
 
+/**
+ * Complete Profile Page - First-time profile setup
+ * 
+ * IMPORTANT: This page does NOT fetch existing profile data (no GET requests)
+ * - We skip GET /users/me or GET /profiles/me because the profile doesn't exist yet
+ * - We only use PUT /profiles/me to create the profile
+ * - User verification happens in Dashboard/LoginForm, not here
+ * 
+ * For editing existing profiles, use /profile/edit which fetches profile data first
+ */
 export default function MultiStepProfileForm() {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
@@ -148,9 +158,17 @@ export default function MultiStepProfileForm() {
           user.profile?.username?.toLowerCase() === username.toLowerCase()
         );
         setIsUsernameAvailable(isAvailable);
+      } else if (response.status === 404) {
+        // Endpoint doesn't exist - treat as available (will be validated on submit)
+        console.log('Username check endpoint not available, will validate on submit');
+        setIsUsernameAvailable(null); // Unknown state
+      } else {
+        // Other error - don't block user
+        setIsUsernameAvailable(null);
       }
     } catch (error) {
       console.error('Username check error:', error);
+      // Don't block user if check fails - will be validated on submit
       setIsUsernameAvailable(null);
     } finally {
       setIsCheckingUsername(false);
@@ -233,28 +251,44 @@ export default function MultiStepProfileForm() {
       setMessage('Saving profile information...');
 
       const profileData = {
-        username: username || undefined,
-        displayName: displayName || undefined,
-        bio: bio || undefined,
+        username: username?.trim() || undefined,
+        displayName: displayName?.trim() || undefined,
+        bio: bio?.trim() || undefined,
         niche: selectedNiches.length > 0 ? selectedNiches : undefined,
         socialLinks: Object.keys(socialLinks).length > 0 ?
           Object.fromEntries(
-            Object.entries(socialLinks).filter(([, value]) => value && value.trim())
+            Object.entries(socialLinks)
+              .filter(([, value]) => value && value.trim())
+              .map(([key, value]) => [key, value.trim()])
           ) : undefined,
         location: (location.city || location.state || location.country) ? {
-          city: location.city || undefined,
-          state: location.state || undefined,
-          country: location.country || undefined
+          city: location.city?.trim() || undefined,
+          state: location.state?.trim() || undefined,
+          country: location.country?.trim() || undefined
         } : undefined,
         avatar: avatarUrl || undefined,
 
       };
 
-      // Remove undefined values
+      // Remove undefined values and empty strings
       const cleanedProfileData = Object.fromEntries(
-        Object.entries(profileData).filter(([, value]) => value !== undefined)
+        Object.entries(profileData).filter(([, value]) => {
+          if (value === undefined) return false;
+          if (typeof value === 'string' && value.trim() === '') return false;
+          if (Array.isArray(value) && value.length === 0) return false;
+          if (typeof value === 'object' && value !== null && Object.keys(value).length === 0) return false;
+          return true;
+        })
       );
 
+      // Use PUT /profiles/me to create/update profile
+      // NOTE: We do NOT fetch profile data first (no GET request) because:
+      // 1. This is first-time profile creation - profile doesn't exist yet
+      // 2. User verification happens in Dashboard/LoginForm, not here
+      // 3. For editing existing profiles, use /profile/edit which fetches data first
+      //
+      // If backend returns "Profile not found", it means the profile record needs to be initialized first
+      // This should be handled by the backend during user registration or by implementing upsert logic
       const response = await fetch(`${BASE_URL}/api/v1/profiles/me`, {
         method: 'PUT',
         headers: {
@@ -264,15 +298,55 @@ export default function MultiStepProfileForm() {
         body: JSON.stringify(cleanedProfileData)
       });
 
-      if (response.ok) {
-        const responseData = await response.json();
-        setMessage('Profile created successfully!');
-        setCurrentStep(5); // Success screen
-      } else {
-        const errorData = await response.json();
-        console.error('❌ Profile creation failed:', errorData);
-        setError(errorData.message || 'Failed to create profile');
+      if (!response.ok) {
+        let errorData;
+        try {
+          errorData = await response.json();
+        } catch {
+          errorData = { message: 'Failed to create profile' };
+        }
+
+        console.error('❌ Profile creation failed:', {
+          status: response.status,
+          errorData,
+          endpoint: 'PUT /api/v1/profiles/me'
+        });
+
+        // Handle "Profile not found" error - backend needs to support upsert or initialize profile
+        const errorMessage = errorData.message || errorData.error || '';
+        const errorMessageLower = errorMessage.toLowerCase();
+        const isProfileNotFound =
+          response.status === 404 ||
+          errorData.error === 'Profile not found' ||
+          errorMessageLower.includes('profile not found');
+
+        if (isProfileNotFound) {
+          setError(
+            'Profile not found. Please contact support - your profile needs to be initialized. ' +
+            'The backend should automatically create a profile record when you register or support creating profiles via PUT request.'
+          );
+          return;
+        }
+
+        // Handle username conflicts
+        if (errorMessageLower.includes('username')) {
+          setError('This username is already taken. Please choose another one.');
+          setIsUsernameAvailable(false);
+          setCurrentStep(2);
+          return;
+        }
+
+        // Handle other errors
+        const errorMsg = errorData.message || errorData.error || 'Failed to create profile. Please try again.';
+        setError(errorMsg);
+        return;
       }
+
+      // Success - profile created/updated
+      const responseData = await response.json();
+      console.log('✅ Profile created/updated successfully:', responseData);
+      setMessage('Profile created successfully!');
+      setCurrentStep(5); // Success screen
     } catch (error) {
       console.error('Profile creation error:', error);
       setError('Network error occurred. Please try again.');
@@ -286,7 +360,8 @@ export default function MultiStepProfileForm() {
       case 1:
         return true; // Avatar is optional
       case 2:
-        return username && displayName && (isUsernameAvailable === true || isUsernameAvailable === null);
+        // Allow proceeding if username is valid length, availability check is optional
+        return username && displayName && username.length >= 3;
       case 3:
         return bio && selectedNiches.length > 0;
       case 4:
@@ -303,7 +378,7 @@ export default function MultiStepProfileForm() {
           <React.Fragment key={step.id}>
             <div className="flex flex-col items-center">
               <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 ${currentStep >= step.id
-                ? 'bg-gradient-to-r from-purple-500 to-blue-500 text-white shadow-lg'
+                ? 'bg-linear-to-r from-purple-500 to-blue-500 text-white shadow-lg'
                 : 'bg-gray-200 text-gray-500'
                 }`}>
                 <step.icon className="w-5 h-5" />
@@ -315,7 +390,7 @@ export default function MultiStepProfileForm() {
             </div>
             {index < steps.length - 1 && (
               <div className={`flex-1 h-1 mx-4 rounded-full transition-all duration-300 ${currentStep > step.id
-                ? 'bg-gradient-to-r from-purple-500 to-blue-500'
+                ? 'bg-linear-to-r from-purple-500 to-blue-500'
                 : 'bg-gray-200'
                 }`} />
             )}
@@ -328,14 +403,14 @@ export default function MultiStepProfileForm() {
   const renderStep1 = () => (
     <div className="space-y-8">
       <div className="text-center">
-        <h2 className="mb-2 text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-600">
+        <h2 className="mb-2 text-3xl font-bold text-transparent bg-clip-text bg-linear-to-r from-purple-600 to-blue-600">
           Add Your Profile Picture
         </h2>
         <p className="text-gray-600">This will be your public profile photo (Max 5MB)</p>
       </div>
 
       <div className="flex justify-center">
-        <div className="flex overflow-hidden relative justify-center items-center w-32 h-32 bg-gradient-to-r from-purple-100 to-blue-100 rounded-full border-4 border-white shadow-xl transition-all duration-300 hover:scale-105">
+        <div className="flex overflow-hidden relative justify-center items-center w-32 h-32 bg-linear-to-r from-purple-100 to-blue-100 rounded-full border-4 border-white shadow-xl transition-all duration-300 hover:scale-105">
           {previewUrl ? (
             <img src={previewUrl} alt="Profile Preview" className="object-cover w-full h-full" />
           ) : (
@@ -345,7 +420,7 @@ export default function MultiStepProfileForm() {
       </div>
 
       <div className="text-center">
-        <label htmlFor="file-upload" className="inline-flex gap-2 items-center px-6 py-3 font-semibold text-white bg-gradient-to-r from-purple-500 to-blue-500 rounded-xl shadow-lg transition-all duration-300 cursor-pointer hover:shadow-xl hover:scale-105">
+        <label htmlFor="file-upload" className="inline-flex gap-2 items-center px-6 py-3 font-semibold text-white bg-linear-to-r from-purple-500 to-blue-500 rounded-xl shadow-lg transition-all duration-300 cursor-pointer hover:shadow-xl hover:scale-105">
           <FaCamera className="w-4 h-4" />
           Choose Photo
         </label>
@@ -363,7 +438,7 @@ export default function MultiStepProfileForm() {
   const renderStep2 = () => (
     <div className="space-y-8">
       <div className="text-center">
-        <h2 className="mb-2 text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-600">
+        <h2 className="mb-2 text-3xl font-bold text-transparent bg-clip-text bg-linear-to-r from-purple-600 to-blue-600">
           Basic Information
         </h2>
         <p className="text-gray-600">Choose your username and display name</p>
@@ -418,7 +493,7 @@ export default function MultiStepProfileForm() {
   const renderStep3 = () => (
     <div className="space-y-8">
       <div className="text-center">
-        <h2 className="mb-2 text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-600">
+        <h2 className="mb-2 text-3xl font-bold text-transparent bg-clip-text bg-linear-to-r from-purple-600 to-blue-600">
           Tell Us About You
         </h2>
         <p className="text-gray-600">Share your story and interests</p>
@@ -452,7 +527,7 @@ export default function MultiStepProfileForm() {
                 onClick={() => handleNicheToggle(niche)}
                 disabled={!selectedNiches.includes(niche) && selectedNiches.length >= 5}
                 className={`px-4 py-2 text-sm font-medium rounded-full transition-all duration-200 ${selectedNiches.includes(niche)
-                  ? 'bg-gradient-to-r from-purple-500 to-blue-500 text-white shadow-lg'
+                  ? 'bg-linear-to-r from-purple-500 to-blue-500 text-white shadow-lg'
                   : selectedNiches.length >= 5
                     ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -506,7 +581,7 @@ export default function MultiStepProfileForm() {
   const renderStep4 = () => (
     <div className="space-y-8">
       <div className="text-center">
-        <h2 className="mb-2 text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-600">
+        <h2 className="mb-2 text-3xl font-bold text-transparent bg-clip-text bg-linear-to-r from-purple-600 to-blue-600">
           Connect Your Socials
         </h2>
         <p className="text-gray-600">Link your profiles to showcase your work</p>
@@ -537,13 +612,13 @@ export default function MultiStepProfileForm() {
   const renderSuccessScreen = () => (
     <div className="space-y-8 text-center">
       <div className="flex justify-center">
-        <div className="flex justify-center items-center w-24 h-24 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full shadow-2xl">
+        <div className="flex justify-center items-center w-24 h-24 bg-linear-to-r from-purple-500 to-blue-500 rounded-full shadow-2xl">
           <FaCheckCircle className="w-12 h-12 text-white" />
         </div>
       </div>
 
       <div>
-        <h2 className="mb-4 text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-600">
+        <h2 className="mb-4 text-4xl font-bold text-transparent bg-clip-text bg-linear-to-r from-purple-600 to-blue-600">
           Profile Complete!
         </h2>
         <p className="mx-auto max-w-md text-lg text-gray-600">
@@ -552,7 +627,7 @@ export default function MultiStepProfileForm() {
       </div>
 
       <button
-        className="px-8 py-4 w-full font-semibold text-white bg-gradient-to-r from-purple-500 to-blue-500 rounded-xl shadow-lg transition-all duration-300 transform hover:shadow-xl hover:scale-105"
+        className="px-8 py-4 w-full font-semibold text-white bg-linear-to-r from-purple-500 to-blue-500 rounded-xl shadow-lg transition-all duration-300 transform hover:shadow-xl hover:scale-105"
         onClick={() => {
           // Force redirect with page reload to refresh profile data
           setTimeout(() => {
@@ -567,7 +642,7 @@ export default function MultiStepProfileForm() {
 
   if (currentStep === 5) {
     return (
-      <div className="flex justify-center items-center p-4 min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50">
+      <div className="flex justify-center items-center p-4 min-h-screen bg-linear-to-br from-purple-50 via-white to-blue-50">
         <div className="w-full max-w-lg">
           <div className="p-12 rounded-3xl border shadow-2xl backdrop-blur-sm bg-white/80 border-white/50">
             {renderSuccessScreen()}
@@ -578,12 +653,12 @@ export default function MultiStepProfileForm() {
   }
 
   return (
-    <div className="flex justify-center items-center p-4 min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50">
+    <div className="flex justify-center items-center p-4 min-h-screen bg-linear-to-br from-purple-50 via-white to-blue-50">
       {/* Background decorative elements */}
       <div className="overflow-hidden fixed inset-0 pointer-events-none">
         <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full blur-3xl bg-purple-300/20" />
         <div className="absolute -bottom-40 -left-40 w-80 h-80 rounded-full blur-3xl bg-blue-300/20" />
-        <div className="absolute top-1/2 left-1/2 w-96 h-96 bg-gradient-to-r rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2 from-purple-200/10 to-blue-200/10" />
+        <div className="absolute top-1/2 left-1/2 w-96 h-96 bg-linear-to-r rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2 from-purple-200/10 to-blue-200/10" />
       </div>
 
       <div className="relative z-10 w-full max-w-2xl">
@@ -609,32 +684,34 @@ export default function MultiStepProfileForm() {
             {currentStep === 4 && renderStep4()}
           </div>
 
-          <div className="flex justify-between items-center space-x-4">
+          <div className="flex gap-2 justify-between items-center sm:gap-4">
             <button
               onClick={prevStep}
               disabled={currentStep === 1}
-              className="flex gap-2 items-center px-6 py-3 font-semibold text-gray-600 rounded-xl transition-all duration-200 cursor-pointer hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex gap-1 items-center px-3 py-2 text-sm font-semibold text-gray-600 rounded-xl transition-all duration-200 cursor-pointer sm:gap-2 sm:px-6 sm:py-3 sm:text-base hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <FaArrowLeft className="w-4 h-4" />
-              Back
+              <FaArrowLeft className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline">Back</span>
             </button>
 
-            <div className="flex space-x-3">
+            <div className="flex space-x-2 sm:space-x-3">
               {currentStep === 4 ? (
                 <button
                   onClick={handleSubmit}
                   disabled={isLoading}
-                  className="flex gap-2 items-center px-8 py-3 font-semibold text-white bg-gradient-to-r from-purple-500 to-blue-500 rounded-xl shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex gap-1 items-center px-4 py-2 text-sm font-semibold text-white bg-linear-to-r from-purple-500 to-blue-500 rounded-xl shadow-lg transition-all duration-300 sm:gap-2 sm:px-8 sm:py-3 sm:text-base hover:shadow-xl hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isLoading ? (
                     <>
-                      <FaSpinner className="w-4 h-4 animate-spin" />
-                      Creating...
+                      <FaSpinner className="w-3 h-3 animate-spin sm:w-4 sm:h-4" />
+                      <span className="hidden sm:inline">Creating...</span>
+                      <span className="sm:hidden">...</span>
                     </>
                   ) : (
                     <>
-                      Complete Profile
-                      <FaCheckCircle className="w-4 h-4" />
+                      <span className="hidden sm:inline">Complete Profile</span>
+                      <span className="sm:hidden">Complete</span>
+                      <FaCheckCircle className="w-3 h-3 sm:w-4 sm:h-4" />
                     </>
                   )}
                 </button>
@@ -642,26 +719,14 @@ export default function MultiStepProfileForm() {
                 <button
                   onClick={nextStep}
                   disabled={!canProceed()}
-                  className="flex gap-2 items-center px-8 py-3 font-semibold text-white bg-gradient-to-r from-purple-500 to-blue-500 rounded-xl shadow-lg transition-all duration-300 cursor-pointer hover:shadow-xl hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex gap-1 items-center px-4 py-2 text-sm font-semibold text-white bg-linear-to-r from-purple-500 to-blue-500 rounded-xl shadow-lg transition-all duration-300 cursor-pointer sm:gap-2 sm:px-8 sm:py-3 sm:text-base hover:shadow-xl hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Continue
-                  <FaArrowRight className="w-4 h-4" />
+                  Next
+                  <FaArrowRight className="w-3 h-3 sm:w-4 sm:h-4" />
                 </button>
               )}
             </div>
           </div>
-
-          {/* Skip option for optional steps */}
-          {(currentStep === 1 || currentStep === 4) && (
-            <div className="mt-4 text-center">
-              <button
-                onClick={currentStep === 4 ? handleSubmit : nextStep}
-                className="font-medium text-gray-500 transition-colors duration-200 cursor-pointer hover:text-gray-700"
-              >
-                Skip for now
-              </button>
-            </div>
-          )}
         </div>
       </div>
     </div>

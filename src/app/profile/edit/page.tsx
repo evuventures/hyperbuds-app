@@ -7,7 +7,7 @@ import Card from "@/components/profile/ProfileEdit/Card";
 export default function EditProfilePage() {
   return (
     <DashboardLayout>
-      <div className="relative min-h-full bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-950 dark:to-purple-900/10">
+      <div className="relative min-h-full bg-linear-to-br from-indigo-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-950 dark:to-purple-900/10">
         {/* Floating background blur elements */}
         <div className="overflow-hidden fixed inset-0 pointer-events-none">
           <div className="absolute -top-40 -right-40 w-96 h-96 rounded-full blur-3xl bg-purple-300/30 dark:bg-purple-500/20" />

@@ -79,50 +79,20 @@ export default function LoginForm() {
           localStorage.setItem('accessToken', data.accessToken);
         }
 
-        // Fetch full user data including profile from /users/me
-        try {
-          const userRes = await fetch(`${BASE_URL}/api/v1/users/me`, {
-            headers: {
-              'Authorization': `Bearer ${data.accessToken}`,
-            },
-            credentials: 'include',
-          });
+        // Check if user has completed profile/registration
+        if (data.user?.profile?.username === "") {
+          // Check various conditions that might indicate incomplete profile
+          const isProfileIncomplete = !data.username
 
-          if (userRes.ok) {
-            const userData = await userRes.json();
-            
-            // Check if user has completed profile/registration
-            // A profile is incomplete if critical fields are missing
-            const profile = userData?.profile;
-            const isProfileIncomplete =
-              !profile?.username ||
-              profile.username === "" ||
-              !profile?.bio ||
-              profile.bio === "" ||
-              !profile?.niche ||
-              (Array.isArray(profile.niche) && profile.niche.length === 0);
-
-            if (isProfileIncomplete) {
-              // Route to profile completion page
-              setMessage('Please complete your profile to continue.');
-              setTimeout(() => {
-                router.push('/profile/complete-profile');
-              }, 500);
-              return;
-            }
-
-            // If profile is complete, go to dashboard
-            router.push('/');
-          } else {
-            // If we can't fetch user data, just go to dashboard
-            // Dashboard will handle profile completion check
-            router.push('/');
+          if (isProfileIncomplete) {
+            // Route to registration/profile completion page
+            router.push('/profile/complete-profile');
+            return;
           }
-        } catch (err) {
-          console.error('Failed to fetch user profile:', err);
-          // On error, go to dashboard and let it handle the check
-          router.push('/');
         }
+
+        // If profile is complete, go to dashboard
+        router.push('/');
       } else {
         // Handle specific error cases
         if (response.status === 404) {
@@ -157,7 +127,7 @@ export default function LoginForm() {
   };
 
   return (
-    <div className="flex justify-center items-center p-4 min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
+    <div className="flex justify-center items-center p-4 min-h-screen bg-linear-to-br from-indigo-50 via-white to-purple-50">
       {/* Background circles for visual effect */}
       <div className="overflow-hidden fixed inset-0 pointer-events-none">
         <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full blur-3xl bg-purple-300/30" />
@@ -169,13 +139,13 @@ export default function LoginForm() {
         <div className="flex justify-center items-center p-4 w-full lg:w-1/2 lg:p-8">
           <div className="w-full max-w-md">
             <div className="mb-8 text-center">
-              <div className="inline-flex justify-center items-center mb-6 w-16 h-16 bg-gradient-to-r from-purple-500 to-blue-500 rounded-2xl shadow-lg shadow-purple-500/25">
+              <div className="inline-flex justify-center items-center mb-6 w-16 h-16 bg-linear-to-r from-purple-500 to-blue-500 rounded-2xl shadow-lg shadow-purple-500/25">
                 {/* User icon placeholder */}
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-8 h-8 text-white lucide lucide-user-check">
                   <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><polyline points="16 11 18 13 22 9" />
                 </svg>
               </div>
-              <h1 className="mb-2 text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-gray-900 to-gray-600">
+              <h1 className="mb-2 text-4xl font-bold text-transparent bg-clip-text bg-linear-to-r from-gray-900 to-gray-600">
                 Welcome Back
               </h1>
               <p className="text-gray-600">Please log in to your account</p>
@@ -214,9 +184,9 @@ export default function LoginForm() {
             </div>
 
             <div className="flex items-center mb-8">
-              <div className="flex-1 h-px bg-gradient-to-r from-transparent to-gray-300" />
+              <div className="flex-1 h-px bg-linear-to-r from-transparent to-gray-300" />
               <span className="px-4 text-sm text-gray-500">or continue with email</span>
-              <div className="flex-1 h-px bg-gradient-to-l from-transparent to-gray-300" />
+              <div className="flex-1 h-px bg-linear-to-l from-transparent to-gray-300" />
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -305,8 +275,8 @@ export default function LoginForm() {
 
         {/* Right-hand side marketing content */}
         <div className="hidden relative w-1/2 lg:block">
-          <div className="overflow-hidden absolute inset-4 bg-gradient-to-br rounded-3xl from-purple-600/90 to-blue-600/90">
-            <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-blue-500/20" />
+          <div className="overflow-hidden absolute inset-4 bg-linear-to-br rounded-3xl from-purple-600/90 to-blue-600/90">
+            <div className="absolute inset-0 bg-linear-to-br from-purple-500/20 to-blue-500/20" />
             <div className="flex relative justify-center items-center p-12 h-full">
               <div className="text-center text-white">
                 <div className="flex justify-center items-center mx-auto mb-8 w-24 h-24 rounded-2xl backdrop-blur-sm bg-white/20">

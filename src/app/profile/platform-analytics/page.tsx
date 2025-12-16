@@ -143,7 +143,7 @@ export default function PlatformAnalyticsPage() {
                >
                   <button
                      onClick={() => router.back()}
-                     className="flex gap-3 items-center px-4 py-3 bg-gradient-to-r from-gray-100 to-gray-200 rounded-xl border border-gray-200 shadow-md transition-all duration-200 cursor-pointer group dark:from-gray-800 dark:to-gray-700 hover:from-gray-200 hover:to-gray-300 dark:hover:from-gray-700 dark:hover:to-gray-600 hover:shadow-lg dark:border-gray-600"
+                     className="flex gap-3 items-center px-4 py-3 bg-linear-to-r from-gray-100 to-gray-200 rounded-xl border border-gray-200 shadow-md transition-all duration-200 cursor-pointer group dark:from-gray-800 dark:to-gray-700 hover:from-gray-200 hover:to-gray-300 dark:hover:from-gray-700 dark:hover:to-gray-600 hover:shadow-lg dark:border-gray-600"
                   >
                      <ArrowLeft className="w-5 h-5 text-gray-700 transition-colors dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white" />
                      <span className="text-sm font-medium text-gray-700 transition-colors dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white">
@@ -168,10 +168,10 @@ export default function PlatformAnalyticsPage() {
                   className="overflow-hidden relative p-8 rounded-3xl border shadow-xl backdrop-blur-sm bg-white/80 dark:bg-gray-800/80 border-gray-200/60 dark:border-gray-700/60"
                >
                   {/* Decorative background elements */}
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-100 to-pink-100 rounded-full blur-3xl translate-x-16 -translate-y-16 dark:from-purple-500/20 dark:to-pink-500/20"></div>
-                  <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-blue-100 to-cyan-100 rounded-full blur-2xl -translate-x-12 translate-y-12 dark:from-blue-500/20 dark:to-cyan-500/20"></div>
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-linear-to-br from-purple-100 to-pink-100 rounded-full blur-3xl translate-x-16 -translate-y-16 dark:from-purple-500/20 dark:to-pink-500/20"></div>
+                  <div className="absolute bottom-0 left-0 w-24 h-24 bg-linear-to-tr from-blue-100 to-cyan-100 rounded-full blur-2xl -translate-x-12 translate-y-12 dark:from-blue-500/20 dark:to-cyan-500/20"></div>
                   <h2 className="flex gap-3 items-center mb-6 text-xl font-bold text-gray-900 dark:text-gray-100">
-                     <div className="p-2 bg-gradient-to-br from-purple-100 to-pink-100 rounded-lg dark:from-purple-500/20 dark:to-pink-500/20">
+                     <div className="p-2 bg-linear-to-br from-purple-100 to-pink-100 rounded-lg dark:from-purple-500/20 dark:to-pink-500/20">
                         <TrendingUp
                            size={24}
                            className="text-purple-600 dark:text-purple-400"
@@ -229,7 +229,7 @@ export default function PlatformAnalyticsPage() {
                   transition={{ delay: 0.3 }}
                   className="grid grid-cols-1 gap-6 md:grid-cols-3"
                >
-                  <div className="p-6 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border border-blue-200 dark:from-blue-900/20 dark:to-blue-900/30 dark:border-blue-800">
+                  <div className="p-6 bg-linear-to-br from-blue-50 to-blue-100 rounded-xl border border-blue-200 dark:from-blue-900/20 dark:to-blue-900/30 dark:border-blue-800">
                      <div className="flex gap-3 items-center mb-3">
                         <Users className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                         <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100">
@@ -244,7 +244,7 @@ export default function PlatformAnalyticsPage() {
                      </p>
                   </div>
 
-                  <div className="p-6 bg-gradient-to-br from-green-50 to-green-100 rounded-xl border border-green-200 dark:from-green-900/20 dark:to-green-900/30 dark:border-green-800">
+                  <div className="p-6 bg-linear-to-br from-green-50 to-green-100 rounded-xl border border-green-200 dark:from-green-900/20 dark:to-green-900/30 dark:border-green-800">
                      <div className="flex gap-3 items-center mb-3">
                         <Heart className="w-6 h-6 text-green-600 dark:text-green-400" />
                         <h3 className="text-lg font-semibold text-green-900 dark:text-green-100">
@@ -259,7 +259,7 @@ export default function PlatformAnalyticsPage() {
                      </p>
                   </div>
 
-                  <div className="p-6 bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl border border-purple-200 dark:from-purple-900/20 dark:to-purple-900/30 dark:border-purple-800">
+                  <div className="p-6 bg-linear-to-br from-purple-50 to-purple-100 rounded-xl border border-purple-200 dark:from-purple-900/20 dark:to-purple-900/30 dark:border-purple-800">
                      <div className="flex gap-3 items-center mb-3">
                         <Video className="w-6 h-6 text-purple-600 dark:text-purple-400" />
                         <h3 className="text-lg font-semibold text-purple-900 dark:text-purple-100">
