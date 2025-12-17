@@ -1,12 +1,14 @@
 "use client"
 
 import React, { useState, useEffect, useRef } from 'react';
-import { FaCamera, FaUserCircle, FaUserPlus, FaUserEdit, 
+import {
+  FaCamera, FaUserCircle, FaUserPlus, FaUserEdit,
   FaLink, FaTiktok, FaInstagram, FaYoutube, FaTwitch, FaTwitter,
-   FaCheckCircle, FaSpinner, FaArrowLeft, FaArrowRight, FaSearch } from 'react-icons/fa';
+  FaCheckCircle, FaSpinner, FaArrowLeft, FaArrowRight, FaSearch
+} from 'react-icons/fa';
 import { useRouter } from 'next/navigation';
 import { BASE_URL } from '@/config/baseUrl';
-import {  LucideAArrowDown, X, Check } from 'lucide-react';
+import { LucideAArrowDown, X, Check } from 'lucide-react';
 import { useNiches } from '@/hooks/features/useNiches';
 import { nicheApi } from '@/lib/api/niche.api';
 
@@ -48,7 +50,7 @@ export default function MultiStepProfileForm() {
 
   // Step 3 - Profile Details
   const [bio, setBio] = useState('');
- 
+
   const [location, setLocation] = useState({
     city: '',
     state: '',
@@ -103,7 +105,7 @@ export default function MultiStepProfileForm() {
   const [error, setError] = useState('');
 
   // niche - Fetch from API
-  const { niches: availableNiches, isLoading: isLoadingNiches, error: nichesError } = useNiches();
+  const { data: availableNiches = [], isLoading: isLoadingNiches, error: nichesError } = useNiches();
   const [selectedNiches, setSelectedNiches] = useState([]);
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -111,7 +113,7 @@ export default function MultiStepProfileForm() {
   const searchInputRef = useRef(null);
 
   // Filter niches (case-insensitive search, niches are capitalized from API)
-  const filteredNiches = availableNiches.filter(n =>
+  const filteredNiches = (availableNiches || []).filter(n =>
     n.toLowerCase().includes(search.toLowerCase())
   );
 
@@ -314,189 +316,125 @@ export default function MultiStepProfileForm() {
   };
 
   const handleSubmit = async () => {
-  setIsLoading(true);
-  setMessage('Creating your profile...');
-  setError('');
+    setIsLoading(true);
+    setMessage('Creating your profile...');
+    setError('');
 
-  try {
-    // Step 1: Upload avatar if selected
-    let avatarUrl = null;
-    if (selectedFile) {
-      setMessage('Uploading profile picture...');
-      avatarUrl = await uploadAvatar();
-    }
-
-    // Step 2: Create/update profile
-    setMessage('Saving profile information...');
-
-    const profileData = {
-      username: username?.trim() || undefined,
-      displayName: displayName?.trim() || undefined,
-      bio: bio?.trim() || undefined,
-      niche: selectedNiches.length > 0 ? selectedNiches : undefined,
-      socialLinks: Object.keys(socialLinks).length > 0 ?
-        Object.fromEntries(
-          Object.entries(socialLinks)
-            .filter(([, value]) => value && value.trim())
-            .map(([key, value]) => [key, value.trim()])
-        ) : undefined,
-      location: (location.city || location.state || location.country) ? {
-        city: location.city?.trim() || undefined,
-        state: location.state?.trim() || undefined,
-        country: location.country?.trim() || undefined
-      } : undefined,
-      avatar: avatarUrl || undefined,
-
-    };
-
-    // Remove undefined values and empty strings
-    const cleanedProfileData = Object.fromEntries(
-      Object.entries(profileData).filter(([, value]) => {
-        if (value === undefined) return false;
-        if (typeof value === 'string' && value.trim() === '') return false;
-        if (Array.isArray(value) && value.length === 0) return false;
-        if (typeof value === 'object' && value !== null && Object.keys(value).length === 0) return false;
-        return true;
-      })
-    );
-
-    // Use PUT /profiles/me to create/update profile
-    // NOTE: We do NOT fetch profile data first (no GET request) because:
-    // 1. This is first-time profile creation - profile doesn't exist yet
-    // 2. User verification happens in Dashboard/LoginForm, not here
-    // 3. For editing existing profiles, use /profile/edit which fetches data first
-    //
-    // If backend returns "Profile not found", it means the profile record needs to be initialized first
-    // This should be handled by the backend during user registration or by implementing upsert logic
-    const response = await fetch(`${BASE_URL}/api/v1/profiles/me`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
-      },
-      body: JSON.stringify(cleanedProfileData)
-    });
-
-    if (!response.ok) {
-      let errorData;
-      try {
-        errorData = await response.json();
-      } catch {
-        errorData = { message: 'Failed to create profile' };
+    try {
+      // Step 1: Upload avatar if selected
+      let avatarUrl = null;
+      if (selectedFile) {
+        setMessage('Uploading profile picture...');
+        avatarUrl = await uploadAvatar();
       }
 
-      console.error('❌ Profile creation failed:', {
-        status: response.status,
-        errorData,
-        endpoint: 'PUT /api/v1/profiles/me'
+      // Step 2: Create/update profile
+      setMessage('Saving profile information...');
+
+      const profileData = {
+        username: username?.trim() || undefined,
+        displayName: displayName?.trim() || undefined,
+        bio: bio?.trim() || undefined,
+        niche: selectedNiches.length > 0 ? selectedNiches : undefined,
+        socialLinks: Object.keys(socialLinks).length > 0 ?
+          Object.fromEntries(
+            Object.entries(socialLinks)
+              .filter(([, value]) => value && value.trim())
+              .map(([key, value]) => [key, value.trim()])
+          ) : undefined,
+        location: (location.city || location.state || location.country) ? {
+          city: location.city?.trim() || undefined,
+          state: location.state?.trim() || undefined,
+          country: location.country?.trim() || undefined
+        } : undefined,
+        avatar: avatarUrl || undefined,
+
+      };
+
+      // Remove undefined values and empty strings
+      const cleanedProfileData = Object.fromEntries(
+        Object.entries(profileData).filter(([, value]) => {
+          if (value === undefined) return false;
+          if (typeof value === 'string' && value.trim() === '') return false;
+          if (Array.isArray(value) && value.length === 0) return false;
+          if (typeof value === 'object' && value !== null && Object.keys(value).length === 0) return false;
+          return true;
+        })
+      );
+
+      // Use PUT /profiles/me to create/update profile
+      // NOTE: We do NOT fetch profile data first (no GET request) because:
+      // 1. This is first-time profile creation - profile doesn't exist yet
+      // 2. User verification happens in Dashboard/LoginForm, not here
+      // 3. For editing existing profiles, use /profile/edit which fetches data first
+      //
+      // If backend returns "Profile not found", it means the profile record needs to be initialized first
+      // This should be handled by the backend during user registration or by implementing upsert logic
+      const response = await fetch(`${BASE_URL}/api/v1/profiles/me`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+        },
+        body: JSON.stringify(cleanedProfileData)
       });
 
-      // Handle "Profile not found" error - backend needs to support upsert or initialize profile
-      const errorMessage = errorData.message || errorData.error || '';
-      const errorMessageLower = errorMessage.toLowerCase();
-      const isProfileNotFound =
-        response.status === 404 ||
-        errorData.error === 'Profile not found' ||
-        errorMessageLower.includes('profile not found');
+      if (!response.ok) {
+        let errorData;
+        try {
+          errorData = await response.json();
+        } catch {
+          errorData = { message: 'Failed to create profile' };
+        }
 
-      if (isProfileNotFound) {
-        setError(
-          'Profile not found. Please contact support - your profile needs to be initialized. ' +
-          'The backend should automatically create a profile record when you register or support creating profiles via PUT request.'
-        );
+        console.error('❌ Profile creation failed:', {
+          status: response.status,
+          errorData,
+          endpoint: 'PUT /api/v1/profiles/me'
+        });
+
+        // Handle "Profile not found" error - backend needs to support upsert or initialize profile
+        const errorMessage = errorData.message || errorData.error || '';
+        const errorMessageLower = errorMessage.toLowerCase();
+        const isProfileNotFound =
+          response.status === 404 ||
+          errorData.error === 'Profile not found' ||
+          errorMessageLower.includes('profile not found');
+
+        if (isProfileNotFound) {
+          setError(
+            'Profile not found. Please contact support - your profile needs to be initialized. ' +
+            'The backend should automatically create a profile record when you register or support creating profiles via PUT request.'
+          );
+          return;
+        }
+
+        // Handle username conflicts
+        if (errorMessageLower.includes('username')) {
+          setError('This username is already taken. Please choose another one.');
+          setIsUsernameAvailable(false);
+          setCurrentStep(2);
+          return;
+        }
+
+        // Handle other errors
+        const errorMsg = errorData.message || errorData.error || 'Failed to create profile. Please try again.';
+        setError(errorMsg);
         return;
       }
 
-      // Handle username conflicts
-      if (errorMessageLower.includes('username')) {
-        setError('This username is already taken. Please choose another one.');
-        setIsUsernameAvailable(false);
-        setCurrentStep(2);
-        return;
-      }
-
-      // Handle other errors
-      const errorMsg = errorData.message || errorData.error || 'Failed to create profile. Please try again.';
-      setError(errorMsg);
-      return;
+      // Success - profile created/updated
+      const responseData = await response.json();
+      console.log('✅ Profile created/updated successfully:', responseData);
+      setMessage('Profile created successfully!');
+      setCurrentStep(5); // Success screen
+    } catch (error) {
+      console.error('Profile creation error:', error);
+      setError('Network error occurred. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
-
-    // Success - profile created/updated
-    const responseData = await response.json();
-    console.log('✅ Profile created/updated successfully:', responseData);
-    setMessage('Profile created successfully!');
-    setCurrentStep(5); // Success screen
-  } catch (error) {
-    console.error('Profile creation error:', error);
-    setError('Network error occurred. Please try again.');
-  } finally {
-    setIsLoading(false);
-  }
-
-    // Step 2: Create/update profile
-    setMessage('Saving profile information...');
-
-    const profileData = {
-      username: username || undefined,
-      displayName: displayName || undefined,
-      bio: bio || undefined,
-
-      // --- ✅ ADDED: Include selected niches in main profile update ---
-      niche: selectedNiches.length > 0 ? selectedNiches : undefined,
-      // ---------------------------------------------------------------
-
-      socialLinks: Object.keys(socialLinks).length > 0
-        ? Object.fromEntries(
-            Object.entries(socialLinks).filter(([, value]) => value && value.trim())
-          )
-        : undefined,
-
-      location: (location.city || location.state || location.country)
-        ? {
-            city: location.city || undefined,
-            state: location.state || undefined,
-            country: location.country || undefined,
-          }
-        : undefined,
-
-      avatar: avatarUrl || undefined,
-    };
-
-    // Remove undefined values
-    const cleanedProfileData = Object.fromEntries(
-      Object.entries(profileData).filter(([, value]) => value !== undefined)
-    );
-
-    // Step 2a: Update profile
-    const profileResponse = await fetch(`${BASE_URL}/api/v1/profiles/me`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
-      },
-      body: JSON.stringify(cleanedProfileData),
-    });
-
-    if (!profileResponse.ok) {
-      const errorData = await profileResponse.json();
-      console.error('❌ Profile creation failed:', errorData);
-      setError(errorData.message || 'Failed to create profile');
-      return;
-    }
-
-    // --- ❌ REMOVED: Separate call to nicheApi.updateNiches ---
-    // because we now send niches directly in cleanedProfileData
-    // ----------------------------------------------------------
-
-    setMessage('Profile created successfully!');
-    setCurrentStep(5); // Success screen
-  } catch (error) {
-    console.error('Profile creation error:', error);
-    setError('Network error occurred. Please try again.');
-  } finally {
-    setIsLoading(false);
-  }
-};
+  };
 
 
   const canProceed = () => {
@@ -659,197 +597,195 @@ export default function MultiStepProfileForm() {
           </p>
         </div>
 
-    <div className="relative w-full mx-auto" ref={dropdownRef}>
-      <label className="block mb-2 text-sm font-semibold text-gray-700">
-        Select your niches
-      </label>
-      <p className='text-xs text-gray-500 mb-3'>
-        Select up to {MAX_NICHES} niches to help us match you with the right opportunities.
-      </p>
-
-      {/* Selected Chips Container */}
-      <div
-        onClick={() => setIsOpen(!isOpen)}
-        className={`relative border-2 rounded-xl bg-white px-4 py-3 min-h-14 flex flex-wrap items-center gap-2 cursor-pointer transition-all duration-200 ${
-          isOpen 
-            ? "border-purple-500 ring-2 ring-purple-200" 
-            : "border-gray-300 hover:border-purple-400"
-        }`}
-      >
-        {selectedNiches.length > 0 ? (
-          selectedNiches.map(niche => (
-            <motion.span
-              key={niche}
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.8, opacity: 0 }}
-              className="bg-linear-to-r from-purple-500 to-blue-500 text-white px-3 py-1.5 rounded-full text-xs font-medium flex items-center gap-1.5 shadow-sm"
-            >
-              <span>{niche}</span>
-              <button
-                type="button"
-                onClick={() => handleNicheToggle(niche)}
-                disabled={!selectedNiches.includes(niche) && selectedNiches.length >= 5}
-                className={`px-4 py-2 text-sm font-medium rounded-full transition-all duration-200 ${selectedNiches.includes(niche)
-                  ? 'bg-gradient-to-r from-purple-500 to-blue-500 text-white shadow-lg'
-                  : selectedNiches.length >= 5
-                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-              >
-                <X className="h-3 w-3" />
-              </button>
-            </motion.span>
-          ))
-        ) : (
-          <span className="text-gray-400 text-sm">
-            Click to select niches...
-          </span>
-        )}
-        <div className="flex items-center gap-2 ml-auto pl-2">
-          {selectedNiches.length > 0 && (
-            <span className="text-xs text-gray-500 font-medium">
-              {selectedNiches.length}/{MAX_NICHES}
-            </span>
-          )}
-          <motion.div
-            animate={{ rotate: isOpen ? 180 : 0 }}
-            transition={{ duration: 0.2 }}
-            className="flex items-center justify-center"
-          >
-            <LucideAArrowDown className="h-5 w-5 text-gray-400" />
-          </motion.div>
-        </div>
-      </div>
-
-      {/* Loading State */}
-      {isLoadingNiches && (
-        <div className="text-center py-8">
-          <FaSpinner className="animate-spin mx-auto h-6 w-6 text-purple-500 mb-2" />
-          <p className="text-sm text-gray-500">Loading niches...</p>
-        </div>
-      )}
-
-      {/* Error State */}
-      {nichesError && !isLoadingNiches && (
-        <div className="p-3 mb-3 bg-red-50 border border-red-200 rounded-lg">
-          <p className="text-sm text-red-600">
-            Failed to load niches. Please refresh the page.
+        <div className="relative w-full mx-auto" ref={dropdownRef}>
+          <label className="block mb-2 text-sm font-semibold text-gray-700">
+            Select your niches
+          </label>
+          <p className='text-xs text-gray-500 mb-3'>
+            Select up to {MAX_NICHES} niches to help us match you with the right opportunities.
           </p>
-        </div>
-      )}
 
-      {/* Dropdown Menu */}
-      <AnimatePresence>
-        {isOpen && !isLoadingNiches && !nichesError && (
-          <motion.div
-            initial={{ opacity: 0, y: -10, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -10, scale: 0.95 }}
-            transition={{ duration: 0.2 }}
-            className="absolute z-50 mt-2 w-full bg-white border-2 border-gray-200 rounded-xl shadow-xl max-h-80 overflow-hidden"
+          {/* Selected Chips Container */}
+          <div
+            onClick={() => setIsOpen(!isOpen)}
+            className={`relative border-2 rounded-xl bg-white px-4 py-3 min-h-14 flex flex-wrap items-center gap-2 cursor-pointer transition-all duration-200 ${isOpen
+                ? "border-purple-500 ring-2 ring-purple-200"
+                : "border-gray-300 hover:border-purple-400"
+              }`}
           >
-            {/* Search Bar */}
-            <div className="sticky top-0 bg-white z-10 p-3 border-b border-gray-200">
-              <div className="relative">
-                <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <input
-                  ref={searchInputRef}
-                  type="text"
-                  placeholder="Search niches..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 text-sm border border-gray-300 rounded-lg bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                />
-              </div>
-            </div>
-
-            {/* Niche List */}
-            <div className="p-2 max-h-64 overflow-y-auto custom-scrollbar">
-              {filteredNiches.length > 0 ? (
-                filteredNiches.map(niche => {
-                  const isSelected = selectedNiches.includes(niche);
-                  const isDisabled = !isSelected && selectedNiches.length >= MAX_NICHES;
-                  
-                  return (
-                    <motion.div
-                      key={niche}
-                      onClick={() => !isDisabled && toggleNiche(niche)}
-                      className={`group relative px-4 py-2.5 rounded-lg cursor-pointer text-sm mb-1 flex items-center justify-between transition-all ${
-                        isSelected
-                          ? "bg-linear-to-r from-purple-500 to-blue-500 text-white shadow-sm"
-                          : isDisabled
-                          ? "bg-gray-50 text-gray-400 cursor-not-allowed opacity-60"
-                          : "hover:bg-purple-50 text-gray-700 active:bg-purple-100"
+            {selectedNiches.length > 0 ? (
+              selectedNiches.map(niche => (
+                <motion.span
+                  key={niche}
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0.8, opacity: 0 }}
+                  className="bg-linear-to-r from-purple-500 to-blue-500 text-white px-3 py-1.5 rounded-full text-xs font-medium flex items-center gap-1.5 shadow-sm"
+                >
+                  <span>{niche}</span>
+                  <button
+                    type="button"
+                    onClick={() => handleNicheToggle(niche)}
+                    disabled={!selectedNiches.includes(niche) && selectedNiches.length >= 5}
+                    className={`px-4 py-2 text-sm font-medium rounded-full transition-all duration-200 ${selectedNiches.includes(niche)
+                      ? 'bg-gradient-to-r from-purple-500 to-blue-500 text-white shadow-lg'
+                      : selectedNiches.length >= 5
+                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                       }`}
-                      whileHover={!isDisabled ? { scale: 1.02 } : {}}
-                      whileTap={!isDisabled ? { scale: 0.98 } : {}}
-                    >
-                      <span className="font-medium">{niche}</span>
-                      {isSelected && (
-                        <motion.div
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          className="flex items-center"
-                        >
-                          <Check className="h-4 w-4" />
-                        </motion.div>
-                      )}
-                      {isDisabled && (
-                        <span className="text-xs opacity-75">Max reached</span>
-                      )}
-                    </motion.div>
-                  );
-                })
-              ) : (
-                <div className="text-center py-8">
-                  <p className="text-gray-400 text-sm">
-                    No niches found
-                  </p>
-                  <p className="text-gray-300 text-xs mt-1">
-                    Try a different search term
-                  </p>
-                </div>
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </motion.span>
+              ))
+            ) : (
+              <span className="text-gray-400 text-sm">
+                Click to select niches...
+              </span>
+            )}
+            <div className="flex items-center gap-2 ml-auto pl-2">
+              {selectedNiches.length > 0 && (
+                <span className="text-xs text-gray-500 font-medium">
+                  {selectedNiches.length}/{MAX_NICHES}
+                </span>
               )}
+              <motion.div
+                animate={{ rotate: isOpen ? 180 : 0 }}
+                transition={{ duration: 0.2 }}
+                className="flex items-center justify-center"
+              >
+                <LucideAArrowDown className="h-5 w-5 text-gray-400" />
+              </motion.div>
             </div>
+          </div>
 
-            {/* Footer with count */}
-            {selectedNiches.length > 0 && (
-              <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-4 py-2.5">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-gray-600">
-                    {selectedNiches.length} of {MAX_NICHES} selected
-                  </span>
-                  {selectedNiches.length >= MAX_NICHES && (
-                    <span className="text-orange-600 font-semibold">
-                      Maximum reached
-                    </span>
+          {/* Loading State */}
+          {isLoadingNiches && (
+            <div className="text-center py-8">
+              <FaSpinner className="animate-spin mx-auto h-6 w-6 text-purple-500 mb-2" />
+              <p className="text-sm text-gray-500">Loading niches...</p>
+            </div>
+          )}
+
+          {/* Error State */}
+          {nichesError && !isLoadingNiches && (
+            <div className="p-3 mb-3 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-sm text-red-600">
+                Failed to load niches. Please refresh the page.
+              </p>
+            </div>
+          )}
+
+          {/* Dropdown Menu */}
+          <AnimatePresence>
+            {isOpen && !isLoadingNiches && !nichesError && (
+              <motion.div
+                initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                transition={{ duration: 0.2 }}
+                className="absolute z-50 mt-2 w-full bg-white border-2 border-gray-200 rounded-xl shadow-xl max-h-80 overflow-hidden"
+              >
+                {/* Search Bar */}
+                <div className="sticky top-0 bg-white z-10 p-3 border-b border-gray-200">
+                  <div className="relative">
+                    <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <input
+                      ref={searchInputRef}
+                      type="text"
+                      placeholder="Search niches..."
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
+                      className="w-full pl-10 pr-4 py-2.5 text-sm border border-gray-300 rounded-lg bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                    />
+                  </div>
+                </div>
+
+                {/* Niche List */}
+                <div className="p-2 max-h-64 overflow-y-auto custom-scrollbar">
+                  {filteredNiches.length > 0 ? (
+                    filteredNiches.map(niche => {
+                      const isSelected = selectedNiches.includes(niche);
+                      const isDisabled = !isSelected && selectedNiches.length >= MAX_NICHES;
+
+                      return (
+                        <motion.div
+                          key={niche}
+                          onClick={() => !isDisabled && toggleNiche(niche)}
+                          className={`group relative px-4 py-2.5 rounded-lg cursor-pointer text-sm mb-1 flex items-center justify-between transition-all ${isSelected
+                              ? "bg-linear-to-r from-purple-500 to-blue-500 text-white shadow-sm"
+                              : isDisabled
+                                ? "bg-gray-50 text-gray-400 cursor-not-allowed opacity-60"
+                                : "hover:bg-purple-50 text-gray-700 active:bg-purple-100"
+                            }`}
+                          whileHover={!isDisabled ? { scale: 1.02 } : {}}
+                          whileTap={!isDisabled ? { scale: 0.98 } : {}}
+                        >
+                          <span className="font-medium">{niche}</span>
+                          {isSelected && (
+                            <motion.div
+                              initial={{ scale: 0 }}
+                              animate={{ scale: 1 }}
+                              className="flex items-center"
+                            >
+                              <Check className="h-4 w-4" />
+                            </motion.div>
+                          )}
+                          {isDisabled && (
+                            <span className="text-xs opacity-75">Max reached</span>
+                          )}
+                        </motion.div>
+                      );
+                    })
+                  ) : (
+                    <div className="text-center py-8">
+                      <p className="text-gray-400 text-sm">
+                        No niches found
+                      </p>
+                      <p className="text-gray-300 text-xs mt-1">
+                        Try a different search term
+                      </p>
+                    </div>
                   )}
                 </div>
-              </div>
-            )}
-          </motion.div>
-        )}
-      </AnimatePresence>
 
-      {/* Helper Text */}
-      <div className="mt-2 flex items-center justify-between">
-        <p className="text-xs text-gray-500">
-          {selectedNiches.length === 0 && "Select at least 1 niche"}
-          {selectedNiches.length > 0 && selectedNiches.length < MAX_NICHES && `${MAX_NICHES - selectedNiches.length} more can be selected`}
-          {selectedNiches.length >= MAX_NICHES && "Maximum niches selected"}
-        </p>
-        {selectedNiches.length > 0 && (
-          <button
-            type="button"
-            onClick={() => setSelectedNiches([])}
-            className="text-xs text-red-500 hover:text-red-600 font-medium transition-colors cursor-pointer"
-          >
-            Clear all
-          </button>
-        )}
-      </div>
-    </div>
+                {/* Footer with count */}
+                {selectedNiches.length > 0 && (
+                  <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-4 py-2.5">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-gray-600">
+                        {selectedNiches.length} of {MAX_NICHES} selected
+                      </span>
+                      {selectedNiches.length >= MAX_NICHES && (
+                        <span className="text-orange-600 font-semibold">
+                          Maximum reached
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Helper Text */}
+          <div className="mt-2 flex items-center justify-between">
+            <p className="text-xs text-gray-500">
+              {selectedNiches.length === 0 && "Select at least 1 niche"}
+              {selectedNiches.length > 0 && selectedNiches.length < MAX_NICHES && `${MAX_NICHES - selectedNiches.length} more can be selected`}
+              {selectedNiches.length >= MAX_NICHES && "Maximum niches selected"}
+            </p>
+            {selectedNiches.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setSelectedNiches([])}
+                className="text-xs text-red-500 hover:text-red-600 font-medium transition-colors cursor-pointer"
+              >
+                Clear all
+              </button>
+            )}
+          </div>
+        </div>
 
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">

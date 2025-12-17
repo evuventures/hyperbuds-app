@@ -19,10 +19,19 @@ export default function MatchmakerPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+  const [userProfile, setUserProfile] = useState<CreatorProfile | null>(null);
+  const [dataLoaded, setDataLoaded] = useState(false);
+  const [isSubmittingPreferences, setIsSubmittingPreferences] = useState(false);
+  const [showAILoader, setShowAILoader] = useState(false);
+  const [activeTab, setActiveTab] = useState<string>("ai-matches");
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [selectedMatch, setSelectedMatch] = useState<MatchSuggestion | null>(null);
+  const [selectedProfile, setSelectedProfile] = useState<CreatorProfile | null>(null);
+  const [isCompatibilityModalOpen, setIsCompatibilityModalOpen] = useState(false);
+  const [likedMatches, setLikedMatches] = useState<Set<string>>(new Set());
 
-  // ✅ Fetch current user profile
-  useEffect(() => {
-    const fetchUser = async () => {
+  // ✅ Fetch current user profile and matches
+  const loadData = async () => {
       try {
         const accessToken = localStorage.getItem("accessToken");
         if (!accessToken) {
@@ -146,6 +155,7 @@ export default function MatchmakerPage() {
 
                 return {
                   _id: `match-${suggestion.userId}`,
+                  id: `match-${suggestion.userId}`,
                   userId: currentUserId || "current-user",
                   targetUserId: suggestion.userId,
                   compatibilityScore: suggestion.matchingScore,
@@ -192,7 +202,9 @@ export default function MatchmakerPage() {
       } finally {
         setDataLoaded(true);
       }
-    }
+  };
+
+  useEffect(() => {
     loadData();
   }, []); // Empty dependency array - only run once on mount
 
@@ -366,6 +378,7 @@ export default function MatchmakerPage() {
 
           return {
             _id: `match-${suggestion.userId}`,
+            id: `match-${suggestion.userId}`,
             userId: userId,
             targetUserId: suggestion.userId,
             compatibilityScore: suggestion.matchingScore,
@@ -417,7 +430,7 @@ export default function MatchmakerPage() {
       <div className="flex flex-col items-center justify-center h-screen text-red-500">
         <p>{error}</p>
         <button
-          onClick={fetchMatches}
+          onClick={() => loadData()}
           className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center"
         >
           <RefreshCw className="mr-2 w-4 h-4" /> Retry
@@ -431,7 +444,7 @@ export default function MatchmakerPage() {
       <div className="flex flex-col items-center justify-center h-screen text-gray-400">
         <p>No match suggestions yet.</p>
         <button
-          onClick={fetchMatches}
+          onClick={() => loadData()}
           className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center"
         >
           <RefreshCw className="mr-2 w-4 h-4" /> Refresh

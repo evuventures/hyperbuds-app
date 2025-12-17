@@ -133,7 +133,7 @@ export default function EditProfilePage() {
   const [error, setError] = useState("");
 
   // Fetch niches from API
-  const { niches: availableNiches, isLoading: isLoadingNiches, error: nichesError } = useNiches();
+  const { data: availableNiches = [], isLoading: isLoadingNiches, error: nichesError } = useNiches();
 
   // Ref for file input
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -911,18 +911,24 @@ export default function EditProfilePage() {
               >
                 {niches.length > 0 ? (
                   niches.map(niche => {
-                    const isSelected = selectedNiches.includes(niche);
+                    const isSelected = niches.includes(niche);
                     return (
                     <motion.span
                       key={niche}
-                      type="button"
-                      onClick={() => handleNicheToggle(niche)}
-                      disabled={!isSelected && selectedNiches.length >= 5}
-                      className={`px-4 cursor-pointer py-2 text-sm font-medium rounded-full transition ${isSelected
-                        ? "text-white bg-gradient-to-r from-purple-500 to-blue-500 shadow-lg"
-                        : "text-gray-700 bg-gray-100 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                      onClick={() => {
+                        if (isSelected) {
+                          removeNiche(niche);
+                        } else if (niches.length < 5) {
+                          setNiches([...niches, niche]);
+                        }
+                      }}
+                      className={`px-4 py-2 text-sm font-medium rounded-full transition ${isSelected
+                        ? "text-white bg-gradient-to-r from-purple-500 to-blue-500 shadow-lg cursor-pointer"
+                        : niches.length >= 5
+                        ? "text-gray-400 bg-gray-100 dark:bg-gray-700 cursor-not-allowed opacity-50"
+                        : "text-gray-700 bg-gray-100 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 cursor-pointer"
                         }`}
-                      whileHover={{ scale: isSelected ? 1 : 1.05 }}
+                      whileHover={{ scale: isSelected && niches.length < 5 ? 1 : 1.05 }}
                       whileTap={{ scale: 0.95 }}
                       animate={{
                         scale: isSelected ? 1.02 : 1,
