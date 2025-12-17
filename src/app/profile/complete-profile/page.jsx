@@ -609,8 +609,8 @@ export default function MultiStepProfileForm() {
           <div
             onClick={() => setIsOpen(!isOpen)}
             className={`relative border-2 rounded-xl bg-white px-4 py-3 min-h-14 flex flex-wrap items-center gap-2 cursor-pointer transition-all duration-200 ${isOpen
-                ? "border-purple-500 ring-2 ring-purple-200"
-                : "border-gray-300 hover:border-purple-400"
+              ? "border-purple-500 ring-2 ring-purple-200"
+              : "border-gray-300 hover:border-purple-400"
               }`}
           >
             {selectedNiches.length > 0 ? (
@@ -713,10 +713,10 @@ export default function MultiStepProfileForm() {
                           key={niche}
                           onClick={() => !isDisabled && toggleNiche(niche)}
                           className={`group relative px-4 py-2.5 rounded-lg cursor-pointer text-sm mb-1 flex items-center justify-between transition-all ${isSelected
-                              ? "bg-linear-to-r from-purple-500 to-blue-500 text-white shadow-sm"
-                              : isDisabled
-                                ? "bg-gray-50 text-gray-400 cursor-not-allowed opacity-60"
-                                : "hover:bg-purple-50 text-gray-700 active:bg-purple-100"
+                            ? "bg-linear-to-r from-purple-500 to-blue-500 text-white shadow-sm"
+                            : isDisabled
+                              ? "bg-gray-50 text-gray-400 cursor-not-allowed opacity-60"
+                              : "hover:bg-purple-50 text-gray-700 active:bg-purple-100"
                             }`}
                           whileHover={!isDisabled ? { scale: 1.02 } : {}}
                           whileTap={!isDisabled ? { scale: 0.98 } : {}}
