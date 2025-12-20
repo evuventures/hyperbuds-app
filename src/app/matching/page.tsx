@@ -416,75 +416,87 @@ export default function MatchmakerPage() {
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <Loader2 className="animate-spin text-blue-500 w-8 h-8" />
-        <span className="ml-2 text-blue-500 font-medium">Loading matches...</span>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex flex-col items-center justify-center h-screen text-red-500">
-        <p>{error}</p>
-        <button
-          onClick={() => loadData()}
-          className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center"
-        >
-          <RefreshCw className="mr-2 w-4 h-4" /> Retry
-        </button>
-      </div>
-    );
-  }
-
-  if (matches.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center h-screen text-gray-400">
-        <p>No match suggestions yet.</p>
-        <button
-          onClick={() => loadData()}
-          className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center"
-        >
-          <RefreshCw className="mr-2 w-4 h-4" /> Refresh
-        </button>
-      </div>
-    );
-  }
-
   return (
-    <div className="p-8">
-      <h1 className="text-3xl font-bold mb-6">🎯 Match Suggestions</h1>
-      <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-        {matches.map((match, index) => (
-          <motion.div
-            key={match.id || index}
-            className="p-6 bg-white rounded-2xl shadow-md flex flex-col items-center"
-            whileHover={{ scale: 1.03 }}
-          >
-            <img
-              src={match?.profile?.avatar || "/default-avatar.png"}
-              alt={match?.profile?.displayName || "User"}
-              className="w-24 h-24 rounded-full mb-3 object-cover"
-            />
-            <h2 className="font-semibold text-lg">
-              {match?.profile?.displayName || "Unknown User"}
-            </h2>
-            <p className="text-sm text-gray-500 mb-3">
-              {match?.profile?.niche?.join(", ") || "No niche info"}
+    <DashboardLayout>
+      <div className="p-4 pb-16 space-y-6 lg:p-6 lg:pb-34">
+        {error ? (
+          <div className="flex flex-col justify-center items-center py-20 text-red-500">
+            <p className="mb-4">{error}</p>
+            <button
+              onClick={loadData}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center transition-colors"
+            >
+              <RefreshCw className="mr-2 w-4 h-4" /> Retry
+            </button>
+          </div>
+        ) : !dataLoaded ? (
+          <div className="flex flex-col justify-center items-center py-20">
+            <Loader2 className="animate-spin text-blue-500 w-8 h-8 mb-4" />
+            <span className="text-blue-500 font-medium">Loading matches...</span>
+          </div>
+        ) : matches.length === 0 ? (
+          <div className="flex flex-col justify-center items-center py-20 text-gray-400 dark:text-gray-500">
+            <Heart className="w-16 h-16 mb-4 text-pink-500 dark:text-pink-400" />
+            <p className="text-lg font-medium mb-2">No match suggestions yet.</p>
+            <p className="text-sm mb-6 text-gray-500 dark:text-gray-400">
+              Complete your profile to get better matches!
             </p>
-            <div className="flex gap-4">
-              <button className="p-2 rounded-full bg-red-100 hover:bg-red-200">
-                <X className="text-red-500" />
-              </button>
-              <button className="p-2 rounded-full bg-green-100 hover:bg-green-200">
-                <Heart className="text-green-500" />
+            <button
+              onClick={loadData}
+              className="px-6 py-3 bg-gradient-to-r from-pink-500 to-purple-500 text-white rounded-lg hover:from-pink-600 hover:to-purple-600 flex items-center transition-all transform hover:scale-105 shadow-lg"
+            >
+              <RefreshCw className="mr-2 w-4 h-4" /> Refresh
+            </button>
+          </div>
+        ) : (
+          <>
+            <div className="flex gap-4 justify-between items-center mb-6">
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">🎯 Match Suggestions</h1>
+              <button
+                onClick={refreshMatches}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center transition-colors"
+              >
+                <RefreshCw className="mr-2 w-4 h-4" /> Refresh
               </button>
             </div>
-          </motion.div>
-        ))}
+            <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+              {matches.map((match, index) => (
+                <motion.div
+                  key={match.id || match._id || index}
+                  className="p-6 bg-white dark:bg-gray-800 rounded-2xl shadow-md flex flex-col items-center border border-gray-200 dark:border-gray-700"
+                  whileHover={{ scale: 1.03 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <img
+                    src={match?.profile?.avatar || match?.targetProfile?.avatar || "/default-avatar.png"}
+                    alt={match?.profile?.displayName || match?.targetProfile?.displayName || "User"}
+                    className="w-24 h-24 rounded-full mb-3 object-cover ring-2 ring-pink-200 dark:ring-pink-800"
+                  />
+                  <h2 className="font-semibold text-lg text-gray-900 dark:text-white">
+                    {match?.profile?.displayName || match?.targetProfile?.displayName || "Unknown User"}
+                  </h2>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
+                    {match?.profile?.niche?.join(", ") || match?.targetProfile?.niche?.join(", ") || "No niche info"}
+                  </p>
+                  {match.compatibilityScore && (
+                    <p className="text-sm font-medium text-pink-600 dark:text-pink-400 mb-3">
+                      {match.compatibilityScore.toFixed(0)}% Match
+                    </p>
+                  )}
+                  <div className="flex gap-4">
+                    <button className="p-2 rounded-full bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors">
+                      <X className="text-red-500 dark:text-red-400" />
+                    </button>
+                    <button className="p-2 rounded-full bg-green-100 dark:bg-green-900/30 hover:bg-green-200 dark:hover:bg-green-900/50 transition-colors">
+                      <Heart className="text-green-500 dark:text-green-400" />
+                    </button>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </>
+        )}
       </div>
-    </div>
+    </DashboardLayout>
   );
 }

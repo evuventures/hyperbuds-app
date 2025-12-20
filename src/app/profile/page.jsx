@@ -4,9 +4,9 @@ import DashboardLayout from "@/components/layout/Dashboard/Dashboard";
 import { useState, useEffect } from "react";
 import { apiFetch } from "@/lib/utils/api";
 import UserProfileHeader from "@/components/profile/ProfileCard";
-// TEMPORARILY COMMENTED OUT - Backend not ready yet
-// import { PlatformStats } from "@/components/collaboration/PlatformStats";
-// import { TrendingUp } from "lucide-react";
+import { PlatformStats } from "@/components/collaboration/PlatformStats";
+import SuggestedMatches from "@/components/profile/SuggestedMatches";
+import { TrendingUp } from "lucide-react";
 
 export default function ProfilePage() {
   // Initialize as null instead of array
@@ -153,6 +153,9 @@ export default function ProfilePage() {
             </div>
           );
         })()} */}
+
+        {/* Suggested Matches Section */}
+        <SuggestedMatches />
 
       </div>
     </DashboardLayout>

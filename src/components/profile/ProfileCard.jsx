@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { PlatformStats } from "@/components/collaboration/PlatformStats";
 import { useMultiplePlatformData, useCombinedPlatformMetrics } from "@/hooks/features/usePlatformData";
+import { useMatchSuggestions } from "@/hooks/features/useMatching";
 import {
   User,
 
@@ -116,7 +117,7 @@ export default function UserProfileHeader({
       // Extract YouTube username from URL
       if (socialLinks.youtube) {
         const match = socialLinks.youtube.match(/(?:youtube\.com\/@|youtube\.com\/c\/)([^/?]+)/) ||
-                     socialLinks.youtube.match(/youtube\.com\/user\/([^/?]+)/);
+          socialLinks.youtube.match(/youtube\.com\/user\/([^/?]+)/);
         if (match) {
           creds.youtube = match[1];
           platformList.push({ type: 'youtube', username: match[1] });
@@ -131,6 +132,53 @@ export default function UserProfileHeader({
   // Fetch platform data only if we have platforms
   const { data: platformData, loading: platformLoading } = useMultiplePlatformData(platforms, { enabled: platforms.length > 0 });
   const combinedMetrics = useCombinedPlatformMetrics(platformData);
+
+  // Fetch suggested matches to calculate matching Rizz score (only for own profile)
+  const { data: matchesData } = useMatchSuggestions({ limit: 10, enabled: isOwnProfile });
+
+  // Calculate average matching Rizz score from suggested matches
+  const matchingRizzScore = useMemo(() => {
+    if (!isOwnProfile) {
+      return undefined;
+    }
+
+    // Check if matches data is available
+    const matches = matchesData?.matches || [];
+
+    if (matches.length === 0) {
+      // If no matches, return undefined to show "—"
+      return undefined;
+    }
+
+    // Extract compatibility scores from matches
+    const scores = matches
+      .map((match) => {
+        // Try different possible field names for compatibility score
+        if (match.compatibilityScore) {
+          return match.compatibilityScore;
+        }
+        if (match.scoreBreakdown?.rizzScoreCompatibility) {
+          return match.scoreBreakdown.rizzScoreCompatibility;
+        }
+        if (match.scoreBreakdown) {
+          const values = Object.values(match.scoreBreakdown);
+          if (values.length > 0) {
+            const sum = values.reduce((acc, val) => acc + (typeof val === 'number' ? val : 0), 0);
+            return sum / values.length;
+          }
+        }
+        return 0;
+      })
+      .filter((score) => score > 0);
+
+    if (scores.length === 0) {
+      return undefined;
+    }
+
+    // Calculate average and round to nearest integer
+    const average = scores.reduce((sum, score) => sum + score, 0) / scores.length;
+    return Math.round(average);
+  }, [isOwnProfile, matchesData]);
 
   const handleNavigateToRizzScore = () => {
     router.push("/profile/rizz-score");
@@ -462,16 +510,16 @@ export default function UserProfileHeader({
                 isFromFallback: !platformLoading && combinedMetrics.totalFollowers === 0 && user.stats?.totalFollowers > 0,
               },
               {
-                label: "Engagement Rate",
-                value: platformLoading ? "..." : (combinedMetrics.averageEngagementRate > 0 ? `${combinedMetrics.averageEngagementRate.toFixed(1)}%` : `${user.stats?.avgEngagement || "0"}%`),
-                color: "purple",
+                label: "Matching Rizz Score",
+                value: matchingRizzScore !== undefined ? `${matchingRizzScore}` : "—",
+                color: "green",
                 icon: TrendingUp,
-                change: "soon",
-                isFromAPI: !platformLoading && combinedMetrics.averageEngagementRate > 0,
-                isFromFallback: !platformLoading && combinedMetrics.averageEngagementRate === 0 && user.stats?.avgEngagement > 0,
+                change: null,
+                isFromAPI: false,
+                isFromFallback: false,
               },
               {
-                label: "Rizz Score",
+                label: "Profile Rizz Score",
                 value: user.rizzScore || "0",
                 color: "purple",
                 icon: Star,
@@ -487,9 +535,9 @@ export default function UserProfileHeader({
             ].map((stat, index) => (
               <div
                 key={stat.label}
-                className={`group relative overflow-hidden rounded-2xl bg-white dark:bg-gray-800/50 border border-gray-200/60 dark:border-gray-700/60 p-4 sm:p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] backdrop-blur-sm ${stat.label === "Rizz Score" && isOwnProfile ? "cursor-pointer" : ""
+                className={`group relative overflow-hidden rounded-2xl bg-white dark:bg-gray-800/50 border border-gray-200/60 dark:border-gray-700/60 p-4 sm:p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] backdrop-blur-sm ${stat.label === "Profile Rizz Score" && isOwnProfile ? "cursor-pointer" : ""
                   }`}
-                onClick={stat.label === "Rizz Score" && isOwnProfile ? handleNavigateToRizzScore : undefined}
+                onClick={stat.label === "Profile Rizz Score" && isOwnProfile ? handleNavigateToRizzScore : undefined}
               >
                 <div className="flex justify-between items-center mb-3 sm:mb-4">
                   <div
@@ -568,7 +616,7 @@ export default function UserProfileHeader({
                   <div className="self-start text-sm font-medium text-gray-500 dark:text-gray-400">
                     {stat.label}
                   </div>
-                  {stat.label === "Rizz Score" && isOwnProfile && (
+                  {stat.label === "Profile Rizz Score" && isOwnProfile && (
                     <div className="flex self-end">
                       <div className="flex items-center text-xs font-medium text-purple-500 opacity-0 transition-opacity duration-200 dark:text-purple-400 group-hover:opacity-100">
                         View Details →
@@ -796,7 +844,7 @@ export default function UserProfileHeader({
         // Extract YouTube username from URL
         if (socialLinks.youtube) {
           const match = socialLinks.youtube.match(/(?:youtube\.com\/@|youtube\.com\/c\/)([^/?]+)/) ||
-                       socialLinks.youtube.match(/youtube\.com\/user\/([^/?]+)/);
+            socialLinks.youtube.match(/youtube\.com\/user\/([^/?]+)/);
           if (match) {
             platformCreds.youtube = match[1];
           }
