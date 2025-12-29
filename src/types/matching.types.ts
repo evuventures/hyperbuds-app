@@ -83,6 +83,26 @@ export interface MatchFeedback {
   comment?: string;
 }
 
+/**
+ * New API Response format from backend
+ * GET /api/v1/update/rizz-score
+ * POST /api/v1/matching/rizz-score/recalculate
+ */
+export interface RizzScoreApiResponse {
+  rizzScore: number;
+  factors: {
+    niches: number;
+    engagement: number;
+    location: number;
+  };
+  trend: "up" | "down" | "stable";
+  lastUpdated: string;
+}
+
+/**
+ * Internal RizzScore type used by components
+ * This is the adapted version from RizzScoreApiResponse
+ */
 export interface RizzScore {
   _id: string;
   userId: string;

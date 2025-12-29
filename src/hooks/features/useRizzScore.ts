@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { matchingApi } from '../../lib/api/matching.api';
+import { matchingApi, adaptRizzScoreResponse } from '../../lib/api/matching.api';
 import { updateApi } from '../../lib/api/update.api';
 import { useToast } from '../ui/useToast';
 import type {
@@ -22,8 +22,14 @@ const RIZZ_KEYS = {
 export const useRizzScore = () => {
   return useQuery({
     queryKey: RIZZ_KEYS.score(),
-    queryFn: () => matchingApi.getRizzScore(),
-    select: (data) => data.rizzScore,
+    queryFn: async () => {
+      const apiResponse = await matchingApi.getRizzScore();
+      // Get userId from localStorage if available
+      const userId = typeof window !== 'undefined' 
+        ? localStorage.getItem('userId') || ''
+        : '';
+      return adaptRizzScoreResponse(apiResponse, userId);
+    },
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 };
@@ -37,12 +43,19 @@ export const useRecalculateRizzScore = () => {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: () => matchingApi.recalculateRizzScore(),
-    onSuccess: (data) => {
-      queryClient.setQueryData(RIZZ_KEYS.score(), { rizzScore: data.rizzScore });
+    mutationFn: async () => {
+      const apiResponse = await matchingApi.recalculateRizzScore();
+      // Get userId from localStorage if available
+      const userId = typeof window !== 'undefined' 
+        ? localStorage.getItem('userId') || ''
+        : '';
+      return adaptRizzScoreResponse(apiResponse, userId);
+    },
+    onSuccess: (adaptedScore) => {
+      queryClient.setQueryData(RIZZ_KEYS.score(), adaptedScore);
       toast({
         title: 'Rizz Score Recalculated!',
-        description: data.message || 'Your Rizz Score has been updated',
+        description: 'Your Rizz Score has been updated',
       });
     },
     onError: (error) => {

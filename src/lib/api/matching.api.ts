@@ -8,6 +8,7 @@ import type {
   MatchAction,
   MatchFeedback,
   RizzScore,
+  RizzScoreApiResponse,
   LeaderboardQuery,
   PaginatedResponse,
   ApiResponse,
@@ -17,6 +18,74 @@ import type {
 export interface UserStats {
   totalFollowers?: number;
   [key: string]: unknown; // Allows additional fields
+}
+
+/**
+ * Adapter function to convert RizzScoreApiResponse to RizzScore
+ * This maintains backward compatibility with existing components
+ * Handles both new format (with factors) and legacy format (just rizzScore number)
+ */
+function adaptRizzScoreResponse(
+  apiResponse: RizzScoreApiResponse | { rizzScore: number },
+  userId: string = ""
+): RizzScore {
+  const now = new Date().toISOString();
+  
+  // Handle legacy format: {rizzScore: number} without factors
+  const hasFullResponse = 'factors' in apiResponse && apiResponse.factors !== undefined;
+  const factors = hasFullResponse ? apiResponse.factors : {
+    niches: 0,
+    engagement: 0,
+    location: 0,
+  };
+  
+  // Handle trend - default to "stable" if not present
+  const trend = 'trend' in apiResponse ? apiResponse.trend : "stable";
+  const isViral = trend === "up";
+  const trendingScore = trend === "up" ? 75 : trend === "down" ? 25 : 50;
+  
+  // Handle lastUpdated - use current time if not present
+  const lastUpdated = 'lastUpdated' in apiResponse ? apiResponse.lastUpdated : now;
+  
+  return {
+    _id: "",
+    userId,
+    currentScore: apiResponse.rizzScore,
+    factors: {
+      engagement: {
+        avgLikes: 0,
+        avgComments: 0,
+        avgShares: 0,
+        avgViews: 0,
+        engagementRate: factors.engagement,
+      },
+      growth: {
+        followerGrowthRate: factors.location, // Map location to follower growth
+        contentFrequency: 0,
+        consistencyScore: factors.niches, // Map niches to consistency
+      },
+      collaboration: {
+        successfulCollabs: 0,
+        avgPartnerRating: 0,
+        responseRate: 0,
+        completionRate: 0,
+      },
+      quality: {
+        contentScore: factors.niches, // Map niches to content score
+        technicalQuality: 0,
+        originality: 0,
+      },
+    },
+    trending: {
+      isViral,
+      trendingScore,
+      viralContent: [],
+    },
+    lastCalculated: lastUpdated,
+    calculationVersion: "2.0",
+    createdAt: now,
+    updatedAt: now,
+  };
 }
 
 export const matchingApi = {
@@ -122,138 +191,19 @@ export const matchingApi = {
   },
 
   // ✅ 8. Get user's Rizz Score
-  // Updated to use new endpoint: GET /api/v1/update/rizz-score
-  getRizzScore: async (): Promise<{ rizzScore: RizzScore }> => {
+  // GET /api/v1/update/rizz-score
+  // Returns either full RizzScoreApiResponse or legacy {rizzScore: number} format
+  getRizzScore: async (): Promise<RizzScoreApiResponse | { rizzScore: number }> => {
     const response = await apiClient.get("/update/rizz-score");
-    const data = response.data;
-    
-    // Handle case where backend returns just a number: { rizzScore: 37 }
-    // Convert it to full RizzScore object structure
-    if (typeof data.rizzScore === 'number') {
-      const scoreValue = data.rizzScore;
-      const now = new Date().toISOString();
-      
-      // Create a normalized RizzScore object with default values
-      const normalizedRizzScore: RizzScore = {
-        _id: '',
-        userId: '',
-        currentScore: scoreValue,
-        factors: {
-          engagement: {
-            avgLikes: 0,
-            avgComments: 0,
-            avgShares: 0,
-            avgViews: 0,
-            engagementRate: 0,
-          },
-          growth: {
-            followerGrowthRate: 0,
-            contentFrequency: 0,
-            consistencyScore: 0,
-          },
-          collaboration: {
-            successfulCollabs: 0,
-            avgPartnerRating: 0,
-            responseRate: 0,
-            completionRate: 0,
-          },
-          quality: {
-            contentScore: 0,
-            technicalQuality: 0,
-            originality: 0,
-          },
-        },
-        trending: {
-          isViral: false,
-          trendingScore: 0,
-          viralContent: [],
-        },
-        lastCalculated: now,
-        calculationVersion: '1.0',
-        createdAt: now,
-        updatedAt: now,
-      };
-      
-      return { rizzScore: normalizedRizzScore };
-    }
-    
-    // If it's already a full object, return as is
-    return data;
+    return response.data;
   },
 
   // ✅ 9. Recalculate Rizz Score
-  recalculateRizzScore: async (): Promise<{
-    message: string;
-    rizzScore: RizzScore;
-  }> => {
-    try {
-      const response = await apiClient.post("/matching/rizz-score/recalculate");
-      const data = response.data;
-      
-      // Handle case where backend returns just a number: { rizzScore: 37 }
-      // Convert it to full RizzScore object structure
-      if (data.rizzScore && typeof data.rizzScore === 'number') {
-        const scoreValue = data.rizzScore;
-        const now = new Date().toISOString();
-        
-        // Create a normalized RizzScore object with default values
-        const normalizedRizzScore: RizzScore = {
-          _id: '',
-          userId: '',
-          currentScore: scoreValue,
-          factors: {
-            engagement: {
-              avgLikes: 0,
-              avgComments: 0,
-              avgShares: 0,
-              avgViews: 0,
-              engagementRate: 0,
-            },
-            growth: {
-              followerGrowthRate: 0,
-              contentFrequency: 0,
-              consistencyScore: 0,
-            },
-            collaboration: {
-              successfulCollabs: 0,
-              avgPartnerRating: 0,
-              responseRate: 0,
-              completionRate: 0,
-            },
-            quality: {
-              contentScore: 0,
-              technicalQuality: 0,
-              originality: 0,
-            },
-          },
-          trending: {
-            isViral: false,
-            trendingScore: 0,
-            viralContent: [],
-          },
-          lastCalculated: now,
-          calculationVersion: '1.0',
-          createdAt: now,
-          updatedAt: now,
-        };
-        
-        return {
-          message: data.message || 'Rizz Score recalculated successfully',
-          rizzScore: normalizedRizzScore,
-        };
-      }
-      
-      // If it's already a full object, return as is
-      return data;
-    } catch (error: unknown) {
-      // If recalculate endpoint doesn't exist or fails, just refetch the current score
-      console.warn('Recalculate endpoint not available, fetching current score instead:', error);
-      const currentScore = await matchingApi.getRizzScore();
-      return {
-        message: 'Score refreshed (recalculate endpoint not available)',
-        rizzScore: currentScore.rizzScore,
-      };
-    }
+  // POST /api/v1/matching/rizz-score/recalculate
+  // Returns either full RizzScoreApiResponse or legacy {rizzScore: number} format
+  recalculateRizzScore: async (): Promise<RizzScoreApiResponse | { rizzScore: number }> => {
+    const response = await apiClient.post("/matching/rizz-score/recalculate");
+    return response.data;
   },
 
   // ✅ 10. Leaderboard (Rizz Rankings)
@@ -287,5 +237,8 @@ export const matchingApi = {
     return response.data;
   },
 };
+
+// Export adapter function for use in hooks
+export { adaptRizzScoreResponse };
 
 export default matchingApi;

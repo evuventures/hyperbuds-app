@@ -1,4 +1,4 @@
-import { matchingApi } from '@/lib/api/matching.api';
+import { matchingApi, adaptRizzScoreResponse } from '@/lib/api/matching.api';
 import type { RizzScore } from '@/types/matching.types';
 
 export class RizzScoreService {
@@ -22,25 +22,26 @@ export class RizzScoreService {
       }
 
       try {
-         const response = await matchingApi.getRizzScore();
-         const rizzScore = response.rizzScore;
+         const apiResponse = await matchingApi.getRizzScore();
+         const adaptedScore = adaptRizzScoreResponse(apiResponse, userId || '');
 
-         this.cache.set(cacheKey, rizzScore);
-         return rizzScore;
+         this.cache.set(cacheKey, adaptedScore);
+         return adaptedScore;
       } catch (error) {
          console.error('Failed to fetch Rizz Score:', error);
          throw new Error('Unable to load Rizz Score data');
       }
    }
 
-   async recalculateRizzScore(): Promise<RizzScore> {
+   async recalculateRizzScore(userId?: string): Promise<RizzScore> {
       try {
-         const response = await matchingApi.recalculateRizzScore();
-         const rizzScore = response.rizzScore;
+         const apiResponse = await matchingApi.recalculateRizzScore();
+         const adaptedScore = adaptRizzScoreResponse(apiResponse, userId || '');
 
          // Update cache
-         this.cache.set('current-user', rizzScore);
-         return rizzScore;
+         const cacheKey = userId || 'current-user';
+         this.cache.set(cacheKey, adaptedScore);
+         return adaptedScore;
       } catch (error) {
          console.error('Failed to recalculate Rizz Score:', error);
          throw new Error('Unable to recalculate Rizz Score');
