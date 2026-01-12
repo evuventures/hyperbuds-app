@@ -28,6 +28,9 @@ export default function ProfileByUsernamePage() {
       try {
         setIsLoading(true);
         setError(null);
+
+        // Handle both /profile/@username and /profile/username formats
+        // The API function will handle the @ symbol internally
         const data = await profileApi.getProfileByUsername(username);
         setProfile(data);
       } catch (err) {
@@ -129,33 +132,36 @@ export default function ProfileByUsernamePage() {
         platformBreakdown: {}
       },
       isPublic: true,
-      isActive: true
+      isActive: true,
+      profileUrl: typeof window !== 'undefined'
+        ? `${window.location.origin}/profile/@${profile.username}`
+        : `https://www.hyperbuds.com/@${profile.username}`
     }
   };
 
   return (
     <DashboardLayout>
-      <div className="container mx-auto px-4 py-8 max-w-6xl">
+      <div className="container mx-auto px-4 py-8 pb-32 max-w-6xl">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
         >
-          <UserProfileHeader 
+          <UserProfileHeader
             userData={profileData}
             isLoading={false}
             isOwnProfile={false}
-            onEditProfile={() => {}}
-            onConnect={() => {}}
-            onMessage={() => {}}
+            onEditProfile={() => { }}
+            onConnect={() => { }}
+            onMessage={() => { }}
           />
-          
+
           {/* Additional profile information */}
           <div className="mt-8 bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-              About {profile.displayName || profile.username}
+              About @{profile.username}
             </h2>
-            
+
             {profile.bio && (
               <p className="text-gray-700 dark:text-gray-300 mb-6">{profile.bio}</p>
             )}

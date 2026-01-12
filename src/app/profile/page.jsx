@@ -21,6 +21,17 @@ export default function ProfilePage() {
       const data = await apiFetch("/api/v1/profiles/me");
       console.log("API Response:", data);
 
+      // Add profileUrl for copy functionality
+      if (data && data.profile) {
+        data.profile.profileUrl = typeof window !== 'undefined'
+          ? `${window.location.origin}/profile/@${data.profile.username}`
+          : `https://www.hyperbuds.com/@${data.profile.username}`;
+      } else if (data) {
+        data.profileUrl = typeof window !== 'undefined'
+          ? `${window.location.origin}/profile/@${data.username}`
+          : `https://www.hyperbuds.com/@${data.username}`;
+      }
+
       // Set the entire response data - the component will handle extracting profile
       setUser(data);
       setError(null);

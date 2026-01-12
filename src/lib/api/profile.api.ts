@@ -56,7 +56,7 @@ export const profileApi = {
     // TEMPORARILY DISABLED - Backend not ready
     // const response = await apiClient.post('/profiles/social-sync/tiktok', data);
     // return response.data;
-    
+
     // Return mock response until backend is ready
     return {
       success: false,
@@ -84,7 +84,7 @@ export const profileApi = {
     // TEMPORARILY DISABLED - Backend not ready
     // const response = await apiClient.post('/profiles/social-sync/twitch', data);
     // return response.data;
-    
+
     // Return mock response until backend is ready
     return {
       success: false,
@@ -112,7 +112,7 @@ export const profileApi = {
     // TEMPORARILY DISABLED - Backend not ready
     // const response = await apiClient.post('/profiles/social-sync/twitter', data);
     // return response.data;
-    
+
     // Return mock response until backend is ready
     return {
       success: false,
@@ -140,7 +140,7 @@ export const profileApi = {
     // TEMPORARILY DISABLED - Backend not ready
     // const response = await apiClient.post('/profiles/social-sync/instagram', data);
     // return response.data;
-    
+
     // Return mock response until backend is ready
     return {
       success: false,
@@ -201,7 +201,7 @@ export const profileApi = {
     //   success: Object.values(results).some(r => 'success' in r && r.success),
     //   results,
     // };
-    
+
     // Return mock response until backend is ready
     const results: Record<string, SocialSyncResponse | { error: string }> = {};
     Object.keys(platformData).forEach(platform => {
@@ -209,7 +209,7 @@ export const profileApi = {
         error: 'Social media sync is temporarily disabled - backend not ready'
       };
     });
-    
+
     return {
       success: false,
       results,
@@ -242,7 +242,8 @@ export const profileApi = {
 
   /**
    * Get profile by username (public profile)
-   * Endpoint: GET /profile/:username
+   * Endpoint: GET /api/v1/update/profile/@:username
+   * Auth: Not required (public access)
    */
   getProfileByUsername: async (username: string): Promise<ProfileByUsernameResponse> => {
     if (!username || username.trim() === '') {
@@ -250,7 +251,16 @@ export const profileApi = {
     }
 
     try {
-      const response = await apiClient.get(`/profile/${encodeURIComponent(username.trim())}`);
+      // Decode username just in case it's still URL encoded (e.g. %40 for @)
+      const decodedUsername = decodeURIComponent(username.trim());
+      console.log('Fetching profile for:', { original: username, decoded: decodedUsername });
+
+      const cleanUsername = decodedUsername.startsWith('@')
+        ? decodedUsername.slice(1)
+        : decodedUsername;
+
+      // Endpoint expects: /update/profile/@username
+      const response = await apiClient.get(`/update/profile/@${encodeURIComponent(cleanUsername)}`);
       return response.data;
     } catch (error: unknown) {
       if (error && typeof error === 'object' && 'response' in error) {

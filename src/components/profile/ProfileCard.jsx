@@ -33,6 +33,7 @@ import {
   Database,
 } from "lucide-react";
 import Link from "next/link";
+import { toast } from "sonner";
 
 // Enhanced Loading skeleton component
 const LoadingSkeleton = () => (
@@ -214,11 +215,14 @@ export default function UserProfileHeader({
 
   const copyProfileUrl = async () => {
     try {
-      await navigator.clipboard.writeText(user.profileUrl);
+      const urlToCopy = user.profileUrl || window.location.href;
+      await navigator.clipboard.writeText(urlToCopy);
       setCopied(true);
+      toast.success("Profile link copied to clipboard!");
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
       console.error("Failed to copy:", err);
+      toast.error("Failed to copy link");
     }
   };
 
@@ -797,7 +801,7 @@ export default function UserProfileHeader({
                     <ExternalLink size={16} className="text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300" />
                   </div>
                 </a>
-              ); 
+              );
             })}
           </div>
         </div>
