@@ -98,7 +98,45 @@ export interface GetNotificationsParams {
   read?: boolean;
 }
 
+// API Response Types (raw backend response structure)
+export interface ApiNotification {
+  id: string;
+  type: string;
+  title: string;
+  message: string;
+  isRead: boolean;
+  timestamp: string;
+  actionUrl?: string;
+  priority?: 'high' | 'medium' | 'low';
+  metadata?: Record<string, unknown>;
+}
 
+export interface ApiNotificationsResponse {
+  notifications: ApiNotification[];
+  summary: {
+    total: number;
+    unread: number;
+    types: Record<string, number>;
+  };
+  filters: {
+    type: string | null;
+    isRead: boolean | null;
+  };
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    pages: number;
+  };
+}
 
+export interface ApiMarkAsReadResponse {
+  message: string;
+  notificationId: string;
+  markedAt: string;
+}
 
-
+export interface ApiMarkAllAsReadResponse {
+  message: string;
+  markedAt: string;
+}
