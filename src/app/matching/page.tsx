@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -5,30 +6,32 @@ import { Loader2, Heart, X, RefreshCw } from "lucide-react";
 import { motion } from "framer-motion";
 import { BASE_URL } from "@/config/baseUrl";
 import type { MatchSuggestion, CreatorProfile } from "@/types/matching.types";
-import PreferencesForm from "@/components/matching/PreferencesForm";
-import MatchCard from "@/components/matching/MatchCard";
-import ProfileModal from "@/components/matching/ProfileModal";
-import CompatibilityModal from "@/components/matching/CompatibilityModal";
-import FunLoader from "@/components/matching/FunLoader";
+//import PreferencesForm from "@/components/matching/PreferencesForm";
+//import MatchCard from "@/components/matching/MatchCard";
+//import ProfileModal from "@/components/matching/ProfileModal";
+//import CompatibilityModal from "@/components/matching/CompatibilityModal";
+//import FunLoader from "@/components/matching/FunLoader";
 import DashboardLayout from "@/components/layout/Dashboard/Dashboard";
 import { suggestionsApi } from "@/lib/api/suggestions.api";
 import { profileApi } from "@/lib/api/profile.api";
 
 export default function MatchmakerPage() {
   const [matches, setMatches] = useState<MatchSuggestion[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [user, setUser] = useState<any>(null);
+  //const [isLoading, setIsLoading] = useState(false);
+  //const [user, setUser] = useState<unknown>(null);
   const [error, setError] = useState<string | null>(null);
   const [userProfile, setUserProfile] = useState<CreatorProfile | null>(null);
   const [dataLoaded, setDataLoaded] = useState(false);
-  const [isSubmittingPreferences, setIsSubmittingPreferences] = useState(false);
-  const [showAILoader, setShowAILoader] = useState(false);
-  const [activeTab, setActiveTab] = useState<string>("ai-matches");
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [selectedMatch, setSelectedMatch] = useState<MatchSuggestion | null>(null);
-  const [selectedProfile, setSelectedProfile] = useState<CreatorProfile | null>(null);
-  const [isCompatibilityModalOpen, setIsCompatibilityModalOpen] = useState(false);
-  const [likedMatches, setLikedMatches] = useState<Set<string>>(new Set());
+  const [, setIsSubmittingPreferences] = useState(false);
+  const [, setShowAILoader] = useState(false);
+  const [, setActiveTab] = useState<string>("ai-matches");
+  const [, setIsRefreshing] = useState(false);
+   
+  const [, setSelectedMatch] = useState<MatchSuggestion | null>(null);
+   
+  const [, setSelectedProfile] = useState<CreatorProfile | null>(null);
+  const [, setIsCompatibilityModalOpen] = useState(false);
+  const [, setLikedMatches] = useState<Set<string>>(new Set());
 
   // ✅ Fetch current user profile and matches
   const loadData = async () => {
@@ -208,42 +211,6 @@ export default function MatchmakerPage() {
     loadData();
   }, []); // Empty dependency array - only run once on mount
 
-  const handleAction = async (matchId: string, action: "like" | "unlike" | "pass" | "view") => {
-    try {
-      const accessToken = localStorage.getItem("accessToken");
-      if (accessToken) {
-        await fetch(`${BASE_URL}/api/v1/matching/matches/${matchId}/action`, {
-          method: "PUT",
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ action }),
-        });
-      }
-
-      if (action === "view") {
-        const match = matches.find(m => m.targetProfile?.userId === matchId);
-        if (match && match.targetProfile) {
-          setSelectedMatch(match);
-          setSelectedProfile(match.targetProfile);
-          setIsCompatibilityModalOpen(true);
-        }
-      } else if (action === "pass") {
-        setMatches(prev => prev.filter(m => m.targetProfile?.userId !== matchId));
-      } else if (action === "like") {
-        setLikedMatches(prev => new Set(prev).add(matchId));
-      } else if (action === "unlike") {
-        setLikedMatches(prev => {
-          const newSet = new Set(prev);
-          newSet.delete(matchId);
-          return newSet;
-        });
-      }
-    } catch (err) {
-      console.error("Action failed:", err);
-    }
-  };
 
 
   const handleCollaboration = async (matchId: string) => {
@@ -443,7 +410,7 @@ export default function MatchmakerPage() {
             </p>
             <button
               onClick={loadData}
-              className="px-6 py-3 bg-gradient-to-r from-pink-500 to-purple-500 text-white rounded-lg hover:from-pink-600 hover:to-purple-600 flex items-center transition-all transform hover:scale-105 shadow-lg"
+              className="px-6 py-3 bg-linear-to-r from-pink-500 to-purple-500 text-white rounded-lg hover:from-pink-600 hover:to-purple-600 flex items-center transition-all transform hover:scale-105 shadow-lg"
             >
               <RefreshCw className="mr-2 w-4 h-4" /> Refresh
             </button>
