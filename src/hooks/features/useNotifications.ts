@@ -77,9 +77,11 @@ export const useMarkAllNotificationsAsRead = () => {
       // Invalidate all notification queries
       queryClient.invalidateQueries({ queryKey: notificationKeys.all });
 
+      const description = data.count > 0 ? `${data.count} notifications updated` : undefined;
+
       toast({
         title: 'All notifications marked as read',
-        description: `${data.count} notifications updated`,
+        ...(description ? { description } : {}),
         duration: 2000,
       });
     },
@@ -158,4 +160,3 @@ export const useUnreadNotificationCount = () => {
 };
 
 export default useNotifications;
-

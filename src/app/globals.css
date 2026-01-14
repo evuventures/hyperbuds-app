@@ -1597,3 +1597,42 @@ textarea:focus-visible {
 .dark .hover\:scrollbar-thin:hover {
   scrollbar-color: rgba(75, 85, 99, 0.4) transparent;
 }
+/* Notification dropdown scrollbar */
+.notification-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(31, 41, 55, 0.8) rgba(0, 0, 0, 0.08);
+}
+
+.notification-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.notification-scrollbar::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.08);
+  border-radius: 8px;
+}
+
+.notification-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(31, 41, 55, 0.8);
+  border-radius: 8px;
+}
+
+.notification-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(17, 24, 39, 0.9);
+}
+
+.dark .notification-scrollbar {
+  scrollbar-color: rgba(55, 65, 81, 0.9) rgba(15, 23, 42, 0.6);
+}
+
+.dark .notification-scrollbar::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.6);
+}
+
+.dark .notification-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(55, 65, 81, 0.9);
+}
+
+.dark .notification-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(30, 41, 59, 0.95);
+}

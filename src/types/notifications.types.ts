@@ -19,7 +19,7 @@ export type NotificationType =
 
 export interface Notification {
   id: string;
-  userId: string;
+  userId?: string;
   type: NotificationType;
   title: string;
   message: string;
@@ -97,4 +97,8 @@ export interface GetNotificationsParams {
   type?: NotificationType;
   read?: boolean;
 }
+
+
+
+
 

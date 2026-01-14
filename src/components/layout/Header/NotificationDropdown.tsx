@@ -102,7 +102,7 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
           )}
 
           {/* Notifications List */}
-          <div className="overflow-y-auto max-h-96">
+          <div className="overflow-y-auto max-h-96 notification-scrollbar">
             {isLoading ? (
               <div className="flex flex-col items-center justify-center py-8">
                 <Loader2 className="w-8 h-8 text-purple-500 animate-spin" />
