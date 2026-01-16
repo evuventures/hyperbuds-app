@@ -11,6 +11,7 @@ import { BASE_URL } from '@/config/baseUrl';
 import { LucideAArrowDown, X, Check } from 'lucide-react';
 import { useNiches } from '@/hooks/features/useNiches';
 import { nicheApi } from '@/lib/api/niche.api';
+import { validateImageUrl } from '@/lib/utils/imageUrlValidation';
 
 import { motion, AnimatePresence } from 'framer-motion';
 const SOCIAL_PLATFORMS = [
@@ -38,9 +39,12 @@ export default function MultiStepProfileForm() {
   const [currentStep, setCurrentStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Step 1 - Avatar Upload
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [previewUrl, setPreviewUrl] = useState(null);
+  // Step 1 - Avatar (File or URL)
+  const [avatarUrl, setAvatarUrl] = useState('');
+  const [avatarUrlError, setAvatarUrlError] = useState('');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Step 2 - Profile Info
   const [username, setUsername] = useState('');
@@ -203,20 +207,79 @@ export default function MultiStepProfileForm() {
     }
   };
 
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file && file.type.startsWith('image/')) {
-      if (file.size > 5 * 1024 * 1024) { // 5MB limit from API
-        setError('Image must be smaller than 5MB');
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file type
+      const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"];
+      if (!allowedTypes.includes(file.type)) {
+        setError('Invalid file type. Only JPG, PNG, GIF, and WebP files are allowed.');
         return;
       }
+
+      // Validate file size (5MB max)
+      const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+      if (file.size > maxSize) {
+        setError('File size exceeds 5MB limit.');
+        return;
+      }
+
       setSelectedFile(file);
       setPreviewUrl(URL.createObjectURL(file));
+      setAvatarUrl(''); // Clear URL input when file is selected
+      setAvatarUrlError('');
       setError('');
-    } else {
+    }
+  };
+
+  const handleAvatarUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const url = e.target.value.trim();
+    setAvatarUrl(url);
+    setAvatarUrlError('');
+    setError('');
+
+    // Clear file selection when URL is entered
+    if (url) {
       setSelectedFile(null);
-      setPreviewUrl(null);
-      setError('Please select a valid image file.');
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+        setPreviewUrl(null);
+      }
+    }
+
+    if (url) {
+      const validation = validateImageUrl(url);
+      if (!validation.valid) {
+        setAvatarUrlError(validation.error || 'Invalid URL');
+      }
+    }
+  };
+
+  const uploadAvatarFromFile = async (): Promise<string | null> => {
+    if (!selectedFile) return null;
+
+    try {
+      // Import UploadThing utility
+      const { uploadAvatar: uploadToUploadThing } = await import('@/lib/utils/uploadthing');
+
+      // Upload to UploadThing to get CDN URL
+      setMessage('Uploading image to UploadThing...');
+      const uploadedUrl = await uploadToUploadThing(selectedFile);
+      console.log('UploadThing URL received:', uploadedUrl);
+
+      // Cleanup preview URL
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+        setPreviewUrl(null);
+      }
+      setSelectedFile(null);
+
+      return uploadedUrl;
+    } catch (error) {
+      console.error('Avatar upload error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to upload avatar';
+      setError(errorMessage);
+      return null;
     }
   };
 
@@ -292,28 +355,6 @@ export default function MultiStepProfileForm() {
     }));
   };
 
-  const uploadAvatar = async () => {
-    if (!selectedFile) return null;
-
-    try {
-      // Import UploadThing utility
-      const { uploadAvatar: uploadToUploadThing } = await import('@/lib/utils/uploadthing');
-
-      // Step 1: Upload to UploadThing to get CDN URL
-      setMessage('Uploading image to UploadThing...');
-      const avatarUrl = await uploadToUploadThing(selectedFile);
-      console.log('UploadThing URL received:', avatarUrl);
-
-      // Step 2: Send URL to backend to save in profile
-      // This will be done in handleSubmit when profile is created/updated
-      return avatarUrl;
-    } catch (error) {
-      console.error('Avatar upload error:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to upload avatar';
-      setError(errorMessage);
-      return null;
-    }
-  };
 
   const handleSubmit = async () => {
     setIsLoading(true);
@@ -321,11 +362,25 @@ export default function MultiStepProfileForm() {
     setError('');
 
     try {
-      // Step 1: Upload avatar if selected
-      let avatarUrl = null;
+      // Step 1: Upload file if selected, otherwise use URL
+      let finalAvatarUrl: string | null = null;
+      
       if (selectedFile) {
         setMessage('Uploading profile picture...');
-        avatarUrl = await uploadAvatar();
+        finalAvatarUrl = await uploadAvatarFromFile();
+        if (!finalAvatarUrl) {
+          setIsLoading(false);
+          return; // Error already set by uploadAvatarFromFile
+        }
+      } else if (avatarUrl) {
+        // Validate avatar URL if provided
+        const validation = validateImageUrl(avatarUrl);
+        if (!validation.valid) {
+          setError(validation.error || 'Invalid avatar URL');
+          setIsLoading(false);
+          return;
+        }
+        finalAvatarUrl = avatarUrl.trim();
       }
 
       // Step 2: Create/update profile
@@ -347,7 +402,7 @@ export default function MultiStepProfileForm() {
           state: location.state?.trim() || undefined,
           country: location.country?.trim() || undefined
         } : undefined,
-        avatar: avatarUrl || undefined,
+        avatar: finalAvatarUrl || undefined,
 
       };
 
@@ -488,31 +543,76 @@ export default function MultiStepProfileForm() {
         <h2 className="mb-2 text-3xl font-bold text-transparent bg-clip-text bg-linear-to-r from-purple-600 to-blue-600">
           Add Your Profile Picture
         </h2>
-        <p className="text-gray-600">This will be your public profile photo (Max 5MB)</p>
+        <p className="text-gray-600">Enter the URL of your profile image</p>
       </div>
 
       <div className="flex justify-center">
         <div className="flex overflow-hidden relative justify-center items-center w-32 h-32 bg-linear-to-r from-purple-100 to-blue-100 rounded-full border-4 border-white shadow-xl transition-all duration-300 hover:scale-105">
-          {previewUrl ? (
-            <img src={previewUrl} alt="Profile Preview" className="object-cover w-full h-full" />
+          {previewUrl || (avatarUrl && !avatarUrlError) ? (
+            <img 
+              src={previewUrl || avatarUrl} 
+              alt="Profile Preview" 
+              className="object-cover w-full h-full"
+              onError={() => {
+                if (avatarUrl && !previewUrl) {
+                  setAvatarUrlError('Failed to load image from URL');
+                }
+              }}
+            />
           ) : (
             <FaCamera className="w-8 h-8 text-purple-400" />
           )}
         </div>
       </div>
 
-      <div className="text-center">
-        <label htmlFor="file-upload" className="inline-flex gap-2 items-center px-6 py-3 font-semibold text-white bg-linear-to-r from-purple-500 to-blue-500 rounded-xl shadow-lg transition-all duration-300 cursor-pointer hover:shadow-xl hover:scale-105">
-          <FaCamera className="w-4 h-4" />
-          Choose Photo
-        </label>
-        <input
-          id="file-upload"
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={handleFileChange}
-        />
+      <div className="space-y-4">
+        {/* File Upload Option */}
+        <div>
+          <label htmlFor="file-upload" className="inline-flex gap-2 items-center w-full justify-center px-6 py-3 font-semibold text-white bg-linear-to-r from-purple-500 to-blue-500 rounded-xl shadow-lg transition-all duration-300 cursor-pointer hover:shadow-xl hover:scale-105">
+            <FaCamera className="w-4 h-4" />
+            {selectedFile ? `File Selected: ${selectedFile.name}` : "Choose Photo"}
+          </label>
+          <input
+            id="file-upload"
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleFileChange}
+          />
+        </div>
+
+        {/* Divider */}
+        <div className="flex items-center gap-2">
+          <div className="flex-1 border-t border-gray-300"></div>
+          <span className="text-xs text-gray-500">OR</span>
+          <div className="flex-1 border-t border-gray-300"></div>
+        </div>
+
+        {/* URL Input Option */}
+        <div className="space-y-2">
+          <label htmlFor="avatar-url" className="block text-sm font-semibold text-gray-700">
+            Image URL
+          </label>
+          <input
+            id="avatar-url"
+            type="url"
+            value={avatarUrl}
+            onChange={handleAvatarUrlChange}
+            placeholder="https://example.com/your-image.jpg"
+            className={`px-4 py-3 w-full rounded-xl border-2 transition-all duration-200 focus:ring-2 ${
+              avatarUrlError
+                ? 'border-red-300 focus:border-red-500 focus:ring-red-200'
+                : 'border-gray-200 focus:border-purple-500 focus:ring-purple-200'
+            }`}
+          />
+          {avatarUrlError && (
+            <p className="text-xs text-red-500">{avatarUrlError}</p>
+          )}
+          <p className="text-xs text-gray-500">
+            Enter a URL to an image file (JPG, PNG, GIF, or WebP). Optional.
+          </p>
+        </div>
       </div>
     </div>
   );

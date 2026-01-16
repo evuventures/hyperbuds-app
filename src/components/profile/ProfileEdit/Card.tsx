@@ -5,11 +5,11 @@ import { FaCamera, FaCheckCircle, FaSpinner, FaSearch } from "react-icons/fa";
 import { ChevronLeft, X, Check, LucideAArrowDown } from "lucide-react";
 import { BASE_URL } from "@/config/baseUrl";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { PlatformUsernameGroup } from "@/components/profile/PlatformUsernameInput";
 import { useNiches } from "@/hooks/features/useNiches";
 import { nicheApi } from "@/lib/api/niche.api";
+import { validateImageUrl } from "@/lib/utils/imageUrlValidation";
 
 // Define a type for a social media link
 interface SocialLinks {
@@ -128,15 +128,18 @@ export default function EditProfilePage() {
   const [socialLinks, setSocialLinks] = useState<SocialLinks>({});
   const [platformCredentials, setPlatformCredentials] = useState<PlatformCredentials>({});
   const [avatar, setAvatar] = useState<string | null>(null);
+  const [avatarUrl, setAvatarUrl] = useState<string>("");
+  const [avatarUrlError, setAvatarUrlError] = useState<string>("");
+  const [imageLoadingError, setImageLoadingError] = useState<boolean>(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
   // Fetch niches from API
   const { data: availableNiches = [], isLoading: isLoadingNiches, error: nichesError } = useNiches();
-
-  // Ref for file input
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Smooth navigation function
   const handleNavigation = (path: string) => {
@@ -245,7 +248,9 @@ export default function EditProfilePage() {
 
           setSocialLinks(socialLinksData);
           setPlatformCredentials(platformCreds);
-          setAvatar(data.avatar || null);
+          const avatarValue = data.avatar || null;
+          setAvatar(avatarValue);
+          setAvatarUrl(avatarValue || "");
 
         } else if (response.status === 401) {
           router.push("/auth/signin");
@@ -378,36 +383,136 @@ export default function EditProfilePage() {
     setSocialLinks((prev: SocialLinks) => ({ ...prev, [platformId]: cleanedValue }));
   };*/}
 
-  const handleAvatarClick = () => {
-    console.log("Avatar clicked - opening file picker");
-    fileInputRef.current?.click();
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file type
+      const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"];
+      if (!allowedTypes.includes(file.type)) {
+        setError("Invalid file type. Only JPG, PNG, GIF, and WebP files are allowed.");
+        return;
+      }
+
+      // Validate file size (5MB max)
+      const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+      if (file.size > maxSize) {
+        setError("File size exceeds 5MB limit.");
+        return;
+      }
+
+      setSelectedFile(file);
+      setPreviewUrl(URL.createObjectURL(file));
+      setAvatarUrl(""); // Clear URL input when file is selected
+      setAvatarUrlError("");
+      setError("");
+      setImageLoadingError(false);
+    }
   };
 
-  const handleAvatarUpload = async (file: File) => {
-    console.log("File selected:", file.name, file.type, file.size);
+  const handleAvatarUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const url = e.target.value.trim();
+    setAvatarUrl(url);
+    setAvatarUrlError("");
+    setError("");
+    setImageLoadingError(false); // Reset image loading error when URL changes
+
+    // Clear file selection when URL is entered
+    if (url) {
+      setSelectedFile(null);
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+        setPreviewUrl(null);
+      }
+    }
+
+    // Only validate URL format, don't show errors for image loading during typing
+    if (url) {
+      const validation = validateImageUrl(url);
+      if (!validation.valid) {
+        setAvatarUrlError(validation.error || "Invalid URL");
+      }
+    }
+  };
+
+  const handleFileUpload = async () => {
+    if (!selectedFile) return;
+
     setMessage("");
     setError("");
+    setAvatarUrlError("");
 
     try {
       // Import UploadThing utility
       const { uploadAvatar } = await import("@/lib/utils/uploadthing");
       const { profileApi } = await import("@/lib/api/profile.api");
 
-      // Step 1: Upload to UploadThing to get CDN URL
+      // Upload to UploadThing to get CDN URL
       setMessage("Uploading image...");
-      const avatarUrl = await uploadAvatar(file);
-      console.log("UploadThing URL received:", avatarUrl);
+      const uploadedUrl = await uploadAvatar(selectedFile);
+      console.log("UploadThing URL received:", uploadedUrl);
 
-      // Step 2: Send URL to backend to save in profile
+      // Send URL to backend to save in profile
       setMessage("Saving to profile...");
-      await profileApi.updateAvatar(avatarUrl);
+      await profileApi.updateAvatar(uploadedUrl);
 
-      // Step 3: Update local state
-      setAvatar(avatarUrl);
+      // Update local state
+      setAvatar(uploadedUrl);
+      setAvatarUrl(uploadedUrl);
       setMessage("Profile picture uploaded successfully!");
 
-      // Step 4: Trigger profile refresh for other pages
-      // Set a flag in localStorage to trigger refresh on profile pages
+      // Cleanup preview URL
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+        setPreviewUrl(null);
+      }
+      setSelectedFile(null);
+
+      // Trigger profile refresh for other pages
+      localStorage.setItem('profileUpdated', 'true');
+      window.dispatchEvent(new StorageEvent('storage', {
+        key: 'profileUpdated',
+        newValue: 'true'
+      }));
+
+      // Clear message after 3 seconds
+      setTimeout(() => setMessage(""), 3000);
+    } catch (err) {
+      console.error("Avatar upload failed:", err);
+      const errorMessage = err instanceof Error ? err.message : "Failed to upload profile picture. Please try again.";
+      setError(errorMessage);
+      setTimeout(() => setError(""), 5000);
+    }
+  };
+
+  const handleAvatarUrlSubmit = async () => {
+    if (!avatarUrl || !avatarUrl.trim()) {
+      setError("Please enter an image URL");
+      return;
+    }
+
+    // Validate URL
+    const validation = validateImageUrl(avatarUrl);
+    if (!validation.valid) {
+      setError(validation.error || "Invalid image URL");
+      return;
+    }
+
+    setMessage("");
+    setError("");
+    setAvatarUrlError("");
+
+    try {
+      const { profileApi } = await import("@/lib/api/profile.api");
+
+      // Send URL to backend to save in profile
+      setMessage("Saving profile picture...");
+      await profileApi.updateAvatar(avatarUrl.trim());
+
+      // Update local state
+      setAvatar(avatarUrl.trim());
+      setMessage("Profile picture updated successfully!");
+
+      // Trigger profile refresh for other pages
       localStorage.setItem('profileUpdated', 'true');
       
       // Dispatch storage event for cross-tab communication
@@ -419,8 +524,8 @@ export default function EditProfilePage() {
       // Clear message after 3 seconds
       setTimeout(() => setMessage(""), 3000);
     } catch (err) {
-      console.error("Avatar upload failed:", err);
-      const errorMessage = err instanceof Error ? err.message : "Failed to upload profile picture. Please try again.";
+      console.error("Avatar update failed:", err);
+      const errorMessage = err instanceof Error ? err.message : "Failed to update profile picture. Please try again.";
       setError(errorMessage);
       // Clear error after 5 seconds
       setTimeout(() => setError(""), 5000);
@@ -776,7 +881,7 @@ export default function EditProfilePage() {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3, duration: 0.4 }}
           >
-            {/* Avatar Upload */}
+            {/* Avatar URL Input */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -784,53 +889,106 @@ export default function EditProfilePage() {
               className="mb-8"
             >
               <label className="block mb-2 font-semibold text-gray-700 dark:text-white">Profile Picture</label>
-              <div className="flex gap-4 items-center">
-                <div
-                  onClick={handleAvatarClick}
-                  className="relative group cursor-pointer"
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={(e) => e.key === 'Enter' && handleAvatarClick()}
-                >
-                  <div className="flex overflow-hidden justify-center items-center w-24 h-24 bg-gray-100 rounded-full shadow-lg transition-all group-hover:ring-4 group-hover:ring-purple-500/50 dark:bg-gray-700">
-                    {avatar ? (
-                      <Image src={avatar} alt="avatar" width={96} height={96} className="object-cover w-full h-full pointer-events-none" />
+              <div className="flex gap-4 items-start">
+                <div className="flex overflow-hidden justify-center items-center w-24 h-24 bg-gray-100 rounded-full shadow-lg transition-all dark:bg-gray-700 flex-shrink-0">
+                  {(() => {
+                    // Show preview URL if file is selected, otherwise show URL or saved avatar
+                    const imageSrc = previewUrl || ((avatarUrl && !avatarUrlError) ? avatarUrl : avatar);
+                    const shouldShowImage = imageSrc && (!avatarUrl || !imageLoadingError || avatar === imageSrc || previewUrl);
+                    return shouldShowImage ? (
+                      <img 
+                        src={imageSrc} 
+                        alt="avatar" 
+                        className="object-cover w-full h-full pointer-events-none"
+                        crossOrigin={previewUrl ? undefined : "anonymous"}
+                        onError={() => {
+                          // Only set error if this is a new URL being entered, not the saved avatar or preview
+                          if (avatarUrl && avatarUrl === imageSrc && avatar !== imageSrc && !previewUrl) {
+                            setImageLoadingError(true);
+                          }
+                        }}
+                        onLoad={() => {
+                          // Clear error if image loads successfully
+                          setImageLoadingError(false);
+                        }}
+                      />
                     ) : (
-                      <FaCamera className="w-8 h-8 text-gray-400 group-hover:text-purple-500 transition-colors pointer-events-none" />
+                      <FaCamera className="w-8 h-8 text-gray-400 transition-colors pointer-events-none" />
+                    );
+                  })()}
+                </div>
+
+                <div className="flex-1 space-y-3">
+                  {/* File Upload Option */}
+                  <div>
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="w-full px-4 py-2 text-sm font-medium text-purple-600 bg-purple-50 rounded-lg border border-purple-200 transition-all cursor-pointer hover:bg-purple-100 dark:bg-purple-900/30 dark:text-purple-400 dark:border-purple-700 dark:hover:bg-purple-900/50"
+                    >
+                      <FaCamera className="inline mr-2 w-4 h-4" />
+                      {selectedFile ? `File Selected: ${selectedFile.name}` : "Choose File"}
+                    </button>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileChange}
+                      className="hidden"
+                    />
+                    {selectedFile && (
+                      <button
+                        type="button"
+                        onClick={handleFileUpload}
+                        disabled={isLoading}
+                        className="w-full mt-2 px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-lg transition-all cursor-pointer hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-purple-700 dark:hover:bg-purple-800"
+                      >
+                        {isLoading ? "Uploading..." : "Upload Image"}
+                      </button>
                     )}
                   </div>
-                  {/* Overlay on hover */}
-                  <div className="flex absolute inset-0 justify-center items-center bg-black/50 rounded-full opacity-0 transition-opacity pointer-events-none group-hover:opacity-100">
-                    <FaCamera className="w-6 h-6 text-white" />
-                  </div>
-                </div>
 
-                <div className="flex flex-col gap-2">
-                  <button
-                    type="button"
-                    onClick={handleAvatarClick}
-                    className="px-4 py-2 text-sm font-medium text-purple-600 bg-purple-50 rounded-lg border border-purple-200 transition-all cursor-pointer hover:bg-purple-100 dark:bg-purple-900/30 dark:text-purple-400 dark:border-purple-700 dark:hover:bg-purple-900/50"
-                  >
-                    <FaCamera className="inline mr-2 w-4 h-4" />
-                    Choose Photo
-                  </button>
+                  {/* Divider */}
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 border-t border-gray-300 dark:border-gray-600"></div>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">OR</span>
+                    <div className="flex-1 border-t border-gray-300 dark:border-gray-600"></div>
+                  </div>
+
+                  {/* URL Input Option */}
+                  <div>
+                    <input
+                      type="url"
+                      value={avatarUrl}
+                      onChange={handleAvatarUrlChange}
+                      placeholder="https://example.com/your-image.jpg"
+                      className={`px-4 py-2 w-full rounded-lg border-2 transition-all focus:ring-2 ${
+                        avatarUrlError
+                          ? 'border-red-300 focus:border-red-500 focus:ring-red-200 dark:border-red-700'
+                          : 'border-gray-200 focus:border-purple-500 focus:ring-purple-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200'
+                      }`}
+                    />
+                    {avatarUrlError && (
+                      <p className="mt-1 text-xs text-red-500">{avatarUrlError}</p>
+                    )}
+                    <button
+                      type="button"
+                      onClick={handleAvatarUrlSubmit}
+                      disabled={!avatarUrl || !!avatarUrlError || isLoading}
+                      className="w-full mt-2 px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-lg transition-all cursor-pointer hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-purple-700 dark:hover:bg-purple-800"
+                    >
+                      {isLoading ? "Updating..." : "Update from URL"}
+                    </button>
+                    {imageLoadingError && avatarUrl && (
+                      <p className="mt-1 text-xs text-yellow-600 dark:text-yellow-400">
+                        Image preview unavailable, but URL is valid. You can still update.
+                      </p>
+                    )}
+                  </div>
                   <p className="text-xs text-gray-500 dark:text-gray-400">
-                    Max 5MB (JPG, PNG, GIF)
+                    Enter an image URL (JPG, PNG, GIF, or WebP)
                   </p>
                 </div>
-
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => {
-                    console.log("File input changed", e.target.files);
-                    if (e.target.files && e.target.files[0]) {
-                      handleAvatarUpload(e.target.files[0]);
-                    }
-                  }}
-                  className="hidden"
-                />
               </div>
             </motion.div>
 
