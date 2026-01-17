@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
 
   Bell,
@@ -40,11 +40,33 @@ export const Header: React.FC<HeaderProps> = ({ user, onMenuClick }) => {
   const router = useRouter();
   const { unreadCount } = useUnreadNotificationCount();
   const notificationButtonRef = React.useRef<HTMLButtonElement>(null);
+  const userMenuButtonRef = useRef<HTMLButtonElement>(null);
+  const userMenuDropdownRef = useRef<HTMLDivElement>(null);
 
   // Connect to notification WebSocket for real-time updates
   useNotificationSocket({
     enabled: true,
   });
+
+  // Close user menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        showUserMenu &&
+        userMenuDropdownRef.current &&
+        !userMenuDropdownRef.current.contains(event.target as Node) &&
+        userMenuButtonRef.current &&
+        !userMenuButtonRef.current.contains(event.target as Node)
+      ) {
+        setShowUserMenu(false);
+      }
+    };
+
+    if (showUserMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [showUserMenu]);
 
   const handleLogout = async () => {
     try {
@@ -140,6 +162,7 @@ export const Header: React.FC<HeaderProps> = ({ user, onMenuClick }) => {
           {/* User Profile Dropdown */}
           <div className="relative">
             <button
+              ref={userMenuButtonRef}
               onClick={() => setShowUserMenu(!showUserMenu)}
               className="flex items-center gap-3 p-1.5 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
             >
@@ -161,7 +184,10 @@ export const Header: React.FC<HeaderProps> = ({ user, onMenuClick }) => {
 
             {/* User Menu Dropdown */}
             {showUserMenu && (
-              <div className="absolute right-0 z-50 py-2 mt-2 w-64 bg-white rounded-xl border border-gray-200 shadow-xl dark:bg-gray-800 dark:border-gray-700">
+              <div
+                ref={userMenuDropdownRef}
+                className="absolute right-0 z-50 py-2 mt-2 w-64 bg-white rounded-xl border border-gray-200 shadow-xl dark:bg-gray-800 dark:border-gray-700"
+              >
                 <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700">
                   <div className="flex gap-3 items-center">
                     <div className="flex justify-center items-center w-10 h-10 bg-linear-to-r from-purple-500 to-pink-500 rounded-full">
@@ -227,16 +253,6 @@ export const Header: React.FC<HeaderProps> = ({ user, onMenuClick }) => {
         </div>
       </div> */}
 
-      {/* Click outside to close dropdowns */}
-      {(showUserMenu || showNotifications) && (
-        <div
-          className="fixed inset-0 z-40"
-          onClick={() => {
-            setShowUserMenu(false);
-            setShowNotifications(false);
-          }}
-        />
-      )}
     </header>
   );
 };

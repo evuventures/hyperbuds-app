@@ -207,7 +207,7 @@ export default function MultiStepProfileForm() {
     }
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (e) => {
     const file = e.target.files?.[0];
     if (file) {
       // Validate file type
@@ -232,7 +232,7 @@ export default function MultiStepProfileForm() {
     }
   };
 
-  const handleAvatarUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarUrlChange = (e) => {
     const url = e.target.value.trim();
     setAvatarUrl(url);
     setAvatarUrlError('');
@@ -255,7 +255,7 @@ export default function MultiStepProfileForm() {
     }
   };
 
-  const uploadAvatarFromFile = async (): Promise<string | null> => {
+  const uploadAvatarFromFile = async () => {
     if (!selectedFile) return null;
 
     try {
@@ -363,7 +363,7 @@ export default function MultiStepProfileForm() {
 
     try {
       // Step 1: Upload file if selected, otherwise use URL
-      let finalAvatarUrl: string | null = null;
+      let finalAvatarUrl = null;
       
       if (selectedFile) {
         setMessage('Uploading profile picture...');
