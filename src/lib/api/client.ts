@@ -53,9 +53,10 @@ apiClient.interceptors.response.use(
     }
 
     // 🧹 Normalize error output
+    const errorData = error.response?.data as { message?: string } | undefined;
     const normalizedError = {
       message:
-        (error.response?.data as any)?.message ||
+        errorData?.message ||
         error.message ||
         "Unexpected error occurred",
       status,

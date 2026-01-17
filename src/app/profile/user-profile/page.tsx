@@ -24,7 +24,7 @@ export default function UserProfilePage() {
       // Add profileUrl for copy functionality make sure to handle types safely
       if (data) {
         // We know data is an object from the API response
-        const profileData = data as { profile?: { username?: string }, username?: string, profileUrl?: string };
+        const profileData = data as { profile?: { username?: string; profileUrl?: string }, username?: string, profileUrl?: string };
         const username = profileData.profile?.username || profileData.username;
 
         if (username) {
@@ -33,7 +33,7 @@ export default function UserProfilePage() {
             : `https://www.hyperbuds.com/@${username}`;
 
           if (profileData.profile) {
-            (profileData.profile as any).profileUrl = profileUrl;
+            profileData.profile.profileUrl = profileUrl;
           } else {
             profileData.profileUrl = profileUrl;
           }

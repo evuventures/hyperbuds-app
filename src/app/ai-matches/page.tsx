@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, RefreshCw, Loader2, Heart } from "lucide-react";
 import MatchHistoryGallery from "@/components/matching/MatchHistoryGallery";
 import { useMatching } from "@/hooks/features/useMatching";
-import type { CreatorProfile } from "@/types/matching.types";
+import type { MatchSuggestion } from "@/types/matching.types";
 
 const AIMatchesPage: React.FC = () => {
   const router = useRouter();
@@ -23,12 +23,13 @@ const AIMatchesPage: React.FC = () => {
   useEffect(() => {
     if (matches.length) {
       const likedIds = matches
-        .filter((m: any) => m.status === "liked" || m.status === "mutual")
-        .map((m: any) => {
+        .filter((m: MatchSuggestion) => m.status === "liked" || m.status === "mutual")
+        .map((m: MatchSuggestion) => {
           const target = m.targetUserId;
-          return typeof target === "string" ? target : target?._id;
+          // targetUserId is always a string in MatchSuggestion
+          return typeof target === "string" ? target : String(target);
         })
-        .filter(Boolean);
+        .filter(Boolean) as string[];
       setLikedMatches(new Set(likedIds));
     }
   }, [matches]);
