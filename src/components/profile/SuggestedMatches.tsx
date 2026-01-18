@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 
 export default function SuggestedMatches() {
-  const { data, isLoading, error } = useMatchSuggestions({ limit: 6, enabled: true });
+  const { data, isLoading, error } = useMatchSuggestions({ limit: 10, enabled: true });
 
   const matches = data?.matches || [];
 
@@ -87,8 +87,8 @@ export default function SuggestedMatches() {
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {matches.slice(0, 6).map((match, index) => {
-          const profile = match.targetProfile || match.profile;
+        {matches.slice(0, 10).map((match, index) => {
+          const profile = match.targetUser || match.profile;
           const compatibilityScore = match.compatibilityScore || 0;
           const rizzScore = profile?.rizzScore || 0;
 

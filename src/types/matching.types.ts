@@ -25,7 +25,7 @@ export interface MatchSuggestion {
     confidence: number;
     features: string[];
   };
-  targetProfile?: CreatorProfile;
+  targetUser?: CreatorProfile;
   createdAt: string;
   updatedAt: string;
 }

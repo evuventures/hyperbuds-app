@@ -19,9 +19,18 @@ const nextConfig: NextConfig = {
        {
         protocol: 'https',
         hostname: 'res.cloudinary.com',
-        port: '',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'api.dicebear.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'hyperbuds-img.r2.cloudflarestorage.com',
+        pathname: '/**',
+      }
     ],
   },
 };
