@@ -15,6 +15,13 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'np2flplp9c.ufs.sh',
       },
+
+       {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com',
+        port: '',
+        pathname: '/**',
+      },
     ],
   },
 };
