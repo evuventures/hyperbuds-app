@@ -14,7 +14,7 @@ import type { MatchSuggestion, CreatorProfile } from "@/types/matching.types";
 import DashboardLayout from "@/components/layout/Dashboard/Dashboard";
 import { suggestionsApi } from "@/lib/api/suggestions.api";
 import { profileApi } from "@/lib/api/profile.api";
-
+import Image from "next/image";
 export default function MatchmakerPage() {
   const [matches, setMatches] = useState<MatchSuggestion[]>([]);
   //const [isLoading, setIsLoading] = useState(false);
@@ -434,7 +434,8 @@ export default function MatchmakerPage() {
                   whileHover={{ scale: 1.03 }}
                   transition={{ duration: 0.2 }}
                 >
-                  <img
+                 
+                  <Image
                     src={match?.profile?.avatar || match?.targetProfile?.avatar || "/default-avatar.png"}
                     alt={match?.profile?.displayName || match?.targetProfile?.displayName || "User"}
                     className="w-24 h-24 rounded-full mb-3 object-cover ring-2 ring-pink-200 dark:ring-pink-800"
