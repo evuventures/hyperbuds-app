@@ -81,8 +81,8 @@ const AIMatchesPage: React.FC = () => {
                 {isLoading
                   ? "Loading matches..."
                   : matches.length === 0
-                  ? "No matches found yet. Try refreshing your suggestions."
-                  : `${matches.length} matches found for you`}
+                    ? "No matches found yet. Try refreshing your suggestions."
+                    : `${matches.length} matches found for you`}
               </p>
             </div>
 

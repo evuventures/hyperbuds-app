@@ -126,10 +126,10 @@ export default function UserProfilePage() {
               onMessage={() => { }}
             />
 
-        {/* Platform Performance Section */}
-        {/* TEMPORARILY COMMENTED OUT - Backend not ready yet */}
-        {/* TODO: Uncomment when backend is working */}
-        {/* {user && (user as { profile?: { socialLinks?: Record<string, string> } }).profile?.socialLinks && (() => {
+            {/* Platform Performance Section */}
+            {/* TEMPORARILY COMMENTED OUT - Backend not ready yet */}
+            {/* TODO: Uncomment when backend is working */}
+            {/* {user && (user as { profile?: { socialLinks?: Record<string, string> } }).profile?.socialLinks && (() => {
           // Extract usernames from social links URLs for connected platforms only
           const platformCreds: Record<string, string> = {};
           const userTyped = user as { profile: { socialLinks: Record<string, string> } };

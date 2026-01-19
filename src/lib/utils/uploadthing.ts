@@ -33,7 +33,7 @@ export async function uploadAvatar(file: File): Promise<string> {
       // Create FormData - backend expects field name "file"
       const formData = new FormData();
       formData.append("file", file);
-      
+
       // Log what we're about to send
       if (process.env.NODE_ENV === "development") {
          console.log("📤 Upload attempt:", {
@@ -86,9 +86,25 @@ export async function uploadAvatar(file: File): Promise<string> {
 
          // Provide user-friendly error messages for common backend issues
          if (errorMessage.includes("api_key") || errorMessage.includes("api key") || errorMessage.includes("Must supply api_key")) {
+            const detailedError = `❌ Backend Configuration Error
+
+The upload endpoint requires a storage service API key to be configured on the backend server.
+
+Error Details:
+- Status: ${response.status}
+- Message: ${errorMessage}
+- Endpoint: ${baseURL}/profiles/upload-media
+
+🔧 Solution:
+The backend team needs to configure the storage service API key (Cloudinary, AWS S3, etc.) 
+in the backend environment variables. This is a server-side configuration issue.
+
+Please contact the backend team with this error message.`;
+
+            console.error(detailedError);
             throw new Error(
-               "Backend configuration error: The upload service requires an API key. " +
-               "Please contact the backend team to configure the storage service API key (e.g., Cloudinary, AWS S3)."
+               "Upload failed: Backend requires storage service API key configuration. " +
+               "Please contact the backend team to configure the API key."
             );
          }
 
