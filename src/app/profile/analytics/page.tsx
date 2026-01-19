@@ -1,9 +1,11 @@
-import React from 'react'
+import PagePlaceholder from "@/components/ui/PagePlaceholder";
 
-const page = () => {
+export default function ProfileAnalyticsPage() {
   return (
-    <div>page</div>
-  )
+    <PagePlaceholder
+      title="Profile Analytics"
+      description="Audience growth, engagement, and platform insights."
+      icon="trending"
+    />
+  );
 }
-
-export default page

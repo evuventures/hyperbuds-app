@@ -1,9 +1,11 @@
-import React from 'react'
+import PagePlaceholder from "@/components/ui/PagePlaceholder";
 
-const page = () => {
+export default function StreamingHistoryPage() {
   return (
-    <div>page</div>
-  )
+    <PagePlaceholder
+      title="Stream History"
+      description="Review past streams and performance."
+      icon="trending"
+    />
+  );
 }
-
-export default page

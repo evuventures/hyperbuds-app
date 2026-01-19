@@ -7,6 +7,7 @@ import UserProfileHeader from "@/components/profile/ProfileCard";
 import { PlatformStats } from "@/components/collaboration/PlatformStats";
 import SuggestedMatches from "@/components/profile/SuggestedMatches";
 import { TrendingUp } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export default function ProfilePage() {
   // Initialize as null instead of array
@@ -72,15 +73,21 @@ export default function ProfilePage() {
   if (error) {
     return (
       <DashboardLayout>
-        <div className="p-4 pb-16 lg:p-6 lg:pb-34">
-          <div className="">
-            <p className="text-red-400">Error loading profile: {error}</p>
-            <button
-              onClick={() => window.location.reload()}
-              className="px-4 py-2 mt-2 text-white bg-red-600 rounded-lg transition-colors hover:bg-red-700"
-            >
-              Retry
-            </button>
+        <div className="min-h-full bg-gray-50 dark:bg-slate-900">
+          <div className="p-4 pb-16 lg:p-6 lg:pb-34">
+            <div className="mx-auto max-w-6xl">
+              <div className="p-5 rounded-xl border-2 shadow-xl backdrop-blur-sm sm:p-6 sm:rounded-2xl border-red-200/50 bg-white/90 dark:bg-slate-800/90 dark:border-red-500/30">
+                <p className="text-sm text-red-500 sm:text-base">Error loading profile: {error}</p>
+                <Button
+                  onClick={() => window.location.reload()}
+                  variant="outline"
+                  size="sm"
+                  className="mt-3 text-xs text-red-600 border-red-300 sm:text-sm hover:bg-red-50"
+                >
+                  Retry
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
       </DashboardLayout>
@@ -89,13 +96,15 @@ export default function ProfilePage() {
 
   return (
     <DashboardLayout>
-      <div className="p-4 pb-16 space-y-6 lg:p-6 lg:pb-34">
-        <UserProfileHeader
-          userData={user}
-          isDark={true}
-          isLoading={isLoading}
-          isOwnProfile={true}
-        />
+      <div className="min-h-full bg-gray-50 dark:bg-slate-900">
+        <div className="p-4 pb-16 space-y-6 lg:p-6 lg:pb-34">
+          <div className="mx-auto max-w-6xl space-y-6">
+            <UserProfileHeader
+              userData={user}
+              isDark={true}
+              isLoading={isLoading}
+              isOwnProfile={true}
+            />
 
         {/* Platform Performance Section */}
         {/* TEMPORARILY COMMENTED OUT - Backend not ready yet */}
@@ -165,9 +174,10 @@ export default function ProfilePage() {
           );
         })()} */}
 
-        {/* Suggested Matches Section */}
-        <SuggestedMatches />
-
+            {/* Suggested Matches Section */}
+            <SuggestedMatches />
+          </div>
+        </div>
       </div>
     </DashboardLayout>
   );

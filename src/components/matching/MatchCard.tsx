@@ -28,7 +28,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
    isLiked = false,
    isSidebarContext = false
 }) => {
-   const profile = match.targetProfile;
+   const profile = match.targetUser;
 
    if (!profile) {
       return null;

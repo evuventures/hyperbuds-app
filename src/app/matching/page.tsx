@@ -6,6 +6,7 @@ import { Loader2, Heart, X, RefreshCw } from "lucide-react";
 import { motion } from "framer-motion";
 import { BASE_URL } from "@/config/baseUrl";
 import type { MatchSuggestion, CreatorProfile } from "@/types/matching.types";
+import { Button } from "@/components/ui/button";
 //import PreferencesForm from "@/components/matching/PreferencesForm";
 //import MatchCard from "@/components/matching/MatchCard";
 //import ProfileModal from "@/components/matching/ProfileModal";
@@ -385,6 +386,7 @@ export default function MatchmakerPage() {
 
   return (
     <DashboardLayout>
+<<<<<<< HEAD
       <div className="p-4 pb-16 space-y-6 lg:p-6 lg:pb-34">
         {error ? (
           <div className="flex flex-col justify-center items-center py-20 text-red-500">
@@ -445,25 +447,114 @@ export default function MatchmakerPage() {
                   </h2>
                   <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
                     {match?.profile?.niche?.join(", ") || match?.targetProfile?.niche?.join(", ") || "No niche info"}
+=======
+      <div className="min-h-full bg-gray-50 dark:bg-slate-900">
+        <div className="p-4 pb-16 space-y-6 lg:p-6 lg:pb-34">
+          <div className="mx-auto max-w-6xl">
+            <div className="flex gap-2 justify-between items-center mb-6 sm:mb-8">
+              <div className="flex items-center gap-3">
+                <div className="flex-shrink-0 p-2 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl shadow-md sm:p-2.5 sm:rounded-2xl">
+                  <Heart className="w-5 h-5 text-white sm:w-6 sm:h-6" />
+                </div>
+                <div>
+                  <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl dark:text-white">Match Suggestions</h1>
+                  <p className="text-xs text-gray-500 sm:text-sm dark:text-gray-400">
+                    AI-curated creators based on your niche and preferences
+>>>>>>> origin
                   </p>
-                  {match.compatibilityScore && (
-                    <p className="text-sm font-medium text-pink-600 dark:text-pink-400 mb-3">
-                      {match.compatibilityScore.toFixed(0)}% Match
-                    </p>
-                  )}
-                  <div className="flex gap-4">
-                    <button className="p-2 rounded-full bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors">
-                      <X className="text-red-500 dark:text-red-400" />
-                    </button>
-                    <button className="p-2 rounded-full bg-green-100 dark:bg-green-900/30 hover:bg-green-200 dark:hover:bg-green-900/50 transition-colors">
-                      <Heart className="text-green-500 dark:text-green-400" />
-                    </button>
-                  </div>
-                </motion.div>
-              ))}
+                </div>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={refreshMatches}
+                className="text-xs text-gray-900 bg-gray-100 border-gray-300 cursor-pointer sm:text-sm dark:text-white dark:bg-white/10 dark:border-white/20 hover:bg-gray-200 dark:hover:bg-white/20"
+              >
+                <RefreshCw className="w-3.5 h-3.5 mr-1.5 sm:w-4 sm:h-4 sm:mr-2" />
+                Refresh
+              </Button>
             </div>
-          </>
-        )}
+
+            <div className="p-5 rounded-xl border-2 shadow-xl backdrop-blur-sm sm:p-6 sm:rounded-2xl lg:p-8 border-purple-200/50 bg-white/90 dark:bg-slate-800/90 dark:border-purple-500/30">
+              {error ? (
+                <div className="flex flex-col justify-center items-center py-12 sm:py-16">
+                  <div className="p-5 mb-4 bg-red-50 rounded-xl sm:p-6 dark:bg-red-900/20">
+                    <p className="text-base font-semibold text-red-600 sm:text-lg dark:text-red-400">
+                      Failed to load suggestions
+                    </p>
+                    <p className="mt-1 text-xs text-red-500 sm:text-sm dark:text-red-400">
+                      {error}
+                    </p>
+                  </div>
+                  <Button onClick={loadData} variant="outline" className="text-xs text-purple-600 border-purple-500 sm:text-sm hover:bg-purple-50">
+                    Try Again
+                  </Button>
+                </div>
+              ) : !dataLoaded ? (
+                <div className="flex flex-col justify-center items-center py-12 sm:py-16">
+                  <Loader2 className="mb-4 w-12 h-12 text-purple-600 animate-spin sm:w-16 sm:h-16 dark:text-purple-400" />
+                  <p className="text-base font-medium text-gray-600 sm:text-lg dark:text-gray-400">Loading matches...</p>
+                  <p className="mt-2 text-xs text-gray-500 sm:text-sm dark:text-gray-500">Analyzing compatibility</p>
+                </div>
+              ) : matches.length === 0 ? (
+                <div className="flex flex-col justify-center items-center py-12 sm:py-16">
+                  <div className="p-5 mb-4 bg-gradient-to-br from-purple-100 to-pink-100 rounded-full sm:p-6 dark:from-purple-900/30 dark:to-pink-900/30">
+                    <Heart className="w-12 h-12 text-pink-500 sm:w-16 sm:h-16 dark:text-pink-400" />
+                  </div>
+                  <h3 className="mb-2 text-xl font-bold text-gray-900 sm:text-2xl dark:text-white">
+                    No Suggestions Yet
+                  </h3>
+                  <p className="px-4 mb-6 max-w-md text-sm text-center text-gray-600 sm:text-base dark:text-gray-400">
+                    Complete your profile to improve recommendations.
+                  </p>
+                  <Button
+                    onClick={loadData}
+                    className="text-xs sm:text-sm bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+                  >
+                    Refresh Suggestions
+                  </Button>
+                </div>
+              ) : (
+                <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+                  {matches.map((match, index) => (
+                    <motion.div
+                      key={match.id || match._id || index}
+                      className="relative overflow-hidden p-6 rounded-2xl border shadow-lg bg-white/95 dark:bg-slate-800/90 border-gray-200/60 dark:border-white/10 flex flex-col items-center"
+                      whileHover={{ scale: 1.02 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <div className="absolute inset-0 opacity-0 transition-opacity duration-300 bg-gradient-to-br from-purple-500/10 via-transparent to-pink-500/10 group-hover:opacity-100" />
+                      <img
+                        src={match?.profile?.avatar || match?.targetUser?.avatar || "/default-avatar.png"}
+                        alt={match?.profile?.displayName || match?.targetUser?.displayName || "User"}
+                        className="w-24 h-24 rounded-full mb-3 object-cover ring-2 ring-purple-200 dark:ring-purple-800"
+                      />
+                      <h2 className="font-semibold text-lg text-gray-900 dark:text-white">
+                        {match?.profile?.displayName || match?.targetUser?.displayName || "Unknown User"}
+                      </h2>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 mb-3 text-center">
+                        {match?.profile?.niche?.join(", ") || match?.targetUser?.niche?.join(", ") || "No niche info"}
+                      </p>
+                      {match.compatibilityScore && (
+                        <p className="text-sm font-medium text-pink-600 dark:text-pink-400 mb-3">
+                          {match.compatibilityScore.toFixed(0)}% Match
+                        </p>
+                      )}
+                      <div className="flex gap-3">
+                        <button className="p-2 rounded-full bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors">
+                          <X className="text-red-500 dark:text-red-400" />
+                        </button>
+                        <button className="p-2 rounded-full bg-green-100 dark:bg-green-900/30 hover:bg-green-200 dark:hover:bg-green-900/50 transition-colors">
+                          <Heart className="text-green-500 dark:text-green-400" />
+                        </button>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
     </DashboardLayout>
   );

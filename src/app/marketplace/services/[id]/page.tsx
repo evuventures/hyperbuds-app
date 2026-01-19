@@ -1,9 +1,11 @@
-import React from 'react'
+import PagePlaceholder from "@/components/ui/PagePlaceholder";
 
-const page = () => {
+export default function MarketplaceServiceDetailPage() {
   return (
-    <div>page</div>
-  )
+    <PagePlaceholder
+      title="Service Details"
+      description="View service information and packages."
+      icon="sparkles"
+    />
+  );
 }
-
-export default page

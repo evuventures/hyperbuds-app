@@ -1,9 +1,11 @@
-import React from 'react'
+import PagePlaceholder from "@/components/ui/PagePlaceholder";
 
-const page = () => {
+export default function MatchingDiscoverPage() {
   return (
-    <div>page</div>
-  )
+    <PagePlaceholder
+      title="Discover"
+      description="Explore new creators and suggestions."
+      icon="sparkles"
+    />
+  );
 }
-
-export default page

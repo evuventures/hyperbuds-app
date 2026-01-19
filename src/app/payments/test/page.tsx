@@ -2,23 +2,15 @@
 
 import React from 'react';
 import { PaymentProvider } from '@/context/PaymentContext';
-import { Header } from '@/components/layout/Header/Header';
+import DashboardLayout from '@/components/layout/Dashboard/Dashboard';
 import { PaymentNavigation } from '@/components/payments/PaymentNavigation';
-
-// Mock user data
-const mockUser = {
-   id: '1',
-   name: 'John Doe',
-   email: 'john@example.com',
-   avatar: '/images/user1.png',
-};
 
 function PaymentTestPage() {
    return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-         <Header user={mockUser} onMenuClick={() => { }} />
-
-         <div className="max-w-6xl mx-auto px-6 py-12">
+      <DashboardLayout>
+         <div className="min-h-full bg-gray-50 dark:bg-slate-900">
+            <div className="p-4 pb-16 lg:p-6 lg:pb-34">
+               <div className="mx-auto max-w-6xl">
             <div className="mb-8">
                <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
                   Payment System Test Page
@@ -88,8 +80,10 @@ function PaymentTestPage() {
                   </div>
                </div>
             </div>
+               </div>
+            </div>
          </div>
-      </div>
+      </DashboardLayout>
    );
 }
 

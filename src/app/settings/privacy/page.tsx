@@ -1,9 +1,11 @@
-import React from 'react'
+import PagePlaceholder from "@/components/ui/PagePlaceholder";
 
-const page = () => {
+export default function SettingsPrivacyPage() {
   return (
-    <div>page</div>
-  )
+    <PagePlaceholder
+      title="Privacy Settings"
+      description="Control visibility and data preferences."
+      icon="bell"
+    />
+  );
 }
-
-export default page
