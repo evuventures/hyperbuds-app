@@ -2,18 +2,10 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { PaymentProvider, usePayment } from '@/context/PaymentContext';
-import { Header } from '@/components/layout/Header/Header';
+import DashboardLayout from '@/components/layout/Dashboard/Dashboard';
 import { EarningsOverview } from '@/components/payments/EarningsBoard/EarningsOverview';
 import { PayoutSchedule } from '@/components/payments/EarningsBoard/PayoutSchedule';
 import { TaxDocuments } from '@/components/payments/EarningsBoard/TaxDocuments';
-
-// Mock user data
-const mockUser = {
-    id: '1',
-    name: 'John Doe',
-    email: 'john@example.com',
-    avatar: '/images/user1.png',
-};
 
 // Define a type for the payout account status to replace 'any'
 type PayoutAccountStatus = {
@@ -121,22 +113,25 @@ function EarningsDashboard() {
 
     if (state.isLoading) {
         return (
-            <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-                <Header user={mockUser} onMenuClick={() => { }} />
-                <div className="flex justify-center items-center h-64">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500"></div>
+            <DashboardLayout>
+                <div className="min-h-full bg-gray-50 dark:bg-slate-900">
+                    <div className="p-4 pb-16 lg:p-6 lg:pb-34">
+                        <div className="flex justify-center items-center h-64">
+                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500"></div>
+                        </div>
+                    </div>
                 </div>
-            </div>
+            </DashboardLayout>
         );
     }
 
     const displayedEarnings = state.earnings || mockEarnings;
 
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-            <Header user={mockUser} onMenuClick={() => { }} />
-
-            <div className="max-w-7xl mx-auto px-6 py-12">
+        <DashboardLayout>
+            <div className="min-h-full bg-gray-50 dark:bg-slate-900">
+                <div className="p-4 pb-16 lg:p-6 lg:pb-34">
+                    <div className="mx-auto max-w-7xl">
                 <div className="mb-8">
                     <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
                         Creator Earnings
@@ -327,8 +322,10 @@ function EarningsDashboard() {
                         <p className="text-red-600 dark:text-red-400">{state.error}</p>
                     </div>
                 )}
+                    </div>
+                </div>
             </div>
-        </div>
+        </DashboardLayout>
     );
 }
 

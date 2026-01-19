@@ -1,9 +1,11 @@
-import React from 'react'
+import PagePlaceholder from "@/components/ui/PagePlaceholder";
 
-const page = () => {
+export default function SettingsSubscriptionPage() {
   return (
-    <div>page</div>
-  )
+    <PagePlaceholder
+      title="Subscription"
+      description="Manage plan and billing options."
+      icon="rocket"
+    />
+  );
 }
-
-export default page

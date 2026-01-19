@@ -1,9 +1,11 @@
-import React from 'react'
+import PagePlaceholder from "@/components/ui/PagePlaceholder";
 
-const page = () => {
+export default function StreamingPage() {
   return (
-    <div>page</div>
-  )
+    <PagePlaceholder
+      title="Live Streaming"
+      description="Manage upcoming and active streams."
+      icon="zap"
+    />
+  );
 }
-
-export default page

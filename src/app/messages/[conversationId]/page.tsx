@@ -13,7 +13,11 @@ export default async function ConversationPage({ params }: ConversationPageProps
    
    return (
       <DashboardLayout>
-         <ConversationContent conversationId={conversationId} />
+         <div className="min-h-full bg-gray-50 dark:bg-slate-900">
+            <div className="p-4 pb-16 lg:p-6 lg:pb-34">
+               <ConversationContent conversationId={conversationId} />
+            </div>
+         </div>
       </DashboardLayout>
    );
 }

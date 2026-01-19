@@ -33,10 +33,16 @@ apiClient.interceptors.request.use(
 
 // ✅ 4. Response Interceptor — global error handling
 // Note: Tokens now last 3 days - no refresh logic needed
+type ApiErrorResponse = {
+  message?: string;
+  [key: string]: unknown;
+};
+
 apiClient.interceptors.response.use(
   (response) => response,
   (error: AxiosError) => {
     const status = error.response?.status;
+    const responseData = error.response?.data as ApiErrorResponse | undefined;
 
     // 🔒 Handle expired or invalid tokens
     if (status === 401) {
@@ -54,10 +60,7 @@ apiClient.interceptors.response.use(
 
     // 🧹 Normalize error output
     const normalizedError = {
-      message:
-        (error.response?.data as any)?.message ||
-        error.message ||
-        "Unexpected error occurred",
+      message: responseData?.message || error.message || "Unexpected error occurred",
       status,
       data: error.response?.data,
     };

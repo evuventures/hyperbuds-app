@@ -67,7 +67,7 @@ const MatchingInterface: React.FC<MatchingInterfaceProps> = ({
   }
 
   // ⬇️ Guard: targetProfile is optional in types
-  const profile = currentMatch.targetProfile;
+  const profile = currentMatch.targetUser;
   if (!profile) {
     return (
       <div className="flex flex-col justify-center items-center h-full text-gray-500">

@@ -2,19 +2,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { PaymentProvider, usePayment } from '@/context/PaymentContext';
-import { Header } from '@/components/layout/Header/Header';
+import DashboardLayout from '@/components/layout/Dashboard/Dashboard';
 import { SubscriptionCard } from '@/components/payments/SubscriptionCard';
 import { PricingPlans } from '@/components/payments/PricingPlans';
 import { PaymentMethods } from '@/components/payments/PaymentForm/PaymentMethods';
 import { PricingPlan } from '@/types/payment.types';
-
-// Mock user data
-const mockUser = {
-   id: '1',
-   name: 'John Doe',
-   email: 'john@example.com',
-   avatar: '/images/user1.png',
-};
 
 // Available subscription plans
 const availablePlans: PricingPlan[] = [
@@ -138,20 +130,23 @@ function SubscriptionManagement() {
 
    if (state.isLoading) {
       return (
-         <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-            <Header user={mockUser} onMenuClick={() => { }} />
-            <div className="flex justify-center items-center h-64">
-               <div className="w-12 h-12 rounded-full border-b-2 border-purple-500 animate-spin"></div>
+         <DashboardLayout>
+            <div className="min-h-full bg-gray-50 dark:bg-slate-900">
+               <div className="p-4 pb-16 lg:p-6 lg:pb-34">
+                  <div className="flex justify-center items-center h-64">
+                     <div className="w-12 h-12 rounded-full border-b-2 border-purple-500 animate-spin"></div>
+                  </div>
+               </div>
             </div>
-         </div>
+         </DashboardLayout>
       );
    }
 
    return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-         <Header user={mockUser} onMenuClick={() => { }} />
-
-         <div className="px-6 py-12 mx-auto max-w-6xl">
+      <DashboardLayout>
+         <div className="min-h-full bg-gray-50 dark:bg-slate-900">
+            <div className="p-4 pb-16 lg:p-6 lg:pb-34">
+               <div className="mx-auto max-w-6xl">
             <div className="mb-8">
                <h1 className="mb-2 text-3xl font-bold text-gray-900 dark:text-white">
                   Subscription Management
@@ -304,8 +299,10 @@ function SubscriptionManagement() {
                   <p className="text-red-600 dark:text-red-400">{state.error}</p>
                </div>
             )}
+               </div>
+            </div>
          </div>
-      </div>
+      </DashboardLayout>
    );
 }
 

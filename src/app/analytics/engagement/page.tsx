@@ -1,16 +1,11 @@
-import React from 'react';
+import PagePlaceholder from "@/components/ui/PagePlaceholder";
 
 export default function EngagementAnalyticsPage() {
-   return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-         <div className="container px-4 py-8 mx-auto">
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-               Engagement Analytics
-            </h1>
-            <p className="mt-4 text-gray-600 dark:text-gray-400">
-               Track engagement metrics, interaction rates, and content performance across your platform.
-            </p>
-         </div>
-      </div>
-   );
+  return (
+    <PagePlaceholder
+      title="Engagement Analytics"
+      description="Track interactions and content performance."
+      icon="zap"
+    />
+  );
 }

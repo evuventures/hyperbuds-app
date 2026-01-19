@@ -1,9 +1,11 @@
-import React from 'react'
+import PagePlaceholder from "@/components/ui/PagePlaceholder";
 
-const page = () => {
+export default function MarketplaceServicesPage() {
   return (
-    <div>page</div>
-  )
+    <PagePlaceholder
+      title="Your Services"
+      description="Manage services you offer in the marketplace."
+      icon="rocket"
+    />
+  );
 }
-
-export default page

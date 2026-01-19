@@ -1,9 +1,11 @@
-import React from 'react'
+import PagePlaceholder from "@/components/ui/PagePlaceholder";
 
-const page = () => {
+export default function SettingsAccountPage() {
   return (
-    <div>page</div>
-  )
+    <PagePlaceholder
+      title="Account Settings"
+      description="Update your profile and security details."
+      icon="sparkles"
+    />
+  );
 }
-
-export default page

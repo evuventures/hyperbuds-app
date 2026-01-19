@@ -8,6 +8,17 @@ import UserProfileHeader from "@/components/profile/ProfileCard";
 // import { PlatformStats } from "@/components/collaboration/PlatformStats";
 // import { TrendingUp } from "lucide-react";
 
+type ProfileResponse = {
+  profile?: {
+    username?: string;
+    profileUrl?: string;
+    [key: string]: unknown;
+  };
+  username?: string;
+  profileUrl?: string;
+  [key: string]: unknown;
+};
+
 export default function UserProfilePage() {
   // Initialize as null instead of array
   const [user, setUser] = useState<Record<string, unknown> | null>(null);
@@ -18,13 +29,12 @@ export default function UserProfilePage() {
   const loadProfile = async () => {
     try {
       setIsLoading(true);
-      const data = await apiFetch("/api/v1/profiles/me");
+      const data = (await apiFetch("/api/v1/profiles/me")) as ProfileResponse;
       console.log("API Response:", data);
 
       // Add profileUrl for copy functionality make sure to handle types safely
       if (data) {
-        // We know data is an object from the API response
-        const profileData = data as { profile?: { username?: string }, username?: string, profileUrl?: string };
+        const profileData: ProfileResponse = data;
         const username = profileData.profile?.username || profileData.username;
 
         if (username) {
@@ -33,7 +43,10 @@ export default function UserProfilePage() {
             : `https://www.hyperbuds.com/@${username}`;
 
           if (profileData.profile) {
-            (profileData.profile as any).profileUrl = profileUrl;
+            profileData.profile = {
+              ...profileData.profile,
+              profileUrl,
+            };
           } else {
             profileData.profileUrl = profileUrl;
           }
@@ -80,15 +93,19 @@ export default function UserProfilePage() {
   if (error) {
     return (
       <DashboardLayout>
-        <div className="p-4 pb-16 lg:p-6 lg:pb-34">
-          <div className="">
-            <p className="text-red-400">Error loading profile: {error}</p>
-            <button
-              onClick={() => window.location.reload()}
-              className="px-4 py-2 mt-2 text-white bg-red-600 rounded-lg transition-colors hover:bg-red-700"
-            >
-              Retry
-            </button>
+        <div className="min-h-full bg-gray-50 dark:bg-slate-900">
+          <div className="p-4 pb-16 lg:p-6 lg:pb-34">
+            <div className="mx-auto max-w-6xl">
+              <div className="p-5 rounded-xl border-2 shadow-xl backdrop-blur-sm sm:p-6 sm:rounded-2xl border-red-200/50 bg-white/90 dark:bg-slate-800/90 dark:border-red-500/30">
+                <p className="text-sm text-red-500 sm:text-base">Error loading profile: {error}</p>
+                <button
+                  onClick={() => window.location.reload()}
+                  className="px-4 py-2 mt-3 text-xs text-red-600 border border-red-300 rounded-lg transition-colors hover:bg-red-50 sm:text-sm"
+                >
+                  Retry
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </DashboardLayout>
@@ -97,15 +114,17 @@ export default function UserProfilePage() {
 
   return (
     <DashboardLayout>
-      <div className="p-4 pb-16 space-y-6 lg:p-6 lg:pb-34">
-        <UserProfileHeader
-          userData={user}
-          isLoading={isLoading}
-          isOwnProfile={false}
-          onEditProfile={() => { }}
-          onConnect={() => { }}
-          onMessage={() => { }}
-        />
+      <div className="min-h-full bg-gray-50 dark:bg-slate-900">
+        <div className="p-4 pb-16 space-y-6 lg:p-6 lg:pb-34">
+          <div className="mx-auto max-w-6xl space-y-6">
+            <UserProfileHeader
+              userData={user}
+              isLoading={isLoading}
+              isOwnProfile={false}
+              onEditProfile={() => { }}
+              onConnect={() => { }}
+              onMessage={() => { }}
+            />
 
         {/* Platform Performance Section */}
         {/* TEMPORARILY COMMENTED OUT - Backend not ready yet */}
@@ -176,6 +195,8 @@ export default function UserProfilePage() {
           );
         })()} */}
 
+          </div>
+        </div>
       </div>
     </DashboardLayout>
   );
