@@ -210,7 +210,7 @@ const CollaborationsPage: React.FC = () => {
 
             <div className="mb-5 text-center sm:mb-6">
               <div className="flex justify-center items-center mb-2 sm:mb-3">
-                <div className="shrink-0 p-2 mr-2 bg-linear-to-br from-purple-500 to-pink-500 rounded-xl shadow-md sm:p-2.5 sm:mr-3 sm:rounded-2xl">
+                <div className="flex-shrink-0 p-2 mr-2 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl shadow-md sm:p-2.5 sm:mr-3 sm:rounded-2xl">
                   <Users className="w-6 h-6 text-white sm:w-7 sm:h-7 lg:w-8 lg:h-8" />
                 </div>
                 <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl lg:text-4xl dark:text-white">Collaborations</h1>
@@ -226,11 +226,6 @@ const CollaborationsPage: React.FC = () => {
 
             <div className="flex flex-wrap gap-2 justify-center mb-5 sm:mb-6">
               <Button
-<<<<<<< HEAD
-                variant="default"
-                onClick={() => router.push('/collaborations')}
-                className="text-xs bg-linear-to-r from-purple-500 to-pink-500 sm:text-sm hover:from-purple-600 hover:to-pink-600"
-=======
                 variant={filter === "all" ? "default" : "outline"}
                 onClick={() => setFilter("all")}
                 className={
@@ -238,7 +233,6 @@ const CollaborationsPage: React.FC = () => {
                     ? "text-xs bg-gradient-to-r from-purple-500 to-pink-500 sm:text-sm hover:from-purple-600 hover:to-pink-600"
                     : "text-xs text-purple-600 border-purple-500 sm:text-sm hover:bg-purple-50 dark:text-purple-400 dark:hover:bg-purple-900/20"
                 }
->>>>>>> origin
               >
                 <Users className="mr-1.5 w-3.5 h-3.5 sm:mr-2 sm:w-4 sm:h-4" />
                 <span className="hidden sm:inline">All Collaborations</span>
@@ -599,28 +593,6 @@ const CollaborationsPage: React.FC = () => {
                     Try Again
                   </Button>
                 </div>
-<<<<<<< HEAD
-              ) : mutualMatches.length === 0 ? (
-                <div className="flex flex-col justify-center items-center py-12 sm:py-16">
-                  <div className="p-5 mb-4 bg-linear-to-br from-purple-100 to-pink-100 rounded-full sm:p-6 dark:from-purple-900/30 dark:to-pink-900/30">
-                    <Users className="w-12 h-12 text-purple-600 sm:w-16 sm:h-16 dark:text-purple-400" />
-                  </div>
-                  <h3 className="mb-2 text-xl font-bold text-gray-900 sm:text-2xl dark:text-white">
-                    No Collaborations Yet
-                  </h3>
-                  <p className="px-4 mb-6 max-w-md text-sm text-center text-gray-600 sm:text-base dark:text-gray-400">
-                    Get Matching to find amazing creators! When match is accepted, you&apos;ll see them here ready to collaborate.
-                  </p>
-                  <Button
-                    onClick={() => router.push('/matching')}
-                    className="text-sm bg-linear-to-r from-purple-500 to-pink-500 sm:text-base hover:from-purple-600 hover:to-pink-600"
-                  >
-                    <Zap className="mr-2 w-4 h-4 sm:w-5 sm:h-5" />
-                    Start Matching
-                  </Button>
-                </div>
-=======
->>>>>>> origin
               ) : (
                 <CollaborationList
                   items={filteredCollaborations}
@@ -646,35 +618,10 @@ const CollaborationsPage: React.FC = () => {
               )}
             </div>
 
-<<<<<<< HEAD
-            {/* Quick Actions */}
-            {mutualMatches.length > 0 && (
-              <div className="grid grid-cols-1 gap-3 mt-5 sm:grid-cols-3 sm:gap-4 sm:mt-6">
-                <div className="p-5 text-center bg-linear-to-br from-purple-50 to-pink-50 rounded-xl border border-purple-200 shadow-sm sm:p-6 dark:from-purple-900/20 dark:to-pink-900/20 dark:border-purple-500/30">
-                  <Users className="mx-auto mb-2 w-7 h-7 text-purple-600 sm:w-8 sm:h-8 dark:text-purple-400" />
-                  <p className="text-xl font-bold text-gray-900 sm:text-2xl dark:text-white">{mutualMatches.length}</p>
-                  <p className="text-xs text-gray-600 sm:text-sm dark:text-gray-400">Mutual Matches</p>
-                </div>
-                <div className="p-5 text-center bg-linear-to-br from-blue-50 to-cyan-50 rounded-xl border border-blue-200 shadow-sm sm:p-6 dark:from-blue-900/20 dark:to-cyan-900/20 dark:border-blue-500/30">
-                  <Zap className="mx-auto mb-2 w-7 h-7 text-blue-600 sm:w-8 sm:h-8 dark:text-blue-400" />
-                  <p className="text-xl font-bold text-gray-900 sm:text-2xl dark:text-white">
-                    {mutualMatches.filter(m => m.compatibilityScore >= 85).length}
-                  </p>
-                  <p className="text-xs text-gray-600 sm:text-sm dark:text-gray-400">High Compatibility</p>
-                </div>
-                <div className="p-5 text-center bg-linear-to-br from-green-50 to-emerald-50 rounded-xl border border-green-200 shadow-sm sm:p-6 dark:from-green-900/20 dark:to-emerald-900/20 dark:border-green-500/30">
-                  <Users className="mx-auto mb-2 w-7 h-7 text-green-600 sm:w-8 sm:h-8 dark:text-green-400" />
-                  <p className="text-xl font-bold text-gray-900 sm:text-2xl dark:text-white">
-                    {new Set(mutualMatches.flatMap(m => m.targetProfile?.niche || [])).size}
-                  </p>
-                  <p className="text-xs text-gray-600 sm:text-sm dark:text-gray-400">Unique Niches</p>
-                </div>
-=======
             <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
               <div className="rounded-2xl border border-gray-200/60 bg-white/90 p-4 text-center shadow-md dark:border-white/10 dark:bg-slate-800/90">
                 <p className="text-xs text-gray-500 dark:text-gray-400">Total</p>
                 <p className="text-2xl font-bold text-gray-900 dark:text-white">{collaborations.length}</p>
->>>>>>> origin
               </div>
               <div className="rounded-2xl border border-gray-200/60 bg-white/90 p-4 text-center shadow-md dark:border-white/10 dark:bg-slate-800/90">
                 <p className="text-xs text-gray-500 dark:text-gray-400">Active</p>

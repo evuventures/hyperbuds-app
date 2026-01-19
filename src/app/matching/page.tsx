@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import DashboardLayout from "@/components/layout/Dashboard/Dashboard";
 import { suggestionsApi } from "@/lib/api/suggestions.api";
 import { profileApi } from "@/lib/api/profile.api";
-import Image from "next/image";
+
 export default function MatchmakerPage() {
   const [matches, setMatches] = useState<MatchSuggestion[]>([]);
   //const [isLoading, setIsLoading] = useState(false);
@@ -386,68 +386,6 @@ export default function MatchmakerPage() {
 
   return (
     <DashboardLayout>
-<<<<<<< HEAD
-      <div className="p-4 pb-16 space-y-6 lg:p-6 lg:pb-34">
-        {error ? (
-          <div className="flex flex-col justify-center items-center py-20 text-red-500">
-            <p className="mb-4">{error}</p>
-            <button
-              onClick={loadData}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center transition-colors"
-            >
-              <RefreshCw className="mr-2 w-4 h-4" /> Retry
-            </button>
-          </div>
-        ) : !dataLoaded ? (
-          <div className="flex flex-col justify-center items-center py-20">
-            <Loader2 className="animate-spin text-blue-500 w-8 h-8 mb-4" />
-            <span className="text-blue-500 font-medium">Loading matches...</span>
-          </div>
-        ) : matches.length === 0 ? (
-          <div className="flex flex-col justify-center items-center py-20 text-gray-400 dark:text-gray-500">
-            <Heart className="w-16 h-16 mb-4 text-pink-500 dark:text-pink-400" />
-            <p className="text-lg font-medium mb-2">No match suggestions yet.</p>
-            <p className="text-sm mb-6 text-gray-500 dark:text-gray-400">
-              Complete your profile to get better matches!
-            </p>
-            <button
-              onClick={loadData}
-              className="px-6 py-3 bg-linear-to-r from-pink-500 to-purple-500 text-white rounded-lg hover:from-pink-600 hover:to-purple-600 flex items-center transition-all transform hover:scale-105 shadow-lg"
-            >
-              <RefreshCw className="mr-2 w-4 h-4" /> Refresh
-            </button>
-          </div>
-        ) : (
-          <>
-            <div className="flex gap-4 justify-between items-center mb-6">
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">🎯 Match Suggestions</h1>
-              <button
-                onClick={refreshMatches}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center transition-colors"
-              >
-                <RefreshCw className="mr-2 w-4 h-4" /> Refresh
-              </button>
-            </div>
-            <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-              {matches.map((match, index) => (
-                <motion.div
-                  key={match.id || match._id || index}
-                  className="p-6 bg-white dark:bg-gray-800 rounded-2xl shadow-md flex flex-col items-center border border-gray-200 dark:border-gray-700"
-                  whileHover={{ scale: 1.03 }}
-                  transition={{ duration: 0.2 }}
-                >
-                 
-                  <Image
-                    src={match?.profile?.avatar || match?.targetProfile?.avatar || "/default-avatar.png"}
-                    alt={match?.profile?.displayName || match?.targetProfile?.displayName || "User"}
-                    className="w-24 h-24 rounded-full mb-3 object-cover ring-2 ring-pink-200 dark:ring-pink-800"
-                  />
-                  <h2 className="font-semibold text-lg text-gray-900 dark:text-white">
-                    {match?.profile?.displayName || match?.targetProfile?.displayName || "Unknown User"}
-                  </h2>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
-                    {match?.profile?.niche?.join(", ") || match?.targetProfile?.niche?.join(", ") || "No niche info"}
-=======
       <div className="min-h-full bg-gray-50 dark:bg-slate-900">
         <div className="p-4 pb-16 space-y-6 lg:p-6 lg:pb-34">
           <div className="mx-auto max-w-6xl">
@@ -460,7 +398,6 @@ export default function MatchmakerPage() {
                   <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl dark:text-white">Match Suggestions</h1>
                   <p className="text-xs text-gray-500 sm:text-sm dark:text-gray-400">
                     AI-curated creators based on your niche and preferences
->>>>>>> origin
                   </p>
                 </div>
               </div>

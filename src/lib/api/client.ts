@@ -57,20 +57,10 @@ apiClient.interceptors.response.use(
         }
       }
     }
-    interface BackendError {
-  message?: string;
-}
 
     // 🧹 Normalize error output
     const normalizedError = {
-<<<<<<< HEAD
-      message:
-        (error.response?.data as BackendError)?.message ||
-        error.message ||
-        "Unexpected error occurred",
-=======
       message: responseData?.message || error.message || "Unexpected error occurred",
->>>>>>> origin
       status,
       data: error.response?.data,
     };
