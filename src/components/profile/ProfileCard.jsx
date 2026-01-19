@@ -67,10 +67,16 @@ export default function UserProfileHeader({
   const [isFollowing, setIsFollowing] = useState(false);
   const [showFullBio, setShowFullBio] = useState(false);
   const [open, setOpen] = useState(false);
+  const [avatarError, setAvatarError] = useState(false);
 
   // Platform data fetching for stats
   const [platformCredentials, setPlatformCredentials] = useState({});
   const [platforms, setPlatforms] = useState([]);
+
+  // Reset avatar error when avatar URL changes
+  useEffect(() => {
+    setAvatarError(false);
+  }, [userData?.profile?.avatar]);
 
   // Extract platform credentials from social links
   useEffect(() => {
@@ -292,21 +298,21 @@ export default function UserProfileHeader({
 
               {/* Enhanced Avatar*/}
               <div className="relative shrink-0">
-                {user.avatar ? (
+                {user.avatar && !avatarError ? (
                   <div className="relative overflow-hidden rounded-3xl ring-4 ring-white ring-offset-4 ring-offset-gray-50 shadow-2xl transition-all w-28 h-28 sm:w-32 sm:h-32 md:w-32 md:h-32 dark:ring-gray-800 dark:ring-offset-gray-900">
-                    <Image
+                    {/* Use img tag for better error handling support */}
+                    <img
                       src={user.avatar}
                       alt={`${user.displayName || user.username}'s avatar`}
-                      width={128}
-                      height={128}
                       className="object-cover w-full h-full"
-                      priority
+                      onError={() => setAvatarError(true)}
+                      loading="eager"
                     />
                   </div>
                 ) : (
                   <div className="flex justify-center items-center text-3xl font-bold text-white bg-linear-to-br from-blue-400 via-purple-500 to-pink-400 rounded-3xl ring-4 ring-white ring-offset-4 ring-offset-gray-50 shadow-2xl transition-all w-28 h-28 sm:w-32 sm:h-32 md:w-32 md:h-32 dark:from-blue-500 dark:via-purple-600 dark:to-pink-500 dark:ring-gray-800 dark:ring-offset-gray-900">
-                    {user.displayName?.charAt(0) ||
-                      user.username?.charAt(0) ||
+                    {user.displayName?.charAt(0)?.toUpperCase() ||
+                      user.username?.charAt(0)?.toUpperCase() ||
                       "U"}
                   </div>
                 )}

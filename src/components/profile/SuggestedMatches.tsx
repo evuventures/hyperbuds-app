@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useMatchSuggestions } from '@/hooks/features/useMatching';
 import { Heart, Users, TrendingUp, Sparkles } from 'lucide-react';
 import Image from 'next/image';
@@ -8,6 +9,7 @@ import { motion } from 'framer-motion';
 
 export default function SuggestedMatches() {
   const { data, isLoading, error } = useMatchSuggestions({ limit: 10, enabled: true });
+  const [avatarErrors, setAvatarErrors] = useState<Set<string>>(new Set());
 
   const matches = data?.matches || [];
 
@@ -105,19 +107,21 @@ export default function SuggestedMatches() {
                   {/* Avatar and Basic Info */}
                   <div className="flex gap-3 items-start mb-3">
                     <div className="relative flex-shrink-0">
-                      {profile?.avatar ? (
+                      {profile?.avatar && !avatarErrors.has(profile.username || match._id || index.toString()) ? (
                         <div className="relative overflow-hidden rounded-full ring-2 ring-pink-200 dark:ring-pink-800 w-14 h-14">
-                          <Image
+                          <img
                             src={profile.avatar}
                             alt={profile.displayName || profile.username || 'User'}
-                            width={56}
-                            height={56}
                             className="object-cover w-full h-full"
+                            onError={() => {
+                              setAvatarErrors((prev) => new Set(prev).add(profile.username || match._id || index.toString()));
+                            }}
+                            loading="lazy"
                           />
                         </div>
                       ) : (
                         <div className="flex justify-center items-center text-lg font-bold text-white bg-gradient-to-br from-pink-400 via-purple-500 to-blue-400 rounded-full ring-2 ring-pink-200 dark:ring-pink-800 w-14 h-14">
-                          {profile?.displayName?.charAt(0) || profile?.username?.charAt(0) || 'U'}
+                          {(profile?.displayName?.charAt(0) || profile?.username?.charAt(0) || 'U').toUpperCase()}
                         </div>
                       )}
                     </div>

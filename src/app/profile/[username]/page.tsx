@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { profileApi } from '@/lib/api/profile.api';
 import type { ProfileByUsernameResponse } from '@/lib/api/profile.api';
+import { getCurrentUser } from '@/lib/api/user.api';
 import DashboardLayout from '@/components/layout/Dashboard/Dashboard';
 import UserProfileHeader from '@/components/profile/ProfileCard.jsx';
 import { FaSpinner } from 'react-icons/fa';
@@ -16,9 +17,10 @@ export default function ProfileByUsernamePage() {
   const [profile, setProfile] = useState<ProfileByUsernameResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isOwnProfile, setIsOwnProfile] = useState(false);
 
   useEffect(() => {
-    const fetchProfile = async () => {
+    const fetchProfileAndCheckOwnership = async () => {
       if (!username) {
         setError('Username is required');
         setIsLoading(false);
@@ -29,20 +31,43 @@ export default function ProfileByUsernamePage() {
         setIsLoading(true);
         setError(null);
 
-        // Handle both /profile/@username and /profile/username formats
-        // The API function will handle the @ symbol internally
-        const data = await profileApi.getProfileByUsername(username);
-        setProfile(data);
+        // Fetch profile and current user in parallel
+        const [profileData, currentUserData] = await Promise.allSettled([
+          profileApi.getProfileByUsername(username),
+          getCurrentUser().catch(() => null), // Gracefully handle auth errors
+        ]);
+
+        // Handle profile fetch
+        if (profileData.status === 'fulfilled') {
+          setProfile(profileData.value);
+
+          // Check ownership
+          if (currentUserData.status === 'fulfilled' && currentUserData.value) {
+            const currentUser = currentUserData.value;
+            const currentUserUsername = currentUser.profile?.username || currentUser.user?.username;
+
+            // Clean both usernames for comparison
+            const profileUsername = profileData.value.username?.toLowerCase().trim();
+            const cleanCurrentUsername = currentUserUsername?.toLowerCase().trim();
+
+            setIsOwnProfile(profileUsername === cleanCurrentUsername);
+          } else {
+            setIsOwnProfile(false);
+          }
+        } else {
+          throw profileData.reason;
+        }
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Failed to load profile';
         setError(errorMessage);
         console.error('Error fetching profile:', err);
+        setIsOwnProfile(false);
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchProfile();
+    fetchProfileAndCheckOwnership();
   }, [username]);
 
   if (isLoading) {
@@ -111,12 +136,17 @@ export default function ProfileByUsernamePage() {
   }
 
   // Transform profile data to match UserProfileHeader component format
+  // Normalize avatar: convert empty strings, null, undefined to null
+  const normalizedAvatar = profile.avatar && profile.avatar.trim() !== '' 
+    ? profile.avatar.trim() 
+    : null;
+
   const profileData = {
     profile: {
       userId: profile.id || profile.username,
       username: profile.username,
       displayName: profile.displayName || profile.username,
-      avatar: profile.avatar || null,
+      avatar: normalizedAvatar,
       bio: profile.bio || '',
       niche: profile.niche || [],
       location: profile.location || {
@@ -150,7 +180,7 @@ export default function ProfileByUsernamePage() {
           <UserProfileHeader
             userData={profileData}
             isLoading={false}
-            isOwnProfile={false}
+            isOwnProfile={isOwnProfile}
             onEditProfile={() => { }}
             onConnect={() => { }}
             onMessage={() => { }}

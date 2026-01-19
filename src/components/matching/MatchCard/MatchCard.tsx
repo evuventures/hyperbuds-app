@@ -4,7 +4,7 @@ import { Heart, X, Sparkles, MapPin, Users, TrendingUp, Star, Filter, RefreshCw,
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Avatar } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { MatchSuggestion, CreatorProfile } from "@/types/matching.types";
@@ -122,13 +122,14 @@ const MatchingInterface: React.FC<MatchingInterfaceProps> = ({
               <div className="relative h-64 bg-linear-to-br from-purple-400 to-pink-400">
                 <div className="absolute inset-0 bg-black/20" />
                 <Avatar className="absolute top-4 left-4 w-16 h-16 border-4 border-white">
-                  <Image
-                    src={profile.avatar || "/placeholder-avatar.png"}
+                  <AvatarImage
+                    src={profile.avatar}
                     alt={profile.displayName}
-                    width={64}
-                    height={64}
                     className="object-cover"
                   />
+                  <AvatarFallback className="text-xl font-bold text-white bg-gradient-to-br from-purple-500 to-pink-500">
+                    {(profile.displayName?.charAt(0) || profile.username?.charAt(0) || 'U').toUpperCase()}
+                  </AvatarFallback>
                 </Avatar>
 
                 <div className="flex absolute top-4 right-4 space-x-2">

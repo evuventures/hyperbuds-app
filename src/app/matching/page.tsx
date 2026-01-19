@@ -23,189 +23,190 @@ export default function MatchmakerPage() {
   const [error, setError] = useState<string | null>(null);
   const [userProfile, setUserProfile] = useState<CreatorProfile | null>(null);
   const [dataLoaded, setDataLoaded] = useState(false);
+  const [avatarErrors, setAvatarErrors] = useState<Set<string>>(new Set());
   const [, setIsSubmittingPreferences] = useState(false);
   const [, setShowAILoader] = useState(false);
   const [, setActiveTab] = useState<string>("ai-matches");
   const [, setIsRefreshing] = useState(false);
-   
+
   const [, setSelectedMatch] = useState<MatchSuggestion | null>(null);
-   
+
   const [, setSelectedProfile] = useState<CreatorProfile | null>(null);
   const [, setIsCompatibilityModalOpen] = useState(false);
   const [, setLikedMatches] = useState<Set<string>>(new Set());
 
   // ✅ Fetch current user profile and matches
   const loadData = async () => {
-      try {
-        const accessToken = localStorage.getItem("accessToken");
-        if (!accessToken) {
-          console.warn("⚠️ No access token found.");
-          setError("Unauthorized. Please log in again.");
-          return;
-        }
+    try {
+      const accessToken = localStorage.getItem("accessToken");
+      if (!accessToken) {
+        console.warn("⚠️ No access token found.");
+        setError("Unauthorized. Please log in again.");
+        return;
+      }
 
-        // Get user profile first to get userId
-        const profileRes = await fetch(`${BASE_URL}/api/v1/users/me`, {
-          headers: { Authorization: `Bearer ${accessToken}` },
+      // Get user profile first to get userId
+      const profileRes = await fetch(`${BASE_URL}/api/v1/users/me`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+
+      let currentUserId: string | null = null;
+      let currentProfile: CreatorProfile | null = null;
+
+      if (profileRes.ok) {
+        const profileData = await profileRes.json();
+
+        // Handle different response structures
+        if (profileData.profile) {
+          currentProfile = profileData.profile as CreatorProfile;
+          currentUserId = currentProfile.userId;
+        } else if (profileData.data?.profile) {
+          currentProfile = profileData.data.profile as CreatorProfile;
+          currentUserId = currentProfile.userId;
+        } else if (profileData.data) {
+          currentProfile = profileData.data as CreatorProfile;
+          currentUserId = currentProfile.userId;
+        } else if (profileData.userId) {
+          currentUserId = profileData.userId;
+        }
+      }
+
+      // Fallback: get userId from localStorage or profile response
+      if (!currentUserId) {
+        currentUserId = localStorage.getItem('userId') ||
+          JSON.parse(localStorage.getItem('user') || '{}')?.userId ||
+          null;
+      }
+
+      // Set user profile (use fallback if needed)
+      if (currentProfile) {
+        setUserProfile(currentProfile);
+      } else {
+        // Use minimal profile as fallback
+        setUserProfile({
+          userId: currentUserId || "current-user",
+          username: "currentuser",
+          displayName: "Current User",
+          avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face",
+          bio: "Content creator looking for amazing collaborations!",
+          niche: ["gaming", "tech", "lifestyle"],
+          location: {
+            city: "San Francisco",
+            state: "California",
+            country: "US"
+          },
+          stats: {
+            totalFollowers: 50000,
+            avgEngagement: 6.5,
+            platformBreakdown: {
+              tiktok: { followers: 30000, engagement: 7.0 },
+              instagram: { followers: 15000, engagement: 6.0 },
+              youtube: { followers: 5000, engagement: 6.5 }
+            }
+          },
+          rizzScore: 78,
+          isPublic: true,
+          isActive: true
         });
+      }
 
-        let currentUserId: string | null = null;
-        let currentProfile: CreatorProfile | null = null;
+      // Fetch suggestions using new API endpoint
+      if (currentUserId) {
+        try {
+          const suggestionsData = await suggestionsApi.getSuggestions(currentUserId);
 
-        if (profileRes.ok) {
-          const profileData = await profileRes.json();
-
-          // Handle different response structures
-          if (profileData.profile) {
-            currentProfile = profileData.profile as CreatorProfile;
-            currentUserId = currentProfile.userId;
-          } else if (profileData.data?.profile) {
-            currentProfile = profileData.data.profile as CreatorProfile;
-            currentUserId = currentProfile.userId;
-          } else if (profileData.data) {
-            currentProfile = profileData.data as CreatorProfile;
-            currentUserId = currentProfile.userId;
-          } else if (profileData.userId) {
-            currentUserId = profileData.userId;
-          }
-        }
-
-        // Fallback: get userId from localStorage or profile response
-        if (!currentUserId) {
-          currentUserId = localStorage.getItem('userId') || 
-                         JSON.parse(localStorage.getItem('user') || '{}')?.userId ||
-                         null;
-        }
-
-        // Set user profile (use fallback if needed)
-        if (currentProfile) {
-          setUserProfile(currentProfile);
-        } else {
-          // Use minimal profile as fallback
-          setUserProfile({
-            userId: currentUserId || "current-user",
-            username: "currentuser",
-            displayName: "Current User",
-            avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face",
-            bio: "Content creator looking for amazing collaborations!",
-            niche: ["gaming", "tech", "lifestyle"],
-            location: {
-              city: "San Francisco",
-              state: "California",
-              country: "US"
-            },
-            stats: {
-              totalFollowers: 50000,
-              avgEngagement: 6.5,
-              platformBreakdown: {
-                tiktok: { followers: 30000, engagement: 7.0 },
-                instagram: { followers: 15000, engagement: 6.0 },
-                youtube: { followers: 5000, engagement: 6.5 }
-              }
-            },
-            rizzScore: 78,
-            isPublic: true,
-            isActive: true
-          });
-        }
-
-        // Fetch suggestions using new API endpoint
-        if (currentUserId) {
-          try {
-            const suggestionsData = await suggestionsApi.getSuggestions(currentUserId);
-            
-            // Transform API response to MatchSuggestion format
-            const transformedMatches: MatchSuggestion[] = await Promise.all(
-              suggestionsData.suggestions.map(async (suggestion) => {
-                // Fetch full profile for each suggestion
-                let targetProfile: CreatorProfile | undefined;
-                try {
-                  const profileData = await profileApi.getProfileByUsername(suggestion.username);
-                  targetProfile = {
-                    userId: suggestion.userId,
-                    username: suggestion.username,
-                    displayName: profileData.displayName || suggestion.username,
-                    avatar: profileData.avatar,
-                    bio: profileData.bio,
-                    niche: profileData.niche || [],
-                    location: profileData.location,
-                    stats: {
-                      totalFollowers: 0,
-                      avgEngagement: 0,
-                      platformBreakdown: {}
-                    },
-                    socialLinks: profileData.socialLinks,
-                    rizzScore: profileData.profileRizzScore,
-                    isPublic: true,
-                    isActive: true
-                  };
-                } catch (err) {
-                  console.warn(`Failed to fetch profile for ${suggestion.username}:`, err);
-                  // Create minimal profile from suggestion data
-                  targetProfile = {
-                    userId: suggestion.userId,
-                    username: suggestion.username,
-                    displayName: suggestion.username,
-                    niche: suggestion.sharedNiches || [],
-                    stats: {
-                      totalFollowers: 0,
-                      avgEngagement: 0,
-                      platformBreakdown: {}
-                    },
-                    isPublic: true,
-                    isActive: true
-                  };
-                }
-
-                return {
-                  _id: `match-${suggestion.userId}`,
-                  id: `match-${suggestion.userId}`,
-                  userId: currentUserId || "current-user",
-                  targetUserId: suggestion.userId,
-                  compatibilityScore: suggestion.matchingScore,
-                  matchType: 'niche-based' as const,
-                  scoreBreakdown: {
-                    audienceOverlap: 0,
-                    nicheCompatibility: suggestion.matchingScore,
-                    engagementStyle: 0,
-                    geolocation: 0,
-                    activityTime: 0,
-                    rizzScoreCompatibility: 0
+          // Transform API response to MatchSuggestion format
+          const transformedMatches: MatchSuggestion[] = await Promise.all(
+            suggestionsData.suggestions.map(async (suggestion) => {
+              // Fetch full profile for each suggestion
+              let targetProfile: CreatorProfile | undefined;
+              try {
+                const profileData = await profileApi.getProfileByUsername(suggestion.username);
+                targetProfile = {
+                  userId: suggestion.userId,
+                  username: suggestion.username,
+                  displayName: profileData.displayName || suggestion.username,
+                  avatar: profileData.avatar,
+                  bio: profileData.bio,
+                  niche: profileData.niche || [],
+                  location: profileData.location,
+                  stats: {
+                    totalFollowers: 0,
+                    avgEngagement: 0,
+                    platformBreakdown: {}
                   },
-                  status: 'pending' as const,
-                  metadata: {
-                    algorithm: 'matchmaker-v1',
-                    confidence: suggestion.matchingScore / 100,
-                    features: suggestion.sharedNiches.length > 0 
-                      ? [`Shared niches: ${suggestion.sharedNiches.join(', ')}`]
-                      : []
-                  },
-                  targetProfile,
-                  createdAt: new Date().toISOString(),
-                  updatedAt: new Date().toISOString()
+                  socialLinks: profileData.socialLinks,
+                  rizzScore: profileData.profileRizzScore,
+                  isPublic: true,
+                  isActive: true
                 };
-              })
-            );
+              } catch (err) {
+                console.warn(`Failed to fetch profile for ${suggestion.username}:`, err);
+                // Create minimal profile from suggestion data
+                targetProfile = {
+                  userId: suggestion.userId,
+                  username: suggestion.username,
+                  displayName: suggestion.username,
+                  niche: suggestion.sharedNiches || [],
+                  stats: {
+                    totalFollowers: 0,
+                    avgEngagement: 0,
+                    platformBreakdown: {}
+                  },
+                  isPublic: true,
+                  isActive: true
+                };
+              }
 
-            setMatches(transformedMatches);
-          } catch (suggestionsError) {
-            console.error("Error fetching suggestions:", suggestionsError);
-            setMatches([]);
-          }
-        } else {
-          console.warn("No userId available, cannot fetch suggestions");
+              return {
+                _id: `match-${suggestion.userId}`,
+                id: `match-${suggestion.userId}`,
+                userId: currentUserId || "current-user",
+                targetUserId: suggestion.userId,
+                compatibilityScore: suggestion.matchingScore,
+                matchType: 'niche-based' as const,
+                scoreBreakdown: {
+                  audienceOverlap: 0,
+                  nicheCompatibility: suggestion.matchingScore,
+                  engagementStyle: 0,
+                  geolocation: 0,
+                  activityTime: 0,
+                  rizzScoreCompatibility: 0
+                },
+                status: 'pending' as const,
+                metadata: {
+                  algorithm: 'matchmaker-v1',
+                  confidence: suggestion.matchingScore / 100,
+                  features: suggestion.sharedNiches.length > 0
+                    ? [`Shared niches: ${suggestion.sharedNiches.join(', ')}`]
+                    : []
+                },
+                targetProfile,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+              };
+            })
+          );
+
+          setMatches(transformedMatches);
+        } catch (suggestionsError) {
+          console.error("Error fetching suggestions:", suggestionsError);
           setMatches([]);
         }
-
-        setError(null);
-      } catch (err: unknown) {
-        console.error("Error loading data:", err);
-        setError(err instanceof Error ? err.message : "Failed to load matching data");
-        // Set empty data on error
+      } else {
+        console.warn("No userId available, cannot fetch suggestions");
         setMatches([]);
-      } finally {
-        setDataLoaded(true);
       }
+
+      setError(null);
+    } catch (err: unknown) {
+      console.error("Error loading data:", err);
+      setError(err instanceof Error ? err.message : "Failed to load matching data");
+      // Set empty data on error
+      setMatches([]);
+    } finally {
+      setDataLoaded(true);
+    }
   };
 
   useEffect(() => {
@@ -288,9 +289,9 @@ export default function MatchmakerPage() {
 
     try {
       // Get userId
-      const userId = userProfile?.userId || 
-                     localStorage.getItem('userId') || 
-                     JSON.parse(localStorage.getItem('user') || '{}')?.userId;
+      const userId = userProfile?.userId ||
+        localStorage.getItem('userId') ||
+        JSON.parse(localStorage.getItem('user') || '{}')?.userId;
 
       if (!userId) {
         console.warn("No userId available for refresh");
@@ -300,7 +301,7 @@ export default function MatchmakerPage() {
 
       // Fetch suggestions using new API endpoint
       const suggestionsData = await suggestionsApi.getSuggestions(userId);
-      
+
       // Transform API response to MatchSuggestion format
       const transformedMatches: MatchSuggestion[] = await Promise.all(
         suggestionsData.suggestions.map(async (suggestion) => {
@@ -363,7 +364,7 @@ export default function MatchmakerPage() {
             metadata: {
               algorithm: 'matchmaker-v1',
               confidence: suggestion.matchingScore / 100,
-              features: suggestion.sharedNiches.length > 0 
+              features: suggestion.sharedNiches.length > 0
                 ? [`Shared niches: ${suggestion.sharedNiches.join(', ')}`]
                 : []
             },
@@ -453,40 +454,56 @@ export default function MatchmakerPage() {
                 </div>
               ) : (
                 <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-                  {matches.map((match, index) => (
-                    <motion.div
-                      key={match.id || match._id || index}
-                      className="relative overflow-hidden p-6 rounded-2xl border shadow-lg bg-white/95 dark:bg-slate-800/90 border-gray-200/60 dark:border-white/10 flex flex-col items-center"
-                      whileHover={{ scale: 1.02 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <div className="absolute inset-0 opacity-0 transition-opacity duration-300 bg-gradient-to-br from-purple-500/10 via-transparent to-pink-500/10 group-hover:opacity-100" />
-                      <img
-                        src={match?.profile?.avatar || match?.targetUser?.avatar || "/default-avatar.png"}
-                        alt={match?.profile?.displayName || match?.targetUser?.displayName || "User"}
-                        className="w-24 h-24 rounded-full mb-3 object-cover ring-2 ring-purple-200 dark:ring-purple-800"
-                      />
-                      <h2 className="font-semibold text-lg text-gray-900 dark:text-white">
-                        {match?.profile?.displayName || match?.targetUser?.displayName || "Unknown User"}
-                      </h2>
-                      <p className="text-sm text-gray-500 dark:text-gray-400 mb-3 text-center">
-                        {match?.profile?.niche?.join(", ") || match?.targetUser?.niche?.join(", ") || "No niche info"}
-                      </p>
-                      {match.compatibilityScore && (
-                        <p className="text-sm font-medium text-pink-600 dark:text-pink-400 mb-3">
-                          {match.compatibilityScore.toFixed(0)}% Match
+                  {matches.map((match, index) => {
+                    const profile = match?.profile || match?.targetUser;
+                    const avatar = profile?.avatar;
+                    const displayName = profile?.displayName || "Unknown User";
+                    const username = profile?.username || "";
+                    const matchId = match.id || match._id || index.toString();
+                    const hasAvatarError = avatarErrors.has(matchId);
+
+                    return (
+                      <motion.div
+                        key={matchId}
+                        className="relative overflow-hidden p-6 rounded-2xl border shadow-lg bg-white/95 dark:bg-slate-800/90 border-gray-200/60 dark:border-white/10 flex flex-col items-center"
+                        whileHover={{ scale: 1.02 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <div className="absolute inset-0 opacity-0 transition-opacity duration-300 bg-gradient-to-br from-purple-500/10 via-transparent to-pink-500/10 group-hover:opacity-100" />
+                        {avatar && !hasAvatarError ? (
+                          <img
+                            src={avatar}
+                            alt={displayName}
+                            className="w-24 h-24 rounded-full mb-3 object-cover ring-2 ring-purple-200 dark:ring-purple-800"
+                            onError={() => setAvatarErrors((prev) => new Set(prev).add(matchId))}
+                            loading="lazy"
+                          />
+                        ) : (
+                          <div className="flex justify-center items-center w-24 h-24 mb-3 text-2xl font-bold text-white bg-gradient-to-br from-purple-500 to-pink-500 rounded-full ring-2 ring-purple-200 dark:ring-purple-800">
+                            {(displayName?.charAt(0) || username?.charAt(0) || 'U').toUpperCase()}
+                          </div>
+                        )}
+                        <h2 className="font-semibold text-lg text-gray-900 dark:text-white">
+                          {match?.profile?.displayName || match?.targetUser?.displayName || "Unknown User"}
+                        </h2>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mb-3 text-center">
+                          {match?.profile?.niche?.join(", ") || match?.targetUser?.niche?.join(", ") || "No niche info"}
                         </p>
-                      )}
-                      <div className="flex gap-3">
-                        <button className="p-2 rounded-full bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors">
-                          <X className="text-red-500 dark:text-red-400" />
-                        </button>
-                        <button className="p-2 rounded-full bg-green-100 dark:bg-green-900/30 hover:bg-green-200 dark:hover:bg-green-900/50 transition-colors">
-                          <Heart className="text-green-500 dark:text-green-400" />
-                        </button>
-                      </div>
-                    </motion.div>
-                  ))}
+                        {match.compatibilityScore && (
+                          <p className="text-sm font-medium text-pink-600 dark:text-pink-400 mb-3">
+                            {match.compatibilityScore.toFixed(0)}% Match
+                          </p>
+                        )}
+                        <div className="flex gap-3">
+                          <button className="p-2 rounded-full bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors">
+                            <X className="text-red-500 dark:text-red-400" />
+                          </button>
+                          <button className="p-2 rounded-full bg-green-100 dark:bg-green-900/30 hover:bg-green-200 dark:hover:bg-green-900/50 transition-colors">
+                            <Heart className="text-green-500 dark:text-green-400" />
+                          </button>
+                        </div>
+                      </motion.div>
+                    ))}
                 </div>
               )}
             </div>

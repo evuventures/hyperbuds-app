@@ -1,8 +1,7 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import Image from 'next/image';
 import {
    Trophy,
    Medal,
@@ -56,8 +55,22 @@ const RizzLeaderboard: React.FC<RizzLeaderboardProps> = ({
       return data?.leaderboard || [];
    }, [data?.leaderboard]);
 
+   const [avatarErrors, setAvatarErrors] = useState<Set<string>>(new Set());
+
    // Memoized leaderboard item component for better performance
-   const LeaderboardItem = React.memo(function LeaderboardItem({ item, rank, index }: { item: LeaderboardItem; rank: number; index: number }) {
+   const LeaderboardItem = React.memo(function LeaderboardItem({
+      item,
+      rank,
+      index,
+      avatarErrors,
+      onAvatarError
+   }: {
+      item: LeaderboardItem;
+      rank: number;
+      index: number;
+      avatarErrors: Set<string>;
+      onAvatarError: (id: string) => void;
+   }) {
       const isTopThree = rank <= 3;
 
       return (
@@ -81,19 +94,17 @@ const RizzLeaderboard: React.FC<RizzLeaderboardProps> = ({
             <div className="flex items-center gap-3 flex-1 min-w-0 w-full sm:w-auto">
                {/* Avatar */}
                <div className="flex-shrink-0">
-                  {item.profile.avatar ? (
-                     <Image
+                  {item.profile.avatar && !avatarErrors.has(item.profile.username || index.toString()) ? (
+                     <img
                         src={item.profile.avatar}
                         alt={`${item.profile.displayName || item.profile.username}'s avatar`}
-                        width={40}
-                        height={40}
                         className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover border-2 border-white dark:border-gray-700"
-                        unoptimized={false}
-                        priority={index < 3} // Prioritize loading for top 3
+                        onError={() => onAvatarError(item.profile.username || index.toString())}
+                        loading={index < 3 ? "eager" : "lazy"}
                      />
                   ) : (
                      <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center text-white font-semibold text-xs sm:text-sm">
-                        {item.profile.displayName?.[0]?.toUpperCase() || '?'}
+                        {(item.profile.displayName?.[0] || item.profile.username?.[0] || 'U').toUpperCase()}
                      </div>
                   )}
                </div>
@@ -276,6 +287,8 @@ const RizzLeaderboard: React.FC<RizzLeaderboardProps> = ({
                      item={item}
                      rank={rank}
                      index={index}
+                     avatarErrors={avatarErrors}
+                     onAvatarError={(id) => setAvatarErrors((prev) => new Set(prev).add(id))}
                   />
                );
             })}
