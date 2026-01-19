@@ -245,4 +245,5 @@ const DashboardSkeleton: React.FC<{ collapsed?: boolean }> = ({ collapsed = fals
   );
 };
 
+export { Skeleton };
 export default DashboardSkeleton;
