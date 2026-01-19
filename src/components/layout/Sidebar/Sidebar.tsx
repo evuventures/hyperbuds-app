@@ -109,7 +109,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ user, activeTab, collapsed, on
       label: 'Collaborations',
       subItems: [
         { id: 'collab-all', icon: Users, label: 'All Collaborations', path: '/collaboration' },
-        { id: 'collab-search', icon: Search, label: 'Search Collaborations', path: '/collaboration/search' },
+        { id: 'collab-search', icon: Search, label: 'Explore', path: '/collaboration/explore' },
         { id: 'collab-invites', icon: Mail, label: 'Invites', count: notifications.collaborations, path: '/collaboration/invites' },
         { id: 'collab-history', icon: History, label: 'History', path: '/collaboration/history' },
       ]

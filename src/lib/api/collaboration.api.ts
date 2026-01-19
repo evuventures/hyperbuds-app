@@ -1,28 +1,26 @@
-import { BASE_URL } from "@/config/baseUrl";
-import { Collaboration } from "@/types/collaboration.types";
+import apiClient from "./client";
+import { 
+  Collaboration, 
+  CollaborationHistoryItem, 
+  InviteResponse, 
+  SearchParams,
+  PendingInvite // Ensure this is exported from your types
+} from "@/types/collaboration.types";
 
-// --- Specialized Request Interfaces ---
+// --- Types ---
 
-/**
- * Request body for POST /collaborations 
- *
- */
 export interface CreateCollaborationRequest {
   title: string;
   description: string;
-  type: string;       // e.g., "social_media", "content_creation"
-  details: Record<string, unknown>;    // Expanded details field
+  type: string;
+  details: Record<string, unknown>;
   content: {
-    [key: string]: unknown; // Matches "additionalProp1": {} in documentation
+    [key: string]: unknown;
   };
-  tags: string[];     // Array of keywords
+  tags: string[];
   isPublic: boolean;
 }
 
-/**
- * Parameters for GET /collaborations filtering 
- *
- */
 export interface ListCollaborationsParams {
   status?: string;
   type?: string;
@@ -34,86 +32,86 @@ export interface ListCollaborationsParams {
 
 /**
  * GET /collaborations
- * Fetch list with optional query parameters
+ * No more manual URLSearchParams or token passing!
  */
-export async function listCollaborations(
-  token: string, 
-  params?: ListCollaborationsParams
-): Promise<Collaboration[]> {
-  const query = params 
-    ? `?${new URLSearchParams(params as Record<string, string>).toString()}` 
-    : "";
-    
-  const response = await fetch(`${BASE_URL}/api/v1/collaborations${query}`, {
-    method: "GET",
-    headers: {
-      "Authorization": `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-  });
-
-  if (!response.ok) throw new Error("Failed to fetch collaborations");
-  return response.json();
-}
+export const listCollaborations = async (params?: ListCollaborationsParams): Promise<Collaboration[]> => {
+  const response = await apiClient.get<Collaboration[]>("/collaborations", { params });
+  return response.data;
+};
 
 /**
  * POST /collaborations
- * Create a collaboration only
  */
-export async function createCollaboration(
-  data: CreateCollaborationRequest, 
-  token: string
-): Promise<Collaboration> {
-  const response = await fetch(`${BASE_URL}/api/v1/collaborations`, {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(data),
-  });
-
-  if (response.status !== 201) { // Success code 201
-    const error = await response.json();
-    throw new Error(error.message || "Creation failed");
-  }
-
-  return response.json();
-}
-
-// src/lib/api/collaboration.api.ts
-
-// ... existing createCollaboration function ...
-
-export const updateCollaboration = async (id: string, data: Partial<CreateCollaborationRequest>, token: string) => {
-    const response = await fetch(`${BASE_URL}/api/v1/collaborations/${id}`, {
-        method: 'PUT',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(data),
-    });
-
-    if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to update collaboration');
-    }
-    return response.json();
+export const createCollaboration = async (data: CreateCollaborationRequest): Promise<Collaboration> => {
+  const response = await apiClient.post<Collaboration>("/collaborations", data);
+  return response.data;
 };
 
+/**
+ * PUT /collaborations/{id}
+ */
+export const updateCollaboration = async (id: string, data: Partial<CreateCollaborationRequest>): Promise<Collaboration> => {
+  const response = await apiClient.put<Collaboration>(`/collaborations/${id}`, data);
+  return response.data;
+};
 
-export const deleteCollaboration = async (id: string, token: string) => {
-    const response = await fetch(`${BASE_URL}/api/v1/collaborations/${id}`, {
-        method: 'DELETE',
-        headers: {
-            'Authorization': `Bearer ${token}`
-        },
-    });
+/**
+ * DELETE /collaborations/{id}
+ */
+export const deleteCollaboration = async (id: string): Promise<boolean> => {
+  await apiClient.delete(`/collaborations/${id}`);
+  return true;
+};
 
-    if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to delete collaboration');
-    }
-    return true;
+/**
+ * GET /collaborations/search
+ */
+export const searchCollaborations = async (params: SearchParams): Promise<Collaboration[]> => {
+  // Clean up 'Any' or 'All' values before sending to API
+  const cleanParams = { ...params };
+  if (cleanParams.type === 'Any') delete cleanParams.type;
+  if (cleanParams.compensationType === 'All') delete cleanParams.compensationType;
+
+  const response = await apiClient.get<Collaboration[]>("/collaborations/search", { 
+    params: cleanParams 
+  });
+  return response.data;
+};
+
+/**
+ * POST /collaborations/{id}/invite
+ */
+export const requestToJoin = async (collabId: string, myUserId: string, message: string): Promise<boolean> => {
+  const response = await apiClient.post(`/collaborations/${collabId}/invite`, {
+    collaborators: [{
+      userId: myUserId,
+      role: "collaborator",
+      message: message
+    }]
+  });
+  return response.status === 200 || response.status === 201;
+};
+
+/**
+ * GET /collaborations/invites
+ */
+export const getPendingInvites = async (): Promise<PendingInvite[]> => {
+  const response = await apiClient.get<PendingInvite[]>("/collaborations/invites");
+  return response.data;
+};
+
+/**
+ * PUT /collaborations/{id}/respond
+ */
+export const respondToInvite = async (id: string, data: InviteResponse): Promise<boolean> => {
+  const response = await apiClient.put(`/collaborations/${id}/respond`, data);
+  return response.status === 200;
+};
+
+/**
+ * GET /collaborations/history
+ */
+export const getCollaborationHistory = async (token: string): Promise<CollaborationHistoryItem[]> => {
+  const response = await apiClient.get<CollaborationHistoryItem[]>("/collaborations/history");
+  return response.data;
 };

@@ -44,7 +44,7 @@ const AllCollaborationsPage = () => {
             if (statusFilter !== 'all') params.status = statusFilter;
             if (typeFilter !== 'all') params.type = typeFilter;
             
-            const data = await listCollaborations(token, params);
+            const data = await listCollaborations(params);
             
             // Client-side search filtering
             const filteredData = data.filter((c: Collaboration) => 
@@ -75,7 +75,7 @@ const AllCollaborationsPage = () => {
         const token = localStorage.getItem('accessToken');
         if (!token || !window.confirm("Delete this project?")) return;
         try {
-            await deleteCollaboration(id, token);
+            await deleteCollaboration(id);
             toast.success("Deleted");
             setCollaborations(prev => prev.filter(c => c.id !== id));
         } catch { 
