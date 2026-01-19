@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import {
-
+  Search,
   Bell,
   Settings,
   ChevronDown,
@@ -18,6 +18,7 @@ import { useAuth } from '@/hooks/auth/useAuth';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { NotificationDropdown } from './NotificationDropdown';
+import { UserSearchDropdown } from './UserSearchDropdown';
 import { useUnreadNotificationCount } from '@/hooks/features/useNotifications';
 import { useNotificationSocket } from '@/hooks/features/useNotificationSocket';
 
@@ -32,7 +33,8 @@ interface HeaderProps {
 }
 
 export const Header: React.FC<HeaderProps> = ({ user, onMenuClick }) => {
-  //const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showSearchDropdown, setShowSearchDropdown] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const { isDarkMode, toggleDarkMode } = useTheme();
@@ -40,6 +42,8 @@ export const Header: React.FC<HeaderProps> = ({ user, onMenuClick }) => {
   const router = useRouter();
   const { unreadCount } = useUnreadNotificationCount();
   const notificationButtonRef = React.useRef<HTMLButtonElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
   const userMenuButtonRef = useRef<HTMLButtonElement>(null);
   const userMenuDropdownRef = useRef<HTMLDivElement>(null);
 
@@ -47,6 +51,35 @@ export const Header: React.FC<HeaderProps> = ({ user, onMenuClick }) => {
   useNotificationSocket({
     enabled: true,
   });
+
+  // Handle search input focus to show dropdown
+  useEffect(() => {
+    if (searchQuery && searchQuery.trim().length >= 1) {
+      setShowSearchDropdown(true);
+    } else {
+      setShowSearchDropdown(false);
+    }
+  }, [searchQuery]);
+
+  // Close search dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        showSearchDropdown &&
+        searchContainerRef.current &&
+        !searchContainerRef.current.contains(event.target as Node) &&
+        searchInputRef.current &&
+        !searchInputRef.current.contains(event.target as Node)
+      ) {
+        setShowSearchDropdown(false);
+      }
+    };
+
+    if (showSearchDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [showSearchDropdown]);
 
   // Close user menu when clicking outside
   useEffect(() => {
@@ -97,7 +130,7 @@ export const Header: React.FC<HeaderProps> = ({ user, onMenuClick }) => {
           {/* Logo */}
           <div className="flex gap-2 items-center cursor-pointer sm:gap-3" onClick={() => window.location.href = '/'}>
             <div className="flex gap-2 items-center" >
-              <div className="flex justify-center items-center w-7 h-7 bg-linear-to-r from-purple-600 to-pink-600 rounded-lg cursor-pointer sm:w-8 sm:h-8">
+              <div className="flex justify-center items-center w-7 h-7 from-purple-600 to-pink-600 rounded-lg cursor-pointer bg-linear-to-r sm:w-8 sm:h-8">
                 <span className="text-xs font-bold text-white cursor-pointer sm:text-sm">H</span>
               </div>
               <h1 className="hidden text-xl font-bold text-transparent bg-clip-text bg-linear-to-r from-purple-600 to-blue-600 cursor-pointer min-[400px]:block sm:text-2xl">
@@ -107,19 +140,34 @@ export const Header: React.FC<HeaderProps> = ({ user, onMenuClick }) => {
           </div>
         </div>
 
-        {/* Search Bar 
-        <div className="hidden relative md:block">
+        {/* Search Bar */}
+        <div className="hidden relative flex-1 mx-4 max-w-lg md:block" ref={searchContainerRef}>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 w-4 h-4 text-gray-400 transform -translate-y-1/2 dark:text-gray-500" />
             <input
+              ref={searchInputRef}
               type="text"
-              placeholder="Search creators, collaborations..."
+              placeholder="Search HyperBuds"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 pr-4 py-2.5 w-80 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 dark:focus:ring-purple-400 focus:bg-white dark:focus:bg-gray-700 transition-all duration-200 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
+              onFocus={() => {
+                if (searchQuery && searchQuery.trim().length >= 1) {
+                  setShowSearchDropdown(true);
+                }
+              }}
+              className="pl-10 pr-4 py-2.5 w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 dark:focus:ring-purple-400 focus:bg-white dark:focus:bg-gray-700 transition-all duration-200 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
+            />
+
+            {/* Search Dropdown */}
+            <UserSearchDropdown
+              query={searchQuery}
+              isOpen={showSearchDropdown}
+              onClose={() => setShowSearchDropdown(false)}
+              onQueryChange={setSearchQuery}
+              anchorRef={searchInputRef}
             />
           </div>
-        </div>*/}
+        </div>
 
         {/* Right Section */}
         <div className="flex gap-2 items-center sm:gap-4">
@@ -167,7 +215,7 @@ export const Header: React.FC<HeaderProps> = ({ user, onMenuClick }) => {
               className="flex items-center gap-3 p-1.5 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
             >
               <div className="flex gap-2 items-center">
-                <div className="flex justify-center items-center w-8 h-8 bg-linear-to-r from-purple-500 to-pink-500 rounded-full">
+                <div className="flex justify-center items-center w-8 h-8 from-purple-500 to-pink-500 rounded-full bg-linear-to-r">
                   <span className="text-sm font-medium text-white">
                     {user.username?.[0]?.toUpperCase() || user.email[0].toUpperCase()}
                   </span>
@@ -190,7 +238,7 @@ export const Header: React.FC<HeaderProps> = ({ user, onMenuClick }) => {
               >
                 <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700">
                   <div className="flex gap-3 items-center">
-                    <div className="flex justify-center items-center w-10 h-10 bg-linear-to-r from-purple-500 to-pink-500 rounded-full">
+                    <div className="flex justify-center items-center w-10 h-10 from-purple-500 to-pink-500 rounded-full bg-linear-to-r">
                       <span className="font-medium text-white">
                         {user.username?.[0]?.toUpperCase() || user.email[0].toUpperCase()}
                       </span>
