@@ -1,49 +1,9 @@
 // src/lib/utils/uploadthing.ts
 
-import { generateReactHelpers } from "@uploadthing/react";
-import type { OurFileRouter } from "@/app/api/uploadthing/core";
-
-// Generate React helpers for UploadThing (exported for use in components with hooks)
-// Get token from environment variables (client-side access requires NEXT_PUBLIC_ prefix)
-// In Next.js, NEXT_PUBLIC_ variables are embedded at build time
-// Try both token names (NEXT_PUBLIC_ for client-side, regular for server-side)
-const token =
-   process.env.NEXT_PUBLIC_UPLOADTHING_TOKEN ||
-   process.env.UPLOADTHING_TOKEN;
-
-// Debug logging (only in development)
-if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
-   console.log("🔍 UploadThing Debug:", {
-      hasToken: !!token,
-      tokenLength: token?.length || 0,
-      tokenPrefix: token?.substring(0, 20) || 'N/A',
-      hasNextPublicToken: !!process.env.NEXT_PUBLIC_UPLOADTHING_TOKEN,
-      hasServerToken: !!process.env.UPLOADTHING_TOKEN,
-      envKeys: Object.keys(process.env).filter(k => k.includes('UPLOADTHING')),
-   });
-}
-
-if (!token) {
-   console.error("❌ UploadThing token is not set!");
-   console.error("❌ Looking for: NEXT_PUBLIC_UPLOADTHING_TOKEN or UPLOADTHING_TOKEN");
-   console.error("❌ Current env keys:", Object.keys(process.env).filter(k => k.includes('UPLOADTHING')));
-   console.error("❌ Please add NEXT_PUBLIC_UPLOADTHING_TOKEN to your .env.local file and restart the dev server.");
-   console.error("❌ Token format: NEXT_PUBLIC_UPLOADTHING_TOKEN=eyJhcGlLZXkiOi...");
-}
-
-// Generate helpers with token configuration
-export const { useUploadThing, uploadFiles } =
-   generateReactHelpers<OurFileRouter>({
-      url: "/api/uploadthing",
-      // Pass token explicitly - UploadThing SDK v7 requires this
-      ...(token ? { token } : {}),
-   });
-
 /**
- * Upload avatar image to UploadThing
- * Uses UploadThing's uploadFiles function with proper router configuration
+ * Upload avatar image to backend API using FormData
  * @param file - The image file to upload
- * @returns Promise<string> - The CDN URL of the uploaded image
+ * @returns Promise<string> - The URL of the uploaded image
  */
 export async function uploadAvatar(file: File): Promise<string> {
    try {
@@ -59,36 +19,101 @@ export async function uploadAvatar(file: File): Promise<string> {
          throw new Error("File size exceeds 4MB limit.");
       }
 
-      // Use the generated uploadFiles function with the endpoint name as a string literal
-      // This ensures TypeScript knows the endpoint exists in our router
-      // The uploadFiles function automatically uses NEXT_PUBLIC_UPLOADTHING_TOKEN from environment variables
-      const response = await uploadFiles("avatar", {
-         files: [file],
-      });
+      // Get base URL from environment or fallback
+      const baseURL =
+         process.env.NEXT_PUBLIC_API_BASE_URL ||
+         "https://api-hyperbuds-backend.onrender.com/api/v1";
 
-      // UploadThing returns an array of file objects
-      // The response type is ClientUploadedFileData<{ url: string }>[]
-      // Each file has ufsUrl property (file.url is deprecated in v9, use ufsUrl)
-      if (response && Array.isArray(response) && response.length > 0) {
-         const uploadedFile = response[0];
-         // Use ufsUrl (UploadThing File System URL) instead of deprecated url
-         // ufsUrl is the preferred property in UploadThing SDK v7+
-         if (uploadedFile.ufsUrl) {
-            return uploadedFile.ufsUrl;
-         }
-         // Fallback to url for backward compatibility (deprecated but still works)
-         // The url property exists at runtime even though it's deprecated
-         const fileWithUrl = uploadedFile as typeof uploadedFile & { url?: string };
-         if (fileWithUrl.url) {
-            return fileWithUrl.url;
-         }
+      // Get auth token
+      let token: string | null = null;
+      if (globalThis.window !== undefined) {
+         token = globalThis.window.localStorage.getItem("accessToken");
       }
 
-      console.error("Upload response:", response);
+      // Create FormData - backend expects field name "file"
+      const formData = new FormData();
+      formData.append("file", file);
+      
+      // Log what we're about to send
+      if (process.env.NODE_ENV === "development") {
+         console.log("📤 Upload attempt:", {
+            fileName: file.name,
+            fileType: file.type,
+            fileSize: file.size,
+            endpoint: `${baseURL}/profiles/upload-media`,
+            fieldName: "file",
+         });
+      }
+
+      // Upload using fetch (FormData automatically sets Content-Type with boundary)
+      const response = await fetch(`${baseURL}/profiles/upload-media`, {
+         method: "POST",
+         headers: {
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            // Don't set Content-Type - browser will set it with boundary for FormData
+         },
+         body: formData,
+      });
+
+      if (!response.ok) {
+         // Try to get detailed error information from backend
+         let errorMessage = `Upload failed with status ${response.status}`;
+         let errorData: { message?: string; error?: string; details?: unknown } | null = null;
+
+         try {
+            const contentType = response.headers.get("content-type");
+            if (contentType && contentType.includes("application/json")) {
+               errorData = await response.json();
+               errorMessage = errorData?.message || errorData?.error || errorMessage;
+            } else {
+               const text = await response.text();
+               if (text) {
+                  errorMessage = text;
+               }
+            }
+         } catch (parseError) {
+            console.error("Failed to parse error response:", parseError);
+         }
+
+         // Log full error details for debugging
+         console.error("Upload error details:", {
+            status: response.status,
+            statusText: response.statusText,
+            errorData: errorData ? JSON.stringify(errorData, null, 2) : null,
+            fullErrorData: errorData,
+            url: `${baseURL}/profiles/upload-media`,
+         });
+
+         // Provide user-friendly error messages for common backend issues
+         if (errorMessage.includes("api_key") || errorMessage.includes("api key") || errorMessage.includes("Must supply api_key")) {
+            throw new Error(
+               "Backend configuration error: The upload service requires an API key. " +
+               "Please contact the backend team to configure the storage service API key (e.g., Cloudinary, AWS S3)."
+            );
+         }
+
+         throw new Error(errorMessage);
+      }
+
+      // Parse response - handle common response formats
+      const data = await response.json();
+
+      // Try multiple possible response structures
+      if (data.url) {
+         return data.url;
+      }
+      if (data.data?.url) {
+         return data.data.url;
+      }
+      if (typeof data === "string") {
+         // If response is just a URL string
+         return data;
+      }
+
+      console.error("Upload response:", data);
       throw new Error("Upload succeeded but no URL returned in response");
    } catch (error) {
       console.error("Avatar upload error:", error);
       throw error instanceof Error ? error : new Error("Failed to upload avatar");
    }
 }
-

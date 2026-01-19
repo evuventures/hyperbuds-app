@@ -34,7 +34,7 @@ export function validateImageUrl(url: string): ImageUrlValidationResult {
     
     // Basic validation - URL format is correct
     // We don't validate file extensions here because many image hosting services
-    // (like UploadThing CDN) use URLs without file extensions
+    // use URLs without file extensions
     return { valid: true };
   } catch {
     return { valid: false, error: 'Please enter a valid URL' };

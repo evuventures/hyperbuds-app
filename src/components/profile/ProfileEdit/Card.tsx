@@ -442,14 +442,14 @@ export default function EditProfilePage() {
     setAvatarUrlError("");
 
     try {
-      // Import UploadThing utility
+      // Import upload utility
       const { uploadAvatar } = await import("@/lib/utils/uploadthing");
       const { profileApi } = await import("@/lib/api/profile.api");
 
-      // Upload to UploadThing to get CDN URL
+      // Upload to backend API to get CDN URL
       setMessage("Uploading image...");
       const uploadedUrl = await uploadAvatar(selectedFile);
-      console.log("UploadThing URL received:", uploadedUrl);
+      console.log("Upload URL received:", uploadedUrl);
 
       // Send URL to backend to save in profile
       setMessage("Saving to profile...");
@@ -835,6 +835,7 @@ export default function EditProfilePage() {
         <AnimatePresence>
           {message && (
             <motion.div
+              key="message"
               initial={{ opacity: 0, y: -20, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -20, scale: 0.95 }}
@@ -846,6 +847,7 @@ export default function EditProfilePage() {
           )}
           {error && (
             <motion.div
+              key="error"
               initial={{ opacity: 0, y: -20, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -20, scale: 0.95 }}

@@ -27,9 +27,9 @@ const MatchHistoryGallery: React.FC<MatchHistoryGalleryProps> = ({
     if (onViewProfile) {
       onViewProfile(userId);
     } else {
-      const match = historyMatches.find(m => m.targetProfile?.userId === userId);
-      if (match?.targetProfile) {
-        setSelectedProfile(match.targetProfile);
+      const match = historyMatches.find(m => m.targetUser?.userId === userId);
+      if (match?.targetUser) {
+        setSelectedProfile(match.targetUser);
         setIsProfileModalOpen(true);
       }
     }
@@ -204,7 +204,7 @@ const MatchHistoryGallery: React.FC<MatchHistoryGalleryProps> = ({
                 onCollaboration={() => { }} // Not used in gallery context
                 onMessage={handleMessage}
                 onViewProfile={handleViewProfileInternal}
-                isLiked={match.targetProfile ? likedMatches.has(match.targetProfile.userId) : false}
+                isLiked={match.targetUser ? likedMatches.has(match.targetUser.userId) : false}
                 isSidebarContext={true}
               />
             ))}

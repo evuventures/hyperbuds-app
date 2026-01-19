@@ -1,9 +1,11 @@
-import React from 'react'
+import PagePlaceholder from "@/components/ui/PagePlaceholder";
 
-const page = () => {
+export default function StreamingRoomPage() {
   return (
-    <div>page</div>
-  )
+    <PagePlaceholder
+      title="Stream Room"
+      description="Live session controls and audience chat."
+      icon="sparkles"
+    />
+  );
 }
-
-export default page

@@ -1,96 +1,188 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { RefreshCw, ArrowLeft, Loader2, Users, Zap } from "lucide-react";
-import type { CreatorProfile } from "@/types/matching.types";
-import MatchHistoryGallery from "@/components/matching/MatchHistoryGallery";
-import ProfileModal from "@/components/matching/ProfileModal";
+import { RefreshCw, ArrowLeft, Users, Zap } from "lucide-react";
 import { useRouter } from "next/navigation";
 import DashboardLayout from "@/components/layout/Dashboard/Dashboard";
-import { useMatchHistory } from "@/hooks/features/useMatching";
+import CollaborationList from "@/components/collaboration/CollaborationList";
+import { collaborationApi } from "@/lib/api/collaboration.api";
+import type { Collaboration } from "@/types/collaboration.types";
 
+type CollaborationFilter = "all" | "invites" | "active" | "completed";
 
 const CollaborationsPage: React.FC = () => {
   const router = useRouter();
-  const [selectedProfile, setSelectedProfile] = useState<CreatorProfile | null>(null);
-  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
-  const [likedMatches, setLikedMatches] = useState<Set<string>>(new Set());
-  const [isMounted, setIsMounted] = useState(false);
-
-  // Ensure client-side only rendering
-  React.useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  // Fetch mutual matches (collaborations) using the real API hook - only fetch when mounted on client.
-  const {
-    data: matchHistoryData,
-    isLoading,
-    error,
-    refetch,
-    isRefetching
-  } = useMatchHistory({
-    status: 'mutual', // Only get mutual matches
-    limit: 50,
-    sortBy: 'date',
-    sortOrder: 'desc'
+  const [collaborations, setCollaborations] = useState<Collaboration[]>([]);
+  const [invites, setInvites] = useState<Collaboration[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [filter, setFilter] = useState<CollaborationFilter>("all");
+  const [isCreating, setIsCreating] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
+  const [formState, setFormState] = useState({
+    title: "",
+    description: "",
+    type: "video",
+    scheduledDate: "",
+    duration: "",
+    location: "",
+    platforms: [] as string[],
+    requirements: "",
+    compensationType: "none",
+    compensationAmount: "",
+    compensationCurrency: "USD",
+    compensationDescription: "",
+    theme: "",
+    hashtags: "",
+    targetAudience: "",
+    goals: "",
+    tags: "",
+    isPublic: false,
   });
 
-  // Extract matches from the response
-  const mutualMatches = React.useMemo(() => matchHistoryData?.matches || [], [matchHistoryData?.matches]);
-
-  // Update liked matches when data loads
-  React.useEffect(() => {
-    if (mutualMatches.length > 0) {
-      const likedIds = mutualMatches
-        .map(match => match.targetProfile?.userId)
-        .filter((id): id is string => Boolean(id));
-      setLikedMatches(new Set(likedIds));
-    }
-  }, [mutualMatches]);
-
-  // Don't render until mounted on client
-  if (!isMounted) {
-    return (
-      <DashboardLayout>
-        <div className="flex justify-center items-center pb-16 min-h-full lg:pb-34">
-          <Loader2 className="w-12 h-12 text-purple-600 animate-spin" />
-        </div>
-      </DashboardLayout>
-    );
-  }
-
-  const handleMessage = (userId: string) => {
-    console.log("Opening chat with user:", userId);
-    // Navigate to messages with the user
-    router.push(`/messages?userId=${userId}`);
-  };
-
-  const handleViewProfile = (userId: string) => {
-    const match = mutualMatches.find(m => m.targetProfile?.userId === userId);
-    if (match?.targetProfile) {
-      setSelectedProfile(match.targetProfile);
-      setIsProfileModalOpen(true);
+  const loadCollaborations = async () => {
+    try {
+      setIsLoading(true);
+      const [all, pendingInvites] = await Promise.all([
+        collaborationApi.getCollaborations({ limit: 50 }),
+        collaborationApi.getPendingInvites(),
+      ]);
+      setCollaborations(all);
+      setInvites(pendingInvites);
+      setError(null);
+    } catch (err) {
+      console.error("Failed to load collaborations:", err);
+      setError(err instanceof Error ? err.message : "Failed to load collaborations");
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const handleStartCollab = (userId: string) => {
-    console.log("Starting collaboration with user:", userId);
-    // Navigate to collaboration room or modal
-    router.push(`/collaborations/${userId}`);
+  useEffect(() => {
+    loadCollaborations();
+  }, []);
+
+  const handleTogglePlatform = (platform: string) => {
+    setFormState((prev) => {
+      const exists = prev.platforms.includes(platform);
+      return {
+        ...prev,
+        platforms: exists
+          ? prev.platforms.filter((p) => p !== platform)
+          : [...prev.platforms, platform],
+      };
+    });
   };
 
-  const refreshCollaborations = async () => {
-    await refetch();
+  const handleCreateCollaboration = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setCreateError(null);
+
+    try {
+      setIsCreating(true);
+
+      const details = {
+        scheduledDate: formState.scheduledDate
+          ? new Date(formState.scheduledDate).toISOString()
+          : undefined,
+        duration: formState.duration ? Number(formState.duration) : undefined,
+        location: formState.location || undefined,
+        platform: formState.platforms.length ? formState.platforms : undefined,
+        requirements: formState.requirements
+          ? formState.requirements.split(",").map((item) => item.trim()).filter(Boolean)
+          : undefined,
+        compensation: {
+          type: formState.compensationType,
+          amount: formState.compensationAmount
+            ? Number(formState.compensationAmount)
+            : undefined,
+          currency: formState.compensationCurrency || "USD",
+          description: formState.compensationDescription || undefined,
+        },
+      };
+
+      const content = {
+        theme: formState.theme || undefined,
+        hashtags: formState.hashtags
+          ? formState.hashtags.split(",").map((item) => item.trim()).filter(Boolean)
+          : undefined,
+        targetAudience: formState.targetAudience || undefined,
+        goals: formState.goals
+          ? formState.goals.split(",").map((item) => item.trim()).filter(Boolean)
+          : undefined,
+      };
+
+      const payload = {
+        title: formState.title.trim(),
+        description: formState.description.trim(),
+        type: formState.type as Collaboration["type"],
+        details,
+        content,
+        tags: formState.tags
+          ? formState.tags.split(",").map((item) => item.trim()).filter(Boolean)
+          : undefined,
+        isPublic: formState.isPublic,
+      };
+
+      const created = await collaborationApi.createCollaboration(payload as any);
+      setCollaborations((prev) => [created, ...prev]);
+      setFilter("all");
+      setFormState({
+        title: "",
+        description: "",
+        type: "video",
+        scheduledDate: "",
+        duration: "",
+        location: "",
+        platforms: [],
+        requirements: "",
+        compensationType: "none",
+        compensationAmount: "",
+        compensationCurrency: "USD",
+        compensationDescription: "",
+        theme: "",
+        hashtags: "",
+        targetAudience: "",
+        goals: "",
+        tags: "",
+        isPublic: false,
+      });
+    } catch (err) {
+      setCreateError(err instanceof Error ? err.message : "Failed to create collaboration");
+    } finally {
+      setIsCreating(false);
+    }
   };
+
+  const activeCollaborations = useMemo(
+    () => collaborations.filter((collab) => ["accepted", "in_progress"].includes(collab.status)),
+    [collaborations]
+  );
+
+  const completedCollaborations = useMemo(
+    () => collaborations.filter((collab) => collab.status === "completed"),
+    [collaborations]
+  );
+
+  const filteredCollaborations = useMemo(() => {
+    switch (filter) {
+      case "invites":
+        return invites;
+      case "active":
+        return activeCollaborations;
+      case "completed":
+        return completedCollaborations;
+      default:
+        return collaborations;
+    }
+  }, [filter, collaborations, invites, activeCollaborations, completedCollaborations]);
 
   return (
     <DashboardLayout>
       <div className="min-h-full bg-gray-50 dark:bg-slate-900">
         <div className="p-4 pb-16 lg:p-6 lg:pb-34">
           <div className="mx-auto max-w-6xl">
-            {/* Header */}
             <div className="flex gap-2 justify-between items-center mb-6 sm:mb-8">
               <Button
                 variant="outline"
@@ -106,17 +198,16 @@ const CollaborationsPage: React.FC = () => {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={refreshCollaborations}
-                disabled={isRefetching}
+                onClick={loadCollaborations}
+                disabled={isLoading}
                 className="text-xs text-gray-900 bg-gray-100 border-gray-300 cursor-pointer sm:text-sm dark:text-white dark:bg-white/10 dark:border-white/20 hover:bg-gray-200 dark:hover:bg-white/20"
               >
-                <RefreshCw className={`w-3.5 h-3.5 mr-1.5 sm:w-4 sm:h-4 sm:mr-2 ${isRefetching ? "animate-spin" : ""}`} />
+                <RefreshCw className={`w-3.5 h-3.5 mr-1.5 sm:w-4 sm:h-4 sm:mr-2 ${isLoading ? "animate-spin" : ""}`} />
                 <span className="hidden sm:inline">Refresh</span>
                 <span className="sm:hidden">Refresh</span>
               </Button>
             </div>
 
-            {/* Title */}
             <div className="mb-5 text-center sm:mb-6">
               <div className="flex justify-center items-center mb-2 sm:mb-3">
                 <div className="flex-shrink-0 p-2 mr-2 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl shadow-md sm:p-2.5 sm:mr-3 sm:rounded-2xl">
@@ -126,50 +217,367 @@ const CollaborationsPage: React.FC = () => {
               </div>
               <p className="px-4 text-sm text-gray-600 sm:text-base lg:text-lg dark:text-gray-400">
                 {isLoading
-                  ? "Loading your mutual matches..."
-                  : mutualMatches.length === 0
-                    ? "No mutual matches yet. Keep swiping to find collaborators!"
-                    : `${mutualMatches.length} mutual ${mutualMatches.length === 1 ? 'match' : 'matches'} ready to collaborate`}
+                  ? "Loading your collaborations..."
+                  : collaborations.length === 0
+                  ? "No collaborations yet. Start a new project or accept invites."
+                  : `${collaborations.length} collaboration${collaborations.length === 1 ? "" : "s"} in your workspace`}
               </p>
             </div>
 
-            {/* Navigation Tabs */}
-            <div className="flex flex-col gap-2 justify-center mb-5 sm:flex-row sm:flex-wrap sm:mb-6">
+            <div className="flex flex-wrap gap-2 justify-center mb-5 sm:mb-6">
               <Button
-                variant="default"
-                onClick={() => router.push('/collaborations')}
-                className="text-xs bg-gradient-to-r from-purple-500 to-pink-500 sm:text-sm hover:from-purple-600 hover:to-pink-600"
+                variant={filter === "all" ? "default" : "outline"}
+                onClick={() => setFilter("all")}
+                className={
+                  filter === "all"
+                    ? "text-xs bg-gradient-to-r from-purple-500 to-pink-500 sm:text-sm hover:from-purple-600 hover:to-pink-600"
+                    : "text-xs text-purple-600 border-purple-500 sm:text-sm hover:bg-purple-50 dark:text-purple-400 dark:hover:bg-purple-900/20"
+                }
               >
                 <Users className="mr-1.5 w-3.5 h-3.5 sm:mr-2 sm:w-4 sm:h-4" />
                 <span className="hidden sm:inline">All Collaborations</span>
                 <span className="sm:hidden">Collaborations</span>
               </Button>
               <Button
-                variant="outline"
-                onClick={() => router.push('/collaborations/active')}
-                className="text-xs text-purple-600 border-purple-500 sm:text-sm hover:bg-purple-50 dark:text-purple-400 dark:hover:bg-purple-900/20"
+                variant={filter === "active" ? "default" : "outline"}
+                onClick={() => setFilter("active")}
+                className={
+                  filter === "active"
+                    ? "text-xs bg-gradient-to-r from-purple-500 to-pink-500 sm:text-sm hover:from-purple-600 hover:to-pink-600"
+                    : "text-xs text-purple-600 border-purple-500 sm:text-sm hover:bg-purple-50 dark:text-purple-400 dark:hover:bg-purple-900/20"
+                }
               >
                 <Zap className="mr-1.5 w-3.5 h-3.5 sm:mr-2 sm:w-4 sm:h-4" />
                 Active Projects
               </Button>
               <Button
-                variant="outline"
-                onClick={() => router.push('/ai-matches')}
-                className="text-xs text-purple-600 border-purple-500 sm:text-sm hover:bg-purple-50 dark:text-purple-400 dark:hover:bg-purple-900/20"
+                variant={filter === "invites" ? "default" : "outline"}
+                onClick={() => setFilter("invites")}
+                className={
+                  filter === "invites"
+                    ? "text-xs bg-gradient-to-r from-purple-500 to-pink-500 sm:text-sm hover:from-purple-600 hover:to-pink-600"
+                    : "text-xs text-purple-600 border-purple-500 sm:text-sm hover:bg-purple-50 dark:text-purple-400 dark:hover:bg-purple-900/20"
+                }
               >
-                <span className="hidden sm:inline">View Match History</span>
-                <span className="sm:hidden">Match History</span>
+                Invites
               </Button>
-
+              <Button
+                variant={filter === "completed" ? "default" : "outline"}
+                onClick={() => setFilter("completed")}
+                className={
+                  filter === "completed"
+                    ? "text-xs bg-gradient-to-r from-purple-500 to-pink-500 sm:text-sm hover:from-purple-600 hover:to-pink-600"
+                    : "text-xs text-purple-600 border-purple-500 sm:text-sm hover:bg-purple-50 dark:text-purple-400 dark:hover:bg-purple-900/20"
+                }
+              >
+                Completed
+              </Button>
             </div>
 
-            {/* Content */}
+            <div className="mb-6 rounded-2xl border border-gray-200/60 bg-white/90 p-5 shadow-lg backdrop-blur-sm dark:border-white/10 dark:bg-slate-800/90">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    Create Collaboration
+                  </h2>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Draft a new collaboration and invite creators.
+                  </p>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsCreating((prev) => !prev)}
+                  className="text-xs text-purple-600 border-purple-500 sm:text-sm hover:bg-purple-50 dark:text-purple-400 dark:hover:bg-purple-900/20"
+                >
+                  {isCreating ? "Close" : "New Collaboration"}
+                </Button>
+              </div>
+
+              {isCreating && (
+                <form onSubmit={handleCreateCollaboration} className="mt-4 space-y-4">
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                        Title
+                      </label>
+                      <input
+                        value={formState.title}
+                        onChange={(event) => setFormState((prev) => ({ ...prev, title: event.target.value }))}
+                        required
+                        className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-white/10 dark:bg-slate-900/60 dark:text-white"
+                        placeholder="Collaboration title"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                        Type
+                      </label>
+                      <select
+                        value={formState.type}
+                        onChange={(event) => setFormState((prev) => ({ ...prev, type: event.target.value }))}
+                        className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-white/10 dark:bg-slate-900/60 dark:text-white"
+                      >
+                        {["video", "livestream", "podcast", "photo_shoot", "event", "challenge", "series", "other"].map(
+                          (value) => (
+                            <option key={value} value={value}>
+                              {value.replace(/_/g, " ")}
+                            </option>
+                          )
+                        )}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                      Description
+                    </label>
+                    <textarea
+                      value={formState.description}
+                      onChange={(event) => setFormState((prev) => ({ ...prev, description: event.target.value }))}
+                      required
+                      className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-white/10 dark:bg-slate-900/60 dark:text-white"
+                      rows={4}
+                      placeholder="Describe the collaboration goals"
+                    />
+                  </div>
+
+                  <div className="grid gap-4 md:grid-cols-3">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                        Scheduled Date
+                      </label>
+                      <input
+                        type="date"
+                        value={formState.scheduledDate}
+                        onChange={(event) => setFormState((prev) => ({ ...prev, scheduledDate: event.target.value }))}
+                        className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-white/10 dark:bg-slate-900/60 dark:text-white"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                        Duration (minutes)
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        value={formState.duration}
+                        onChange={(event) => setFormState((prev) => ({ ...prev, duration: event.target.value }))}
+                        className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-white/10 dark:bg-slate-900/60 dark:text-white"
+                        placeholder="120"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                        Location
+                      </label>
+                      <input
+                        value={formState.location}
+                        onChange={(event) => setFormState((prev) => ({ ...prev, location: event.target.value }))}
+                        className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-white/10 dark:bg-slate-900/60 dark:text-white"
+                        placeholder="Virtual or city"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                      Platforms
+                    </label>
+                    <div className="flex flex-wrap gap-2">
+                      {["tiktok", "instagram", "youtube", "twitch", "twitter"].map((platform) => (
+                        <button
+                          type="button"
+                          key={platform}
+                          onClick={() => handleTogglePlatform(platform)}
+                          className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
+                            formState.platforms.includes(platform)
+                              ? "border-purple-500 bg-purple-500 text-white"
+                              : "border-gray-200 bg-white text-gray-600 dark:border-white/10 dark:bg-slate-900/60 dark:text-gray-300"
+                          }`}
+                        >
+                          {platform}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                        Requirements (comma separated)
+                      </label>
+                      <input
+                        value={formState.requirements}
+                        onChange={(event) => setFormState((prev) => ({ ...prev, requirements: event.target.value }))}
+                        className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-white/10 dark:bg-slate-900/60 dark:text-white"
+                        placeholder="Camera, lighting"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                        Tags (comma separated)
+                      </label>
+                      <input
+                        value={formState.tags}
+                        onChange={(event) => setFormState((prev) => ({ ...prev, tags: event.target.value }))}
+                        className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-white/10 dark:bg-slate-900/60 dark:text-white"
+                        placeholder="gaming, tech"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid gap-4 md:grid-cols-4">
+                    <div className="space-y-2 md:col-span-2">
+                      <label className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                        Compensation Type
+                      </label>
+                      <select
+                        value={formState.compensationType}
+                        onChange={(event) => setFormState((prev) => ({ ...prev, compensationType: event.target.value }))}
+                        className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-white/10 dark:bg-slate-900/60 dark:text-white"
+                      >
+                        {["none", "revenue_share", "fixed_fee", "barter"].map((value) => (
+                          <option key={value} value={value}>
+                            {value.replace(/_/g, " ")}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                        Amount
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        value={formState.compensationAmount}
+                        onChange={(event) => setFormState((prev) => ({ ...prev, compensationAmount: event.target.value }))}
+                        className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-white/10 dark:bg-slate-900/60 dark:text-white"
+                        placeholder="0"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                        Currency
+                      </label>
+                      <input
+                        value={formState.compensationCurrency}
+                        onChange={(event) => setFormState((prev) => ({ ...prev, compensationCurrency: event.target.value }))}
+                        className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-white/10 dark:bg-slate-900/60 dark:text-white"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                      Compensation Notes
+                    </label>
+                    <input
+                      value={formState.compensationDescription}
+                      onChange={(event) => setFormState((prev) => ({ ...prev, compensationDescription: event.target.value }))}
+                      className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-white/10 dark:bg-slate-900/60 dark:text-white"
+                      placeholder="Optional details about compensation"
+                    />
+                  </div>
+
+                  <div className="grid gap-4 md:grid-cols-3">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                        Theme
+                      </label>
+                      <input
+                        value={formState.theme}
+                        onChange={(event) => setFormState((prev) => ({ ...prev, theme: event.target.value }))}
+                        className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-white/10 dark:bg-slate-900/60 dark:text-white"
+                        placeholder="Theme"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                        Hashtags
+                      </label>
+                      <input
+                        value={formState.hashtags}
+                        onChange={(event) => setFormState((prev) => ({ ...prev, hashtags: event.target.value }))}
+                        className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-white/10 dark:bg-slate-900/60 dark:text-white"
+                        placeholder="#collab, #creator"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                        Goals
+                      </label>
+                      <input
+                        value={formState.goals}
+                        onChange={(event) => setFormState((prev) => ({ ...prev, goals: event.target.value }))}
+                        className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-white/10 dark:bg-slate-900/60 dark:text-white"
+                        placeholder="engagement, reach"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                        Target Audience
+                      </label>
+                      <input
+                        value={formState.targetAudience}
+                        onChange={(event) => setFormState((prev) => ({ ...prev, targetAudience: event.target.value }))}
+                        className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-white/10 dark:bg-slate-900/60 dark:text-white"
+                        placeholder="Audience profile"
+                      />
+                    </div>
+                    <div className="flex items-center gap-2 pt-7">
+                      <input
+                        type="checkbox"
+                        checked={formState.isPublic}
+                        onChange={(event) => setFormState((prev) => ({ ...prev, isPublic: event.target.checked }))}
+                        className="h-4 w-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                      />
+                      <span className="text-sm text-gray-600 dark:text-gray-300">
+                        Show in marketplace
+                      </span>
+                    </div>
+                  </div>
+
+                  {createError && (
+                    <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600 dark:border-red-900/40 dark:bg-red-900/20 dark:text-red-300">
+                      {createError}
+                    </div>
+                  )}
+
+                  <div className="flex flex-wrap gap-3">
+                    <Button
+                      type="submit"
+                      disabled={isLoading}
+                      className="text-xs sm:text-sm bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+                    >
+                      Create Collaboration
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setIsCreating(false)}
+                      className="text-xs text-gray-600 border-gray-200 sm:text-sm hover:bg-gray-50 dark:text-gray-300 dark:border-white/10 dark:hover:bg-slate-900/40"
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </form>
+              )}
+            </div>
+
             <div className="p-5 rounded-xl border-2 shadow-xl backdrop-blur-sm sm:p-6 sm:rounded-2xl lg:p-8 border-purple-200/50 bg-white/90 dark:bg-slate-800/90 dark:border-purple-500/30">
               {isLoading ? (
                 <div className="flex flex-col justify-center items-center py-12 sm:py-16">
-                  <Loader2 className="mb-4 w-12 h-12 text-purple-600 animate-spin sm:w-16 sm:h-16 dark:text-purple-400" />
-                  <p className="text-base font-medium text-gray-600 sm:text-lg dark:text-gray-400">Loading your collaborations...</p>
-                  <p className="mt-2 text-xs text-gray-500 sm:text-sm dark:text-gray-500">Finding your mutual matches</p>
+                  <div className="mb-4 w-12 h-12 text-purple-600 animate-spin sm:w-16 sm:h-16">
+                    <RefreshCw className="w-full h-full" />
+                  </div>
+                  <p className="text-base font-medium text-gray-600 sm:text-lg dark:text-gray-400">Loading collaborations...</p>
+                  <p className="mt-2 text-xs text-gray-500 sm:text-sm dark:text-gray-500">Syncing your workspace</p>
                 </div>
               ) : error ? (
                 <div className="flex flex-col justify-center items-center py-12 sm:py-16">
@@ -178,98 +586,54 @@ const CollaborationsPage: React.FC = () => {
                       Failed to load collaborations
                     </p>
                     <p className="mt-1 text-xs text-red-500 sm:text-sm dark:text-red-400">
-                      {error.message}
+                      {error}
                     </p>
                   </div>
-                  <Button onClick={() => refetch()} variant="outline" className="text-xs text-purple-600 border-purple-500 sm:text-sm hover:bg-purple-50">
+                  <Button onClick={loadCollaborations} variant="outline" className="text-xs text-purple-600 border-purple-500 sm:text-sm hover:bg-purple-50">
                     Try Again
                   </Button>
                 </div>
-              ) : mutualMatches.length === 0 ? (
-                <div className="flex flex-col justify-center items-center py-12 sm:py-16">
-                  <div className="p-5 mb-4 bg-gradient-to-br from-purple-100 to-pink-100 rounded-full sm:p-6 dark:from-purple-900/30 dark:to-pink-900/30">
-                    <Users className="w-12 h-12 text-purple-600 sm:w-16 sm:h-16 dark:text-purple-400" />
-                  </div>
-                  <h3 className="mb-2 text-xl font-bold text-gray-900 sm:text-2xl dark:text-white">
-                    No Collaborations Yet
-                  </h3>
-                  <p className="px-4 mb-6 max-w-md text-sm text-center text-gray-600 sm:text-base dark:text-gray-400">
-                    Get Matching to find amazing creators! When match is accepted, you&apos;ll see them here ready to collaborate.
-                  </p>
-                  <Button
-                    onClick={() => router.push('/matching')}
-                    className="text-sm bg-gradient-to-r from-purple-500 to-pink-500 sm:text-base hover:from-purple-600 hover:to-pink-600"
-                  >
-                    <Zap className="mr-2 w-4 h-4 sm:w-5 sm:h-5" />
-                    Start Matching
-                  </Button>
-                </div>
               ) : (
-                <div>
-                  <div className="mb-5 sm:mb-6">
-                    <h2 className="text-lg font-bold text-gray-900 sm:text-xl dark:text-white">
-                      🎉 Mutual Matches - Ready to Collaborate!
-                    </h2>
-                    <p className="mt-1 text-xs text-gray-600 sm:text-sm dark:text-gray-400">
-                      These creators liked you back. Time to start creating amazing content together!
-                    </p>
-                  </div>
-                  <MatchHistoryGallery
-                    historyMatches={mutualMatches}
-                    onMessage={handleMessage}
-                    onViewProfile={handleViewProfile}
-                    likedMatches={likedMatches}
-                  />
-                </div>
+                <CollaborationList
+                  items={filteredCollaborations}
+                  emptyTitle={
+                    filter === "invites"
+                      ? "No Invites Yet"
+                      : filter === "completed"
+                      ? "No Completed Collaborations"
+                      : filter === "active"
+                      ? "No Active Collaborations"
+                      : "No Collaborations Yet"
+                  }
+                  emptyDescription={
+                    filter === "invites"
+                      ? "Invitations to collaborate will appear here."
+                      : filter === "completed"
+                      ? "Finish a project to see it here."
+                      : filter === "active"
+                      ? "Start or accept a collaboration to get going."
+                      : "Create or accept a collaboration to see it here."
+                  }
+                />
               )}
             </div>
 
-            {/* Quick Actions */}
-            {mutualMatches.length > 0 && (
-              <div className="grid grid-cols-1 gap-3 mt-5 sm:grid-cols-3 sm:gap-4 sm:mt-6">
-                <div className="p-5 text-center bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl border border-purple-200 shadow-sm sm:p-6 dark:from-purple-900/20 dark:to-pink-900/20 dark:border-purple-500/30">
-                  <Users className="mx-auto mb-2 w-7 h-7 text-purple-600 sm:w-8 sm:h-8 dark:text-purple-400" />
-                  <p className="text-xl font-bold text-gray-900 sm:text-2xl dark:text-white">{mutualMatches.length}</p>
-                  <p className="text-xs text-gray-600 sm:text-sm dark:text-gray-400">Mutual Matches</p>
-                </div>
-                <div className="p-5 text-center bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl border border-blue-200 shadow-sm sm:p-6 dark:from-blue-900/20 dark:to-cyan-900/20 dark:border-blue-500/30">
-                  <Zap className="mx-auto mb-2 w-7 h-7 text-blue-600 sm:w-8 sm:h-8 dark:text-blue-400" />
-                  <p className="text-xl font-bold text-gray-900 sm:text-2xl dark:text-white">
-                    {mutualMatches.filter(m => m.compatibilityScore >= 85).length}
-                  </p>
-                  <p className="text-xs text-gray-600 sm:text-sm dark:text-gray-400">High Compatibility</p>
-                </div>
-                <div className="p-5 text-center bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border border-green-200 shadow-sm sm:p-6 dark:from-green-900/20 dark:to-emerald-900/20 dark:border-green-500/30">
-                  <Users className="mx-auto mb-2 w-7 h-7 text-green-600 sm:w-8 sm:h-8 dark:text-green-400" />
-                  <p className="text-xl font-bold text-gray-900 sm:text-2xl dark:text-white">
-                    {new Set(mutualMatches.flatMap(m => m.targetProfile?.niche || [])).size}
-                  </p>
-                  <p className="text-xs text-gray-600 sm:text-sm dark:text-gray-400">Unique Niches</p>
-                </div>
+            <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
+              <div className="rounded-2xl border border-gray-200/60 bg-white/90 p-4 text-center shadow-md dark:border-white/10 dark:bg-slate-800/90">
+                <p className="text-xs text-gray-500 dark:text-gray-400">Total</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">{collaborations.length}</p>
               </div>
-            )}
-
-            {/* Pagination Info */}
-            {matchHistoryData?.pagination && mutualMatches.length > 0 && (
-              <div className="mt-4 text-xs text-center text-gray-600 sm:mt-6 sm:text-sm dark:text-gray-400">
-                Showing {mutualMatches.length} of {matchHistoryData.pagination.total} total mutual matches
+              <div className="rounded-2xl border border-gray-200/60 bg-white/90 p-4 text-center shadow-md dark:border-white/10 dark:bg-slate-800/90">
+                <p className="text-xs text-gray-500 dark:text-gray-400">Active</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">{activeCollaborations.length}</p>
               </div>
-            )}
+              <div className="rounded-2xl border border-gray-200/60 bg-white/90 p-4 text-center shadow-md dark:border-white/10 dark:bg-slate-800/90">
+                <p className="text-xs text-gray-500 dark:text-gray-400">Invites</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">{invites.length}</p>
+              </div>
+            </div>
           </div>
         </div>
-
-        {/* Profile Modal */}
-        <ProfileModal
-          profile={selectedProfile}
-          isOpen={isProfileModalOpen}
-          onClose={() => {
-            setIsProfileModalOpen(false);
-            setSelectedProfile(null);
-          }}
-          onAction={() => { }} // Already mutual, no actions needed
-          onCollaboration={handleStartCollab}
-          isLiked={true} // Always liked in mutual matches
-        />
       </div>
     </DashboardLayout>
   );

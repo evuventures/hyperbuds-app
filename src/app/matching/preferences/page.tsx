@@ -1,9 +1,11 @@
-import React from 'react'
+import PagePlaceholder from "@/components/ui/PagePlaceholder";
 
-const page = () => {
+export default function MatchingPreferencesPage() {
   return (
-    <div>page</div>
-  )
+    <PagePlaceholder
+      title="Matching Preferences"
+      description="Set criteria for better matches."
+      icon="zap"
+    />
+  );
 }
-
-export default page

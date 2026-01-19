@@ -4,11 +4,13 @@ import { MessagesContent } from "./components/MessagesContent";
 
 const page = () => {
    return (
-      <div>
-         <DashboardLayout>
-            <MessagesContent />
-         </DashboardLayout>
-      </div>
+      <DashboardLayout>
+         <div className="min-h-full bg-gray-50 dark:bg-slate-900">
+            <div className="p-4 pb-16 lg:p-6 lg:pb-34">
+               <MessagesContent />
+            </div>
+         </div>
+      </DashboardLayout>
    )
 }
 

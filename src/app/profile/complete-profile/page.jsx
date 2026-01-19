@@ -259,13 +259,13 @@ export default function MultiStepProfileForm() {
     if (!selectedFile) return null;
 
     try {
-      // Import UploadThing utility
-      const { uploadAvatar: uploadToUploadThing } = await import('@/lib/utils/uploadthing');
+      // Import upload utility
+      const { uploadAvatar } = await import('@/lib/utils/uploadthing');
 
-      // Upload to UploadThing to get CDN URL
-      setMessage('Uploading image to UploadThing...');
-      const uploadedUrl = await uploadToUploadThing(selectedFile);
-      console.log('UploadThing URL received:', uploadedUrl);
+      // Upload to backend API to get CDN URL
+      setMessage('Uploading image...');
+      const uploadedUrl = await uploadAvatar(selectedFile);
+      console.log('Upload URL received:', uploadedUrl);
 
       // Cleanup preview URL
       if (previewUrl) {
