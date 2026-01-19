@@ -210,7 +210,7 @@ const CollaborationsPage: React.FC = () => {
 
             <div className="mb-5 text-center sm:mb-6">
               <div className="flex justify-center items-center mb-2 sm:mb-3">
-                <div className="flex-shrink-0 p-2 mr-2 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl shadow-md sm:p-2.5 sm:mr-3 sm:rounded-2xl">
+                <div className="shrink-0 p-2 mr-2 bg-linear-to-br from-purple-500 to-pink-500 rounded-xl shadow-md sm:p-2.5 sm:mr-3 sm:rounded-2xl">
                   <Users className="w-6 h-6 text-white sm:w-7 sm:h-7 lg:w-8 lg:h-8" />
                 </div>
                 <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl lg:text-4xl dark:text-white">Collaborations</h1>
@@ -230,7 +230,7 @@ const CollaborationsPage: React.FC = () => {
                 onClick={() => setFilter("all")}
                 className={
                   filter === "all"
-                    ? "text-xs bg-gradient-to-r from-purple-500 to-pink-500 sm:text-sm hover:from-purple-600 hover:to-pink-600"
+                    ? "text-xs bg-linear-to-r from-purple-500 to-pink-500 sm:text-sm hover:from-purple-600 hover:to-pink-600"
                     : "text-xs text-purple-600 border-purple-500 sm:text-sm hover:bg-purple-50 dark:text-purple-400 dark:hover:bg-purple-900/20"
                 }
               >
@@ -243,7 +243,7 @@ const CollaborationsPage: React.FC = () => {
                 onClick={() => setFilter("active")}
                 className={
                   filter === "active"
-                    ? "text-xs bg-gradient-to-r from-purple-500 to-pink-500 sm:text-sm hover:from-purple-600 hover:to-pink-600"
+                    ? "text-xs bg-linear-to-r from-purple-500 to-pink-500 sm:text-sm hover:from-purple-600 hover:to-pink-600"
                     : "text-xs text-purple-600 border-purple-500 sm:text-sm hover:bg-purple-50 dark:text-purple-400 dark:hover:bg-purple-900/20"
                 }
               >
@@ -255,7 +255,7 @@ const CollaborationsPage: React.FC = () => {
                 onClick={() => setFilter("invites")}
                 className={
                   filter === "invites"
-                    ? "text-xs bg-gradient-to-r from-purple-500 to-pink-500 sm:text-sm hover:from-purple-600 hover:to-pink-600"
+                    ? "text-xs bg-linear-to-r from-purple-500 to-pink-500 sm:text-sm hover:from-purple-600 hover:to-pink-600"
                     : "text-xs text-purple-600 border-purple-500 sm:text-sm hover:bg-purple-50 dark:text-purple-400 dark:hover:bg-purple-900/20"
                 }
               >
@@ -266,7 +266,7 @@ const CollaborationsPage: React.FC = () => {
                 onClick={() => setFilter("completed")}
                 className={
                   filter === "completed"
-                    ? "text-xs bg-gradient-to-r from-purple-500 to-pink-500 sm:text-sm hover:from-purple-600 hover:to-pink-600"
+                    ? "text-xs bg-linear-to-r from-purple-500 to-pink-500 sm:text-sm hover:from-purple-600 hover:to-pink-600"
                     : "text-xs text-purple-600 border-purple-500 sm:text-sm hover:bg-purple-50 dark:text-purple-400 dark:hover:bg-purple-900/20"
                 }
               >
@@ -553,7 +553,7 @@ const CollaborationsPage: React.FC = () => {
                     <Button
                       type="submit"
                       disabled={isLoading}
-                      className="text-xs sm:text-sm bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+                      className="text-xs sm:text-sm bg-linear-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
                     >
                       Create Collaboration
                     </Button>

@@ -1,11 +1,524 @@
-import PagePlaceholder from "@/components/ui/PagePlaceholder";
+'use client';
 
-export default function MarketplaceServicesCreatePage() {
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { marketplaceApi } from "@/lib/api/marketplace.api";
+import {
+  CreateServiceRequest,
+  MarketplacePackage,
+  MarketplaceFaq
+} from "@/types/marketplace.types";
+import {
+  ArrowLeft,
+  Send,
+  MapPin,
+  Clock,
+  Tag,
+  X
+} from "lucide-react";
+import Image from "next/image";
+
+export const CreateServicePage = () => {
+  const router = useRouter();
+  const queryClient = useQueryClient();
+
+  const [form, setForm] = useState<CreateServiceRequest>({
+    title: "",
+    description: "",
+    price: 0,
+    currency: "USD",
+    category: "Design",
+    subcategory: "",
+    tags: [],
+    images: [],
+    deliveryTime: "",
+    location: "Remote",
+    isAvailable: true,
+    featured: false,
+    packages: [],
+    requirements: [],
+    faq: [],
+  });
+
+  const [tempTag, setTempTag] = useState("");
+  const [tempImg, setTempImg] = useState("");
+  const [tempReq, setTempReq] = useState("");
+  const [tempPkg, setTempPkg] = useState<MarketplacePackage>({
+    name: "",
+    description: "",
+    price: 0,
+  });
+  const [tempFaq, setTempFaq] = useState<MarketplaceFaq>({
+    question: "",
+    answer: "",
+  });
+
+  // 🧹 Sanitize helper
+  const sanitizeForm = (data: CreateServiceRequest): CreateServiceRequest => {
+    const cleanPackages = data.packages?.map(pkg => ({
+      ...pkg,
+      description: pkg.description?.trim() || undefined,
+    })) ?? [];
+
+    return {
+      ...data,
+      subcategory: data.subcategory?.trim() || undefined,
+      deliveryTime: data.deliveryTime?.trim() || undefined,
+      location: data.location?.trim() || undefined,
+      packages: cleanPackages,
+    };
+  };
+
+  const mutation = useMutation({
+    mutationFn: (data: CreateServiceRequest) => marketplaceApi.createService(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["services"] });
+      router.push("/marketplace/services");
+    },
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const sanitized = sanitizeForm(form);
+    mutation.mutate(sanitized);
+  };
+
+  // 🗑️ Removal handlers
+  const removeTag = (index: number) => {
+    const newTags = [...(form.tags || [])];
+    newTags.splice(index, 1);
+    setForm({ ...form, tags: newTags });
+  };
+
+  const removeImage = (index: number) => {
+    const newImages = [...(form.images || [])];
+    newImages.splice(index, 1);
+    setForm({ ...form, images: newImages });
+  };
+
+  const removePackage = (index: number) => {
+    const newPackages = [...(form.packages || [])];
+    newPackages.splice(index, 1);
+    setForm({ ...form, packages: newPackages });
+  };
+
+  const removeRequirement = (index: number) => {
+    const newReqs = [...(form.requirements || [])];
+    newReqs.splice(index, 1);
+    setForm({ ...form, requirements: newReqs });
+  };
+
+  const removeFaq = (index: number) => {
+    const newFaq = [...(form.faq || [])];
+    newFaq.splice(index, 1);
+    setForm({ ...form, faq: newFaq });
+  };
+
   return (
-    <PagePlaceholder
-      title="Create Service"
-      description="Publish a new marketplace listing."
-      icon="sparkles"
-    />
+    <div className="min-h-screen bg-zinc-50 dark:bg-black p-6 md:p-12 pb-32">
+      <div className="max-w-4xl mx-auto space-y-8">
+        <button
+          onClick={() => router.back()}
+          className="flex items-center gap-2 text-zinc-500 font-bold hover:text-pink-500 transition"
+        >
+          <ArrowLeft size={20} /> BACK TO DIRECTORY
+        </button>
+
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-12 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[2.5rem] p-8 md:p-12 shadow-2xl"
+        >
+          <header>
+            <h1 className="text-4xl font-black uppercase tracking-tight">Create New Service</h1>
+            <p className="text-zinc-500 mt-2 font-medium italic">
+              Configure your professional listing details below.
+            </p>
+          </header>
+
+          {/* 01. ESSENTIAL INFO */}
+          <section className="space-y-6">
+            <h2 className="text-sm font-black text-pink-500 uppercase tracking-widest border-b pb-2 border-pink-100">
+              01. Essential Information
+            </h2>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="text-xs font-black uppercase text-zinc-400">Service Title *</label>
+                <input
+                  required
+                  className="w-full bg-zinc-100 dark:bg-zinc-800 rounded-2xl p-4"
+                  onChange={(e) => setForm({ ...form, title: e.target.value })}
+                  placeholder="e.g. Premium UI/UX Design"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-black uppercase text-zinc-400">Category *</label>
+                <input
+                  required
+                  className="w-full bg-zinc-100 dark:bg-zinc-800 rounded-2xl p-4"
+                  onChange={(e) => setForm({ ...form, category: e.target.value })}
+                  placeholder="e.g. Design"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="text-xs font-black uppercase text-zinc-400">Subcategory</label>
+              <input
+                className="w-full bg-zinc-100 dark:bg-zinc-800 rounded-2xl p-4"
+                onChange={(e) => setForm({ ...form, subcategory: e.target.value })}
+                placeholder="e.g. Logo Design"
+              />
+            </div>
+
+            <div>
+              <label className="text-xs font-black uppercase text-zinc-400">Description *</label>
+              <textarea
+                required
+                className="w-full bg-zinc-100 dark:bg-zinc-800 rounded-2xl p-4 h-32 resize-none"
+                placeholder="Describe your service..."
+                onChange={(e) => setForm({ ...form, description: e.target.value })}
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="relative">
+                
+                <input
+                  required
+                  type="number"
+                  className="w-full bg-zinc-100 dark:bg-zinc-800 rounded-2xl p-4 pl-12"
+                  onChange={(e) => setForm({ ...form, price: Number(e.target.value) })}
+                  placeholder="Base Price"
+                />
+              </div>
+              <input
+                className="w-full bg-zinc-100 dark:bg-zinc-800 rounded-2xl p-4"
+                value={form.currency}
+                onChange={(e) => setForm({ ...form, currency: e.target.value })}
+                placeholder="Currency (e.g. USD)"
+              />
+            </div>
+          </section>
+
+          {/* 02. LOGISTICS */}
+          <section className="space-y-6 pt-6">
+            <h2 className="text-sm font-black text-pink-500 uppercase tracking-widest border-b pb-2 border-pink-100">
+              02. Logistics & Status
+            </h2>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="relative">
+                <Clock className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" size={18} />
+                <input
+                  className="w-full bg-zinc-100 dark:bg-zinc-800 rounded-2xl p-4 pl-12"
+                  onChange={(e) => setForm({ ...form, deliveryTime: e.target.value })}
+                  placeholder="e.g. 72 Hours"
+                />
+              </div>
+              <div className="relative">
+                <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" size={18} />
+                <input
+                  className="w-full bg-zinc-100 dark:bg-zinc-800 rounded-2xl p-4 pl-12"
+                  value={form.location}
+                  onChange={(e) => setForm({ ...form, location: e.target.value })}
+                  placeholder="Location"
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-6">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={form.isAvailable}
+                  onChange={(e) => setForm({ ...form, isAvailable: e.target.checked })}
+                />
+                <span>Available</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={form.featured}
+                  onChange={(e) => setForm({ ...form, featured: e.target.checked })}
+                />
+                <span>Featured</span>
+              </label>
+            </div>
+          </section>
+
+          {/* 03. TAGS & IMAGES */}
+          <section className="space-y-6 pt-6">
+            <h2 className="text-sm font-black text-pink-500 uppercase border-b pb-2 border-pink-100">
+              03. Tags & Images
+            </h2>
+
+            {/* Tags */}
+            <div className="space-y-3">
+              <div className="flex gap-2">
+                <input
+                  value={tempTag}
+                  onChange={(e) => setTempTag(e.target.value)}
+                  className="grow bg-zinc-100 dark:bg-zinc-800 p-4 rounded-2xl"
+                  placeholder="Add tag..."
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (tempTag) setForm({ ...form, tags: [...(form.tags || []), tempTag] });
+                    setTempTag("");
+                  }}
+                  className="bg-zinc-900 text-white px-6 rounded-2xl font-bold"
+                >
+                  Add
+                </button>
+              </div>
+
+              {/* Tags preview with remove */}
+              {form.tags.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {form.tags.map((tag, i) => (
+                    <span
+                      key={i}
+                      className="bg-pink-100 text-pink-700 px-3 py-1 rounded-full text-sm flex items-center gap-2"
+                    >
+                      <Tag size={14} /> {tag}
+                      <X
+                        size={14}
+                        className="cursor-pointer hover:text-pink-900"
+                        onClick={() => removeTag(i)}
+                      />
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Images */}
+            <div className="space-y-3">
+              <div className="flex gap-2">
+                <input
+                  value={tempImg}
+                  onChange={(e) => setTempImg(e.target.value)}
+                  className="grow bg-zinc-100 dark:bg-zinc-800 p-4 rounded-2xl"
+                  placeholder="Paste image URL..."
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (tempImg) setForm({ ...form, images: [...(form.images || []), tempImg] });
+                    setTempImg("");
+                  }}
+                  className="bg-zinc-900 text-white px-6 rounded-2xl font-bold"
+                >
+                  Add
+                </button>
+              </div>
+
+              {/* Image preview with remove */}
+              {form.images.length > 0 && (
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                  {form.images.map((src, i) => (
+                    <div key={i} className="relative group">
+                      <Image
+                        src={src}
+                        alt={`Preview ${i + 1}`}
+                        className="w-full h-32 object-cover rounded-xl"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeImage(i)}
+                        className="absolute top-2 right-2 bg-pink-600 text-white p-1 rounded-full opacity-80 hover:opacity-100"
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </section>
+
+          {/* 04. PACKAGES, REQUIREMENTS, FAQ */}
+          <section className="space-y-10 pt-6">
+            <h2 className="text-sm font-black text-pink-500 uppercase border-b pb-2 border-pink-100">
+              04. Packages, Requirements & FAQ
+            </h2>
+
+            {/* Packages */}
+            <div className="space-y-3">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-zinc-100 dark:bg-zinc-800 p-4 rounded-3xl">
+               
+              <div>
+                <label className="text-xs font-medium uppercase text-zinc-400">Name</label>
+                <input
+                  placeholder="Name"
+                  value={tempPkg.name}
+                  onChange={(e) => setTempPkg({ ...tempPkg, name: e.target.value })}
+                  className="p-3 rounded-xl bg-white border-none"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-medium uppercase text-zinc-400">Description</label>
+                <input
+                  placeholder="Description"
+                  value={tempPkg.description}
+                  onChange={(e) => setTempPkg({ ...tempPkg, description: e.target.value })}
+                  className="p-3 rounded-xl bg-white border-none"
+                />
+                </div>
+                <div>
+                <label className="text-xs font-medium uppercase text-zinc-400">Price</label>
+                <input
+                  type="number"
+                  placeholder="Price"
+                  value={tempPkg.price}
+                  onChange={(e) => setTempPkg({ ...tempPkg, price: Number(e.target.value) })}
+                  className="p-3 rounded-xl bg-white border-none"
+                />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (tempPkg.name)
+                      setForm({ ...form, packages: [...(form.packages || []), tempPkg] });
+                    setTempPkg({ name: "", description: "" });
+                  }}
+                  className="bg-pink-500 text-white font-bold rounded-xl px-4"
+                >
+                  Add
+                </button>
+              </div>
+
+              {/* Package preview with remove */}
+              {form.packages.length > 0 && (
+                <ul className="space-y-2">
+                  {form.packages.map((pkg, i) => (
+                    <li
+                      key={i}
+                      className="bg-zinc-50 dark:bg-zinc-800 p-4 rounded-xl flex justify-between items-start"
+                    >
+                      <div>
+                        <strong className="text-pink-600">{pkg.name}</strong>
+                        <span className="block text-zinc-400">{pkg.description}</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => removePackage(i)}
+                        className="text-zinc-400 hover:text-pink-600 transition"
+                      >
+                        <X size={16} />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
+            {/* Requirements */}
+            <div className="space-y-3">
+              <div className="flex gap-2">
+                <input
+                  value={tempReq}
+                  onChange={(e) => setTempReq(e.target.value)}
+                  className="grow bg-zinc-100 dark:bg-zinc-800 p-4 rounded-2xl"
+                  placeholder="Buyer requirement..."
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (tempReq)
+                      setForm({ ...form, requirements: [...(form.requirements || []), tempReq] });
+                    setTempReq("");
+                  }}
+                  className="bg-zinc-900 text-white px-8 rounded-2xl font-bold"
+                >
+                  Add
+                </button>
+              </div>
+
+              {/* Requirements preview with remove */}
+              {form.requirements.length > 0 && (
+                <ul className="list-disc pl-6 space-y-1 text-zinc-600 dark:text-zinc-300">
+                  {form.requirements.map((req, i) => (
+                    <li key={i} className="flex justify-between items-center">
+                      <span>{req}</span>
+                      <X
+                        size={14}
+                        className="cursor-pointer text-zinc-400 hover:text-pink-600"
+                        onClick={() => removeRequirement(i)}
+                      />
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
+            {/* FAQ */}
+            <div className="space-y-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-zinc-100 dark:bg-zinc-800 p-4 rounded-3xl">
+                <input
+                  placeholder="Question"
+                  value={tempFaq.question}
+                  onChange={(e) => setTempFaq({ ...tempFaq, question: e.target.value })}
+                  className="p-3 rounded-xl bg-white border-none"
+                />
+                <input
+                  placeholder="Answer"
+                  value={tempFaq.answer}
+                  onChange={(e) => setTempFaq({ ...tempFaq, answer: e.target.value })}
+                  className="p-3 rounded-xl bg-white border-none"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (tempFaq.question && tempFaq.answer)
+                      setForm({ ...form, faq: [...(form.faq || []), tempFaq] });
+                    setTempFaq({ question: "", answer: "" });
+                  }}
+                  className="bg-pink-500 text-white font-bold rounded-xl px-4 col-span-full"
+                >
+                  Add FAQ
+                </button>
+              </div>
+
+              {/* FAQ preview with remove */}
+              {form.faq.length > 0 && (
+                <ul className="space-y-2">
+                  {form.faq.map((item, i) => (
+                    <li
+                      key={i}
+                      className="bg-zinc-50 dark:bg-zinc-800 p-4 rounded-xl flex justify-between"
+                    >
+                      <div>
+                        <strong className="block text-pink-500">{item.question}</strong>
+                        <span className="text-zinc-400">{item.answer}</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => removeFaq(i)}
+                        className="text-zinc-400 hover:text-pink-600 transition"
+                      >
+                        <X size={16} />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </section>
+
+          <button
+            disabled={mutation.isPending}
+            className="w-full py-7 bg-pink-500 hover:bg-pink-600 text-white font-black uppercase tracking-[0.3em] rounded-4xl transition-all shadow-xl shadow-pink-500/20 flex items-center justify-center gap-3 active:scale-95 disabled:opacity-50"
+          >
+            {mutation.isPending ? "PROCESSING..." : <>PUBLISH SERVICE <Send size={22} /></>}
+          </button>
+        </form>
+      </div>
+    </div>
   );
-}
+};
+
+export default CreateServicePage;
