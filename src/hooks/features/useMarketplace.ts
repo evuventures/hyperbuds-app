@@ -248,8 +248,25 @@ export const useUpdateBookingStatus = () => {
     onSuccess: (data, variables) => {
       // Update the booking in cache
       queryClient.setQueryData(marketplaceKeys.bookings.detail(variables.bookingId), data);
-      // Invalidate booking lists to refetch
-      queryClient.invalidateQueries({ queryKey: marketplaceKeys.bookings.lists() });
+      
+      // If booking is cancelled, optimistically remove it from all booking lists
+      if (variables.status === 'cancelled') {
+        // Remove cancelled booking from all booking list queries
+        queryClient.setQueriesData<BookingListResponse>(
+          { queryKey: marketplaceKeys.bookings.lists() },
+          (oldData) => {
+            if (!oldData) return oldData;
+            return {
+              ...oldData,
+              bookings: oldData.bookings.filter((b) => b._id !== variables.bookingId),
+            };
+          }
+        );
+      } else {
+        // For other status updates, just invalidate to refetch
+        queryClient.invalidateQueries({ queryKey: marketplaceKeys.bookings.lists() });
+      }
+      
       // Invalidate the service to update stats
       if (typeof data.booking.serviceId === 'object' && data.booking.serviceId._id) {
         queryClient.invalidateQueries({
@@ -263,7 +280,7 @@ export const useUpdateBookingStatus = () => {
 
       const statusMessages: Record<string, string> = {
         accepted: 'Booking accepted',
-        cancelled: 'Booking cancelled',
+        cancelled: 'Booking cancelled and removed from list',
         completed: 'Booking completed',
         in_progress: 'Booking marked as in progress',
         delivered: 'Booking delivered',
@@ -272,7 +289,9 @@ export const useUpdateBookingStatus = () => {
 
       toast({
         title: statusMessages[data.booking.status] || 'Booking status updated',
-        description: 'The booking status has been updated',
+        description: variables.status === 'cancelled' 
+          ? 'The booking has been cancelled and removed from your list'
+          : 'The booking status has been updated',
         variant: 'success',
         duration: 3000,
       });

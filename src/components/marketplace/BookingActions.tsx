@@ -10,13 +10,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { CheckCircle, XCircle, Loader, AlertCircle } from "lucide-react";
 import type { Booking, BookingStatus } from "@/types/marketplace.types";
 
@@ -52,7 +45,7 @@ export function BookingActions({ booking, role, onStatusUpdate }: BookingActions
             variant="destructive"
             size="sm"
             onClick={() => handleStatusChange("cancelled")}
-            className="w-full shadow-md"
+            className="w-full shadow-md cursor-pointer bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800 text-white font-semibold border-2 border-red-700 dark:border-red-800"
           >
             <XCircle className="w-4 h-4 mr-2" />
             Cancel Booking
@@ -80,7 +73,7 @@ export function BookingActions({ booking, role, onStatusUpdate }: BookingActions
               variant="default"
               size="sm"
               onClick={() => handleStatusChange("accepted")}
-              className="flex-1 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white shadow-md"
+              className="flex-1 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white shadow-md cursor-pointer"
             >
               <CheckCircle className="w-4 h-4 mr-2" />
               Accept
@@ -89,7 +82,7 @@ export function BookingActions({ booking, role, onStatusUpdate }: BookingActions
               variant="destructive"
               size="sm"
               onClick={() => handleStatusChange("cancelled")}
-              className="flex-1 shadow-md"
+              className="flex-1 shadow-md cursor-pointer bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800 text-white font-semibold border-2 border-red-700 dark:border-red-800"
             >
               <XCircle className="w-4 h-4 mr-2" />
               Reject
@@ -113,7 +106,7 @@ export function BookingActions({ booking, role, onStatusUpdate }: BookingActions
             variant="default"
             size="sm"
             onClick={() => handleStatusChange("in_progress")}
-            className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white shadow-md"
+            className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white shadow-md cursor-pointer"
           >
             <Loader className="w-4 h-4 mr-2" />
             Start Work
@@ -136,7 +129,7 @@ export function BookingActions({ booking, role, onStatusUpdate }: BookingActions
             variant="default"
             size="sm"
             onClick={() => handleStatusChange("delivered")}
-            className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white shadow-md"
+            className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white shadow-md cursor-pointer"
           >
             <CheckCircle className="w-4 h-4 mr-2" />
             Mark as Delivered
@@ -159,7 +152,7 @@ export function BookingActions({ booking, role, onStatusUpdate }: BookingActions
             variant="default"
             size="sm"
             onClick={() => handleStatusChange("completed")}
-            className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white shadow-md"
+            className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white shadow-md cursor-pointer"
           >
             <CheckCircle className="w-4 h-4 mr-2" />
             Complete
@@ -198,33 +191,48 @@ function StatusUpdateDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>
+      <DialogContent className="max-w-md bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 shadow-2xl [&>button]:text-gray-900 [&>button]:dark:text-white [&>button]:bg-white [&>button]:dark:bg-gray-700 [&>button]:border-2 [&>button]:border-gray-300 [&>button]:dark:border-gray-600 [&>button]:hover:bg-gray-100 [&>button]:dark:hover:bg-gray-600 [&>button]:opacity-100 [&>button]:cursor-pointer [&>button]:rounded-md [&>button]:p-1.5">
+        <DialogHeader className="border-b-2 border-gray-200 dark:border-gray-700 pb-4">
+          <DialogTitle className="text-2xl font-bold text-gray-900 dark:text-white">
             {isDestructive ? "Confirm Action" : "Update Booking Status"}
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-base font-medium text-gray-700 dark:text-gray-200 mt-3 leading-relaxed">
             {isDestructive
               ? `Are you sure you want to ${newStatus === "cancelled" ? "cancel" : "refund"} this booking? This action may not be reversible.`
               : `Update booking status from "${booking.status}" to "${newStatus}"?`}
           </DialogDescription>
         </DialogHeader>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+        <div className="py-4">
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            {isDestructive
+              ? "This action cannot be undone. Please confirm to proceed."
+              : "Click confirm to update the booking status."}
+          </p>
+        </div>
+        <DialogFooter className="border-t-2 border-gray-200 dark:border-gray-700 pt-4 gap-3">
+          <Button
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            className="bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer font-semibold"
+          >
             Cancel
           </Button>
           <Button
             variant={isDestructive ? "destructive" : "default"}
             onClick={onConfirm}
+            className={`cursor-pointer font-bold text-base px-6 py-2 ${isDestructive
+                ? "bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800 text-white border-2 border-red-700 dark:border-red-800 shadow-md"
+                : "bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white border-2 border-purple-700 dark:border-purple-800 shadow-md"
+              }`}
           >
             {isDestructive ? (
               <>
-                <AlertCircle className="w-4 h-4 mr-2" />
+                <AlertCircle className="w-5 h-5 mr-2" />
                 Confirm
               </>
             ) : (
               <>
-                <CheckCircle className="w-4 h-4 mr-2" />
+                <CheckCircle className="w-5 h-5 mr-2" />
                 Update
               </>
             )}

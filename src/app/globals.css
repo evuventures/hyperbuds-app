@@ -1636,3 +1636,28 @@ textarea:focus-visible {
 .dark .notification-scrollbar::-webkit-scrollbar-thumb:hover {
   background: rgba(30, 41, 59, 0.95);
 }
+
+/* ============================
+   📅 DATE INPUT CALENDAR ICON STYLES
+============================ */
+
+/* Hide native calendar picker icons completely - we use custom icons */
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  opacity: 0 !important;
+  width: 0 !important;
+  height: 0 !important;
+  position: absolute !important;
+  pointer-events: none !important;
+}
+
+/* Firefox calendar icon styling */
+input[type="date"],
+input[type="datetime-local"] {
+  color-scheme: light;
+}
+
+.dark input[type="date"],
+.dark input[type="datetime-local"] {
+  color-scheme: dark;
+}

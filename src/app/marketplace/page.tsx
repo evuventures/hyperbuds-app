@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useServices } from "@/hooks/features/useMarketplace";
 import { ServiceCard } from "@/components/marketplace/ServiceCard/ServiceCard";
 import { ServiceFilters } from "@/components/marketplace/ServiceFilters";
@@ -14,11 +14,23 @@ import type { ServiceListFilters } from "@/types/marketplace.types";
 type ViewMode = "grid" | "list";
 
 export default function MarketplacePage() {
+  // Get initial query from URL on mount
+  const getInitialQuery = () => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      return params.get("q") || "";
+    }
+    return "";
+  };
+
+  const initialQuery = getInitialQuery();
+  
   const [filters, setFilters] = useState<ServiceListFilters>({
     page: 1,
     limit: 12,
+    q: initialQuery || undefined,
   });
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState(initialQuery);
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
 
   const { data, isLoading, error } = useServices(filters);

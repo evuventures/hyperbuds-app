@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Heart, Users, ShoppingBag, MessageCircle, Currency, User2,
-  Menu, House, LogOut
+  Menu, House, LogOut, Calendar
 } from 'lucide-react';
 import { useAuth } from '@/hooks/auth/useAuth';
 
@@ -90,7 +90,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ user, activeTab, collapsed, on
     if (pathname === '/streaming') return 'streaming';
 
     // Business items
-    if (pathname === '/marketplace' || pathname.startsWith('/marketplace/')) return 'marketplace';
+    if (pathname === '/marketplace' || pathname.startsWith('/marketplace/')) {
+      if (pathname === '/marketplace/bookings') return 'bookings';
+      return 'marketplace';
+    }
     if (pathname.startsWith('/payments/subscription') || pathname.startsWith('/payments/checkout')) return 'Subscription';
     if (pathname.startsWith('/payments/earnings')) return 'earnings';
 
@@ -119,8 +122,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ user, activeTab, collapsed, on
 
   const businessItems: MenuItem[] = [
     { id: 'marketplace', icon: ShoppingBag, label: 'Marketplace', count: notifications.marketplace, path: '/marketplace' },
+    { id: 'bookings', icon: Calendar, label: 'My Bookings', path: '/marketplace/bookings' },
     { id: 'Subscription', icon: Currency, label: 'Subscription', path: '/payments/subscription' }, // Changed path for consistency
-    // { id: 'bookings', icon: Users, label: 'Bookings', path: '/bookings' },
     // { id: 'earnings', icon: Currency, label: 'Earnings', path: '/earnings' }
   ];
 

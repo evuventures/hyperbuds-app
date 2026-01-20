@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useService, useCreateBooking } from "@/hooks/features/useMarketplace";
 import { useAuth } from "@/hooks/auth/useAuth";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -21,11 +21,15 @@ import {
   Star,
   Eye,
   ShoppingCart,
-  Calendar,
   Edit,
   Package,
   CheckCircle,
   AlertCircle,
+  User,
+  Image as ImageIcon,
+  ChevronLeft,
+  ChevronRight,
+  Calendar,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -41,6 +45,7 @@ export default function ServiceDetailPage() {
   const createBooking = useCreateBooking();
 
   const [bookingDialogOpen, setBookingDialogOpen] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [bookingData, setBookingData] = useState<CreateBookingRequest>({
     serviceId: serviceId,
     packageName: undefined,
@@ -73,10 +78,10 @@ export default function ServiceDetailPage() {
   if (isLoading) {
     return (
       <DashboardLayout>
-        <div className="min-h-full bg-gray-50 dark:bg-slate-900 p-4 pb-16 lg:p-6">
-          <div className="mx-auto max-w-6xl space-y-6">
-            <Skeleton className="h-10 w-48" />
-            <Skeleton className="h-96 w-full" />
+        <div className="p-4 pb-16 min-h-full bg-gray-50 dark:bg-slate-900 lg:p-6">
+          <div className="mx-auto space-y-6 max-w-6xl">
+            <Skeleton className="w-48 h-10" />
+            <Skeleton className="w-full h-96" />
           </div>
         </div>
       </DashboardLayout>
@@ -86,16 +91,16 @@ export default function ServiceDetailPage() {
   if (error || !service) {
     return (
       <DashboardLayout>
-        <div className="min-h-full bg-gray-50 dark:bg-slate-900 p-4 pb-16 lg:p-6">
+        <div className="p-4 pb-16 min-h-full bg-gray-50 dark:bg-slate-900 lg:p-6">
           <div className="mx-auto max-w-6xl">
-            <div className="text-center py-12">
-              <AlertCircle className="w-12 h-12 text-destructive mx-auto mb-4" />
-              <h2 className="text-2xl font-bold mb-2">Service Not Found</h2>
-              <p className="text-muted-foreground mb-4">
+            <div className="py-12 text-center">
+              <AlertCircle className="mx-auto mb-4 w-12 h-12 text-destructive" />
+              <h2 className="mb-2 text-2xl font-bold">Service Not Found</h2>
+              <p className="mb-4 text-muted-foreground">
                 {error instanceof Error ? error.message : "The service you're looking for doesn't exist."}
               </p>
-              <Button onClick={() => router.push("/marketplace")}>
-                <ArrowLeft className="w-4 h-4 mr-2" />
+              <Button onClick={() => router.push("/marketplace")} className="cursor-pointer">
+                <ArrowLeft className="mr-2 w-4 h-4" />
                 Back to Marketplace
               </Button>
             </div>
@@ -105,10 +110,10 @@ export default function ServiceDetailPage() {
     );
   }
 
-  const sellerName =
-    typeof service.seller === "object" && service.seller
-      ? service.seller.name || service.seller.username || "Unknown"
-      : "Unknown";
+  const sellerName: string =
+    (typeof service.seller === "object" && service.seller
+      ? (service.seller.name || service.seller.username || "Unknown")
+      : "Unknown") as string;
   const sellerId =
     typeof service.seller === "string" ? service.seller : service.seller?._id;
 
@@ -116,146 +121,261 @@ export default function ServiceDetailPage() {
     <DashboardLayout>
       <div className="min-h-full bg-gradient-to-br from-gray-50 via-white to-purple-50/10 dark:from-gray-900 dark:via-gray-900 dark:to-purple-900/10">
         <div className="p-4 pb-16 lg:p-6 lg:pb-34">
-          <div className="mx-auto max-w-6xl space-y-6">
+          <div className="mx-auto space-y-6 max-w-6xl">
             {/* Back Button */}
-            <Button variant="ghost" onClick={() => router.back()}>
-              <ArrowLeft className="w-4 h-4 mr-2" />
+            <Button
+              variant="outline"
+              onClick={() => router.back()}
+              className="font-medium text-gray-900 bg-white border-2 border-gray-300 shadow-sm cursor-pointer dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-purple-500 dark:hover:border-purple-400"
+            >
+              <ArrowLeft className="mr-2 w-4 h-4" />
               Back
             </Button>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
               {/* Main Content */}
-              <div className="lg:col-span-2 space-y-6">
-                {/* Images */}
+              <div className="space-y-6 lg:col-span-2">
+                {/* Images Gallery */}
                 {service.images && service.images.length > 0 ? (
-                  <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
-                    <Image
-                      src={service.images[0]}
-                      alt={service.title}
-                      fill
-                      className="object-cover"
-                      sizes="(max-width: 1024px) 100vw, 66vw"
-                    />
+                  <div className="relative group">
+                    <div className="overflow-hidden relative w-full bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl border-2 border-gray-200 shadow-lg aspect-video dark:from-gray-800 dark:to-gray-900 dark:border-gray-700">
+                      <Image
+                        src={service.images[currentImageIndex]}
+                        alt={`${service.title} - Image ${currentImageIndex + 1}`}
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 1024px) 100vw, 66vw"
+                        priority
+                      />
+                      {/* Image Navigation */}
+                      {service.images.length > 1 && (
+                        <>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="absolute left-4 top-1/2 text-white opacity-0 transition-opacity -translate-y-1/2 cursor-pointer bg-black/50 hover:bg-black/70 group-hover:opacity-100"
+                            onClick={() => setCurrentImageIndex((prev) => (prev === 0 ? service.images!.length - 1 : prev - 1))}
+                          >
+                            <ChevronLeft className="w-6 h-6" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="absolute right-4 top-1/2 text-white opacity-0 transition-opacity -translate-y-1/2 cursor-pointer bg-black/50 hover:bg-black/70 group-hover:opacity-100"
+                            onClick={() => setCurrentImageIndex((prev) => (prev === service.images!.length - 1 ? 0 : prev + 1))}
+                          >
+                            <ChevronRight className="w-6 h-6" />
+                          </Button>
+                          {/* Image Indicators */}
+                          <div className="flex absolute bottom-4 left-1/2 gap-2 -translate-x-1/2">
+                            {service.images.map((_, index) => (
+                              <button
+                                key={index}
+                                className={`h-2 rounded-full transition-all cursor-pointer ${index === currentImageIndex
+                                  ? "w-8 bg-white"
+                                  : "w-2 bg-white/50 hover:bg-white/75"
+                                  }`}
+                                onClick={() => setCurrentImageIndex(index)}
+                                aria-label={`Go to image ${index + 1}`}
+                              />
+                            ))}
+                          </div>
+                        </>
+                      )}
+                    </div>
+                    {/* Thumbnail Gallery */}
+                    {service.images.length > 1 && (
+                      <div className="flex overflow-x-auto gap-2 pb-2 mt-3">
+                        {service.images.map((img, index) => (
+                          <button
+                            key={index}
+                            onClick={() => setCurrentImageIndex(index)}
+                            className={`relative flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all ${index === currentImageIndex
+                              ? "border-purple-600 dark:border-purple-400 ring-2 ring-purple-200 dark:ring-purple-800"
+                              : "border-gray-200 dark:border-gray-700 hover:border-purple-400 dark:hover:border-purple-500"
+                              }`}
+                          >
+                            <Image
+                              src={img}
+                              alt={`Thumbnail ${index + 1}`}
+                              fill
+                              className="object-cover"
+                              sizes="80px"
+                            />
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 ) : (
-                  <div className="aspect-video w-full flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-lg">
-                    <ShoppingCart className="w-24 h-24 text-gray-400" />
+                  <div className="flex relative flex-col justify-center items-center w-full bg-gradient-to-br from-purple-50 via-indigo-50 to-pink-50 rounded-xl border-2 border-gray-300 border-dashed shadow-lg aspect-video dark:from-gray-800 dark:via-gray-900 dark:to-gray-800 dark:border-gray-700">
+                    <div className="p-6 mb-4 rounded-full backdrop-blur-sm bg-white/80 dark:bg-gray-800/80">
+                      <ImageIcon className="w-16 h-16 text-purple-500 dark:text-purple-400" />
+                    </div>
+                    <p className="mb-2 text-lg font-semibold text-gray-700 dark:text-gray-300">No Images Available</p>
+                    <p className="max-w-xs text-sm text-center text-gray-500 dark:text-gray-400">
+                      This service doesn&apos;t have any images yet
+                    </p>
                   </div>
                 )}
 
                 {/* Service Info */}
-                <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 shadow-sm">
-                  <CardHeader className="border-b border-gray-200 dark:border-gray-700">
-                    <div className="flex items-start justify-between">
+                <Card className="bg-white border-2 border-gray-200 shadow-lg dark:bg-gray-800 dark:border-gray-700">
+                  <CardHeader className="bg-gradient-to-r from-gray-50 to-white border-b-2 border-gray-200 dark:border-gray-700 dark:from-gray-800 dark:to-gray-800">
+                    <div className="flex gap-4 justify-between items-start">
                       <div className="flex-1">
-                        <CardTitle className="text-3xl mb-2 text-gray-900 dark:text-white">{service.title}</CardTitle>
+                        <CardTitle className="mb-3 text-3xl font-bold leading-tight text-gray-900 dark:text-white">
+                          {service.title}
+                        </CardTitle>
                         <div className="flex flex-wrap gap-2 items-center">
                           {service.category && (
-                            <Badge variant="outline">{service.category}</Badge>
+                            <Badge variant="outline" className="px-3 py-1 text-sm font-medium text-gray-700 bg-gray-50 border-2 dark:text-gray-300 dark:bg-gray-700">
+                              {service.category}
+                            </Badge>
                           )}
                           {service.subcategory && (
-                            <Badge variant="outline">{service.subcategory}</Badge>
+                            <Badge variant="outline" className="px-3 py-1 text-sm font-medium text-gray-700 bg-gray-50 border-2 dark:text-gray-300 dark:bg-gray-700">
+                              {service.subcategory}
+                            </Badge>
                           )}
                           {service.featured && (
-                            <Badge className="bg-yellow-500">Featured</Badge>
+                            <Badge className="px-3 py-1 text-sm font-semibold text-white bg-gradient-to-r from-yellow-400 to-yellow-500 shadow-md">
+                              ⭐ Featured
+                            </Badge>
                           )}
                           {!service.isAvailable && (
-                            <Badge variant="destructive">Unavailable</Badge>
+                            <Badge variant="destructive" className="px-3 py-1 text-sm font-medium">
+                              Unavailable
+                            </Badge>
                           )}
                         </div>
                       </div>
                       {isOwner && (
                         <Link href={`/marketplace/services/${service._id}/edit`}>
-                          <Button variant="outline" size="sm">
-                            <Edit className="w-4 h-4 mr-2" />
+                          <Button variant="outline" size="sm" className="border-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700">
+                            <Edit className="mr-2 w-4 h-4" />
                             Edit
                           </Button>
                         </Link>
                       )}
                     </div>
                   </CardHeader>
-                  <CardContent className="space-y-4 pt-6">
-                    <CardDescription className="text-base text-gray-600 dark:text-gray-300">{service.description}</CardDescription>
+                  <CardContent className="pt-6 space-y-6">
+                    <div className="max-w-none prose prose-gray dark:prose-invert">
+                      <p className="text-lg font-normal leading-relaxed text-gray-700 dark:text-gray-200">
+                        {service.description}
+                      </p>
+                    </div>
 
-                    {/* Details */}
-                    <div className="grid grid-cols-2 gap-4 pt-4 border-t">
+                    {/* Details Grid */}
+                    <div className="flex flex-wrap gap-4 pt-6 border-t-2 border-gray-200 dark:border-gray-700">
                       {service.location && (
-                        <div className="flex items-center gap-2 text-sm">
-                          <MapPin className="w-4 h-4 text-muted-foreground" />
-                          <span>{service.location}</span>
+                        <div className="flex flex-col gap-2 p-3 rounded-lg bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 min-w-[140px]">
+                          <div className="flex gap-2 items-center">
+                            <MapPin className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                            <span className="text-xs font-semibold tracking-wide text-gray-500 uppercase dark:text-gray-400">Location</span>
+                          </div>
+                          <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{service.location}</span>
                         </div>
                       )}
                       {service.deliveryTime && (
-                        <div className="flex items-center gap-2 text-sm">
-                          <Clock className="w-4 h-4 text-muted-foreground" />
-                          <span>{service.deliveryTime}</span>
+                        <div className="flex flex-col gap-2 p-3 rounded-lg bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 min-w-[140px]">
+                          <div className="flex gap-2 items-center">
+                            <Clock className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                            <span className="text-xs font-semibold tracking-wide text-gray-500 uppercase dark:text-gray-400">Delivery</span>
+                          </div>
+                          <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{service.deliveryTime}</span>
                         </div>
                       )}
-                      {service.rating && service.rating.average && (
-                        <div className="flex items-center gap-2 text-sm">
-                          <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                          <span>
+                      {service.rating && typeof service.rating.average === 'number' && service.rating.average > 0 && (
+                        <div className="flex flex-col gap-2 p-3 rounded-lg bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 min-w-[140px]">
+                          <div className="flex gap-2 items-center">
+                            <Star className="w-5 h-5 text-yellow-400 fill-yellow-400" />
+                            <span className="text-xs font-semibold tracking-wide text-gray-500 uppercase dark:text-gray-400">Rating</span>
+                          </div>
+                          <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
                             {service.rating.average.toFixed(1)}
-                            {service.rating.count && ` (${service.rating.count} reviews)`}
+                            {service.rating.count && service.rating.count > 0 && (
+                              <span className="ml-1 text-xs text-gray-500 dark:text-gray-400">
+                                ({service.rating.count})
+                              </span>
+                            )}
                           </span>
                         </div>
                       )}
-                      {service.stats && (
-                        <>
-                          {service.stats.views && (
-                            <div className="flex items-center gap-2 text-sm">
-                              <Eye className="w-4 h-4 text-muted-foreground" />
-                              <span>{service.stats.views} views</span>
-                            </div>
-                          )}
-                          {service.stats.orders && (
-                            <div className="flex items-center gap-2 text-sm">
-                              <ShoppingCart className="w-4 h-4 text-muted-foreground" />
-                              <span>{service.stats.orders} orders</span>
-                            </div>
-                          )}
-                        </>
+                      {service.stats && typeof service.stats.views === 'number' && service.stats.views > 0 && (
+                        <div className="flex flex-col gap-2 p-3 rounded-lg bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 min-w-[140px]">
+                          <div className="flex gap-2 items-center">
+                            <Eye className="w-5 h-5 text-green-600 dark:text-green-400" />
+                            <span className="text-xs font-semibold tracking-wide text-gray-500 uppercase dark:text-gray-400">Views</span>
+                          </div>
+                          <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{service.stats.views}</span>
+                        </div>
+                      )}
+                      {service.stats && typeof service.stats.orders === 'number' && (
+                        <div className="flex flex-col gap-2 p-3 rounded-lg bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 min-w-[140px]">
+                          <div className="flex gap-2 items-center">
+                            <ShoppingCart className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+                            <span className="text-xs font-semibold tracking-wide text-gray-500 uppercase dark:text-gray-400">Orders</span>
+                          </div>
+                          <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{service.stats.orders}</span>
+                        </div>
                       )}
                     </div>
 
                     {/* Tags */}
                     {service.tags && service.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-2 pt-4 border-t">
-                        {service.tags.map((tag, index) => (
-                          <Badge key={index} variant="secondary">
-                            {tag}
-                          </Badge>
-                        ))}
+                      <div className="pt-6 border-t-2 border-gray-200 dark:border-gray-700">
+                        <h3 className="mb-3 text-sm font-semibold tracking-wide text-gray-700 uppercase dark:text-gray-300">Tags</h3>
+                        <div className="flex flex-wrap gap-2">
+                          {service.tags.map((tag, index) => (
+                            <button
+                              key={index}
+                              onClick={() => {
+                                // Navigate to marketplace with tag as search query
+                                router.push(`/marketplace?q=${encodeURIComponent(tag)}`);
+                              }}
+                              className="px-3 py-1.5 text-sm font-medium bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-700 hover:bg-purple-200 dark:hover:bg-purple-900/50 hover:border-purple-400 dark:hover:border-purple-500 rounded-full transition-all duration-200 cursor-pointer active:scale-95 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
+                              title={`Search for services with tag: ${tag}`}
+                            >
+                              {tag}
+                            </button>
+                          ))}
+                        </div>
+                        <p className="mt-2 text-xs italic text-gray-500 dark:text-gray-400">
+                          Click a tag to find similar services
+                        </p>
                       </div>
                     )}
 
                     {/* Packages */}
                     {service.packages && service.packages.length > 0 && (
-                      <div className="pt-4 border-t space-y-3">
-                        <h3 className="font-semibold flex items-center gap-2">
-                          <Package className="w-5 h-5" />
-                          Packages
+                      <div className="pt-6 space-y-4 border-t-2 border-gray-200 dark:border-gray-700">
+                        <h3 className="flex gap-2 items-center text-lg font-bold text-gray-900 dark:text-white">
+                          <Package className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+                          Available Packages
                         </h3>
-                        <div className="space-y-2">
+                        <div className="grid gap-3">
                           {service.packages.map((pkg, index) => (
-                            <Card key={index}>
-                              <CardContent className="p-4">
-                                <div className="flex items-start justify-between">
-                                  <div>
-                                    <h4 className="font-medium">{pkg.name}</h4>
+                            <Card key={index} className="border-2 border-gray-200 shadow-sm transition-colors dark:border-gray-700 hover:border-purple-400 dark:hover:border-purple-500">
+                              <CardContent className="p-5">
+                                <div className="flex gap-4 justify-between items-start">
+                                  <div className="flex-1">
+                                    <h4 className="mb-2 text-lg font-semibold text-gray-900 dark:text-white">{pkg.name}</h4>
                                     {pkg.description && (
-                                      <p className="text-sm text-muted-foreground mt-1">
+                                      <p className="mb-2 text-sm leading-relaxed text-gray-600 dark:text-gray-300">
                                         {pkg.description}
                                       </p>
                                     )}
                                     {pkg.deliveryTime && (
-                                      <p className="text-xs text-muted-foreground mt-1">
-                                        Delivery: {pkg.deliveryTime}
-                                      </p>
+                                      <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
+                                        <Clock className="w-3.5 h-3.5" />
+                                        <span>Delivery: {pkg.deliveryTime}</span>
+                                      </div>
                                     )}
                                   </div>
                                   <div className="text-right">
-                                    <p className="font-bold">
+                                    <p className="text-2xl font-bold text-gray-900 dark:text-white">
                                       {service.currency || "USD"} {pkg.price.toFixed(2)}
                                     </p>
                                   </div>
@@ -269,11 +389,14 @@ export default function ServiceDetailPage() {
 
                     {/* Requirements */}
                     {service.requirements && service.requirements.length > 0 && (
-                      <div className="pt-4 border-t">
-                        <h3 className="font-semibold mb-2">Requirements</h3>
-                        <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
+                      <div className="pt-6 border-t-2 border-gray-200 dark:border-gray-700">
+                        <h3 className="mb-4 text-lg font-bold text-gray-900 dark:text-white">Requirements</h3>
+                        <ul className="space-y-3">
                           {service.requirements.map((req, index) => (
-                            <li key={index}>{req}</li>
+                            <li key={index} className="flex gap-3 items-start p-3 bg-gray-50 rounded-lg border border-gray-200 dark:bg-gray-700/50 dark:border-gray-600">
+                              <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
+                              <span className="text-sm leading-relaxed text-gray-700 dark:text-gray-200">{req}</span>
+                            </li>
                           ))}
                         </ul>
                       </div>
@@ -281,14 +404,19 @@ export default function ServiceDetailPage() {
 
                     {/* FAQ */}
                     {service.faq && service.faq.length > 0 && (
-                      <div className="pt-4 border-t space-y-3">
-                        <h3 className="font-semibold">Frequently Asked Questions</h3>
-                        <div className="space-y-3">
+                      <div className="pt-6 space-y-4 border-t-2 border-gray-200 dark:border-gray-700">
+                        <h3 className="text-lg font-bold text-gray-900 dark:text-white">Frequently Asked Questions</h3>
+                        <div className="space-y-4">
                           {service.faq.map((faq, index) => (
-                            <div key={index} className="space-y-1">
-                              <h4 className="font-medium text-sm">{faq.question}</h4>
-                              <p className="text-sm text-muted-foreground">{faq.answer}</p>
-                            </div>
+                            <Card key={index} className="border border-gray-200 shadow-sm dark:border-gray-700">
+                              <CardContent className="p-4">
+                                <h4 className="flex gap-2 items-start mb-2 text-base font-semibold text-gray-900 dark:text-white">
+                                  <span className="font-bold text-purple-600 dark:text-purple-400">Q{index + 1}:</span>
+                                  <span>{faq.question}</span>
+                                </h4>
+                                <p className="pl-7 text-sm leading-relaxed text-gray-600 dark:text-gray-300">{faq.answer}</p>
+                              </CardContent>
+                            </Card>
                           ))}
                         </div>
                       </div>
@@ -299,179 +427,228 @@ export default function ServiceDetailPage() {
 
               {/* Sidebar */}
               <div className="space-y-6">
-                {/* Booking Card */}
-                <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 shadow-sm">
-                  <CardHeader className="border-b border-gray-200 dark:border-gray-700">
-                    <CardTitle className="text-gray-900 dark:text-white">Pricing</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4 pt-6">
-                    <div>
-                      <div className="text-3xl font-bold">
-                        {service.currency || "USD"} {service.price.toFixed(2)}
-                      </div>
-                      {service.packages && service.packages.length > 0 && (
-                        <p className="text-sm text-muted-foreground mt-1">
-                          Starting price
-                        </p>
-                      )}
-                    </div>
-
-                    {service.isAvailable ? (
-                      !isOwner ? (
-                        <Dialog open={bookingDialogOpen} onOpenChange={setBookingDialogOpen}>
-                          <DialogTrigger asChild>
-                            <Button 
-                              className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white shadow-lg" 
-                              size="lg"
-                            >
-                              <CheckCircle className="w-4 h-4 mr-2" />
-                              Book Now
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent className="max-w-md">
-                            <DialogHeader>
-                              <DialogTitle>Book Service</DialogTitle>
-                              <DialogDescription>
-                                Fill in the details to book this service
-                              </DialogDescription>
-                            </DialogHeader>
-                            <div className="space-y-4 py-4">
-                              {service.packages && service.packages.length > 0 && (
-                                <div className="space-y-2">
-                                  <Label className="text-gray-700 dark:text-gray-300">Package</Label>
-                                  <Select
-                                    value={bookingData.packageName || undefined}
-                                    onValueChange={(value) =>
-                                      setBookingData({ ...bookingData, packageName: value })
-                                    }
-                                  >
-                                    <SelectTrigger className="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100">
-                                      <SelectValue placeholder="Select a package" />
-                                    </SelectTrigger>
-                                    <SelectContent className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
-                                      {service.packages.map((pkg, index) => (
-                                        <SelectItem key={index} value={pkg.name} className="text-gray-900 dark:text-gray-100">
-                                          {pkg.name} - {service.currency || "USD"} {pkg.price.toFixed(2)}
-                                        </SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-                              )}
-                              <div className="space-y-2">
-                                <Label htmlFor="scheduledFor" className="text-gray-700 dark:text-gray-300">Scheduled Date/Time</Label>
-                                <Input
-                                  id="scheduledFor"
-                                  type="datetime-local"
-                                  value={bookingData.scheduledFor || ""}
-                                  onChange={(e) =>
-                                    setBookingData({
-                                      ...bookingData,
-                                      scheduledFor: e.target.value || undefined,
-                                    })
-                                  }
-                                  className="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-primary dark:focus:border-purple-500"
-                                />
-                              </div>
-                              <div className="space-y-2">
-                                <Label htmlFor="dueDate" className="text-gray-700 dark:text-gray-300">Due Date</Label>
-                                <Input
-                                  id="dueDate"
-                                  type="date"
-                                  value={bookingData.dueDate || ""}
-                                  onChange={(e) =>
-                                    setBookingData({
-                                      ...bookingData,
-                                      dueDate: e.target.value || undefined,
-                                    })
-                                  }
-                                  className="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-primary dark:focus:border-purple-500"
-                                />
-                              </div>
-                              <div className="space-y-2">
-                                <Label htmlFor="requirements" className="text-gray-700 dark:text-gray-300">Requirements</Label>
-                                <Textarea
-                                  id="requirements"
-                                  placeholder="Any specific requirements..."
-                                  value={bookingData.requirements || ""}
-                                  onChange={(e) =>
-                                    setBookingData({
-                                      ...bookingData,
-                                      requirements: e.target.value || undefined,
-                                    })
-                                  }
-                                  rows={3}
-                                  className="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-primary dark:focus:border-purple-500"
-                                />
-                              </div>
-                              <div className="space-y-2">
-                                <Label htmlFor="message" className="text-gray-700 dark:text-gray-300">Message</Label>
-                                <Textarea
-                                  id="message"
-                                  placeholder="Additional notes..."
-                                  value={bookingData.message || ""}
-                                  onChange={(e) =>
-                                    setBookingData({
-                                      ...bookingData,
-                                      message: e.target.value || undefined,
-                                    })
-                                  }
-                                  rows={3}
-                                  className="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-primary dark:focus:border-purple-500"
-                                />
-                              </div>
-                            </div>
-                            <DialogFooter>
-                              <Button
-                                variant="outline"
-                                onClick={() => setBookingDialogOpen(false)}
-                              >
-                                Cancel
-                              </Button>
-                              <Button
-                                onClick={handleBookingSubmit}
-                                disabled={createBooking.isPending}
-                                className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white"
-                              >
-                                {createBooking.isPending ? "Booking..." : "Confirm Booking"}
-                              </Button>
-                            </DialogFooter>
-                          </DialogContent>
-                        </Dialog>
-                      ) : (
-                        <Button variant="outline" className="w-full" disabled>
-                          This is your service
-                        </Button>
-                      )
-                    ) : (
-                      <Button variant="outline" className="w-full" disabled>
-                        Service Unavailable
-                      </Button>
-                    )}
-                  </CardContent>
-                </Card>
-
-                {/* Provider Info */}
-                <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 shadow-sm">
-                  <CardHeader className="border-b border-gray-200 dark:border-gray-700">
-                    <CardTitle className="text-gray-900 dark:text-white">Provider</CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-6">
-                    <div className="flex items-center gap-3">
-                      <div className="flex-1">
-                        <p className="font-medium">{sellerName}</p>
-                        {sellerId && (
-                          <Link
-                            href={`/creator/${sellerId}`}
-                            className="text-sm text-primary hover:underline"
-                          >
-                            View Profile
-                          </Link>
+                {/* Booking Card - Sticky */}
+                <div className="sticky top-6 space-y-6">
+                  <Card className="bg-white border-2 border-gray-200 shadow-xl dark:bg-gray-800 dark:border-gray-700">
+                    <CardHeader className="bg-gradient-to-r from-purple-50 to-indigo-50 border-b-2 border-gray-200 dark:border-gray-700 dark:from-gray-800 dark:to-gray-800">
+                      <CardTitle className="text-xl font-bold text-gray-900 dark:text-white">Pricing</CardTitle>
+                    </CardHeader>
+                    <CardContent className="pt-6 space-y-6">
+                      <div>
+                        <div className="mb-1 text-4xl font-bold text-gray-900 dark:text-white">
+                          {service.currency || "USD"} {service.price.toFixed(2)}
+                        </div>
+                        {service.packages && service.packages.length > 0 && (
+                          <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                            Starting price
+                          </p>
                         )}
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
+
+                      {service.isAvailable ? (
+                        !isOwner ? (
+                          <Dialog open={bookingDialogOpen} onOpenChange={setBookingDialogOpen}>
+                            <DialogTrigger asChild>
+                              <Button
+                                className="w-full text-white bg-gradient-to-r from-purple-600 to-indigo-600 shadow-lg cursor-pointer hover:from-purple-700 hover:to-indigo-700"
+                                size="lg"
+                              >
+                                <CheckCircle className="mr-2 w-4 h-4" />
+                                Book Now
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-md bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 shadow-2xl [&>button]:text-gray-900 [&>button]:dark:text-gray-100 [&>button]:bg-white [&>button]:dark:bg-gray-700 [&>button]:border-2 [&>button]:border-gray-300 [&>button]:dark:border-gray-600 [&>button]:hover:bg-gray-100 [&>button]:dark:hover:bg-gray-600 [&>button]:opacity-100 [&>button]:cursor-pointer">
+                              <DialogHeader className="pb-4 border-b-2 border-gray-200 dark:border-gray-700">
+                                <DialogTitle className="text-2xl font-bold text-gray-900 dark:text-white">
+                                  Book Service
+                                </DialogTitle>
+                                <DialogDescription className="mt-2 text-base text-gray-600 dark:text-gray-300">
+                                  Fill in the details to book this service
+                                </DialogDescription>
+                              </DialogHeader>
+                              <div className="py-6 space-y-5">
+                                {service.packages && service.packages.length > 0 && (
+                                  <div className="space-y-2">
+                                    <Label className="text-sm font-semibold text-gray-900 dark:text-white">Package</Label>
+                                    <Select
+                                      value={bookingData.packageName || undefined}
+                                      onValueChange={(value) =>
+                                        setBookingData({ ...bookingData, packageName: value })
+                                      }
+                                    >
+                                      <SelectTrigger className="text-gray-900 bg-white border-gray-200 dark:bg-gray-900 dark:border-gray-700 dark:text-gray-100">
+                                        <SelectValue placeholder="Select a package" />
+                                      </SelectTrigger>
+                                      <SelectContent className="bg-white border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+                                        {service.packages.map((pkg, index) => (
+                                          <SelectItem key={index} value={pkg.name} className="text-gray-900 dark:text-gray-100">
+                                            {pkg.name} - {service.currency || "USD"} {pkg.price.toFixed(2)}
+                                          </SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+                                )}
+                                <div className="space-y-2">
+                                  <Label htmlFor="scheduledFor" className="text-sm font-semibold text-gray-900 dark:text-white">Scheduled Date/Time</Label>
+                                  <div className="relative">
+                                    <Input
+                                      id="scheduledFor"
+                                      type="datetime-local"
+                                      value={bookingData.scheduledFor || ""}
+                                      onChange={(e) =>
+                                        setBookingData({
+                                          ...bookingData,
+                                          scheduledFor: e.target.value || undefined,
+                                        })
+                                      }
+                                      className="pr-10 text-gray-900 bg-white border-gray-200 dark:bg-gray-900 dark:border-gray-700 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-primary dark:focus:border-purple-500 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-2 [&::-webkit-calendar-picker-indicator]:w-5 [&::-webkit-calendar-picker-indicator]:h-5 [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
+                                    />
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        const input = document.getElementById("scheduledFor") as HTMLInputElement;
+                                        input?.showPicker?.();
+                                        input?.focus();
+                                      }}
+                                      className="absolute right-3 top-1/2 z-10 text-gray-500 -translate-y-1/2 cursor-pointer dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400"
+                                      aria-label="Open calendar"
+                                    >
+                                      <Calendar className="w-5 h-5" />
+                                    </button>
+                                  </div>
+                                </div>
+                                <div className="space-y-2">
+                                  <Label htmlFor="dueDate" className="text-sm font-semibold text-gray-900 dark:text-white">Due Date</Label>
+                                  <div className="relative">
+                                    <Input
+                                      id="dueDate"
+                                      type="date"
+                                      value={bookingData.dueDate || ""}
+                                      onChange={(e) =>
+                                        setBookingData({
+                                          ...bookingData,
+                                          dueDate: e.target.value || undefined,
+                                        })
+                                      }
+                                      className="pr-10 text-gray-900 bg-white border-gray-200 dark:bg-gray-900 dark:border-gray-700 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-primary dark:focus:border-purple-500 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-2 [&::-webkit-calendar-picker-indicator]:w-5 [&::-webkit-calendar-picker-indicator]:h-5 [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
+                                    />
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        const input = document.getElementById("dueDate") as HTMLInputElement;
+                                        input?.showPicker?.();
+                                        input?.focus();
+                                      }}
+                                      className="absolute right-3 top-1/2 z-10 text-gray-500 -translate-y-1/2 cursor-pointer dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400"
+                                      aria-label="Open calendar"
+                                    >
+                                      <Calendar className="w-5 h-5" />
+                                    </button>
+                                  </div>
+                                </div>
+                                <div className="space-y-2">
+                                  <Label htmlFor="requirements" className="text-gray-700 dark:text-gray-300">Requirements</Label>
+                                  <Textarea
+                                    id="requirements"
+                                    placeholder="Any specific requirements..."
+                                    value={bookingData.requirements || ""}
+                                    onChange={(e) =>
+                                      setBookingData({
+                                        ...bookingData,
+                                        requirements: e.target.value || undefined,
+                                      })
+                                    }
+                                    rows={3}
+                                    className="text-gray-900 bg-white border-gray-200 dark:bg-gray-900 dark:border-gray-700 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-primary dark:focus:border-purple-500"
+                                  />
+                                </div>
+                                <div className="space-y-2">
+                                  <Label htmlFor="message" className="text-sm font-semibold text-gray-900 dark:text-white">Message</Label>
+                                  <Textarea
+                                    id="message"
+                                    placeholder="Additional notes..."
+                                    value={bookingData.message || ""}
+                                    onChange={(e) =>
+                                      setBookingData({
+                                        ...bookingData,
+                                        message: e.target.value || undefined,
+                                      })
+                                    }
+                                    rows={3}
+                                    className="text-gray-900 bg-white border-gray-200 dark:bg-gray-900 dark:border-gray-700 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-primary dark:focus:border-purple-500"
+                                  />
+                                </div>
+                              </div>
+                              <DialogFooter className="gap-3 pt-4 border-t-2 border-gray-200 dark:border-gray-700">
+                                <Button
+                                  variant="outline"
+                                  onClick={() => setBookingDialogOpen(false)}
+                                  className="flex-1 font-medium text-gray-900 bg-white border-2 border-gray-300 cursor-pointer dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-600"
+                                >
+                                  Cancel
+                                </Button>
+                                <Button
+                                  onClick={handleBookingSubmit}
+                                  disabled={createBooking.isPending}
+                                  className="flex-1 font-semibold text-white bg-gradient-to-r from-purple-600 to-indigo-600 shadow-lg cursor-pointer hover:from-purple-700 hover:to-indigo-700 disabled:cursor-not-allowed"
+                                >
+                                  {createBooking.isPending ? "Booking..." : "Confirm Booking"}
+                                </Button>
+                              </DialogFooter>
+                            </DialogContent>
+                          </Dialog>
+                        ) : (
+                          <Button variant="outline" className="w-full" disabled>
+                            This is your service
+                          </Button>
+                        )
+                      ) : (
+                        <Button variant="outline" className="w-full" disabled>
+                          Service Unavailable
+                        </Button>
+                      )}
+                    </CardContent>
+                  </Card>
+
+                  {/* Provider Info */}
+                  <Card className="bg-white border-2 border-gray-200 shadow-lg dark:bg-gray-800 dark:border-gray-700">
+                    <CardHeader className="bg-gradient-to-r from-gray-50 to-white border-b-2 border-gray-200 dark:border-gray-700 dark:from-gray-800 dark:to-gray-800">
+                      <CardTitle className="text-xl font-bold text-gray-900 dark:text-white">Provider</CardTitle>
+                    </CardHeader>
+                    <CardContent className="pt-6">
+                      <div className="flex gap-4 items-center">
+                        <div className="flex-shrink-0">
+                          <div className="flex justify-center items-center w-16 h-16 text-xl font-bold text-white bg-gradient-to-br from-purple-500 to-indigo-500 rounded-full shadow-lg">
+                            {sellerName !== "Unknown" ? (
+                              sellerName.charAt(0).toUpperCase()
+                            ) : (
+                              <User className="w-8 h-8" />
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="mb-1 text-lg font-semibold text-gray-900 truncate dark:text-white">
+                            {sellerName}
+                          </p>
+                          {sellerId && sellerName !== "Unknown" ? (
+                            <Link
+                              href={`/creator/${sellerId}`}
+                              className="inline-flex gap-1 items-center text-sm font-medium text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 hover:underline"
+                            >
+                              View Profile
+                              <ArrowLeft className="w-3 h-3 rotate-180" />
+                            </Link>
+                          ) : (
+                            <p className="text-xs italic text-gray-500 dark:text-gray-400">
+                              Provider information unavailable
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
               </div>
             </div>
           </div>
