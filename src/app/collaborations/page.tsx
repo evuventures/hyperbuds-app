@@ -125,7 +125,7 @@ const CollaborationsPage: React.FC = () => {
         isPublic: formState.isPublic,
       };
 
-      const created = await collaborationApi.createCollaboration(payload as any);
+      const created = await collaborationApi.createCollaboration(payload);
       setCollaborations((prev) => [created, ...prev]);
       setFilter("all");
       setFormState({

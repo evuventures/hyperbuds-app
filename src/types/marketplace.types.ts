@@ -144,3 +144,8 @@ export interface BookingListFilters {
   limit?: number;
   status?: BookingStatus;
 }
+
+export interface ServicesResponse {
+  services: MarketplaceService[];
+  total?: number;
+}

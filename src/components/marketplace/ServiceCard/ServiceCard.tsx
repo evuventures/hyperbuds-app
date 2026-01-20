@@ -1,47 +1,135 @@
-import { MarketplaceService } from "@/types/marketplace.types";
-import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+"use client";
 
-export const ServiceCard = ({ service }: { service: MarketplaceService }) => {
+import Link from "next/link";
+import Image from "next/image";
+import { ArrowRight, Edit3, Trash2, Loader2, ShieldCheck } from "lucide-react";
+import { MarketplaceService } from "@/types/marketplace.types";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { marketplaceApi } from "@/lib/api/marketplace.api";
+import { useState } from "react";
+
+interface ServiceCardProps {
+  service: MarketplaceService;
+  ownerView?: boolean;
+}
+
+export const ServiceCard = ({ service, ownerView = false }: ServiceCardProps) => {
+  const queryClient = useQueryClient();
+  const [confirming, setConfirming] = useState(false);
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => marketplaceApi.deleteService(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["my-services"] });
+      queryClient.invalidateQueries({ queryKey: ["marketplace-all"] });
+    },
+  });
+
+  const handleDelete = (e: React.MouseEvent) => {
+    e.preventDefault(); // Prevent navigating to details when clicking delete
+    if (!confirming) {
+      setConfirming(true);
+      setTimeout(() => setConfirming(false), 4000);
+      return;
+    }
+    deleteMutation.mutate(service._id);
+  };
+
   return (
-    <Link 
-      href={`/marketplace/services/${service._id}`}
-      className="group bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-8 rounded-[2.5rem] flex flex-col hover:border-pink-500/50 transition-all duration-300"
-    >
-      <div className="grow space-y-4">
-        <div className="flex justify-between items-start">
-          <div className="w-16 h-16 bg-pink-100 dark:bg-pink-900/20 rounded-2xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
-            🎨
-          </div>
+    <div className="relative group bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-3xl flex flex-col overflow-hidden hover:border-purple-500/50 transition-all duration-300 shadow-sm hover:shadow-xl hover:shadow-purple-500/5">
+      
+      {/* SERVICE IMAGE */}
+      <Link href={`/marketplace/services/${service._id}`} className="block">
+        <div className="relative w-full h-48 overflow-hidden bg-zinc-100 dark:bg-gray-800">
+          {service.images && service.images.length > 0 ? (
+            <Image
+              src={service.images[0]}
+              alt={service.title}
+              fill
+              className="object-cover transition-transform duration-700 group-hover:scale-105"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-zinc-300 dark:text-zinc-700">
+              <span className="text-xs font-medium">No Preview Available</span>
+            </div>
+          )}
+          
+          {/* Featured Badge */}
           {service.featured && (
-            <span className="bg-pink-500 text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase">
-              Featured
-            </span>
+            <div className="absolute top-4 left-4 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md px-3 py-1 rounded-lg border border-gray-200 dark:border-gray-700 flex items-center gap-1.5 shadow-sm">
+              <ShieldCheck size={12} className="text-blue-500" />
+              <span className="text-xs font-bold text-gray-500 dark:text-gray-100 uppercase ">Featured</span>
+            </div>
           )}
         </div>
+      </Link>
 
-        <div>
-          <span className="text-xs font-bold text-pink-500 uppercase tracking-widest">
+      {/* CARD BODY */}
+      <div className="p-6 flex flex-col grow">
+        <div className="mb-3">
+          <span className="text-sm font-bold text-purple-600 dark:text-purple-400 uppercase">
             {service.category}
           </span>
-          <h3 className="text-xl font-black mt-1 leading-tight group-hover:text-pink-600 transition-colors">
+        </div>
+
+        <Link href={`/marketplace/services/${service._id}`} className="grow group/title">
+          <h3 className="text-xl font-bold  text-gray-700 dark:text-gray-100 group-hover/title:text-purple-600 dark:group-hover/title:text-purple-400 transition-colors line-clamp-1">
             {service.title}
           </h3>
-          <p className="text-zinc-500 dark:text-zinc-400 text-sm mt-2 line-clamp-2">
+          <p className="mt-2 text-gray-500 dark:text-gray-400 text-sm ">
             {service.description}
           </p>
+        </Link>
+
+        {/* PRICE & ACTION */}
+        <div className="mt-6 pt-5 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between">
+          <div className="flex flex-col">
+            
+            <div className="flex items-baseline gap-1">
+              <span className="text-xl font-bold text-gray-900 dark:text-gray-100">{service.price}</span>
+              <span className="text-[9px] font-bold text-gray-400 uppercase">{service.currency || "USD"}</span>
+            </div>
+          </div>
+          
+          <Link 
+            href={`/marketplace/services/${service._id}`}
+            className="w-10 h-10 rounded-xl bg-gray-50 dark:bg-gray-800 flex items-center justify-center group-hover:bg-linear-to-r group-hover:from-purple-500 group-hover:to-blue-500 group-hover:text-white transition-all duration-300 shadow-sm"
+          >
+            <ArrowRight size={18} />
+          </Link>
         </div>
       </div>
 
-      <div className="mt-8 pt-6 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-between">
-        <div>
-           <span className="text-[10px] text-zinc-400 uppercase font-bold block">From</span>
-           <span className="text-2xl font-black">${service.price}</span>
+      {/* OWNER ACTIONS Overlay */}
+      {ownerView && (
+        <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 transform -translate-y-1 group-hover:translate-y-0">
+          <Link
+            href={`/marketplace/services/${service._id}/edit`}
+            className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-md text-gray-600 dark:text-gray-300 p-2 rounded-lg border border-gray-200 dark:border-gray-700 hover:text-purple-600 dark:hover:text-purple-400 shadow-lg transition-all"
+            title="Edit Service"
+          >
+            <Edit3 size={14} />
+          </Link>
+
+          <button
+            onClick={handleDelete}
+            disabled={deleteMutation.isPending}
+            className={`p-2 rounded-lg backdrop-blur-md border shadow-lg transition-all ${
+              confirming
+                ? "bg-red-500 text-white border-red-400"
+                : "bg-white/90 dark:bg-gray-800/90 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:text-red-500"
+            }`}
+            title={confirming ? "Confirm Delete" : "Delete Service"}
+          >
+            {deleteMutation.isPending ? (
+              <Loader2 size={14} className="animate-spin" />
+            ) : (
+              <Trash2 size={14} />
+            )}
+          </button>
         </div>
-        <div className="w-12 h-12 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center group-hover:bg-pink-500 group-hover:text-white transition-all">
-        <ArrowRight size={24} />
-      </div>
-      </div>
-    </Link>
+      )}
+    </div>
   );
 };

@@ -1,267 +1,208 @@
 'use client';
 
-import { useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { marketplaceApi } from "@/lib/api/marketplace.api";
 import { ServiceCard } from "@/components/marketplace/ServiceCard/ServiceCard";
-import { Search, Store, Ticket, Globe, ArrowRight, Plus } from "lucide-react";
+import { 
+  Search, 
+  Store, 
+  Ticket, 
+  Loader2, 
+  ShoppingBag, 
+  Filter, 
+  ChevronDown, 
+  MapPin, 
+  DollarSign, 
+  Sparkles,
+  ArrowUpDown
+} from "lucide-react";
 import Link from "next/link";
-import type { MarketplaceService, Booking } from "@/types/marketplace.types";
+import type { MarketplaceService } from "@/types/marketplace.types";
+import DashboardLayout from "@/components/layout/Dashboard/Dashboard";
 
-type TabType = "marketplace" | "my-services" | "bookings";
+interface ServicesResponse {
+  services: MarketplaceService[];
+  total?: number;
+}
 
-export const MarketplaceDashboard = () => {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-
-  const initialTab = (searchParams.get("tab") as TabType) || "marketplace";
-  const [activeTab, setActiveTab] = useState<TabType>(initialTab);
+export default function MarketplaceDashboard() {
+  // FILTER STATES (Based on Swagger Parameters)
   const [searchQuery, setSearchQuery] = useState("");
   const [category, setCategory] = useState<string | undefined>();
+  const [minPrice, setMinPrice] = useState<number | undefined>();
+  const [maxPrice, setMaxPrice] = useState<number | undefined>();
+  const [location, setLocation] = useState<string | undefined>();
+  const [featured, setFeatured] = useState<boolean | undefined>();
+  const [sort, setSort] = useState<string>("recent");
 
-  const handleTabChange = (tab: TabType) => {
-    setActiveTab(tab);
-    router.push(`?tab=${tab}`, { scroll: false });
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
-  useEffect(() => {
-    const current = (searchParams.get("tab") as TabType) || "marketplace";
-    setActiveTab(current);
-  }, [searchParams]);
-
-  // 🪄 FETCH DATA BY TAB
-  const { data: marketData, isLoading: marketLoading } = useQuery({
-    queryKey: ["marketplace-all", searchQuery, category],
+  const { data, isLoading } = useQuery<ServicesResponse>({
+    queryKey: ["marketplace-all", searchQuery, category, minPrice, maxPrice, location, featured, sort],
     queryFn: () =>
       marketplaceApi.listServices({
         q: searchQuery,
         category,
+        minPrice,
+        maxPrice,
+        location,
+        featured,
+        sort: sort as "recent" | "price_low" | "price_high" | "rating",
         limit: 12,
       }),
-    enabled: activeTab === "marketplace",
   });
-
-  const { data: myServicesData, isLoading: myServicesLoading } = useQuery({
-    queryKey: ["my-services"],
-    queryFn: () => marketplaceApi.listServices({ sellerId: "me" }),
-    enabled: activeTab === "my-services",
-  });
-
-  const { data: bookingsData, isLoading: bookingsLoading } = useQuery({
-    queryKey: ["my-bookings"],
-    queryFn: () => marketplaceApi.listBookings(),
-    enabled: activeTab === "bookings",
-  });
-
-  const bookings = bookingsData?.bookings || [];
-  const myServices = myServicesData?.services || [];
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-black text-zinc-900 dark:text-zinc-100 pb-20">
-      <div className="max-w-7xl mx-auto px-6 py-12">
-        {/* HEADER */}
-        <header className="mb-12 space-y-8 flex flex-col items-center">
-          <div className="bg-pink-100 dark:bg-pink-900/20 p-4 rounded-3xl">
-            <Store className="text-pink-500" size={40} />
+    <DashboardLayout>
+      <div className="min-h-screen bg-white dark:bg-black text-black dark:text-white transition-colors duration-300 pb-20">
+        <div className="max-w-7xl mx-auto px-6 py-12">
+          
+          {/* TOP NAVIGATION */}
+          <div className="flex justify-end mb-12">
+            <div className="flex items-center gap-2 p-1.5 border border-gray-200 dark:border-gray-800 rounded-2xl bg-zinc-50/50 dark:bg-zinc-900/50">
+              <Link href="/marketplace/services" className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-xs text-gray-500 hover:text-purple-600 transition-all">
+                <Store size={14} /> My Services
+              </Link>
+              <Link href="/marketplace/bookings" className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-xs text-gray-500 hover:text-purple-600 transition-all">
+                <Ticket size={14} /> Bookings
+              </Link>
+            </div>
           </div>
 
-          <div className="text-center">
-            <h1 className="text-5xl font-black tracking-tighter uppercase italic">
-              Marketplace
-            </h1>
-            <p className="text-zinc-500 font-bold uppercase text-[10px] tracking-[0.2em] mt-2">
-              {{
-                marketplace: "Browse Global Services",
-                "my-services": "Your Offered Services",
-                bookings: "Your Active Transactions",
-              }[activeTab]}
+          {/* HERO SECTION */}
+          <header className="mb-16 text-center space-y-4">
+            <div className="flex flex-row gap-3 items-center justify-center">
+              <ShoppingBag className="text-purple-500" size={48} />
+              <h1 className="text-6xl md:text-8xl font-bold text-gray-900 dark:text-white">
+                Marketplace
+              </h1>
+            </div>
+            <p className="text-zinc-400 font-bold uppercase text-[10px]">
+              Authorized Global Talent Registry
             </p>
-          </div>
+          </header>
 
-          {/* TAB NAVIGATION */}
-          <div className="flex items-center gap-2 bg-white dark:bg-zinc-900 p-2 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
-            <button
-              onClick={() => handleTabChange("marketplace")}
-              className={`flex items-center gap-2 px-6 py-3 rounded-xl font-black uppercase text-[10px] tracking-widest transition-all ${
-                activeTab === "marketplace"
-                  ? "bg-pink-500 text-white shadow-lg shadow-pink-500/20"
-                  : "text-zinc-400 hover:text-zinc-800 dark:hover:text-white"
-              }`}
-            >
-              <Globe size={16} /> Explore
-            </button>
-
-            <button
-              onClick={() => handleTabChange("my-services")}
-              className={`flex items-center gap-2 px-6 py-3 rounded-xl font-black uppercase text-[10px] tracking-widest transition-all ${
-                activeTab === "my-services"
-                  ? "bg-pink-50 text-pink-600 dark:bg-pink-900/20 shadow-lg shadow-pink-500/10"
-                  : "text-zinc-400 hover:text-zinc-800 dark:hover:text-white"
-              }`}
-            >
-              <Store size={16} /> My Services
-            </button>
-
-            <button
-              onClick={() => handleTabChange("bookings")}
-              className={`flex items-center gap-2 px-6 py-3 rounded-xl font-black uppercase text-[10px] tracking-widest transition-all ${
-                activeTab === "bookings"
-                  ? "bg-pink-50 text-pink-600 dark:bg-pink-900/20 shadow-lg shadow-pink-500/10"
-                  : "text-zinc-400 hover:text-zinc-800 dark:hover:text-white"
-              }`}
-            >
-              <Ticket size={16} /> Bookings
-            </button>
-          </div>
-        </header>
-
-        {/* SEARCH + FILTERS (only for Explore tab) */}
-        {activeTab === "marketplace" && (
-          <div className="max-w-4xl mx-auto mb-12 space-y-6">
+          {/* SEARCH BAR */}
+          <div className="max-w-3xl mx-auto mb-10">
             <div className="relative group">
-              <Search
-                className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-pink-500 transition-colors"
-                size={20}
-              />
-              <input
-                type="text"
-                placeholder="Search for designers, developers, or creators..."
-                className="w-full pl-14 pr-6 py-5 bg-white dark:bg-zinc-900 border-2 border-zinc-100 dark:border-zinc-800 rounded-4xl focus:border-pink-500 outline-none transition-all shadow-sm font-medium"
+              <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-purple-500 transition-colors" size={22} />
+              <input 
+                type="text" 
+                placeholder="Search services, skills, or creators..." 
+                className="w-full pl-16 pr-6 py-5 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl focus:ring-4 focus:ring-purple-500/5 outline-none transition-all text-xl font-medium"
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-
-            <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar justify-center">
-              {["Design", "Development", "Video", "Audio", "Writing"].map(
-                (cat) => (
-                  <button
-                    key={cat}
-                    onClick={() =>
-                      setCategory(cat === category ? undefined : cat)
-                    }
-                    className={`px-6 py-2 rounded-full border text-xs font-black uppercase tracking-tighter transition-all ${
-                      category === cat
-                        ? "bg-zinc-900 text-white border-zinc-900 dark:bg-white dark:text-black"
-                        : "border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800"
-                    }`}
-                  >
-                    {cat}
-                  </button>
-                )
-              )}
-            </div>
           </div>
-        )}
 
-        {/* MAIN CONTENT */}
-        <main className="min-h-100">
-          {activeTab === "marketplace" && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {marketLoading ? (
-                [...Array(6)].map((_, i) => (
-                  <div
-                    key={i}
-                    className="h-80 bg-zinc-200 dark:bg-zinc-800 animate-pulse rounded-[2.5rem]"
-                  />
-                ))
-              ) : marketData?.services?.length === 0 ? (
-                <div className="col-span-full py-20 text-center text-zinc-400 font-bold uppercase tracking-widest">
-                  No services found matching your search.
-                </div>
-              ) : (
-                marketData?.services?.map((service: MarketplaceService) => (
-                  <ServiceCard key={service._id} service={service} />
-                ))
-              )}
-            </div>
-          )}
-
-          {activeTab === "my-services" && (
-            <div className="space-y-6">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-xl font-bold uppercase tracking-widest">
-                  My Services
-                </h2>
-                <Link
-                  href="/marketplace/services/new"
-                  className="flex items-center gap-2 bg-pink-500 text-white px-4 py-2 rounded-full font-bold text-sm hover:bg-pink-600 transition"
+          {/* ADVANCED FILTER REGISTRY */}
+          <div className="max-w-6xl mx-auto mb-16 space-y-6">
+            <div className="flex flex-wrap items-center justify-center gap-4">
+              
+              {/* Category Dropdown */}
+              <div className="relative group">
+                <select 
+                  onChange={(e) => setCategory(e.target.value || undefined)}
+                  className="appearance-none pl-10 pr-10 py-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl text-xs font-bold uppercase cursor-pointer outline-none hover:border-purple-500 transition-all"
                 >
-                  <Plus size={16} /> New Service
-                </Link>
+                  <option value="">All Categories</option>
+                  <option value="Design">Design</option>
+                  <option value="Development">Development</option>
+                  <option value="Video">Video</option>
+                  <option value="Audio">Audio</option>
+                  <option value="Writing">Writing</option>
+                </select>
+                <Filter className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" size={14} />
+                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400" size={14} />
               </div>
 
-              {myServicesLoading ? (
-                <div className="text-center text-zinc-400 uppercase font-bold">
-                  Loading your services...
-                </div>
-              ) : myServices.length === 0 ? (
-                <div className="p-20 text-center bg-white dark:bg-zinc-900 border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-[3rem]">
-                  <Store className="mx-auto text-zinc-200 mb-4" size={48} />
-                  <p className="text-zinc-500 font-black uppercase tracking-widest text-sm">
-                    You haven’t added any services yet
-                  </p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                  {myServices.map((service: MarketplaceService) => (
-                    <ServiceCard key={service._id} service={service} />
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
+              {/* Location Filter */}
+              <div className="relative">
+                <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" size={14} />
+                <input 
+                  type="text"
+                  placeholder="LOCATION"
+                  className="pl-10 pr-4 py-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl text-xs font-bold uppercase outline-none w-40 hover:border-purple-500 transition-all"
+                  onChange={(e) => setLocation(e.target.value || undefined)}
+                />
+              </div>
 
-          {activeTab === "bookings" && (
-            <div className="max-w-3xl mx-auto space-y-4">
-              {bookingsLoading ? (
-                <div className="p-10 text-center animate-pulse uppercase font-black text-zinc-400">
-                  Loading your activity...
-                </div>
-              ) : bookings.length === 0 ? (
-                <div className="p-20 text-center bg-white dark:bg-zinc-900 border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-[3rem]">
-                  <Ticket className="mx-auto text-zinc-200 mb-4" size={48} />
-                  <p className="text-zinc-500 font-black uppercase tracking-widest text-sm">
-                    No active bookings found
-                  </p>
-                </div>
-              ) : (
-                bookings.map((booking: Booking) => (
-                  <Link
-                    href={`/marketplace/bookings/${booking._id}`}
-                    key={booking._id}
-                    className="p-6 bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-4xl flex justify-between items-center hover:border-pink-500 transition-all group shadow-sm"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-zinc-100 dark:bg-zinc-800 rounded-2xl flex items-center justify-center font-bold text-pink-500">
-                        #
-                      </div>
-                      <div>
-                        <p className="font-black uppercase text-sm group-hover:text-pink-600 transition-colors">
-                          {typeof booking.serviceId === 'object' ? booking.serviceId?.title : "Project Request"}
-                        </p>
-                        <p className="text-[10px] text-zinc-500 font-bold uppercase">
-                          Status:{" "}
-                          <span className="text-pink-500">
-                            {booking.status}
-                          </span>
-                        </p>
-                      </div>
-                    </div>
-                    <ArrowRight
-                      size={20}
-                      className="text-zinc-300 group-hover:text-pink-500 group-hover:translate-x-1 transition-all"
-                    />
-                  </Link>
-                ))
-              )}
+              {/* Price Range */}
+              <div className="flex items-center gap-2 px-4 py-2 bg-zinc-50 dark:bg-zinc-900/50 rounded-2xl border border-zinc-100 dark:border-zinc-800">
+                <DollarSign size={14} className="text-zinc-400" />
+                <input 
+                  type="number" 
+                  placeholder="MIN" 
+                  className="w-16 bg-transparent outline-none text-xs font-bold"
+                  onChange={(e) => setMinPrice(e.target.value ? Number(e.target.value) : undefined)}
+                />
+                <span className="text-zinc-300">—</span>
+                <input 
+                  type="number" 
+                  placeholder="MAX" 
+                  className="w-16 bg-transparent outline-none text-xs font-bold"
+                  onChange={(e) => setMaxPrice(e.target.value ? Number(e.target.value) : undefined)}
+                />
+              </div>
+
+              {/* Sort Order Dropdown */}
+              <div className="relative group">
+                <select 
+                  onChange={(e) => setSort(e.target.value)}
+                  className="appearance-none pl-10 pr-10 py-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl text-xs font-bold uppercase cursor-pointer outline-none hover:border-purple-500 transition-all"
+                >
+                  <option value="recent">Newest First</option>
+                  <option value="price_low">Price: Low to High</option>
+                  <option value="price_high">Price: High to Low</option>
+                  <option value="rating">Top Rated</option>
+                </select>
+                <ArrowUpDown className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" size={14} />
+                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400" size={14} />
+              </div>
+
+              {/* Featured Toggle */}
+              <button 
+                onClick={() => setFeatured(featured ? undefined : true)}
+                className={`flex items-center gap-2 px-6 py-3 rounded-xl border text-xs font-bold uppercase transition-all ${
+                  featured 
+                  ? "bg-purple-500 text-white border-transparent shadow-lg shadow-purple-500/20" 
+                  : "bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-400 hover:text-purple-500"
+                }`}
+              >
+                <Sparkles size={14} /> Featured
+              </button>
+
             </div>
-          )}
-        </main>
+          </div>
+
+          {/* GRID AREA */}
+          <main>
+            {isLoading ? (
+              <div className="flex flex-col items-center py-32 gap-4">
+                <Loader2 className="animate-spin text-purple-500" size={32} />
+                <p className="text-[10px] font-bold uppercase text-zinc-400">Syncing Catalog Registry...</p>
+              </div>
+            ) : !data?.services || data.services.length === 0 ? (
+              <div className="py-32 text-center border border-dashed border-zinc-200 dark:border-zinc-800 rounded-3xl bg-zinc-50/30 dark:bg-zinc-900/10">
+                <p className="text-zinc-400 font-bold uppercase text-[10px]">
+                  No listings match the current filters
+                </p>
+                <button 
+                  onClick={() => window.location.reload()}
+                  className="mt-4 text-purple-600 font-bold text-xs uppercase underline"
+                >
+                  Reset Registry
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+                {data.services.map((service: MarketplaceService) => (
+                  <ServiceCard key={service._id} service={service} />
+                ))}
+              </div>
+            )}
+          </main>
+        </div>
       </div>
-    </div>
+    </DashboardLayout>
   );
-};
-
-export default MarketplaceDashboard;
+}

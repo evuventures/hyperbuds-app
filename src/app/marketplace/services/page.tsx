@@ -3,103 +3,97 @@
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { marketplaceApi } from "@/lib/api/marketplace.api";
-import { Plus, ChevronRight, LayoutGrid, AlertCircle } from "lucide-react";
+import { Plus, ChevronRight, LayoutGrid, Loader2, Store, Search } from "lucide-react";
+import Link from "next/link";
+import { useAuth } from "@/hooks/auth/useAuth";
+import DashboardLayout from "@/components/layout/Dashboard/Dashboard";
+import  { MarketplaceService } from "@/types/marketplace.types";
+
+
+
+type ServicesResponse = {
+  services: MarketplaceService[];
+};
 
 export default function MyServicesPage() {
   const router = useRouter();
+  const { user, loading: isAuthLoading } = useAuth();
 
-  // Fetching all services without a seller filter as per your instruction
-  const { data, isLoading, error } = useQuery({
-    queryKey: ["all-management-services"],
-    queryFn: () => marketplaceApi.listServices({ limit: 100 }),
+  
+  const currentUserId = user?.id || (user as { _id?: string })?._id;
+
+  // Fetch services for the current user
+  const { data, isLoading: isServiceLoading } = useQuery<ServicesResponse>({
+    queryKey: ["my-services", currentUserId],
+    queryFn: () => marketplaceApi.listServices({ sellerId: currentUserId, limit: 100 }),
+    enabled: !!currentUserId,
   });
 
   return (
-    <div className="max-w-5xl mx-auto py-12 px-6 space-y-10">
-      
-      {/* Header Section */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b-4 border-zinc-900 pb-10">
-        <div>
-          <h1 className="text-6xl font-black uppercase italic tracking-tighter leading-none">
-            Service Manager
-          </h1>
-          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400 mt-2">
-            Public Management Dashboard
-          </p>
-        </div>
+    <DashboardLayout>
+      <div className="min-h-screen bg-white dark:bg-zinc-950 text-zinc-900 transition-colors pb-20">
+        <div className="max-w-5xl mx-auto py-12 px-6 space-y-10">
 
-        <button 
-          onClick={() => router.push("/marketplace/create")}
-          className="flex items-center gap-3 px-8 py-4 bg-zinc-900 text-white rounded-2xl font-black uppercase text-xs hover:bg-pink-600 transition shadow-[8px_8px_0px_0px_rgba(236,72,153,0.3)]"
-        >
-          <Plus size={18} strokeWidth={3} />
-          Create Service
-        </button>
-      </div>
+          {/* NAV BAR */}
+          <div className="flex justify-end mb-4">
+            <div className="flex items-center gap-2 p-1.5 border border-zinc-200 dark:border-zinc-800 rounded-2xl bg-zinc-50/50">
+              <Link href="/marketplace" className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold uppercase text-[10px] tracking-widest text-zinc-500 hover:text-purple-600">
+                <Search size={14} /> Explore
+              </Link>
+            </div>
+          </div>
 
-      {/* Services List Logic */}
-      <div className="space-y-4">
-        {isLoading ? (
-          <div className="py-20 text-center font-black uppercase animate-pulse text-zinc-400">
-            Fetching Registry...
-          </div>
-        ) : error ? (
-          <div className="py-20 text-center flex flex-col items-center gap-4 border-2 border-red-100 rounded-[3rem]">
-            <AlertCircle className="text-red-500" size={32} />
-            <p className="font-black uppercase text-red-500 italic">Failed to connect to API</p>
-          </div>
-        ) : !data?.services || data.services.length === 0 ? (
-          /* NO SERVICES FOUND STATE */
-          <div className="py-32 text-center border-4 border-dashed border-zinc-200 dark:border-zinc-800 rounded-[3rem] bg-zinc-50/50">
-            <LayoutGrid className="mx-auto text-zinc-200 mb-4" size={48} />
-            <p className="font-black uppercase text-zinc-400 tracking-widest text-sm italic">
-              No services found in the marketplace
-            </p>
+          {/* HEADER */}
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-zinc-100 pb-10">
+            <div className="space-y-2">
+              <h1 className="text-5xl font-bold tracking-tight">Service Manager</h1>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Manage your active listings</p>
+            </div>
             <button 
-              onClick={() => router.push("/marketplace/create")}
-              className="mt-4 text-pink-500 font-black uppercase text-[10px] tracking-widest hover:underline"
+              onClick={() => router.push("/marketplace/services/create")}
+              className="flex items-center gap-2 px-8 py-3.5 bg-linear-to-r from-purple-500 to-blue-500 text-white rounded-xl font-bold uppercase text-xs tracking-widest shadow-lg active:scale-95 transition-all"
             >
-              Add the first service →
+              <Plus size={18} /> Create Service
             </button>
           </div>
-        ) : (
-          /* SERVICES LIST */
-          data.services.map((service: any) => (
-            <div 
-              key={service._id}
-              onClick={() => router.push(`/marketplace/services/${service._id}`)}
-              className="group flex items-center justify-between p-8 bg-white dark:bg-zinc-900 border-2 border-zinc-200 dark:border-zinc-800 rounded-[2.5rem] hover:border-zinc-900 transition-all cursor-pointer shadow-sm"
-            >
-              <div className="flex items-center gap-8">
-                <div className="w-16 h-16 bg-zinc-100 dark:bg-zinc-800 rounded-2xl flex items-center justify-center text-zinc-400 group-hover:bg-pink-100 group-hover:text-pink-500 transition-colors">
-                  <LayoutGrid size={24} />
-                </div>
 
-                <div>
-                  <div className="flex items-center gap-3 mb-1">
-                    <span className="text-[9px] font-black uppercase px-2 py-0.5 bg-zinc-100 dark:bg-zinc-800 rounded-md">
-                      {service.category}
-                    </span>
-                    <span className="text-[9px] font-black uppercase text-pink-500 tracking-widest">
-                      ${service.price}
-                    </span>
+          {/* LIST AREA */}
+          <div className="space-y-4">
+            {isServiceLoading || isAuthLoading ? (
+              <div className="py-24 text-center flex flex-col items-center gap-4">
+                <Loader2 className="animate-spin text-purple-500" size={32} />
+                <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Fetching your inventory...</p>
+              </div>
+            ) : !data?.services?.length ? (
+              <div className="py-32 text-center border border-dashed border-zinc-200 rounded-[2.5rem] bg-zinc-50/30">
+                <Store className="mx-auto text-zinc-200 mb-4" size={48} />
+                <p className="text-[10px] font-bold uppercase text-zinc-400 tracking-widest">No services linked to your account</p>
+              </div>
+            ) : (
+              data.services.map((service) => (
+                <div 
+                  key={service._id}
+                  onClick={() => router.push(`/marketplace/services/${service._id}`)}
+                  className="group flex items-center justify-between p-7 bg-white dark:bg-zinc-900 border border-zinc-200 rounded-2xl hover:border-purple-500/50 transition-all cursor-pointer shadow-sm hover:shadow-md"
+                >
+                  <div className="flex items-center gap-6">
+                    <div className="w-14 h-14 bg-zinc-50 dark:bg-zinc-800 rounded-xl flex items-center justify-center text-zinc-400 group-hover:text-purple-600 transition-colors">
+                      <LayoutGrid size={20} />
+                    </div>
+                    <div className="space-y-1">
+                      <h3 className="text-xl font-bold tracking-tight">{service.title}</h3>
+                      <p className="text-xs text-purple-600 font-bold uppercase tracking-widest">${service.price}</p>
+                    </div>
                   </div>
-                  <h3 className="text-2xl font-black uppercase italic tracking-tighter">
-                    {service.title}
-                  </h3>
+                  <div className="p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800 group-hover:bg-linear-to-r group-hover:from-purple-500 group-hover:to-blue-500 group-hover:text-white transition-all shadow-sm">
+                    <ChevronRight size={20} />
+                  </div>
                 </div>
-              </div>
-
-              <div className="flex items-center gap-4">
-                <span className="text-[10px] font-black uppercase text-zinc-300 group-hover:text-zinc-900 transition-colors">View / Edit</span>
-                <div className="p-3 rounded-full border-2 border-zinc-100 group-hover:bg-zinc-900 group-hover:text-white transition-all">
-                  <ChevronRight size={20} />
-                </div>
-              </div>
-            </div>
-          ))
-        )}
+              ))
+            )}
+          </div>
+        </div>
       </div>
-    </div>
+    </DashboardLayout>
   );
 }

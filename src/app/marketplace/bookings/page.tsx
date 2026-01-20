@@ -3,110 +3,168 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { marketplaceApi } from "@/lib/api/marketplace.api";
-import { X, ChevronRight, Loader2 } from "lucide-react";
+import { X, ChevronRight, Loader2, ShoppingBag, Package, Search, Store } from "lucide-react";
+import DashboardLayout from "@/components/layout/Dashboard/Dashboard";
+import Link from "next/link";
+import { Booking, BookingStatus, MarketplaceService } from "@/types/marketplace.types";
 
 export const BookingsList = () => {
   const queryClient = useQueryClient();
+  
+  
   const [role, setRole] = useState<'buyer' | 'seller'>('buyer');
-  const [selectedBooking, setSelectedBooking] = useState<any>(null);
+  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
 
-  // 1. Fetch Bookings
+  
   const { data, isLoading } = useQuery({
     queryKey: ["bookings", role],
-    queryFn: () => marketplaceApi.listBookings({ role, limit: 20 }),
+    queryFn: () => marketplaceApi.listBookings({ 
+      role,    
+      limit: 20 
+    }),
   });
 
-  // 2. Status Update Mutation
+  
   const updateMutation = useMutation({
     mutationFn: (newStatus: string) => 
-      marketplaceApi.updateBookingStatus(selectedBooking?._id, { status: newStatus }),
+      marketplaceApi.updateBookingStatus(selectedBooking?._id || "", { 
+        status: newStatus as BookingStatus 
+      }),
     onSuccess: () => {
+      // Refresh the list immediately after a change
       queryClient.invalidateQueries({ queryKey: ["bookings"] });
-      setSelectedBooking(null); // Close modal on success
+      setSelectedBooking(null);
     },
   });
 
   return (
-    <div className="max-w-4xl mx-auto py-12 px-4">
-      {/* Role Toggle */}
-      <div className="flex gap-8 border-b border-zinc-100 dark:border-zinc-800 mb-8 pb-2">
-        {['buyer', 'seller'].map((r) => (
-          <button
-            key={r}
-            onClick={() => setRole(r as 'buyer' | 'seller')}
-            className={`text-[11px] font-black uppercase tracking-widest pb-2 transition-all ${
-              role === r ? 'text-black border-b-2 border-black' : 'text-zinc-400'
-            }`}
-          >
-            {r === 'buyer' ? 'My Purchases' : 'My Sales'}
-          </button>
-        ))}
-      </div>
-
-      {/* Transactions List */}
-      <div className="space-y-1">
-        {isLoading ? (
-          <p className="text-center py-20 text-[10px] font-bold uppercase animate-pulse">Syncing...</p>
-        ) : (
-          data?.bookings.map((booking: any) => (
-            <div 
-              key={booking._id}
-              onClick={() => setSelectedBooking(booking)}
-              className="group flex items-center justify-between py-4 px-4 hover:bg-zinc-50 dark:hover:bg-zinc-900 rounded-xl cursor-pointer transition-all"
-            >
-              <div className="flex flex-col">
-                <span className="text-[9px] font-black uppercase text-pink-500 tracking-tighter">
-                  {booking.status}
-                </span>
-                <span className="text-sm font-bold">{booking.serviceId?.title || `Order #${booking._id.slice(-6)}`}</span>
-              </div>
-              <div className="flex items-center gap-6">
-                <span className="text-sm font-black">${booking.amount}</span>
-                <ChevronRight size={16} className="text-zinc-300" />
-              </div>
-            </div>
-          ))
-        )}
-      </div>
-
-      {/* Detail & Status Modal */}
-      {selectedBooking && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          <div className="bg-white dark:bg-zinc-900 w-full max-w-md rounded-[2rem] p-8 border border-zinc-200 dark:border-zinc-800 shadow-xl">
-            <div className="flex justify-between items-start mb-6">
-              <h2 className="text-lg font-black uppercase italic italic">Order Details</h2>
-              <button onClick={() => setSelectedBooking(null)}><X size={20}/></button>
-            </div>
-
-            <div className="space-y-4 mb-8">
-              <div className="bg-zinc-50 dark:bg-zinc-800 p-4 rounded-xl">
-                <p className="text-[9px] font-bold text-zinc-400 uppercase mb-1">Requirements</p>
-                <p className="text-xs italic">"{selectedBooking.requirements || "No requirements provided."}"</p>
-              </div>
-            </div>
-
-            {/* Dropdown Status Selector */}
-            <div className="space-y-2">
-              <p className="text-[9px] font-bold text-zinc-400 uppercase">Update Status</p>
-              <select 
-                defaultValue={selectedBooking.status}
-                onChange={(e) => updateMutation.mutate(e.target.value)}
-                disabled={updateMutation.isPending}
-                className="w-full p-4 bg-white dark:bg-zinc-800 border-2 border-black rounded-xl font-bold text-xs outline-none focus:ring-2 ring-pink-500"
-              >
-                <option value="pending">Pending</option>
-                <option value="accepted">Accepted</option>
-                <option value="in_progress">In Progress</option>
-                <option value="delivered">Delivered</option>
-                <option value="completed">Completed</option>
-                <option value="cancelled">Cancelled</option>
-              </select>
-              {updateMutation.isPending && <Loader2 className="w-4 h-4 animate-spin text-pink-500 mt-2" />}
+    <DashboardLayout>
+      <div className="min-h-screen bg-white dark:bg-gray-950 text-gray-900 dark:text-zinc-100 transition-colors duration-300">
+        <div className="max-w-6xl mx-auto py-12 px-6 space-y-10">
+          
+          {/* NAVIGATION BAR */}
+          <div className="flex justify-end">
+            <div className="flex items-center gap-2 rounded-2xl bg-gray-50/50 dark:bg-gray-900/50">
+              <Link href="/marketplace" className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold uppercase text-[10px] tracking-widest text-gray-400 hover:text-purple-600 transition-all">
+                <Search size={14} /> Explore
+              </Link>
+              <Link href="/marketplace/services" className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold uppercase text-[10px] tracking-widest text-gray-400 hover:text-purple-600 transition-all">
+                <Store size={14} /> My Services
+              </Link>
             </div>
           </div>
+
+          <div className="space-y-2">
+            <h1 className="text-5xl font-bold tracking-tight">Order Manager</h1>
+            <p className="text-sm font-bold text-gray-400 uppercase tracking-widest text-[10px]">Registry of all marketplace transactions</p>
+          </div>
+
+          {/* ROLE TOGGLE - The core filter mechanism */}
+          <div className="flex gap-4 p-1.5 border border-gray-200 dark:border-gray-800 rounded-2xl w-fit bg-zinc-50/50 dark:bg-gray-900/50 shadow-sm">
+            {['buyer', 'seller'].map((r) => (
+              <button
+                key={r}
+                onClick={() => setRole(r as 'buyer' | 'seller')}
+                className={`px-10 py-3 rounded-xl text-xs font-bold uppercase tracking-widest transition-all ${
+                  role === r 
+                  ? "bg-linear-to-r from-purple-500 to-blue-500 text-white shadow-lg shadow-purple-500/20" 
+                  : "text-zinc-500 hover:text-zinc-900 dark:hover:text-white"
+                }`}
+              >
+                {r === 'buyer' ? 'My Purchases' : 'My Sales'}
+              </button>
+            ))}
+          </div>
+
+          {/* DATA PRESENTATION */}
+          <div className="space-y-4">
+            {isLoading ? (
+              <div className="py-24 text-center flex flex-col items-center gap-4">
+                <Loader2 className="animate-spin text-purple-500" size={32} />
+                <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Syncing Registry...</p>
+              </div>
+            ) : !data?.bookings?.length ? (
+              <div className="py-32 text-center border border-dashed border-zinc-200 dark:border-gray-800 rounded-[2.5rem] bg-zinc-50/30 dark:bg-zinc-900/10">
+                {role === 'buyer' ? <ShoppingBag className="mx-auto text-zinc-200 mb-4" size={48}/> : <Package className="mx-auto text-zinc-200 mb-4" size={48}/>}
+                <p className="text-[10px] font-bold uppercase text-zinc-400 tracking-widest">No {role} history recorded</p>
+              </div>
+            ) : (
+              data.bookings.map((booking: Booking) => {
+                const service = booking.serviceId as unknown as MarketplaceService;
+                return (
+                  <div 
+                    key={booking._id}
+                    onClick={() => setSelectedBooking(booking)}
+                    className="group flex items-center justify-between p-7 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl hover:border-purple-500/50 transition-all cursor-pointer shadow-sm hover:shadow-md"
+                  >
+                    <div className="flex flex-col gap-1.5">
+                      <span className="text-[9px] font-bold uppercase px-2 py-0.5 bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 rounded w-fit">
+                        {booking.status.replace('_', ' ')}
+                      </span>
+                      <span className="text-xl font-bold tracking-tight">
+                        {service?.title || `Order #${booking._id.slice(-6)}`}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-8">
+                      <div className="text-right">
+                        <p className="text-[9px] font-bold uppercase text-zinc-400 tracking-widest mb-0.5">Total</p>
+                        <span className="font-bold text-2xl tracking-tighter">${booking.amount}</span>
+                      </div>
+                      <div className="p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800 group-hover:bg-linear-to-r group-hover:from-purple-500 group-hover:to-blue-500 group-hover:text-white transition-all">
+                        <ChevronRight size={20} />
+                      </div>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+
+          {/* ORDER DETAIL MODAL */}
+          {selectedBooking && (
+            <div className="fixed inset-0 z-100 flex items-center justify-center bg-white/60 dark:bg-zinc-950/60 backdrop-blur-md p-4">
+               <div className="bg-white dark:bg-gray-900 w-full max-w-md rounded-[2.5rem] border border-gray-200 dark:border-gray-800 shadow-2xl p-10">
+                <div className="flex justify-between items-start mb-10">
+                  <div className="space-y-1">
+                    <h2 className="text-3xl font-bold tracking-tight">Order Profile</h2>
+                    <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">ID: {selectedBooking._id}</p>
+                  </div>
+                  <button onClick={() => setSelectedBooking(null)} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"><X size={24}/></button>
+                </div>
+
+                <div className="space-y-8">
+                  <div className="bg-zinc-50 dark:bg-zinc-800/50 p-7 rounded-3xl border border-zinc-100 dark:border-zinc-800">
+                    <p className="text-[9px] font-bold text-gray-400 uppercase mb-3 tracking-widest">Client Requirements</p>
+                    <p className="text-sm font-medium leading-relaxed italic">&quot;{selectedBooking.requirements || "No specific instructions provided."}&quot;</p>
+                  </div>
+
+                  <div className="space-y-4">
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Update Progress</p>
+                    <select 
+                      defaultValue={selectedBooking.status}
+                      onChange={(e) => updateMutation.mutate(e.target.value)}
+                      disabled={updateMutation.isPending || role === 'buyer'}
+                      className={`w-full p-5 bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-2xl font-bold text-xs uppercase tracking-widest outline-none appearance-none ${role === 'buyer' ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer ring-purple-500/10 focus:ring-4 transition-all'}`}
+                    >
+                      <option value="pending">Pending Review</option>
+                      <option value="accepted">Accepted</option>
+                      <option value="in_progress">In Progress</option>
+                      <option value="delivered">Delivered</option>
+                      <option value="completed">Completed</option>
+                      <option value="cancelled">Cancelled</option>
+                    </select>
+                    {role === 'buyer' && (
+                      <p className="text-[8px] font-bold text-zinc-400 uppercase text-center tracking-tighter">Status updates are reserved for the service provider.</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
-      )}
-    </div>
+      </div>
+    </DashboardLayout>
   );
 };
+
 export default BookingsList;

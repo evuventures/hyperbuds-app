@@ -5,117 +5,307 @@ import { useParams, useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { marketplaceApi } from "@/lib/api/marketplace.api";
 import { useAuth } from "@/hooks/auth/useAuth"; 
-import { ArrowLeft, Save, Trash2, Loader2 } from "lucide-react";
-
+import { 
+  CreateServiceRequest, 
+  MarketplacePackage, 
+  MarketplaceFaq 
+} from "@/types/marketplace.types";
+import { 
+  ArrowLeft, 
+  Trash2, 
+  Loader2, 
+  X, 
+  Send,
+  Clock,
+  Tag,
+  MapPin
+} from "lucide-react";
+import DashboardLayout from "@/components/layout/Dashboard/Dashboard";
+import Image from "next/image";
 export default function EditServicePage() {
-  const { id } = useParams();
+ const { id } = useParams();
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { user } = useAuth();
+  const { loading: isAuthLoading } = useAuth();
 
-  const [formData, setFormData] = useState({
+  const emptyForm: CreateServiceRequest = {
     title: "",
     description: "",
-    price: 0
-  });
+    price: 0,
+    currency: "USD",
+    category: "",
+    subcategory: "",
+    tags: [],
+    images: [],
+    deliveryTime: "",
+    location: "",
+    isAvailable: true,
+    featured: false,
+    packages: [],
+    requirements: [],
+    faq: [],
+  };
 
-  // 1. Fetch current data
-  const { data, isLoading } = useQuery({
+  const [form, setForm] = useState<CreateServiceRequest>(emptyForm);
+
+  // Temporary states for additions
+  const [tempPkg, setTempPkg] = useState<MarketplacePackage>({ name: "", description: "", price: 0 });
+  const [tempFaq, setTempFaq] = useState<MarketplaceFaq>({ question: "", answer: "" });
+  const [tempReq, setTempReq] = useState("");
+  const [tempTag, setTempTag] = useState("");
+  const [tempImg, setTempImg] = useState("");
+
+ 
+  const { data, isLoading: isServiceLoading } = useQuery({
     queryKey: ["service", id],
     queryFn: () => marketplaceApi.getService(id as string),
+    enabled: !!id
   });
 
-  // 2. Load data into form and check ownership
   useEffect(() => {
     if (data?.service) {
-      setFormData({
-        title: data.service.title,
-        description: data.service.description,
-        price: data.service.price
+      // Merge fetched data with empty form to ensure all fields exist
+      setForm({
+        ...emptyForm,
+        ...data.service,
+        tags: data.service.tags ?? [],
+        images: data.service.images ?? [],
+        packages: data.service.packages ?? [],
+        faq: data.service.faq ?? [],
+        requirements: data.service.requirements ?? [],
+        subcategory: data.service.subcategory ?? "",
+        deliveryTime: data.service.deliveryTime ?? "",
+        location: data.service.location ?? "",
       });
     }
   }, [data]);
 
-  const isOwner = user?.id === data?.service?.seller?._id || user?.id === data?.service?.seller;
-
-  // 3. Update Mutation
+  // Mutations
   const updateMutation = useMutation({
-    mutationFn: (payload: any) => marketplaceApi.updateService(id as string, payload),
+    mutationFn: (payload: CreateServiceRequest) => {
+      const sanitizedData = {
+        title: payload.title,
+        description: payload.description,
+        price: payload.price,
+        currency: payload.currency,
+        category: payload.category,
+        subcategory: payload.subcategory,
+        tags: payload.tags ?? [],
+        images: payload.images ?? [],
+        deliveryTime: payload.deliveryTime,
+        location: payload.location,
+        isAvailable: payload.isAvailable,
+        featured: payload.featured,
+        packages: payload.packages ?? [],
+        requirements: payload.requirements ?? [],
+        faq: payload.faq ?? [],
+      };
+      return marketplaceApi.updateService(id as string, sanitizedData);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["services"] });
+      queryClient.invalidateQueries({ queryKey: ["service", id] });
       router.push(`/marketplace/services/${id}`);
     }
   });
 
-  // 4. Delete Mutation
   const deleteMutation = useMutation({
     mutationFn: () => marketplaceApi.deleteService(id as string),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["services"] });
-      router.push("/marketplace");
+      router.push("/marketplace/services");
     }
   });
 
-  if (isLoading) return <div className="p-20 text-center font-black animate-pulse">LOADING...</div>;
-  
-  if (!isOwner) return <div className="p-20 text-center font-black text-red-500">ACCESS DENIED</div>;
+  // Removal helpers
+  const removeItem = <T,>(arr: T[], idx: number): T[] => arr.filter((_, i) => i !== idx);
+
+  if (isAuthLoading || isServiceLoading) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-white dark:bg-black">
+        <Loader2 className="animate-spin text-purple-500" size={32} />
+      </div>
+    );
+  }
+
 
   return (
-    <div className="max-w-2xl mx-auto py-12 px-6">
-      <button onClick={() => router.back()} className="flex items-center gap-2 text-[10px] font-black uppercase text-zinc-400 mb-8">
-        <ArrowLeft size={14} /> Back to Details
-      </button>
-
-      <h1 className="text-3xl font-black uppercase italic tracking-tighter mb-10">Edit Service</h1>
-
-      <div className="space-y-8">
-        <div className="space-y-2">
-          <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Service Title</label>
-          <input 
-            value={formData.title}
-            onChange={e => setFormData({...formData, title: e.target.value})}
-            className="w-full p-4 bg-zinc-50 dark:bg-zinc-800 border-2 border-zinc-900 rounded-2xl font-bold outline-none"
-          />
-        </div>
-
-        <div className="space-y-2">
-          <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Price (USD)</label>
-          <input 
-            type="number"
-            value={formData.price}
-            onChange={e => setFormData({...formData, price: Number(e.target.value)})}
-            className="w-full p-4 bg-zinc-50 dark:bg-zinc-800 border-2 border-zinc-900 rounded-2xl font-bold outline-none"
-          />
-        </div>
-
-        <div className="space-y-2">
-          <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Description</label>
-          <textarea 
-            rows={6}
-            value={formData.description}
-            onChange={e => setFormData({...formData, description: e.target.value})}
-            className="w-full p-4 bg-zinc-50 dark:bg-zinc-800 border-2 border-zinc-900 rounded-2xl font-bold outline-none"
-          />
-        </div>
-
-        <div className="flex gap-4 pt-6">
-          <button 
-            onClick={() => updateMutation.mutate(formData)}
-            disabled={updateMutation.isPending}
-            className="grow py-5 bg-zinc-900 text-white font-black uppercase text-xs rounded-2xl flex items-center justify-center gap-2 hover:bg-pink-600 transition disabled:opacity-50"
-          >
-            {updateMutation.isPending ? <Loader2 className="animate-spin" /> : <Save size={18} />}
-            Save Changes
-          </button>
+    <DashboardLayout>
+      <div className="min-h-screen bg-gray-50 dark:bg-black p-6 md:p-12 pb-32">
+        <div className="max-w-4xl mx-auto space-y-8">
           
-          <button 
-            onClick={() => confirm("Delete this listing?") && deleteMutation.mutate()}
-            className="px-8 py-5 border-2 border-red-500 text-red-500 font-black uppercase text-xs rounded-2xl hover:bg-red-50 transition"
+          <div className="flex justify-between items-center">
+            <button onClick={() => router.back()} className="flex items-center gap-2 text-gray-500 font-bold hover:text-purple-500 transition">
+              <ArrowLeft size={20} /> Back
+            </button>
+            <button 
+              onClick={() => confirm("Delete this listing permanently?") && deleteMutation.mutate()}
+              className="text-red-500 hover:bg-red-50 p-2 rounded-xl transition"
+            >
+              <Trash2 size={20} />
+            </button>
+          </div>
+
+          <form 
+            onSubmit={(e) => { e.preventDefault(); updateMutation.mutate(form); }}
+            className="space-y-12 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-800 rounded-[2.5rem] p-8 md:p-12 shadow-2xl"
           >
-            <Trash2 size={18} />
-          </button>
+            <header>
+              <h1 className="text-4xl font-semibold uppercase">Edit Service Details</h1>
+              <p className="text-gray-500 mt-2 font-medium">Update your professional parameters and pricing.</p>
+            </header>
+
+            {/* 01. ESSENTIAL INFO */}
+            <section className="space-y-6">
+              <h2 className="text-base font-bold text-purple-500 uppercase border-b pb-2 border-purple-100">
+                01. Essential Information
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="text-xs font-bold uppercase text-gray-400">Service Title *</label>
+                  <input required value={form.title} className="w-full bg-gray-100 dark:bg-gray-800 rounded-2xl p-4 mt-1" onChange={(e) => setForm({ ...form, title: e.target.value })} />
+                </div>
+                <div>
+                  <label className="text-xs font-bold uppercase text-gray-400">Category *</label>
+                  <input required value={form.category} className="w-full bg-gray-100 dark:bg-gray-800 rounded-2xl p-4 mt-1" onChange={(e) => setForm({ ...form, category: e.target.value })} />
+                </div>
+              </div>
+              <div>
+                <label className="text-xs font-bold uppercase text-gray-400">Description *</label>
+                <textarea required value={form.description} className="w-full bg-gray-100 dark:bg-gray-800 rounded-2xl p-4 h-32 resize-none mt-1" onChange={(e) => setForm({ ...form, description: e.target.value })} />
+              </div>
+               <div>
+                <label className="text-xs font-bold uppercase text-gray-400">Subcategory</label>
+                <input value={form.subcategory} onChange={e => setForm({ ...form, subcategory: e.target.value })} className="w-full bg-gray-100 dark:bg-gray-800 rounded-2xl p-4 mt-1" />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="">
+                <label className="text-xs font-bold uppercase text-gray-400">Price</label>
+                <input type="number" value={form.price} onChange={e => setForm({ ...form, price: Number(e.target.value) })} placeholder="Price" className="w-full bg-gray-100 dark:bg-gray-800 rounded-2xl p-4 mt-1" />
+                </div>
+                <div className="">
+                <label className="text-xs font-bold uppercase text-gray-400">Currency</label>
+                <input value={form.currency} onChange={e => setForm({ ...form, currency: e.target.value })} placeholder="Currency" className="w-full bg-gray-100 dark:bg-gray-800 rounded-2xl p-4 mt-1" />
+              </div>
+              </div>
+            </section>
+
+            {/* 02. LOGISTICS */}
+            <section className="space-y-6">
+              <h2 className="text-base font-bold text-purple-500 uppercase border-b pb-2 border-purple-100">02. Logistics & Status</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="relative">
+                  <Clock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                  <input value={form.deliveryTime} onChange={e => setForm({ ...form, deliveryTime: e.target.value })} placeholder="Delivery Time" className="w-full bg-gray-100 dark:bg-gray-800 rounded-2xl p-4 pl-12 mt-1" />
+                </div>
+                <div className="relative">
+                  <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                  <input value={form.location} onChange={e => setForm({ ...form, location: e.target.value })} placeholder="Location" className="w-full bg-gray-100 dark:bg-gray-800 rounded-2xl p-4 pl-12 mt-1" />
+                </div>
+              </div>
+              <div className="flex gap-6">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" checked={form.isAvailable} onChange={e => setForm({ ...form, isAvailable: e.target.checked })} /> Available
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" checked={form.featured} onChange={e => setForm({ ...form, featured: e.target.checked })} /> Featured
+                </label>
+              </div>
+            </section>
+
+             {/* 03. TAGS & IMAGES */}
+            <section className="space-y-6">
+              <h2 className="text-base font-bold text-purple-500 uppercase border-b pb-2 border-purple-100">03. Tags & Images</h2>
+              {/* Tags */}
+              <div className="flex gap-2 mb-2">
+                <input placeholder="Add tag..." value={tempTag} onChange={e => setTempTag(e.target.value)} className="grow bg-gray-100 dark:bg-gray-800 p-4 rounded-2xl" />
+                <button type="button" onClick={() => { if (tempTag) setForm({ ...form, tags: [...(form.tags ?? []), tempTag] }); setTempTag(""); }} className="bg-gray-700 text-white px-4 rounded-2xl font-bold">Add</button>
+              </div>
+              <div className="flex flex-wrap gap-2 mb-4">
+                {(form.tags ?? []).map((tag, i) => (
+                  <span key={i} className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full flex items-center gap-2 text-sm">
+                    <Tag size={14} /> {tag}
+                    <X size={14} className="cursor-pointer" onClick={() => setForm({ ...form, tags: removeItem(form.tags ?? [], i) })} />
+                  </span>
+                ))}
+              </div>
+
+              {/* Images */}
+              <div className="flex gap-2 mb-2">
+                <input placeholder="Paste image URL..." value={tempImg} onChange={e => setTempImg(e.target.value)} className="grow bg-gray-100 dark:bg-gray-800 p-4 rounded-2xl" />
+                <button type="button" onClick={() => { if (tempImg) setForm({ ...form, images: [...(form.images ?? []), tempImg] }); setTempImg(""); }} className="bg-gray-700 text-white px-4 rounded-2xl font-bold">Add</button>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                {(form.images ?? []).map((src, i) => (
+                  <div key={i} className="relative group">
+                    <Image src={src} alt={`Preview ${i+1}`} width={300} height={128} className="w-full h-32 object-cover rounded-xl" />
+                    <button type="button" onClick={() => setForm({ ...form, images: removeItem(form.images ?? [], i) })} className="absolute top-2 right-2 bg-pink-600 text-white p-1 rounded-full"><X size={14} /></button>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+             {/* 04. PACKAGES, REQUIREMENTS & FAQ */}
+            <section className="space-y-10">
+              <h2 className="text-base font-bold text-purple-500 uppercase border-b pb-2 border-purple-100">04. Packages, Requirements & FAQ</h2>
+              
+              {/* Packages */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-gray-100 dark:bg-gray-800 p-4 rounded-3xl mb-4">
+                <input placeholder="Name" value={tempPkg.name} onChange={e => setTempPkg({ ...tempPkg, name: e.target.value })} className="p-3 rounded-xl bg-white border-none" />
+                <input placeholder="Description" value={tempPkg.description} onChange={e => setTempPkg({ ...tempPkg, description: e.target.value })} className="p-3 rounded-xl bg-white border-none" />
+                <input placeholder="Price" type="number" value={tempPkg.price || ""} onChange={e => setTempPkg({ ...tempPkg, price: Number(e.target.value) })} className="p-3 rounded-xl bg-white border-none" />
+                <button type="button" onClick={() => { if (tempPkg.name) setForm({ ...form, packages: [...(form.packages ?? []), tempPkg] }); setTempPkg({ name: "", description: "", price: 0 }); }} className="bg-gray-700 text-white font-bold rounded-xl px-4 py-3 md:col-span-3">Add Package</button>
+              </div>
+              {(form.packages ?? []).map((pkg, i) => (
+                <div key={i} className="bg-gray-50 dark:bg-gray-800 p-4 rounded-xl flex justify-between items-center mb-2">
+                  <div><span className="font-bold text-purple-600 uppercase text-xs">{pkg.name}</span><span className="ml-4 font-bold">${pkg.price}</span></div>
+                  <button type="button" onClick={() => setForm({ ...form, packages: removeItem(form.packages ?? [], i) })} className="text-gray-400 hover:text-red-500"><X size={16} /></button>
+                </div>
+              ))}
+
+              {/* Requirements */}
+              <div className="space-y-2 mb-4">
+                <div className="flex gap-2">
+                  <input placeholder="Buyer Requirement..." value={tempReq} onChange={e => setTempReq(e.target.value)} className="grow bg-gray-100 dark:bg-gray-800 p-4 rounded-2xl" />
+                  <button type="button" onClick={() => { if (tempReq) setForm({ ...form, requirements: [...(form.requirements ?? []), tempReq] }); setTempReq(""); }} className="bg-gray-700 text-white px-4 rounded-2xl font-bold">Add</button>
+                </div>
+                {(form.requirements ?? []).map((req, i) => (
+                  <div key={i} className="flex justify-between items-center bg-gray-50 dark:bg-gray-800 p-4 rounded-xl mb-1">
+                    <span>{req}</span>
+                    <button type="button" onClick={() => setForm({ ...form, requirements: removeItem(form.requirements ?? [], i) })} className="text-gray-400"><X size={16} /></button>
+                  </div>
+                ))}
+              </div>
+
+              {/* FAQ */}
+              <div className="space-y-2">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-2">
+                  <input placeholder="Question" value={tempFaq.question} onChange={e => setTempFaq({ ...tempFaq, question: e.target.value })} className="p-3 rounded-xl bg-gray-100 dark:bg-gray-800" />
+                  <input placeholder="Answer" value={tempFaq.answer} onChange={e => setTempFaq({ ...tempFaq, answer: e.target.value })} className="p-3 rounded-xl bg-gray-100 dark:bg-gray-800" />
+                  <button type="button" onClick={() => { if (tempFaq.question && tempFaq.answer) setForm({ ...form, faq: [...(form.faq ?? []), tempFaq] }); setTempFaq({ question: "", answer: "" }); }} className="bg-gray-700 text-white font-bold rounded-xl px-4 py-3 md:col-span-2">Add FAQ</button>
+                </div>
+                {(form.faq ?? []).map((item, i) => (
+                  <div key={i} className="bg-gray-50 dark:bg-gray-800 p-4 rounded-xl flex justify-between items-start mb-1">
+                    <div>
+                      <strong className="block text-purple-500 text-xs uppercase">{item.question}</strong>
+                      <span className="text-gray-400 text-sm">{item.answer}</span>
+                    </div>
+                    <button type="button" onClick={() => setForm({ ...form, faq: removeItem(form.faq ?? [], i) })} className="text-gray-400"><X size={16} /></button>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+
+            <button
+              disabled={updateMutation.isPending}
+              className="w-full py-5 bg-linear-to-r from-purple-500 to-blue-500 hover:bg-purple-600 text-white font-bold uppercase rounded-xl transition shadow-xl flex items-center justify-center gap-3 active:scale-95 disabled:opacity-50"
+            >
+              {updateMutation.isPending ? "UPDATING REGISTRY..." : <>UPDATE SERVICE REGISTRY <Send size={22} /></>}
+            </button>
+          </form>
         </div>
       </div>
-    </div>
+    </DashboardLayout>
   );
 }
