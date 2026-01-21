@@ -5,6 +5,7 @@ import { AuthProvider } from "../providers/AuthProvider";
 import { ThemeProvider } from "../providers/ThemeProvider";
 import { SidebarProvider } from "../context/SidebarContext";
 import { QueryProvider } from "../providers/QueryProvider";
+import { BookingArchiveProvider } from "../context/BookingArchiveContext";
 import { Toaster } from "sonner";
 
 const inter = Inter({
@@ -54,8 +55,10 @@ export default function RootLayout({
           <ThemeProvider>
             <SidebarProvider>
               <AuthProvider>
-                {children}
-                <Toaster richColors position="top-right" />
+                <BookingArchiveProvider>
+                  {children}
+                  <Toaster richColors position="top-right" />
+                </BookingArchiveProvider>
               </AuthProvider>
             </SidebarProvider>
           </ThemeProvider>

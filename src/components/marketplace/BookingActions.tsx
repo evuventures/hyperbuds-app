@@ -10,18 +10,23 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { CheckCircle, XCircle, Loader, AlertCircle } from "lucide-react";
+import { CheckCircle, XCircle, Loader, AlertCircle, Archive, ArchiveRestore } from "lucide-react";
 import type { Booking, BookingStatus } from "@/types/marketplace.types";
+import { useBookingArchive } from "@/hooks/features/useBookingArchive";
+import { useToast } from "@/hooks/ui/useToast";
 
 interface BookingActionsProps {
   booking: Booking;
   role: "buyer" | "seller";
   onStatusUpdate?: (bookingId: string, status: BookingStatus) => void;
+  isArchived?: boolean;
 }
 
-export function BookingActions({ booking, role, onStatusUpdate }: BookingActionsProps) {
+export function BookingActions({ booking, role, onStatusUpdate, isArchived = false }: BookingActionsProps) {
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [selectedStatus, setSelectedStatus] = React.useState<BookingStatus | "">("");
+  const { archiveBooking, unarchiveBooking } = useBookingArchive();
+  const { toast } = useToast();
 
   const handleStatusChange = (newStatus: BookingStatus) => {
     setSelectedStatus(newStatus);
@@ -35,6 +40,45 @@ export function BookingActions({ booking, role, onStatusUpdate }: BookingActions
       setSelectedStatus("");
     }
   };
+
+  const handleArchive = () => {
+    archiveBooking(booking._id);
+    toast({
+      title: "Booking archived",
+      description: "This booking has been hidden from your list",
+      variant: "success",
+      duration: 3000,
+    });
+  };
+
+  const handleUnarchive = () => {
+    unarchiveBooking(booking._id);
+    toast({
+      title: "Booking unarchived",
+      description: "This booking has been restored to your list",
+      variant: "success",
+      duration: 3000,
+    });
+    // Reload the page to ensure the booking list updates immediately
+    setTimeout(() => {
+      window.location.reload();
+    }, 500);
+  };
+
+  // If archived, show only unarchive button
+  if (isArchived) {
+    return (
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={handleUnarchive}
+        className="w-full border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer font-semibold"
+      >
+        <ArchiveRestore className="w-4 h-4 mr-2" />
+        Unarchive
+      </Button>
+    );
+  }
 
   // Buyer actions
   if (role === "buyer") {
@@ -60,6 +104,22 @@ export function BookingActions({ booking, role, onStatusUpdate }: BookingActions
         </>
       );
     }
+
+    // Archive button for delivered/completed bookings
+    if (booking.status === "delivered" || booking.status === "completed") {
+      return (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleArchive}
+          className="w-full border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer font-semibold"
+        >
+          <Archive className="w-4 h-4 mr-2" />
+          Archive
+        </Button>
+      );
+    }
+
     return null;
   }
 
@@ -148,15 +208,26 @@ export function BookingActions({ booking, role, onStatusUpdate }: BookingActions
     if (booking.status === "delivered") {
       return (
         <>
-          <Button
-            variant="default"
-            size="sm"
-            onClick={() => handleStatusChange("completed")}
-            className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white shadow-md cursor-pointer"
-          >
-            <CheckCircle className="w-4 h-4 mr-2" />
-            Complete
-          </Button>
+          <div className="flex flex-col gap-2 w-full">
+            <Button
+              variant="default"
+              size="sm"
+              onClick={() => handleStatusChange("completed")}
+              className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white shadow-md cursor-pointer"
+            >
+              <CheckCircle className="w-4 h-4 mr-2" />
+              Complete
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleArchive}
+              className="w-full border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer font-semibold"
+            >
+              <Archive className="w-4 h-4 mr-2" />
+              Archive
+            </Button>
+          </div>
           <StatusUpdateDialog
             open={dialogOpen}
             onOpenChange={setDialogOpen}
@@ -165,6 +236,21 @@ export function BookingActions({ booking, role, onStatusUpdate }: BookingActions
             onConfirm={handleConfirm}
           />
         </>
+      );
+    }
+
+    // Archive button for completed bookings (seller)
+    if (booking.status === "completed") {
+      return (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleArchive}
+          className="w-full border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer font-semibold"
+        >
+          <Archive className="w-4 h-4 mr-2" />
+          Archive
+        </Button>
       );
     }
   }
@@ -221,8 +307,8 @@ function StatusUpdateDialog({
             variant={isDestructive ? "destructive" : "default"}
             onClick={onConfirm}
             className={`cursor-pointer font-bold text-base px-6 py-2 ${isDestructive
-                ? "bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800 text-white border-2 border-red-700 dark:border-red-800 shadow-md"
-                : "bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white border-2 border-purple-700 dark:border-purple-800 shadow-md"
+              ? "bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800 text-white border-2 border-red-700 dark:border-red-800 shadow-md"
+              : "bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white border-2 border-purple-700 dark:border-purple-800 shadow-md"
               }`}
           >
             {isDestructive ? (

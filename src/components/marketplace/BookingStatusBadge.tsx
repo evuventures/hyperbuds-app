@@ -53,27 +53,35 @@ const statusConfig: Record<
 export function BookingStatusBadge({ status }: BookingStatusBadgeProps) {
   const config = statusConfig[status] || statusConfig.pending;
 
-  // Custom styling for specific statuses to ensure visibility
+  // Custom styling for all statuses to ensure visibility
   const getStatusStyles = () => {
-    if (status === "pending") {
-      return "bg-yellow-100 dark:bg-yellow-900/40 text-yellow-800 dark:text-yellow-300 border-yellow-300 dark:border-yellow-700";
+    switch (status) {
+      case "pending":
+        return "bg-yellow-100 dark:bg-yellow-900/40 text-yellow-800 dark:text-yellow-300 border-yellow-300 dark:border-yellow-700";
+      case "accepted":
+        return "bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-300 border-green-300 dark:border-green-700";
+      case "in_progress":
+        return "bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300 border-blue-300 dark:border-blue-700";
+      case "delivered":
+        return "bg-purple-100 dark:bg-purple-900/40 text-purple-800 dark:text-purple-300 border-purple-300 dark:border-purple-700";
+      case "completed":
+        return "bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-300 border-emerald-300 dark:border-emerald-700";
+      case "cancelled":
+        return "bg-red-100 dark:bg-red-900/40 text-red-800 dark:text-red-300 border-red-300 dark:border-red-700";
+      case "refunded":
+        return "bg-gray-100 dark:bg-gray-700/50 text-gray-800 dark:text-gray-200 border-gray-300 dark:border-gray-600";
+      default:
+        return "";
     }
-    if (status === "cancelled") {
-      return "bg-red-100 dark:bg-red-900/40 text-red-800 dark:text-red-300 border-red-300 dark:border-red-700";
-    }
-    if (status === "refunded") {
-      return "bg-gray-100 dark:bg-gray-700/50 text-gray-800 dark:text-gray-200 border-gray-300 dark:border-gray-600";
-    }
-    return "";
   };
 
   return (
     <Badge
       variant={config.variant}
-      className={`flex items-center gap-1.5 px-3 py-1.5 font-bold text-sm shadow-md border-2 whitespace-nowrap ${getStatusStyles()}`}
+      className={`flex items-center gap-1.5 px-3 py-1.5 font-bold text-sm shadow-md border-2 whitespace-nowrap min-w-fit ${getStatusStyles()}`}
     >
       {config.icon}
-      <span className="font-bold">{config.label}</span>
+      <span className="font-bold leading-tight">{config.label}</span>
     </Badge>
   );
 }

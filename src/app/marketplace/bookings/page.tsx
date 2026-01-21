@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useBookings, useUpdateBookingStatus } from "@/hooks/features/useMarketplace";
 import { BookingCard } from "@/components/marketplace/BookingCard";
 import { Button } from "@/components/ui/button";
@@ -8,9 +8,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import DashboardLayout from "@/components/layout/Dashboard/Dashboard";
-import { Calendar, AlertCircle, ArrowLeft } from "lucide-react";
+import { Calendar, AlertCircle, ArrowLeft, Archive } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type { BookingListFilters, BookingStatus } from "@/types/marketplace.types";
+import { useBookingArchive } from "@/hooks/features/useBookingArchive";
 
 const STATUS_OPTIONS: { value: BookingStatus | "all"; label: string }[] = [
   { value: "all", label: "All Statuses" },
@@ -27,6 +28,8 @@ export default function MyBookingsPage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<"buyer" | "seller">("buyer");
   const [statusFilter, setStatusFilter] = useState<BookingStatus | "all">("all");
+  const [showArchived, setShowArchived] = useState(false);
+  const { isArchived, archivedCount, archiveVersion, getArchivedBookings } = useBookingArchive();
 
   const buyerFilters: BookingListFilters = {
     role: "buyer",
@@ -67,13 +70,31 @@ export default function MyBookingsPage() {
   const currentData = activeTab === "buyer" ? buyerData : sellerData;
   const currentLoading = activeTab === "buyer" ? buyerLoading : sellerLoading;
   const currentError = activeTab === "buyer" ? buyerError : sellerError;
-  
+
   // Filter out cancelled bookings from the display unless user specifically filters for "cancelled"
   // This ensures cancelled bookings are removed from the page after cancellation
   const allBookings = currentData?.bookings || [];
-  const bookings = statusFilter === "cancelled"
+  const statusFilteredBookings = statusFilter === "cancelled"
     ? allBookings.filter((booking) => booking.status === "cancelled")
     : allBookings.filter((booking) => booking.status !== "cancelled");
+
+  // Get archived bookings Set and convert to array for dependency tracking
+  // This ensures React detects changes when archive state updates
+  // Call getArchivedBookings() inside useMemo to always get the latest Set
+  const archivedIdsArray = useMemo(() => {
+    const archivedSet = getArchivedBookings();
+    return Array.from(archivedSet).sort();
+  }, [getArchivedBookings, archiveVersion]);
+
+  // Filter archived bookings based on showArchived toggle
+  // When showArchived is true: show ONLY archived bookings
+  // When showArchived is false: show ONLY non-archived bookings
+  // Use archivedIdsArray directly to avoid stale closure issues
+  const bookings = useMemo(() => {
+    return showArchived
+      ? statusFilteredBookings.filter((booking) => archivedIdsArray.includes(booking._id))
+      : statusFilteredBookings.filter((booking) => !archivedIdsArray.includes(booking._id));
+  }, [statusFilteredBookings, showArchived, archivedIdsArray, archiveVersion]);
 
   return (
     <DashboardLayout>
@@ -109,33 +130,56 @@ export default function MyBookingsPage() {
             <div className="flex items-center justify-between gap-4">
               <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "buyer" | "seller")}>
                 <TabsList className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700">
-                  <TabsTrigger 
+                  <TabsTrigger
                     value="buyer"
-                    className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-indigo-600 data-[state=active]:text-white text-gray-700 dark:text-gray-300 font-medium"
+                    className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-indigo-600 data-[state=active]:text-white text-gray-700 dark:text-gray-300 font-medium cursor-pointer"
                   >
                     As Buyer
                   </TabsTrigger>
-                  <TabsTrigger 
+                  <TabsTrigger
                     value="seller"
-                    className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-indigo-600 data-[state=active]:text-white text-gray-700 dark:text-gray-300 font-medium"
+                    className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-indigo-600 data-[state=active]:text-white text-gray-700 dark:text-gray-300 font-medium cursor-pointer"
                   >
                     As Seller
                   </TabsTrigger>
                 </TabsList>
               </Tabs>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
+                {/* Show Archived Toggle */}
+                {archivedCount > 0 && (
+                  <Button
+                    variant={showArchived ? "default" : "outline"}
+                    onClick={() => setShowArchived(!showArchived)}
+                    className={`flex items-center gap-2 font-medium cursor-pointer ${showArchived
+                      ? "bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white border-2 border-purple-700 dark:border-purple-800 shadow-md"
+                      : "bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-700"
+                      }`}
+                  >
+                    <Archive className="w-4 h-4" />
+                    <span className="hidden sm:inline">Show Archived</span>
+                    {archivedCount > 0 && (
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${showArchived
+                        ? "bg-white/20 text-white"
+                        : "bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300"
+                        }`}>
+                        {archivedCount}
+                      </span>
+                    )}
+                  </Button>
+                )}
+
                 <Select
                   value={statusFilter}
                   onValueChange={(value) => setStatusFilter(value as BookingStatus | "all")}
                 >
-                  <SelectTrigger className="w-[180px] bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white font-semibold hover:border-purple-500 dark:hover:border-purple-400 shadow-sm [&>span]:text-gray-900 [&>span]:dark:text-white [&>span]:font-semibold">
+                  <SelectTrigger className="w-[180px] bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white font-semibold hover:border-purple-500 dark:hover:border-purple-400 shadow-sm cursor-pointer [&>span]:text-gray-900 [&>span]:dark:text-white [&>span]:font-semibold">
                     <SelectValue placeholder="All Statuses" />
                   </SelectTrigger>
                   <SelectContent className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 shadow-xl">
                     {STATUS_OPTIONS.map((option) => (
-                      <SelectItem 
-                        key={option.value} 
+                      <SelectItem
+                        key={option.value}
                         value={option.value}
                         className="text-gray-900 dark:text-white hover:bg-purple-50 dark:hover:bg-purple-900/20 cursor-pointer font-medium"
                       >
@@ -202,6 +246,7 @@ export default function MyBookingsPage() {
                       booking={booking}
                       role={activeTab}
                       onStatusUpdate={handleStatusUpdate}
+                      isArchived={isArchived(booking._id)}
                     />
                   ))}
                 </div>

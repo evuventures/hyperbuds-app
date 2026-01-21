@@ -12,9 +12,10 @@ interface BookingCardProps {
   booking: Booking;
   role: "buyer" | "seller";
   onStatusUpdate?: (bookingId: string, status: BookingStatus) => void;
+  isArchived?: boolean;
 }
 
-export function BookingCard({ booking, role, onStatusUpdate }: BookingCardProps) {
+export function BookingCard({ booking, role, onStatusUpdate, isArchived = false }: BookingCardProps) {
   const serviceTitle =
     typeof booking.serviceId === "object" && booking.serviceId
       ? booking.serviceId.title
@@ -49,111 +50,131 @@ export function BookingCard({ booking, role, onStatusUpdate }: BookingCardProps)
   };
 
   return (
-    <Card className="hover:shadow-lg transition-all duration-200 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 hover:border-purple-400 dark:hover:border-purple-500 shadow-md overflow-hidden">
-      <CardHeader className="border-b-2 border-gray-200 dark:border-gray-700 bg-gradient-to-r from-gray-50 to-white dark:from-gray-800 dark:to-gray-800 p-4">
+    <Card className={`hover:shadow-lg transition-all duration-200 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 hover:border-purple-400 dark:hover:border-purple-500 shadow-md overflow-hidden ${isArchived ? "opacity-75 border-dashed" : ""
+      }`}>
+      <CardHeader className={`border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-gray-50 to-white dark:from-gray-800 dark:to-gray-800 p-3 ${isArchived ? "bg-gray-100 dark:bg-gray-700/50" : ""
+        }`}>
         <div className="flex items-start justify-between gap-3">
-          <div className="flex-1 min-w-0">
-            <CardTitle className="text-lg font-bold text-gray-900 dark:text-white">
-              <Link
-                href={`/marketplace/services/${serviceId}`}
-                className="hover:text-purple-600 dark:hover:text-purple-400 transition-colors cursor-pointer"
-              >
-                {serviceTitle}
-              </Link>
-            </CardTitle>
-            <CardDescription className="mt-1 text-sm font-medium text-gray-600 dark:text-gray-400">
+          <div className="flex-1 min-w-0 pr-2">
+            <div className="flex items-center gap-2">
+              <CardTitle className="text-base font-bold text-gray-900 dark:text-white break-words line-clamp-2">
+                <Link
+                  href={`/marketplace/services/${serviceId}`}
+                  className="hover:text-purple-600 dark:hover:text-purple-400 transition-colors cursor-pointer"
+                >
+                  {serviceTitle}
+                </Link>
+              </CardTitle>
+              {isArchived && (
+                <span className="px-2 py-0.5 text-xs font-semibold bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-400 rounded-md border border-gray-300 dark:border-gray-500">
+                  Archived
+                </span>
+              )}
+            </div>
+            <CardDescription className="mt-0.5 text-xs font-medium text-gray-600 dark:text-gray-400">
               Booking #{booking._id.slice(-8)}
             </CardDescription>
           </div>
-          <div className="flex-shrink-0">
+          <div className="flex-shrink-0 flex items-start">
             <BookingStatusBadge status={booking.status} />
           </div>
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-4 pt-6">
-        {/* User Info */}
-        <div className="flex items-center gap-2 p-3 rounded-lg bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600">
-          <User className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-          <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-            {role === "buyer" ? "Provider: " : "Buyer: "}
-          </span>
-          <span className="text-sm font-bold text-gray-900 dark:text-white">
-            {role === "buyer" ? sellerName : buyerName}
-          </span>
-        </div>
-
-        {/* Package */}
-        {booking.packageName && (
-          <div className="flex items-center gap-2 p-3 rounded-lg bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600">
-            <Package className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-            <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">Package:</span>
-            <span className="text-sm font-bold text-gray-900 dark:text-white">{booking.packageName}</span>
+      <CardContent className="space-y-2.5 pt-3 px-3 pb-3">
+        {/* Key Info Grid - Compact Layout */}
+        <div className="grid grid-cols-2 gap-2">
+          {/* Provider/Buyer */}
+          <div className="flex items-center gap-1.5 p-2 rounded-md bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600">
+            <User className="w-4 h-4 text-purple-600 dark:text-purple-400 flex-shrink-0" />
+            <div className="min-w-0">
+              <p className="text-xs text-gray-500 dark:text-gray-400">{role === "buyer" ? "Provider" : "Buyer"}</p>
+              <p className="text-xs font-semibold text-gray-900 dark:text-white truncate">{role === "buyer" ? sellerName : buyerName}</p>
+            </div>
           </div>
-        )}
 
-        {/* Amount */}
-        <div className="flex items-center gap-2 p-4 rounded-lg bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border-2 border-green-200 dark:border-green-800">
-          <DollarSign className="w-6 h-6 text-green-600 dark:text-green-400" />
-          <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">Amount:</span>
-          <span className="text-xl font-bold text-green-700 dark:text-green-400">
-            {booking.currency || "USD"} {booking.amount.toFixed(2)}
-          </span>
-        </div>
+          {/* Amount */}
+          <div className="flex items-center gap-1.5 p-2 rounded-md bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-200 dark:border-green-800">
+            <DollarSign className="w-4 h-4 text-green-600 dark:text-green-400 flex-shrink-0" />
+            <div className="min-w-0">
+              <p className="text-xs text-gray-500 dark:text-gray-400">Amount</p>
+              <p className="text-sm font-bold text-green-700 dark:text-green-400 truncate">
+                {booking.currency || "USD"} {booking.amount.toFixed(2)}
+              </p>
+            </div>
+          </div>
 
-        {/* Dates */}
-        <div className="space-y-2">
+          {/* Scheduled Date */}
           {booking.scheduledFor && (
-            <div className="flex items-center gap-2 p-3 rounded-lg bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600">
-              <Calendar className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-              <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">Scheduled:</span>
-              <span className="text-sm font-medium text-gray-900 dark:text-white">{formatDate(booking.scheduledFor)}</span>
+            <div className="flex items-center gap-1.5 p-2 rounded-md bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600">
+              <Calendar className="w-4 h-4 text-purple-600 dark:text-purple-400 flex-shrink-0" />
+              <div className="min-w-0">
+                <p className="text-xs text-gray-500 dark:text-gray-400">Scheduled</p>
+                <p className="text-xs font-medium text-gray-900 dark:text-white truncate">{formatDate(booking.scheduledFor)}</p>
+              </div>
             </div>
           )}
+
+          {/* Due Date */}
           {booking.dueDate && (
-            <div className="flex items-center gap-2 p-3 rounded-lg bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600">
-              <Clock className="w-5 h-5 text-orange-600 dark:text-orange-400" />
-              <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">Due:</span>
-              <span className="text-sm font-medium text-gray-900 dark:text-white">{formatDate(booking.dueDate)}</span>
+            <div className="flex items-center gap-1.5 p-2 rounded-md bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600">
+              <Clock className="w-4 h-4 text-orange-600 dark:text-orange-400 flex-shrink-0" />
+              <div className="min-w-0">
+                <p className="text-xs text-gray-500 dark:text-gray-400">Due</p>
+                <p className="text-xs font-medium text-gray-900 dark:text-white truncate">{formatDate(booking.dueDate)}</p>
+              </div>
+            </div>
+          )}
+
+          {/* Package */}
+          {booking.packageName && (
+            <div className="flex items-center gap-1.5 p-2 rounded-md bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 col-span-2">
+              <Package className="w-4 h-4 text-blue-600 dark:text-blue-400 flex-shrink-0" />
+              <div className="min-w-0">
+                <p className="text-xs text-gray-500 dark:text-gray-400">Package</p>
+                <p className="text-xs font-semibold text-gray-900 dark:text-white truncate">{booking.packageName}</p>
+              </div>
             </div>
           )}
         </div>
 
-        {/* Requirements */}
-        {booking.requirements && (
-          <div className="pt-4 border-t-2 border-gray-200 dark:border-gray-700">
-            <p className="text-sm font-bold mb-2 text-gray-900 dark:text-white uppercase tracking-wide">Requirements:</p>
-            <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed p-3 rounded-lg bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600">{booking.requirements}</p>
+        {/* Requirements & Message - Compact */}
+        {(booking.requirements || booking.message) && (
+          <div className="pt-2 border-t border-gray-200 dark:border-gray-700 space-y-2">
+            {booking.requirements && (
+              <div>
+                <p className="text-xs font-semibold mb-1 text-gray-700 dark:text-gray-300">Requirements:</p>
+                <p className="text-xs text-gray-600 dark:text-gray-400 leading-snug p-2 rounded bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 line-clamp-2">{booking.requirements}</p>
+              </div>
+            )}
+            {booking.message && (
+              <div>
+                <p className="text-xs font-semibold mb-1 text-gray-700 dark:text-gray-300">Message:</p>
+                <p className="text-xs text-gray-600 dark:text-gray-400 leading-snug p-2 rounded bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 line-clamp-2">{booking.message}</p>
+              </div>
+            )}
           </div>
         )}
 
-        {/* Message */}
-        {booking.message && (
-          <div className="pt-4 border-t-2 border-gray-200 dark:border-gray-700">
-            <p className="text-sm font-bold mb-2 text-gray-900 dark:text-white uppercase tracking-wide">Message:</p>
-            <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed p-3 rounded-lg bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600">{booking.message}</p>
-          </div>
-        )}
-
-        {/* Deliverables */}
+        {/* Deliverables - Compact */}
         {booking.deliverables && booking.deliverables.length > 0 && (
-          <div className="pt-4 border-t-2 border-gray-200 dark:border-gray-700">
-            <p className="text-sm font-bold mb-3 text-gray-900 dark:text-white uppercase tracking-wide">Deliverables:</p>
-            <div className="space-y-2">
+          <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
+            <p className="text-xs font-semibold mb-1.5 text-gray-700 dark:text-gray-300">Deliverables:</p>
+            <div className="flex flex-wrap gap-1.5">
               {booking.deliverables.map((deliverable, index) => (
-                <div key={index} className="flex items-center gap-2 p-2 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
-                  <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
+                <div key={index} className="flex items-center gap-1 px-2 py-1 rounded-md bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
+                  <CheckCircle className="w-3 h-3 text-green-600 dark:text-green-400 flex-shrink-0" />
                   {deliverable.url ? (
                     <a
                       href={deliverable.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-sm font-medium text-green-700 dark:text-green-400 hover:underline"
+                      className="text-xs font-medium text-green-700 dark:text-green-400 hover:underline truncate max-w-[120px]"
                     >
-                      {deliverable.title || "View Deliverable"}
+                      {deliverable.title || "View"}
                     </a>
                   ) : (
-                    <span className="text-sm font-medium text-gray-900 dark:text-white">{deliverable.title || "Deliverable"}</span>
+                    <span className="text-xs font-medium text-gray-900 dark:text-white truncate max-w-[120px]">{deliverable.title || "Deliverable"}</span>
                   )}
                 </div>
               ))}
@@ -161,26 +182,27 @@ export function BookingCard({ booking, role, onStatusUpdate }: BookingCardProps)
           </div>
         )}
 
-        {/* Timestamps */}
-        <div className="pt-4 border-t-2 border-gray-200 dark:border-gray-700 space-y-1">
+        {/* Timestamps - Compact */}
+        <div className="pt-2 border-t border-gray-200 dark:border-gray-700 flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
           {booking.createdAt && (
-            <p className="text-xs font-medium text-gray-600 dark:text-gray-400">
+            <span>
               <span className="font-semibold">Created:</span> {formatDate(booking.createdAt)}
-            </p>
+            </span>
           )}
           {booking.updatedAt && booking.updatedAt !== booking.createdAt && (
-            <p className="text-xs font-medium text-gray-600 dark:text-gray-400">
+            <span>
               <span className="font-semibold">Updated:</span> {formatDate(booking.updatedAt)}
-            </p>
+            </span>
           )}
         </div>
       </CardContent>
 
-      <CardFooter className="border-t-2 border-gray-200 dark:border-gray-700 pt-4 bg-gray-50 dark:bg-gray-700/30">
+      <CardFooter className="border-t border-gray-200 dark:border-gray-700 pt-3 px-3 pb-3 bg-gray-50 dark:bg-gray-700/30">
         <BookingActions
           booking={booking}
           role={role}
           onStatusUpdate={onStatusUpdate}
+          isArchived={isArchived}
         />
       </CardFooter>
     </Card>
