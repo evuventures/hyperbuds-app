@@ -115,13 +115,25 @@ export default function MatchmakerPage() {
         try {
           const suggestionsData = await suggestionsApi.getSuggestions(currentUserId);
 
+          // Ensure suggestions array exists
+          if (!suggestionsData?.suggestions || !Array.isArray(suggestionsData.suggestions)) {
+            console.warn("No suggestions found in API response");
+            setMatches([]);
+            return;
+          }
+
           // Transform API response to MatchSuggestion format
+          // Filter out invalid suggestions first
+          const validSuggestions = suggestionsData.suggestions.filter(
+            (s) => s && s.userId && s.username
+          );
+
           const transformedMatches: MatchSuggestion[] = await Promise.all(
-            suggestionsData.suggestions.map(async (suggestion) => {
+            validSuggestions.map(async (suggestion) => {
               // Fetch full profile for each suggestion
               let targetProfile: CreatorProfile | undefined;
               try {
-                const profileData = await profileApi.getProfileByUsername(suggestion.username);
+                const profileData = await profileApi.getProfileByUsername(suggestion.username || '');
                 targetProfile = {
                   userId: suggestion.userId,
                   username: suggestion.username,
@@ -163,11 +175,11 @@ export default function MatchmakerPage() {
                 id: `match-${suggestion.userId}`,
                 userId: currentUserId || "current-user",
                 targetUserId: suggestion.userId,
-                compatibilityScore: suggestion.matchingScore,
+                compatibilityScore: suggestion.matchingScore || 0,
                 matchType: 'niche-based' as const,
                 scoreBreakdown: {
                   audienceOverlap: 0,
-                  nicheCompatibility: suggestion.matchingScore,
+                  nicheCompatibility: suggestion.matchingScore || 0,
                   engagementStyle: 0,
                   geolocation: 0,
                   activityTime: 0,
@@ -176,8 +188,8 @@ export default function MatchmakerPage() {
                 status: 'pending' as const,
                 metadata: {
                   algorithm: 'matchmaker-v1',
-                  confidence: suggestion.matchingScore / 100,
-                  features: suggestion.sharedNiches.length > 0
+                  confidence: (suggestion.matchingScore || 0) / 100,
+                  features: (suggestion.sharedNiches && Array.isArray(suggestion.sharedNiches) && suggestion.sharedNiches.length > 0)
                     ? [`Shared niches: ${suggestion.sharedNiches.join(', ')}`]
                     : []
                 },
@@ -189,12 +201,19 @@ export default function MatchmakerPage() {
           );
 
           setMatches(transformedMatches);
+          setError(null); // Clear any previous errors on success
         } catch (suggestionsError) {
           console.error("Error fetching suggestions:", suggestionsError);
+          const errorMessage = suggestionsError instanceof Error 
+            ? suggestionsError.message 
+            : "Failed to load match suggestions. Please try again.";
+          setError(errorMessage);
           setMatches([]);
         }
       } else {
+        const errorMessage = "User ID not available. Please log in again.";
         console.warn("No userId available, cannot fetch suggestions");
+        setError(errorMessage);
         setMatches([]);
       }
 
@@ -294,21 +313,39 @@ export default function MatchmakerPage() {
         JSON.parse(localStorage.getItem('user') || '{}')?.userId;
 
       if (!userId) {
+        const errorMessage = "User ID not available. Please log in again.";
         console.warn("No userId available for refresh");
+        setError(errorMessage);
         setMatches([]);
+        setIsRefreshing(false);
+        setShowAILoader(false);
         return;
       }
 
       // Fetch suggestions using new API endpoint
       const suggestionsData = await suggestionsApi.getSuggestions(userId);
 
+      // Ensure suggestions array exists
+      if (!suggestionsData?.suggestions || !Array.isArray(suggestionsData.suggestions)) {
+        console.warn("No suggestions found in API response");
+        setMatches([]);
+        setIsRefreshing(false);
+        setShowAILoader(false);
+        return;
+      }
+
       // Transform API response to MatchSuggestion format
+      // Filter out invalid suggestions first
+      const validSuggestions = suggestionsData.suggestions.filter(
+        (s) => s && s.userId && s.username
+      );
+
       const transformedMatches: MatchSuggestion[] = await Promise.all(
-        suggestionsData.suggestions.map(async (suggestion) => {
+        validSuggestions.map(async (suggestion) => {
           // Fetch full profile for each suggestion
           let targetProfile: CreatorProfile | undefined;
           try {
-            const profileData = await profileApi.getProfileByUsername(suggestion.username);
+            const profileData = await profileApi.getProfileByUsername(suggestion.username || '');
             targetProfile = {
               userId: suggestion.userId,
               username: suggestion.username,
@@ -350,7 +387,7 @@ export default function MatchmakerPage() {
             id: `match-${suggestion.userId}`,
             userId: userId,
             targetUserId: suggestion.userId,
-            compatibilityScore: suggestion.matchingScore,
+            compatibilityScore: suggestion.matchingScore || 0,
             matchType: 'niche-based' as const,
             scoreBreakdown: {
               audienceOverlap: 0,
@@ -363,8 +400,8 @@ export default function MatchmakerPage() {
             status: 'pending' as const,
             metadata: {
               algorithm: 'matchmaker-v1',
-              confidence: suggestion.matchingScore / 100,
-              features: suggestion.sharedNiches.length > 0
+              confidence: (suggestion.matchingScore || 0) / 100,
+              features: (suggestion.sharedNiches && Array.isArray(suggestion.sharedNiches) && suggestion.sharedNiches.length > 0)
                 ? [`Shared niches: ${suggestion.sharedNiches.join(', ')}`]
                 : []
             },
@@ -376,8 +413,13 @@ export default function MatchmakerPage() {
       );
 
       setMatches(transformedMatches);
+      setError(null); // Clear any previous errors on success
     } catch (err) {
       console.error("Refresh failed:", err);
+      const errorMessage = err instanceof Error 
+        ? err.message 
+        : "Failed to refresh match suggestions. Please try again.";
+      setError(errorMessage);
       setMatches([]);
     } finally {
       setIsRefreshing(false);
@@ -503,7 +545,8 @@ export default function MatchmakerPage() {
                           </button>
                         </div>
                       </motion.div>
-                    ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
