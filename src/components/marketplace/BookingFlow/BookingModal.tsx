@@ -61,12 +61,12 @@ export const BookingModal = ({ serviceId, isOpen, onClose }: BookingModalProps) 
 
   return (
     <div className="fixed inset-0 z-100 flex items-center  justify-center p-4 bg-white/60 dark:bg-zinc-950/60 backdrop-blur-sm transition-colors duration-300">
-      <div className="bg-white dark:bg-gray-900 w-full h-fit max-w-xl rounded-3xl border border-zinc-200 dark:border-zinc-800 overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-200">
+      <div className="bg-white dark:bg-gray-900 w-full h-fit max-w-lg rounded-3xl border border-zinc-200 dark:border-zinc-800 overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-200">
         
         {/* Modal Header */}
         <div className="p-8 pb-4 border-b border-gray-100 dark:border-gray-800 flex justify-between items-start">
           <div className="space-y-1">
-            <h2 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-100">Book now</h2>
+            <h2 className="text-3xl font-bold  text-gray-900 dark:text-gray-100">Book now</h2>
             
           </div>
           <button 
@@ -83,7 +83,7 @@ export const BookingModal = ({ serviceId, isOpen, onClose }: BookingModalProps) 
             
             {/* Message Field */}
             <div className="space-y-2">
-              <label className="flex items-center gap-2 text-xs font-bold uppercase text-gray-400">
+              <label className="flex items-center gap-2 text-xs  uppercase text-gray-500 dark:text-gray-200">
                 <MessageSquare size={14} className="text-purple-500" /> Message to Creator
               </label>
               <textarea 
@@ -97,7 +97,7 @@ export const BookingModal = ({ serviceId, isOpen, onClose }: BookingModalProps) 
 
             {/* Requirements Field */}
             <div className="space-y-2">
-              <label className="flex items-center gap-2 text-xs font-bold uppercase text-gray-400">
+              <label className="flex items-center gap-2 text-xs uppercase text-gray-500 dark:text-gray-200">
                 <Calendar size={14} className="text-blue-500" /> Specific Requirements
               </label>
               <textarea 
@@ -112,7 +112,7 @@ export const BookingModal = ({ serviceId, isOpen, onClose }: BookingModalProps) 
           {/* Warning Note */}
           <div className="flex items-start gap-3 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-2xl border border-gray-100 dark:border-gray-800">
             <AlertCircle size={18} className="text-purple-500 shrink-0 mt-0.5" />
-            <p className="text-[10px] font-medium leading-relaxed text-gray-500 dark:text-gray-400 uppercase tracking-tight">
+            <p className="text-xs text-gray-500 dark:text-gray-200">
               By clicking send, you agree to start a formal transaction. 
               Payment is processed once the creator <span className="text-gray-900 dark:text-white font-bold">accepts</span> your request.
             </p>
@@ -122,7 +122,7 @@ export const BookingModal = ({ serviceId, isOpen, onClose }: BookingModalProps) 
           <button
             type="submit"
             disabled={mutation.isPending}
-            className="w-full py-4 bg-linear-to-r from-purple-500 to-blue-500 hover:opacity-90 text-white rounded-xl font-bold uppercase text-xs transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-3 shadow-lg shadow-purple-500/20"
+            className="w-full py-4 bg-linear-to-r from-purple-500 to-blue-500 hover:opacity-90 text-white rounded-xl  uppercase text-xs transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-3 shadow-lg shadow-purple-500/20"
           >
             {mutation.isPending ? (
               <Loader2 className="animate-spin" size={20} />
