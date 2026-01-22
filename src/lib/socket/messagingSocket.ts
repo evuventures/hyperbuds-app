@@ -12,7 +12,7 @@ class MessagingSocketService {
          return this.socket;
       }
 
-      this.socket = io('https://api-hyperbuds-backend.onrender.com', {
+      this.socket = io('https://localhost:4000', {
          auth: { token },
          transports: ['websocket', 'polling'],
          timeout: 10000, // Reduced timeout
@@ -198,7 +198,7 @@ class MessagingSocketService {
    // Get socket instance
    getSocket(): Socket | null {
       return this.socket;
-   }
+   }  
 }
 
 export const messagingSocketService = new MessagingSocketService();

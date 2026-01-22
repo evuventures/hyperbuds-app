@@ -101,6 +101,7 @@ export interface CollaborationCollaborator {
 
 export interface Collaboration {
   _id: string;
+  id:string;
   title: string;
   description: string;
   type: CollaborationType;
@@ -140,7 +141,7 @@ export interface UpdateCollaborationRequest {
 
 export interface InviteCollaboratorsRequest {
   collaborators: Array<{
-    userId: string;
+    username: string;
     role?: CollaboratorRole;
     message?: string;
   }>;

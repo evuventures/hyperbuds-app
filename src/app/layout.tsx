@@ -5,7 +5,8 @@ import { AuthProvider } from "../providers/AuthProvider";
 import { ThemeProvider } from "../providers/ThemeProvider";
 import { SidebarProvider } from "../context/SidebarContext";
 import { QueryProvider } from "../providers/QueryProvider";
-import { Toaster } from "sonner";
+import { Toaster } from "react-hot-toast";
+import { SocketProvider } from "../providers/SocketProvider";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -18,11 +19,7 @@ export const metadata = {
     "Hyperbuds brings collaborators together with AI, providing the tools and connections needed to enhance productivity and foster creativity in every project.",
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: ReactNode;
-}) {
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -49,13 +46,17 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={`${inter.variable} antialiased bg-white dark:bg-gray-900`}>
+      <body
+        className={`${inter.variable} antialiased bg-white dark:bg-gray-900`}
+      >
         <QueryProvider>
           <ThemeProvider>
             <SidebarProvider>
               <AuthProvider>
-                {children}
-                <Toaster richColors position="top-right" />
+                <SocketProvider>
+                  {children}
+                  </SocketProvider>
+                <Toaster  position="top-right" />
               </AuthProvider>
             </SidebarProvider>
           </ThemeProvider>

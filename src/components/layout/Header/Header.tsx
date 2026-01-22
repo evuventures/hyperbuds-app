@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import {
-
+  Search,
   Bell,
   Settings,
   ChevronDown,
@@ -32,7 +32,7 @@ interface HeaderProps {
 }
 
 export const Header: React.FC<HeaderProps> = ({ user, onMenuClick }) => {
-  //const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const { isDarkMode, toggleDarkMode } = useTheme();
@@ -85,7 +85,7 @@ export const Header: React.FC<HeaderProps> = ({ user, onMenuClick }) => {
           </div>
         </div>
 
-        {/* Search Bar 
+        {/* Search Bar  */}
         <div className="hidden relative md:block">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 w-4 h-4 text-gray-400 transform -translate-y-1/2 dark:text-gray-500" />
@@ -97,7 +97,7 @@ export const Header: React.FC<HeaderProps> = ({ user, onMenuClick }) => {
               className="pl-10 pr-4 py-2.5 w-80 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 dark:focus:ring-purple-400 focus:bg-white dark:focus:bg-gray-700 transition-all duration-200 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
             />
           </div>
-        </div>*/}
+        </div>
 
         {/* Right Section */}
         <div className="flex gap-2 items-center sm:gap-4">

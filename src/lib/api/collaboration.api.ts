@@ -103,8 +103,14 @@ export const collaborationApi = {
     return response.data;
   },
 
-  getPendingInvites: async (): Promise<Collaboration[]> => {
-    const response = await apiClient.get("/collaborations/invites");
+  getPendingInvites: async (filters: CollaborationFilters = {}): Promise<Collaboration[]> => {
+    const params = new URLSearchParams();
+    if (filters.status) params.set("status", filters.status);
+    if (filters.type) params.set("type", filters.type);
+    if (filters.limit) params.set("limit", filters.limit.toString());
+    if (filters.offset) params.set("offset", filters.offset.toString());
+
+    const response = await apiClient.get(`/collaborations/invites?${params.toString()}`);
     return response.data;
   },
 

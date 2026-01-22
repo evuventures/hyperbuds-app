@@ -2,9 +2,9 @@
 import axios, { AxiosError } from "axios";
 
 // ✅ 1. Base URL (auto from .env or fallback)
-const baseURL =
-  process.env.NEXT_PUBLIC_API_BASE_URL ||
-  "https://api-hyperbuds-backend.onrender.com/api/v1";
+const baseURL = 'http://localhost:4000/api/v1';
+  // process.env.NEXT_PUBLIC_API_BASE_URL ||
+  // "https://api-hyperbuds-backend.onrender.com/api/v1";
 
 // ✅ 2. Create Axios instance
 export const apiClient = axios.create({
