@@ -125,6 +125,7 @@ const CollaborationsPage: React.FC = () => {
         isPublic: formState.isPublic,
       };
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const created = await collaborationApi.createCollaboration(payload as any);
       setCollaborations((prev) => [created, ...prev]);
       setFilter("all");

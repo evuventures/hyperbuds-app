@@ -531,7 +531,7 @@ export const CreateServicePage = () => {
 
             <button
               disabled={mutation.isPending}
-              className="w-full  py-4 bg-linear-to-r from-purple-500 to-blue-500 hover:bg-purple-600 text-white uppercase  rounded-xl transition-all shadow-xl shadow-purple-500/20 flex items-center justify-center gap-3 active:scale-95 disabled:opacity-50"
+              className="w-full  py-4 bg-linear-to-r from-purple-500 to-pink-500 hover:bg-purple-600 text-white uppercase  rounded-xl transition-all shadow-xl shadow-purple-500/20 flex items-center justify-center gap-3 active:scale-95 disabled:opacity-50"
             >
               {mutation.isPending ? "PROCESSING..." : <>PUBLISH SERVICE <Send size={22} /></>}
             </button>

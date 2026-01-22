@@ -123,7 +123,7 @@ export const BookingModal = ({ serviceId, isOpen, onClose }: BookingModalProps) 
           <button
             type="submit"
             disabled={mutation.isPending}
-            className="w-full py-4 bg-linear-to-r from-purple-500 to-blue-500 hover:opacity-90 text-white rounded-xl uppercase text-xs transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-3 shadow-lg shadow-purple-500/20"
+            className="w-full py-4 bg-linear-to-r from-purple-500 to-pink-500 hover:opacity-90 text-white rounded-xl uppercase text-xs transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-3 shadow-lg shadow-purple-500/20"
           >
             {mutation.isPending ? (
               <Loader2 className="animate-spin" size={20} />

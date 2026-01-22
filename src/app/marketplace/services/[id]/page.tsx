@@ -2,15 +2,13 @@
 
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery} from "@tanstack/react-query";
 import { marketplaceApi } from "@/lib/api/marketplace.api";
 import { 
   ArrowLeft, 
   Clock, 
   MapPin, 
-  ShieldCheck,
   Settings,
-  Trash2,
   Loader2,
   HelpCircle,
   ChevronDown,
@@ -21,16 +19,15 @@ import Image from "next/image";
 import { BookingModal } from "@/components/marketplace/BookingFlow/BookingModal";
 import { useAuth } from "@/hooks/auth/useAuth"; 
 import DashboardLayout from "@/components/layout/Dashboard/Dashboard";
-import type { UserReference } from "@/types/collaboration.types";
 import { MarketplacePackage, MarketplaceFaq } from "@/types/marketplace.types";
 
 export const ServiceDetailsPage = () => {
   const router = useRouter();
   const params = useParams();
   const id = params?.id as string;
-  const queryClient = useQueryClient();
+
   
-  const { user, loading: isAuthLoading } = useAuth(); 
+  const { loading: isAuthLoading } = useAuth(); 
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
 
   const { data, isLoading: isServiceLoading, isError } = useQuery({
@@ -39,13 +36,7 @@ export const ServiceDetailsPage = () => {
     enabled: !!id,
   });
 
-  const deleteMutation = useMutation({
-    mutationFn: () => marketplaceApi.deleteService(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["services"] });
-      router.push("/marketplace");
-    }
-  });
+  
 
   if (isServiceLoading || isAuthLoading) return (
     <div className="flex h-screen items-center justify-center bg-white dark:bg-gray-950">
@@ -62,16 +53,8 @@ export const ServiceDetailsPage = () => {
     </div>
   );
 
-  const { service } = data;
-  const currentUserId = user?.id || (user as unknown as { _id?: string })?._id;
-  const seller = service.seller;
-  const sellerId = typeof seller === 'object' && seller !== null
-    ? (seller as UserReference)._id || (seller as UserReference).id
-    : seller;
-
-  const isOwner = !!currentUserId && !!sellerId && currentUserId === sellerId;
-
-  // Type-safe fallbacks to avoid TypeScript "possibly undefined" errors
+  const service = data.service;
+  
   const packages = service.packages ?? [];
   const faq = service.faq ?? [];
   const requirements = service.requirements ?? [];
@@ -92,26 +75,17 @@ export const ServiceDetailsPage = () => {
             </button>
 
             <div className="flex items-center gap-3">
-              {isOwner ? (
+            
                 <div className="flex gap-3">
                   <button 
                     onClick={() => router.push(`/marketplace/services/${id}/edit`)}
-                    className="flex items-center gap-2 px-6 py-2.5 bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 rounded-xl text-sm hover:bg-purple-600 dark:hover:bg-purple-400 transition shadow-lg"
+                    className="flex items-center text-black dark:text-gray-200  text-sm  transition shadow-lg"
                   >
-                    <Settings size={14} /> Edit 
+                    <Settings size={20} /> 
                   </button>
-                  <button 
-                    onClick={() => { if(confirm("Permanently delete?")) deleteMutation.mutate() }}
-                    className="flex items-center gap-2 px-4 py-2.5 border border-red-200 dark:border-red-900/50 text-red-500 dark:text-red-400 rounded-xl hover:bg-red-50 dark:hover:bg-red-950/30 transition shadow-sm"
-                  >
-                    <Trash2 size={14} />
-                  </button>
+                 
                 </div>
-              ) : (
-                <div className="flex items-center gap-2 px-5 py-2.5 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-[10px] font-bold uppercase text-gray-400 tracking-widest">
-                  <ShieldCheck size={12} className="text-gray-500" /> 
-                </div>
-              )}
+            
             </div>
           </div>
 
@@ -215,18 +189,14 @@ export const ServiceDetailsPage = () => {
                   </div>
                 </div>
 
-                {!isOwner ? (
+              
                   <button
                     onClick={() => setIsBookingModalOpen(true)}
-                    className="w-full py-4 bg-linear-to-r from-purple-500 to-blue-500 hover:opacity-90 text-white rounded-2xl font-bold uppercase text-sm transition-all shadow-lg shadow-purple-500/30 active:scale-95"
+                    className="w-full py-4 bg-linear-to-r from-purple-500 to-pink-500 hover:opacity-90 text-white rounded-2xl font-bold uppercase text-sm transition-all shadow-lg shadow-purple-500/30 active:scale-95"
                   >
                     Book now
                   </button>
-                ) : (
-                  <div className="p-6 border border-dashed border-gray-200 dark:border-gray-700 rounded-2xl text-center bg-gray-50/50 dark:bg-gray-800/50">
-                    <p className="text-xs font-bold uppercase text-gray-400">Active</p>
-                  </div>
-                )}
+               
 
                 <div className="space-y-5 pt-8 border-t border-gray-100 dark:border-gray-800">
                   <div className="flex justify-between text-sm ">

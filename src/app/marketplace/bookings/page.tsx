@@ -62,7 +62,7 @@ export const BookingsList = () => {
                 onClick={() => setRole(r as 'buyer' | 'seller')}
                 className={`flex-1 md:flex-none px-6 md:px-10 py-3 rounded-xl text-sm md:text-sm transition-all ${
                   role === r 
-                  ? "bg-linear-to-r from-purple-500 to-blue-500 text-white shadow-lg shadow-purple-500/20" 
+                  ? "bg-linear-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/20" 
                   : "text-gray-500 hover:text-gray-900 dark:hover:text-white"
                 }`}
               >
@@ -106,7 +106,7 @@ export const BookingsList = () => {
                         <p className="text-[10px] md:text-xs font-bold uppercase text-gray-400 mb-0.5">Total Amount</p>
                         <span className="font-bold text-xl md:text-2xl">${booking.amount}</span>
                       </div>
-                      <div className="p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800 group-hover:bg-linear-to-r group-hover:from-purple-500 group-hover:to-blue-500 group-hover:text-white transition-all">
+                      <div className="p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800 group-hover:bg-linear-to-r group-hover:from-purple-500 group-hover:to-pink-500 group-hover:text-white transition-all">
                         <ChevronRight size={20} />
                       </div>
                     </div>
@@ -116,7 +116,7 @@ export const BookingsList = () => {
             )}
           </div>
 
-          {/* ORDER DETAIL MODAL - Optimized for small screens */}
+         
           {selectedBooking && (
             <div className="fixed inset-0 z-100 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
                <div className="bg-white dark:bg-gray-900 w-full max-w-lg rounded-4xl md:rounded-[2.5rem] border border-gray-200 dark:border-gray-800 shadow-2xl p-6 md:p-10 my-auto">

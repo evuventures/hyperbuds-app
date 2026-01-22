@@ -56,7 +56,7 @@ export default function MyServicesPage() {
             </div>
             <button
               onClick={() => router.push("/marketplace/services/create")}
-              className="flex items-center justify-center w-fit gap-2 px-4 md:px-8 py-3.5 bg-linear-to-r from-purple-500 to-blue-500 text-white rounded-xl font-bold text-sm shadow-lg active:scale-95 transition-all"
+              className="flex items-center justify-center w-fit gap-2 px-4 md:px-8 py-3.5 bg-linear-to-r from-purple-500 to-pink-500 text-white rounded-xl font-bold text-sm shadow-lg active:scale-95 transition-all"
             >
               <Plus size={18} /> Create Service
             </button>
