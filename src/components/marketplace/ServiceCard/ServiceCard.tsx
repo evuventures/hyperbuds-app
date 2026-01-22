@@ -40,7 +40,7 @@ export const ServiceCard = ({ service, ownerView = false }: ServiceCardProps) =>
       
       {/* SERVICE IMAGE */}
       <Link href={`/marketplace/services/${service._id}`} className="block">
-        <div className="relative w-full h-48 overflow-hidden bg-zinc-100 dark:bg-gray-800">
+        <div className="relative w-full h-48 overflow-hidden bg-gray-100 dark:bg-gray-800">
           {service.images && service.images.length > 0 ? (
             <Image
               src={service.images[0]}
@@ -50,7 +50,7 @@ export const ServiceCard = ({ service, ownerView = false }: ServiceCardProps) =>
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-zinc-300 dark:text-zinc-700">
+            <div className="w-full h-full flex items-center justify-center text-gray-300 dark:text-gray-700">
               <span className="text-xs font-medium">No Preview Available</span>
             </div>
           )}
@@ -58,8 +58,8 @@ export const ServiceCard = ({ service, ownerView = false }: ServiceCardProps) =>
           {/* Featured Badge */}
           {service.featured && (
             <div className="absolute top-4 left-4 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md px-3 py-1 rounded-lg border border-gray-200 dark:border-gray-700 flex items-center gap-1.5 shadow-sm">
-              <ShieldCheck size={12} className="text-blue-500" />
-              <span className="text-xs font-bold text-gray-500 dark:text-gray-100 uppercase ">Featured</span>
+              <ShieldCheck size={12} className="text-purple-500" />
+              <span className="text-xs  text-gray-500 dark:text-gray-100  ">Featured</span>
             </div>
           )}
         </div>
@@ -68,7 +68,7 @@ export const ServiceCard = ({ service, ownerView = false }: ServiceCardProps) =>
       {/* CARD BODY */}
       <div className="p-6 flex flex-col grow">
         <div className="mb-3">
-          <span className="text-sm font-bold text-purple-600 dark:text-purple-400 uppercase">
+          <span className="text-xs text-purple-600 dark:text-purple-400 uppercase">
             {service.category}
           </span>
         </div>

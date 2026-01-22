@@ -2,15 +2,13 @@
 
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery} from "@tanstack/react-query";
 import { marketplaceApi } from "@/lib/api/marketplace.api";
 import { 
   ArrowLeft, 
   Clock, 
   MapPin, 
-  ShieldCheck,
   Settings,
-  Trash2,
   Loader2,
   HelpCircle,
   ChevronDown,
@@ -21,16 +19,15 @@ import Image from "next/image";
 import { BookingModal } from "@/components/marketplace/BookingFlow/BookingModal";
 import { useAuth } from "@/hooks/auth/useAuth"; 
 import DashboardLayout from "@/components/layout/Dashboard/Dashboard";
-import type { UserReference } from "@/types/collaboration.types";
 import { MarketplacePackage, MarketplaceFaq } from "@/types/marketplace.types";
 
 export const ServiceDetailsPage = () => {
   const router = useRouter();
   const params = useParams();
   const id = params?.id as string;
-  const queryClient = useQueryClient();
+
   
-  const { user, loading: isAuthLoading } = useAuth(); 
+  const { loading: isAuthLoading } = useAuth(); 
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
 
   const { data, isLoading: isServiceLoading, isError } = useQuery({
@@ -39,13 +36,7 @@ export const ServiceDetailsPage = () => {
     enabled: !!id,
   });
 
-  const deleteMutation = useMutation({
-    mutationFn: () => marketplaceApi.deleteService(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["services"] });
-      router.push("/marketplace");
-    }
-  });
+  
 
   if (isServiceLoading || isAuthLoading) return (
     <div className="flex h-screen items-center justify-center bg-white dark:bg-gray-950">
@@ -62,16 +53,8 @@ export const ServiceDetailsPage = () => {
     </div>
   );
 
-  const { service } = data;
-  const currentUserId = user?.id || (user as unknown as { _id?: string })?._id;
-  const seller = service.seller;
-  const sellerId = typeof seller === 'object' && seller !== null
-    ? (seller as UserReference)._id || (seller as UserReference).id
-    : seller;
-
-  const isOwner = !!currentUserId && !!sellerId && currentUserId === sellerId;
-
-  // Type-safe fallbacks to avoid TypeScript "possibly undefined" errors
+  const service = data.service;
+  
   const packages = service.packages ?? [];
   const faq = service.faq ?? [];
   const requirements = service.requirements ?? [];
@@ -80,55 +63,46 @@ export const ServiceDetailsPage = () => {
   return (
     <DashboardLayout>
       <div className="min-h-screen bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100 transition-colors duration-300 pb-30">
-        <div className="max-w-7xl mx-auto px-6 py-12 space-y-12">
+        <div className="max-w-6xl mx-auto px-6 py-12 space-y-12">
 
           {/* Navigation Bar */}
-          <div className="flex justify-between items-center border border-gray-200 dark:border-gray-800 p-4 rounded-2xl bg-gray-50/50 dark:bg-gray-900/50 shadow-sm">
+          <div className="flex justify-between items-center">
             <button 
               onClick={() => router.push("/marketplace")} 
-              className="flex items-center gap-2 text-gray-400 dark:text-zinc-400 font-bold uppercase text-[10px] tracking-widest hover:text-purple-600 dark:hover:text-purple-400 transition"
+              className="flex items-center gap-2 text-gray-400 dark:text-gray-400 text-sm hover:text-purple-600 dark:hover:text-purple-400 transition"
             >
               <ArrowLeft size={16} /> Back
             </button>
 
             <div className="flex items-center gap-3">
-              {isOwner ? (
+            
                 <div className="flex gap-3">
                   <button 
                     onClick={() => router.push(`/marketplace/services/${id}/edit`)}
-                    className="flex items-center gap-2 px-6 py-2.5 bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-purple-600 dark:hover:bg-purple-400 transition shadow-lg"
+                    className="flex items-center text-black dark:text-gray-200  text-sm  transition shadow-lg"
                   >
-                    <Settings size={14} /> Edit Listing
+                    <Settings size={20} /> 
                   </button>
-                  <button 
-                    onClick={() => { if(confirm("Permanently delete?")) deleteMutation.mutate() }}
-                    className="flex items-center gap-2 px-4 py-2.5 border border-red-200 dark:border-red-900/50 text-red-500 dark:text-red-400 rounded-xl hover:bg-red-50 dark:hover:bg-red-950/30 transition shadow-sm"
-                  >
-                    <Trash2 size={14} />
-                  </button>
+                 
                 </div>
-              ) : (
-                <div className="flex items-center gap-2 px-5 py-2.5 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-[10px] font-bold uppercase text-gray-400 tracking-widest">
-                  <ShieldCheck size={12} className="text-gray-300" /> Authorized Client View
-                </div>
-              )}
+            
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
             <div className="lg:col-span-2 space-y-12">
               
               <div className="space-y-6">
                 <div className="flex flex-wrap gap-2">
-                  <span className="px-3 py-1 bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 rounded-md text-[9px] font-bold uppercase tracking-widest">
+                  <span className="px-3 py-1 bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 border dark:border-gray-600 rounded-md text-xs uppercase">
                     {service.category}
                   </span>
                 </div>
 
-                <h1 className="text-5xl md:text-7xl font-bold tracking-tight">
+                <h1 className="text-2xl md:text-4xl font-bold uppercase">
                   {service.title}
                 </h1>
-                <p className="text-lg text-gray-500 dark:text-gray-400 leading-relaxed max-w-2xl">
+                <p className="text-lg text-gray-500 dark:text-gray-400 max-w-2xl">
                   {service.description}
                 </p>
               </div>
@@ -147,17 +121,17 @@ export const ServiceDetailsPage = () => {
               {/* Tiered Packages - Fixed "possibly undefined" and rounded-4xl */}
               {packages.length > 0 && (
                 <div className="space-y-6 pt-4">
-                  <h3 className="text-lg font-bold uppercase text-gray-400 flex items-center gap-2">
-                    <Package size={16} className="text-purple-500" /> Packages
+                  <h3 className="text-lg text-gray-500 dark:text-gray-200 flex items-center gap-2">
+                    <Package size={16} className="text-purple-500 " /> Packages
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {packages.map((pkg: MarketplacePackage, i: number) => (
-                      <div key={i} className="p-6 bg-zinc-50 dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-4xl space-y-3">
+                      <div key={i} className="p-6 bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl space-y-3">
                         <div className="flex justify-between items-start">
-                          <span className="font-bold text-lg  text-purple-600">{pkg.name}</span>
-                          <span className="font-bold text-xl ">{pkg.price}</span>
+                          <span className=" text-lg  text-purple-600">{pkg.name}</span>
+                          <span className=" text-xl ">{pkg.price}</span>
                         </div>
-                        <p className="text-base text-gray-500 dark:text-gray-400 leading-relaxed">{pkg.description}</p>
+                        <p className="text-base text-gray-500 dark:text-gray-400 ">{pkg.description}</p>
                       </div>
                     ))}
                   </div>
@@ -167,17 +141,17 @@ export const ServiceDetailsPage = () => {
               {/* FAQ Section */}
               {faq.length > 0 && (
                 <div className="space-y-6">
-                  <h3 className="text-lg font-bold uppercase text-gray-400 flex items-center gap-2">
+                  <h3 className="text-lg  text-gray-500 dark:text-gray-200 flex items-center gap-2">
                     <HelpCircle size={16} className="text-purple-500" />FAQ
                   </h3>
-                  <div className="divide-y divide-gray-100 dark:divide-gray-800 border border-gray-200 dark:border-gray-800 rounded-4xl overflow-hidden bg-white dark:bg-gray-900 shadow-sm">
+                  <div className="divide-y divide-gray-100 dark:divide-gray-800 border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden bg-white dark:bg-gray-900 shadow-sm">
                     {faq.map((item: MarketplaceFaq, i: number) => (
                       <details key={i} className="group p-6">
-                        <summary className="flex justify-between items-center font-semibold text-base  cursor-pointer list-none outline-none">
+                        <summary className="flex justify-between items-center font-semibold text-base text-gray-600 dark:text-gray-300 cursor-pointer list-none outline-none">
                           {item.question}
                           <ChevronDown size={16} className="group-open:rotate-180 transition-transform text-gray-400" />
                         </summary>
-                        <p className="mt-4 text-base text-gray-500 dark:text-gray-400 leading-relaxed pl-4 border-l-2 border-purple-500/20">
+                        <p className="mt-4 text-base text-gray-500 dark:text-gray-400  pl-4 border-l-2 border-purple-500/20">
                           {item.answer}
                         </p>
                       </details>
@@ -189,13 +163,13 @@ export const ServiceDetailsPage = () => {
               {/* Requirements Section - Fixed "possibly undefined" */}
               {requirements.length > 0 && (
                 <div className="space-y-6">
-                  <h3 className="text-sm font-black uppercase text-gray-400  flex items-center gap-2">
+                  <h3 className="text-lg text-gray-500 dark:text-gray-200 flex items-center gap-2">
                     <ClipboardList size={16} className="text-purple-500" /> Requirements
                   </h3>
                   <div className="space-y-3">
                     {requirements.map((req: string, i: number) => (
                       <div key={i} className="flex gap-4 items-start p-5 bg-zinc-50 dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-2xl">
-                        <span className="flex-none w-6 h-6 rounded-full bg-purple-500 text-white flex items-center justify-center text-[10px] font-bold mt-0.5">{i + 1}</span>
+                        <span className="flex-none w-6 h-6 rounded-full bg-gray-500 text-white flex items-center justify-center text-[10px] font-bold mt-0.5">{i + 1}</span>
                         <p className="text-sm font-medium text-gray-600 dark:text-gray-300">{req}</p>
                       </div>
                     ))}
@@ -206,36 +180,32 @@ export const ServiceDetailsPage = () => {
 
             {/* Action Card */}
             <div className="lg:col-start-3">
-              <div className="sticky top-8 p-10 border border-gray-200 dark:border-gray-800 rounded-[2.5rem] space-y-8 bg-white dark:bg-gray-900 shadow-xl shadow-zinc-200/50 dark:shadow-none">
+              <div className="sticky top-8 mt-8 lg:mt-0 px-4 md:px-10 p-10 border border-gray-200 dark:border-gray-800 rounded-[2.5rem] space-y-8 bg-white dark:bg-gray-900 shadow-xl shadow-zinc-200/50 dark:shadow-none">
                 <div className="space-y-2 text-center md:text-left">
-                  <span className="text-[10px] font-black text-gray-400 uppercase">Base Investment</span>
+                  <span className="text-xs text-gray-400 uppercase">Base Investment</span>
                   <div className="flex items-baseline justify-center md:justify-start gap-2">
                     <span className="text-6xl font-bold ">{service.price}</span>
-                    <span className="font-bold uppercase text-xs text-gray-400">{service.currency}</span>
+                    <span className=" uppercase text-xs text-gray-400">{service.currency}</span>
                   </div>
                 </div>
 
-                {!isOwner ? (
+              
                   <button
                     onClick={() => setIsBookingModalOpen(true)}
-                    className="w-full py-5 bg-linear-to-r from-purple-500 to-blue-500 hover:opacity-90 text-white rounded-2xl font-black uppercase text-sm transition-all shadow-lg shadow-purple-500/30 active:scale-95"
+                    className="w-full py-4 bg-linear-to-r from-purple-500 to-pink-500 hover:opacity-90 text-white rounded-2xl font-bold uppercase text-sm transition-all shadow-lg shadow-purple-500/30 active:scale-95"
                   >
                     Book now
                   </button>
-                ) : (
-                  <div className="p-6 border border-dashed border-gray-200 dark:border-gray-700 rounded-2xl text-center bg-gray-50/50 dark:bg-gray-800/50">
-                    <p className="text-[10px] font-bold uppercase text-gray-400">Owner Node: Management Active</p>
-                  </div>
-                )}
+               
 
                 <div className="space-y-5 pt-8 border-t border-gray-100 dark:border-gray-800">
-                  <div className="flex justify-between text-sm font-bold">
+                  <div className="flex justify-between text-sm ">
                     <span className="text-gray-400 flex items-center gap-1.5"><Clock size={14}/> Delivery Time</span>
-                    <span>{service.deliveryTime}</span>
+                    <span className="text-gray-700 dark:text-gray-200">{service.deliveryTime}</span>
                   </div>
-                  <div className="flex justify-between text-sm font-bold ">
+                  <div className="flex justify-between text-sm">
                     <span className="text-gray-400 flex items-center gap-1.5"><MapPin size={14}/> Location</span>
-                    <span>{service.location}</span>
+                    <span className="text-gray-700 dark:text-gray-200">{service.location}</span>
                   </div>
                 </div>
               </div>
