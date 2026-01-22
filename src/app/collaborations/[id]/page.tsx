@@ -50,7 +50,7 @@ export default function CollaborationPage({ params }: CollaborationPageProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [inviteForm, setInviteForm] = useState({
-    userId: "",
+    username: "",
     role: "co-creator",
     message: "",
   });
@@ -189,13 +189,13 @@ export default function CollaborationPage({ params }: CollaborationPageProps) {
       await collaborationApi.inviteCollaborators(collaborationId, {
         collaborators: [
           {
-            userId: inviteForm.userId.trim(),
+            username: inviteForm.username,
             role: inviteForm.role as "co-creator" | "featured" | "guest",
             message: inviteForm.message.trim() || undefined,
           },
         ],
       });
-      setInviteForm({ userId: "", role: "co-creator", message: "" });
+      setInviteForm({ username: "", role: "co-creator", message: "" });
       await loadCollaboration(collaborationId);
     } catch (err) {
       setActionError(err instanceof Error ? err.message : "Failed to send invite");
@@ -651,8 +651,8 @@ export default function CollaborationPage({ params }: CollaborationPageProps) {
                   </p>
                   <form onSubmit={handleInvite} className="mt-4 space-y-3">
                     <input
-                      value={inviteForm.userId}
-                      onChange={(event) => setInviteForm((prev) => ({ ...prev, userId: event.target.value }))}
+                      value={inviteForm.username}
+                      onChange={(event) => setInviteForm((prev) => ({ ...prev, username: event.target.value }))}
                       required
                       placeholder="User ID"
                       className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-white/10 dark:bg-slate-900/60 dark:text-white"
