@@ -60,7 +60,7 @@ export default function MarketplaceDashboard() {
           <div className="flex justify-end mb-12">
             <div className="flex items-center gap-2 p-1.5 ">
               <Link href="/marketplace/services" className="flex items-center gap-2 px-5 py-2.5 rounded-xl  border border-gray-200 dark:border-gray-500 font-bold text-sm text-gray-500 dark:text-white hover:text-purple-600 transition-all">
-                <Store size={14} /> My Services
+                <Store size={14} /> Services
               </Link>
               <Link href="/marketplace/bookings" className="flex items-center gap-2 px-5 py-2.5 rounded-xl  border border-gray-200 dark:text-white dark:border-gray-500  font-bold text-sm text-gray-500 hover:text-purple-600 transition-all">
                 <Ticket size={14} /> Bookings
@@ -76,7 +76,7 @@ export default function MarketplaceDashboard() {
                   <ShoppingBag className="w-6 h-6 text-white sm:w-7 sm:h-7 lg:w-8 lg:h-8" />
                 </div>
               </div>
-              <h1 className="text-2xl md:text-5xl font-bold text-gray-900 dark:text-white">
+              <h1 className="text-2xl md:text-4xl font-bold text-gray-900 dark:text-white">
                 Marketplace
               </h1>
             </div>
@@ -94,7 +94,7 @@ export default function MarketplaceDashboard() {
               <input
                 type="text"
                 placeholder="Search services, skills, or creators..."
-                className="w-full pl-16 pr-6 py-5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-500 rounded-lg focus:ring-4 focus:ring-purple-500/5 outline-none transition-all text-base font-medium"
+                className="w-full pl-16 pr-6 py-4 md:py-5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-500 rounded-lg focus:ring-4 focus:ring-purple-500/5 outline-none transition-all text-base font-medium"
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>

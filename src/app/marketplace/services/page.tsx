@@ -47,7 +47,7 @@ export default function MyServicesPage() {
           </div>
 
           {/* HEADER */}
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-zinc-100 dark:border-zinc-800 pb-10">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-zinc-100 dark:border-zinc-800 pb-10 mt-4 md:mt-0">
             <div className="space-y-2">
               <h1 className="text-3xl font-bold flex items-center gap-2 text-gray-500 dark:text-white">
                 <Store size={20} />
@@ -56,7 +56,7 @@ export default function MyServicesPage() {
             </div>
             <button
               onClick={() => router.push("/marketplace/services/create")}
-              className="flex items-center gap-2 px-8 py-3.5 bg-linear-to-r from-purple-500 to-blue-500 text-white rounded-xl font-bold text-sm shadow-lg active:scale-95 transition-all"
+              className="flex items-center justify-center w-fit gap-2 px-4 md:px-8 py-3.5 bg-linear-to-r from-purple-500 to-blue-500 text-white rounded-xl font-bold text-sm shadow-lg active:scale-95 transition-all"
             >
               <Plus size={18} /> Create Service
             </button>

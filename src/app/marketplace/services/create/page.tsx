@@ -129,7 +129,7 @@ export const CreateServicePage = () => {
 
           <form
             onSubmit={handleSubmit}
-            className="space-y-12 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-800 rounded-[2.5rem] p-8 md:p-12 shadow-2xl"
+            className="space-y-12 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-800 rounded-[2.5rem] p-4 md:p-6 pt-8 lg:p-12 shadow-2xl"
           >
             <header>
               <h1 className="text-3xl font-semibold uppercase dark:text-white">Create New Service</h1>
@@ -269,11 +269,12 @@ export const CreateServicePage = () => {
 
               {/* Tags */}
               <div className="space-y-3">
-                <div className="flex gap-2">
+                <label className="text-sm uppercase font-semi-bold text-gray-400 dark:text-gray-200">Tags</label>
+                <div className="flex flex-col md:flex-row gap-2 mt-1">
                   <input
                     value={tempTag}
                     onChange={(e) => setTempTag(e.target.value)}
-                    className="grow bg-zinc-100 dark:bg-white p-4 rounded-2xl"
+                    className="grow bg-zinc-100 dark:bg-white p-4 rounded-2xl  "
                     placeholder="Add tag..."
                   />
                   <button
@@ -282,7 +283,7 @@ export const CreateServicePage = () => {
                       if (tempTag) setForm({ ...form, tags: [...(form.tags || []), tempTag] });
                       setTempTag("");
                     }}
-                    className="bg-gray-700 text-white px-6 rounded-2xl font-bold dark:bg-gray-600 dark:text-white"
+                    className="bg-gray-700 text-white px-6 py-3 md:py-0 rounded-2xl font-bold dark:bg-gray-600 dark:text-white"
                   >
                     Add
                   </button>
@@ -310,7 +311,8 @@ export const CreateServicePage = () => {
 
               {/* Images */}
               <div className="space-y-3">
-                <div className="flex gap-2">
+                <label className="text-sm uppercase font-semi-bold text-gray-400 dark:text-gray-200">Images</label>
+                <div className="flex flex-col md:flex-row gap-2 mt-1">
                   <input
                     value={tempImg}
                     onChange={(e) => setTempImg(e.target.value)}
@@ -323,7 +325,7 @@ export const CreateServicePage = () => {
                       if (tempImg) setForm({ ...form, images: [...(form.images || []), tempImg] });
                       setTempImg("");
                     }}
-                    className="bg-gray-700 text-white px-6 rounded-2xl font-bold  dark:bg-gray-600 dark:text-white"
+                    className="bg-gray-700 text-white px-6 py-3 md:py-0 rounded-2xl font-bold  dark:bg-gray-600 dark:text-white"
                   >
                     Add
                   </button>
@@ -363,19 +365,20 @@ export const CreateServicePage = () => {
 
               {/* Packages */}
               <div className="space-y-3">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-gray-100 dark:bg-gray-800 p-4 rounded-3xl">
+                <label className="text-sm uppercase font-semi-bold text-gray-400 dark:text-gray-200">Packages</label>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 md:gap-2 lg:gap-4 bg-gray-100 dark:bg-gray-800 px-2 p-6 md:px-4 md:p-4 rounded-3xl space-y-3 mt-1">
 
-                  <div>
+                  <div className="flex flex-col ">
                     <label className="text-xs font-semi-bold uppercase text-gray-400">Name</label>
                     <input
                       placeholder=""
                       value={tempPkg.name}
                       onChange={(e) => setTempPkg({ ...tempPkg, name: e.target.value })}
-                      className="p-3 rounded-xl bg-white border-none"
+                      className="p-3 rounded-xl bg-white border-none mt-1"
                     />
                   </div>
-                  <div>
-                    <label className="text-xs font-semi-bold uppercase text-gray-400">Description</label>
+                  <div className="flex flex-col">
+                    <label className="text-xs font-semi-bold uppercase text-gray-400 mt-1">Description</label>
                     <input
                       placeholder=""
                       value={tempPkg.description}
@@ -383,7 +386,7 @@ export const CreateServicePage = () => {
                       className="p-3 rounded-xl bg-white border-none"
                     />
                   </div>
-                  <div>
+                  <div className="flex flex-col">
                     <label className="text-xs font-semi-bold uppercase text-gray-400">Price</label>
                     <input
                       type="number"
@@ -400,7 +403,7 @@ export const CreateServicePage = () => {
                         setForm({ ...form, packages: [...(form.packages || []), tempPkg] });
                       setTempPkg({ name: "", description: "", price: 0 });
                     }}
-                    className="bg-gray-700 text-white font-bold rounded-xl px-4 py-4"
+                    className="bg-gray-700 text-white font-bold rounded-xl px-4 py-4 h-fit lg:py-4 mt-2 lg:mt-0"
                   >
                     Add
                   </button>
@@ -433,11 +436,12 @@ export const CreateServicePage = () => {
 
               {/* Requirements */}
               <div className="space-y-3">
-                <div className="flex gap-2">
+                <label className="text-sm uppercase font-semi-bold text-gray-400 dark:text-gray-200">Requirement</label>
+                <div className="flex flex-col md:flex-row gap-2">
                   <input
                     value={tempReq}
                     onChange={(e) => setTempReq(e.target.value)}
-                    className="grow bg-gray-100 dark:bg-white p-4 rounded-2xl"
+                    className="grow bg-gray-100 dark:bg-white p-4 rounded-2xl mt-1"
                     placeholder="Buyer requirement..."
                   />
                   <button
@@ -447,7 +451,7 @@ export const CreateServicePage = () => {
                         setForm({ ...form, requirements: [...(form.requirements || []), tempReq] });
                       setTempReq("");
                     }}
-                    className="bg-gray-700 text-white px-4 rounded-2xl font-bold dark:bg-gray-600"
+                    className="bg-gray-700 text-white px-4 rounded-2xl font-bold dark:bg-gray-600 py-3"
                   >
                     Add
                   </button>
@@ -472,7 +476,8 @@ export const CreateServicePage = () => {
 
               {/* FAQ */}
               <div className="space-y-3">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-100 dark:bg-gray-800 p-4 rounded-3xl">
+                <label className="text-sm uppercase font-semi-bold text-gray-400 dark:text-gray-200">FAQ</label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-100 dark:bg-gray-800 p-4 rounded-3xl mt-1">
                   <input
                     placeholder="Question"
                     value={tempFaq.question}

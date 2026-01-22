@@ -14,7 +14,6 @@ interface BookingModalProps {
   onClose: () => void;
 }
 
-
 interface ApiError {
   response?: {
     data?: {
@@ -60,14 +59,16 @@ export const BookingModal = ({ serviceId, isOpen, onClose }: BookingModalProps) 
   };
 
   return (
-    <div className="fixed inset-0 z-100 flex items-center  justify-center p-4 bg-white/60 dark:bg-zinc-950/60 backdrop-blur-sm transition-colors duration-300">
-      <div className="bg-white dark:bg-gray-900 w-full h-fit max-w-lg rounded-3xl border border-zinc-200 dark:border-zinc-800 overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-200">
+    <div className="fixed inset-0 z-100 flex items-center justify-center p-4 md:p-6 bg-white/60 dark:bg-zinc-950/60 backdrop-blur-sm transition-colors duration-300">
+      {/* FIX: Added max-h-[90vh] and overflow-y-auto to allow scrolling on mobile 
+          Added w-full to ensure it fills small screens 
+      */}
+      <div className="bg-white dark:bg-gray-900 w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-2xl animate-in fade-in zoom-in duration-200 no-scrollbar">
         
         {/* Modal Header */}
-        <div className="p-8 pb-4 border-b border-gray-100 dark:border-gray-800 flex justify-between items-start">
+        <div className="sticky top-0 bg-white dark:bg-gray-900 z-10 p-8 pb-4 border-b border-gray-100 dark:border-gray-800 flex justify-between items-start">
           <div className="space-y-1">
-            <h2 className="text-3xl font-bold  text-gray-900 dark:text-gray-100">Book now</h2>
-            
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Book now</h2>
           </div>
           <button 
             onClick={onClose} 
@@ -83,7 +84,7 @@ export const BookingModal = ({ serviceId, isOpen, onClose }: BookingModalProps) 
             
             {/* Message Field */}
             <div className="space-y-2">
-              <label className="flex items-center gap-2 text-xs  uppercase text-gray-500 dark:text-gray-200">
+              <label className="flex items-center gap-2 text-xs uppercase text-gray-500 dark:text-gray-200">
                 <MessageSquare size={14} className="text-purple-500" /> Message to Creator
               </label>
               <textarea 
@@ -122,7 +123,7 @@ export const BookingModal = ({ serviceId, isOpen, onClose }: BookingModalProps) 
           <button
             type="submit"
             disabled={mutation.isPending}
-            className="w-full py-4 bg-linear-to-r from-purple-500 to-blue-500 hover:opacity-90 text-white rounded-xl  uppercase text-xs transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-3 shadow-lg shadow-purple-500/20"
+            className="w-full py-4 bg-linear-to-r from-purple-500 to-blue-500 hover:opacity-90 text-white rounded-xl uppercase text-xs transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-3 shadow-lg shadow-purple-500/20"
           >
             {mutation.isPending ? (
               <Loader2 className="animate-spin" size={20} />

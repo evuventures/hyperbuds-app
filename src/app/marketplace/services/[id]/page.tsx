@@ -120,7 +120,7 @@ export const ServiceDetailsPage = () => {
               
               <div className="space-y-6">
                 <div className="flex flex-wrap gap-2">
-                  <span className="px-3 py-1 bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 rounded-md text-xs uppercase">
+                  <span className="px-3 py-1 bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 border dark:border-gray-600 rounded-md text-xs uppercase">
                     {service.category}
                   </span>
                 </div>
@@ -206,7 +206,7 @@ export const ServiceDetailsPage = () => {
 
             {/* Action Card */}
             <div className="lg:col-start-3">
-              <div className="sticky top-8 p-10 border border-gray-200 dark:border-gray-800 rounded-[2.5rem] space-y-8 bg-white dark:bg-gray-900 shadow-xl shadow-zinc-200/50 dark:shadow-none">
+              <div className="sticky top-8 mt-8 lg:mt-0 px-4 md:px-10 p-10 border border-gray-200 dark:border-gray-800 rounded-[2.5rem] space-y-8 bg-white dark:bg-gray-900 shadow-xl shadow-zinc-200/50 dark:shadow-none">
                 <div className="space-y-2 text-center md:text-left">
                   <span className="text-xs text-gray-400 uppercase">Base Investment</span>
                   <div className="flex items-baseline justify-center md:justify-start gap-2">
@@ -231,11 +231,11 @@ export const ServiceDetailsPage = () => {
                 <div className="space-y-5 pt-8 border-t border-gray-100 dark:border-gray-800">
                   <div className="flex justify-between text-sm ">
                     <span className="text-gray-400 flex items-center gap-1.5"><Clock size={14}/> Delivery Time</span>
-                    <span className="text-gray-700 ">{service.deliveryTime}</span>
+                    <span className="text-gray-700 dark:text-gray-200">{service.deliveryTime}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-400 flex items-center gap-1.5"><MapPin size={14}/> Location</span>
-                    <span className="text-gray-700">{service.location}</span>
+                    <span className="text-gray-700 dark:text-gray-200">{service.location}</span>
                   </div>
                 </div>
               </div>
