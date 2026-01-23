@@ -2,12 +2,16 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { RefreshCw, ArrowLeft, Users, Zap } from "lucide-react";
+import { RefreshCw, Users, Zap } from "lucide-react";
 import { useRouter } from "next/navigation";
 import DashboardLayout from "@/components/layout/Dashboard/Dashboard";
 import CollaborationList from "@/components/collaboration/CollaborationList";
 import { collaborationApi } from "@/lib/api/collaboration.api";
 import type { Collaboration } from "@/types/collaboration.types";
+import BackLink from "@/components/collaboration/BackLink";
+import CollaborationNav from "@/components/collaboration/CollaborationNav";
+import InvitesTable from "@/components/collaboration/invites/InvitesTable";
+import InviteDecisionModal from "@/components/collaboration/invites/InviteDecisionModal";
 
 type CollaborationFilter = "all" | "invites" | "active" | "completed";
 
@@ -20,6 +24,9 @@ const CollaborationsPage: React.FC = () => {
   const [filter, setFilter] = useState<CollaborationFilter>("all");
   const [isCreating, setIsCreating] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
+  const [selectedInvite, setSelectedInvite] = useState<Collaboration | null>(null);
+  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+  const [isRespondingToInvite, setIsRespondingToInvite] = useState(false);
   const [formState, setFormState] = useState({
     title: "",
     description: "",
@@ -179,53 +186,71 @@ const CollaborationsPage: React.FC = () => {
     }
   }, [filter, collaborations, invites, activeCollaborations, completedCollaborations]);
 
+  const handleInviteSelect = (invite: Collaboration) => {
+    setSelectedInvite(invite);
+    setIsInviteModalOpen(true);
+  };
+
+  const handleInviteResponse = async (action: "accept" | "decline") => {
+    if (!selectedInvite) return;
+    try {
+      setIsRespondingToInvite(true);
+      await collaborationApi.respondToInvite(selectedInvite._id, { action });
+      setInvites((prev) => prev.filter((invite) => invite._id !== selectedInvite._id));
+      await loadCollaborations();
+      setIsInviteModalOpen(false);
+      setSelectedInvite(null);
+    } catch (err) {
+      setCreateError(err instanceof Error ? err.message : "Failed to respond to invite");
+    } finally {
+      setIsRespondingToInvite(false);
+    }
+  };
+
+  const handleInviteModalClose = () => {
+    setIsInviteModalOpen(false);
+    setSelectedInvite(null);
+  };
+
   return (
     <DashboardLayout>
-      <div className="min-h-full bg-gray-50 dark:bg-slate-900">
-        <div className="p-4 pb-16 lg:p-6 lg:pb-34">
-          <div className="mx-auto max-w-6xl">
-            <div className="flex gap-2 justify-between items-center mb-6 sm:mb-8">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => router.back()}
-                className="text-xs text-gray-900 bg-gray-100 border-gray-300 cursor-pointer sm:text-sm dark:text-white dark:bg-white/10 dark:border-white/20 hover:bg-gray-200 dark:hover:bg-white/20"
-              >
-                <ArrowLeft className="mr-1.5 w-3.5 h-3.5 sm:mr-2 sm:w-4 sm:h-4" />
-                <span className="hidden sm:inline">Back</span>
-                <span className="sm:hidden">Back</span>
-              </Button>
-
+      <div className="min-h-screen bg-white dark:bg-slate-900">
+        <div className="max-w-6xl mx-auto px-6 py-12 space-y-8">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <BackLink onClick={() => router.back()} />
+            <div className="flex items-center gap-3">
+              <CollaborationNav />
               <Button
                 variant="outline"
                 size="sm"
                 onClick={loadCollaborations}
                 disabled={isLoading}
-                className="text-xs text-gray-900 bg-gray-100 border-gray-300 cursor-pointer sm:text-sm dark:text-white dark:bg-white/10 dark:border-white/20 hover:bg-gray-200 dark:hover:bg-white/20"
+                className="text-xs text-gray-600 border-gray-200 sm:text-sm hover:bg-gray-100 dark:text-gray-200 dark:border-gray-700 dark:hover:bg-gray-800"
               >
                 <RefreshCw className={`w-3.5 h-3.5 mr-1.5 sm:w-4 sm:h-4 sm:mr-2 ${isLoading ? "animate-spin" : ""}`} />
                 <span className="hidden sm:inline">Refresh</span>
                 <span className="sm:hidden">Refresh</span>
               </Button>
             </div>
+          </div>
 
-            <div className="mb-5 text-center sm:mb-6">
-              <div className="flex justify-center items-center mb-2 sm:mb-3">
-                <div className="shrink-0 p-2 mr-2 bg-linear-to-br from-purple-500 to-pink-500 rounded-xl shadow-md sm:p-2.5 sm:mr-3 sm:rounded-2xl">
-                  <Users className="w-6 h-6 text-white sm:w-7 sm:h-7 lg:w-8 lg:h-8" />
-                </div>
-                <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl lg:text-4xl dark:text-white">Collaborations</h1>
+          <div className="text-center space-y-3">
+            <div className="flex justify-center items-center">
+              <div className="shrink-0 p-2 mr-2 bg-linear-to-br from-purple-500 to-pink-500 rounded-xl shadow-md sm:p-2.5 sm:mr-3 sm:rounded-2xl">
+                <Users className="w-6 h-6 text-white sm:w-7 sm:h-7 lg:w-8 lg:h-8" />
               </div>
-              <p className="px-4 text-sm text-gray-600 sm:text-base lg:text-lg dark:text-gray-400">
-                {isLoading
-                  ? "Loading your collaborations..."
-                  : collaborations.length === 0
-                  ? "No collaborations yet. Start a new project or accept invites."
-                  : `${collaborations.length} collaboration${collaborations.length === 1 ? "" : "s"} in your workspace`}
-              </p>
+              <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl lg:text-4xl dark:text-white">Collaborations</h1>
             </div>
+            <p className="text-sm text-gray-600 sm:text-base lg:text-lg dark:text-gray-400">
+              {isLoading
+                ? "Loading your collaborations..."
+                : collaborations.length === 0
+                ? "No collaborations yet. Start a new project or accept invites."
+                : `${collaborations.length} collaboration${collaborations.length === 1 ? "" : "s"} in your workspace`}
+            </p>
+          </div>
 
-            <div className="flex flex-wrap gap-2 justify-center mb-5 sm:mb-6">
+          <div className="flex flex-wrap gap-2 justify-center mb-5 sm:mb-6">
               <Button
                 variant={filter === "all" ? "default" : "outline"}
                 onClick={() => setFilter("all")}
@@ -594,22 +619,20 @@ const CollaborationsPage: React.FC = () => {
                     Try Again
                   </Button>
                 </div>
+              ) : filter === "invites" ? (
+                <InvitesTable invites={invites} onSelect={handleInviteSelect} />
               ) : (
                 <CollaborationList
                   items={filteredCollaborations}
                   emptyTitle={
-                    filter === "invites"
-                      ? "No Invites Yet"
-                      : filter === "completed"
+                    filter === "completed"
                       ? "No Completed Collaborations"
                       : filter === "active"
                       ? "No Active Collaborations"
                       : "No Collaborations Yet"
                   }
                   emptyDescription={
-                    filter === "invites"
-                      ? "Invitations to collaborate will appear here."
-                      : filter === "completed"
+                    filter === "completed"
                       ? "Finish a project to see it here."
                       : filter === "active"
                       ? "Start or accept a collaboration to get going."
@@ -618,7 +641,8 @@ const CollaborationsPage: React.FC = () => {
                 />
               )}
             </div>
-
+            
+              {/* footer stats */}
             <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
               <div className="rounded-2xl border border-gray-200/60 bg-white/90 p-4 text-center shadow-md dark:border-white/10 dark:bg-slate-800/90">
                 <p className="text-xs text-gray-500 dark:text-gray-400">Total</p>
@@ -633,11 +657,19 @@ const CollaborationsPage: React.FC = () => {
                 <p className="text-2xl font-bold text-gray-900 dark:text-white">{invites.length}</p>
               </div>
             </div>
+
           </div>
         </div>
-      </div>
+        <InviteDecisionModal
+          invite={selectedInvite}
+          isOpen={isInviteModalOpen}
+          isSubmitting={isRespondingToInvite}
+          onClose={handleInviteModalClose}
+          onAccept={() => handleInviteResponse("accept")}
+          onDecline={() => handleInviteResponse("decline")}
+        />
     </DashboardLayout>
   );
-};
+}
 
 export default CollaborationsPage;

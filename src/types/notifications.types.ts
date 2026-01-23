@@ -18,7 +18,7 @@ export type NotificationType =
   | 'achievement';
 
 export interface Notification {
-  id: string;
+  _id: string;
   userId?: string;
   type: NotificationType;
   title: string;
@@ -100,33 +100,28 @@ export interface GetNotificationsParams {
 
 // API Response Types (raw backend response structure)
 export interface ApiNotification {
-  id: string;
+  _id: string;
+  userId: string;
   type: string;
   title: string;
   message: string;
-  isRead: boolean;
-  timestamp: string;
   actionUrl?: string;
-  priority?: 'high' | 'medium' | 'low';
-  metadata?: Record<string, unknown>;
+  data?: Record<string, unknown>;
+  isRead: boolean;
+  createdAt: string;
+  updatedAt?: string;
+  __v?: number;
 }
 
 export interface ApiNotificationsResponse {
   notifications: ApiNotification[];
-  summary: {
-    total: number;
-    unread: number;
-    types: Record<string, number>;
-  };
-  filters: {
-    type: string | null;
-    isRead: boolean | null;
-  };
-  pagination: {
+  pagination?: {
     page: number;
     limit: number;
     total: number;
     pages: number;
+    unreadCount: number;
+    countsByType: Record<string, number>;
   };
 }
 

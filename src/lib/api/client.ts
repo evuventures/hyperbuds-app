@@ -1,10 +1,9 @@
 // src/lib/api/client.ts
 import axios, { AxiosError } from "axios";
+import { API_BASE_URL } from "./endpoints";
 
 // ✅ 1. Base URL (auto from .env or fallback)
-const baseURL = 'http://localhost:4000/api/v1';
-  // process.env.NEXT_PUBLIC_API_BASE_URL ||
-  // "https://api-hyperbuds-backend.onrender.com/api/v1";
+const baseURL = API_BASE_URL;
 
 // ✅ 2. Create Axios instance
 export const apiClient = axios.create({

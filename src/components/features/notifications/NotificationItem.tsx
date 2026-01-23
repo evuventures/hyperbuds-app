@@ -162,4 +162,3 @@ export const NotificationItem: React.FC<NotificationItemProps> = ({
 };
 
 export default NotificationItem;
-

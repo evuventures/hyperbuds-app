@@ -49,7 +49,6 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
   };
 
   const notifications = data?.notifications || [];
-
   return (
     <AnimatePresence>
       {isOpen && (
@@ -167,4 +166,3 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
 };
 
 export default NotificationDropdown;
-
