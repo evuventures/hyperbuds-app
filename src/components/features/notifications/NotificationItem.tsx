@@ -88,7 +88,7 @@ export const NotificationItem: React.FC<NotificationItemProps> = ({
 
   const handleClick = () => {
     if (!notification.read) {
-      markAsReadMutation.mutate(notification.id);
+      markAsReadMutation.mutate(notification._id);
       onRead?.(notification);
     }
     
@@ -99,8 +99,8 @@ export const NotificationItem: React.FC<NotificationItemProps> = ({
 
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation();
-    deleteMutation.mutate(notification.id);
-    onDelete?.(notification.id);
+    deleteMutation.mutate(notification._id);
+    onDelete?.(notification._id);
   };
 
   const icon = notificationIcons[notification.type] || <Bell className="w-5 h-5" />;

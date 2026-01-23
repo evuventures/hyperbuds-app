@@ -59,7 +59,7 @@ export const NotificationCenter: React.FC = () => {
    const groupedNotifications = groupedView
       ? groupNotifications(notifications, 5)
       : notifications.map((n) => ({
-         id: n.id,
+         id: n._id,
          type: 'single' as const,
          notifications: [n],
          title: n.title,
@@ -277,7 +277,7 @@ export const NotificationCenter: React.FC = () => {
                            {/* Group content */}
                            {displayNotifications.map((notification, index) => (
                               <div
-                                 key={notification.id}
+                                 key={notification._id}
                                  className={index !== displayNotifications.length - 1 ? 'border-b border-purple-200 dark:border-purple-800' : ''}
                               >
                                  <NotificationItem notification={notification} compact />

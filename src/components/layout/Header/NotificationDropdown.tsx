@@ -139,7 +139,7 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
               <div className="divide-y divide-gray-100 dark:divide-gray-700">
                 {notifications.map((notification) => (
                   <NotificationItem
-                    key={notification.id}
+                    key={notification._id}
                     notification={notification}
                     compact
                   />
