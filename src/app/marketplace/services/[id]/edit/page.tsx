@@ -187,29 +187,29 @@ export default function EditServicePage() {
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="text-sm font-semi-bold text-gray-500 dark:text-gray-200 uppercase">Service Title *</label>
+                  <label className="text-sm font-semi-bold text-gray-500 dark:text-gray-200 ">Service Title *</label>
                   <input required value={form.title} className="w-full bg-gray-100 dark:bg-white rounded-2xl p-4 mt-1" onChange={(e) => setForm({ ...form, title: e.target.value })} />
                 </div>
                 <div>
-                  <label className="text-sm font-semi-bold text-gray-500 dark:text-gray-200 uppercase">Category *</label>
+                  <label className="text-sm font-semi-bold text-gray-500 dark:text-gray-200 ">Category *</label>
                   <input required value={form.category} className="w-full bg-gray-100 dark:bg-white rounded-2xl p-4 mt-1" onChange={(e) => setForm({ ...form, category: e.target.value })} />
                 </div>
               </div>
               <div>
-                <label className="text-sm font-semi-bold text-gray-500 dark:text-gray-200 uppercase">Description *</label>
+                <label className="text-sm font-semi-bold text-gray-500 dark:text-gray-200 ">Description *</label>
                 <textarea required value={form.description} className="w-full bg-gray-100 dark:bg-white rounded-2xl p-4 h-32 resize-none mt-1" onChange={(e) => setForm({ ...form, description: e.target.value })} />
               </div>
                <div>
-                <label className="text-sm font-semi-bold text-gray-500 dark:text-gray-200 uppercase">Subcategory</label>
+                <label className="text-sm font-semi-bold text-gray-500 dark:text-gray-200 ">Subcategory</label>
                 <input value={form.subcategory} onChange={e => setForm({ ...form, subcategory: e.target.value })} className="w-full bg-gray-100 dark:bg-white rounded-2xl p-4 mt-1" />
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="">
-                <label className="text-sm font-semi-bold text-gray-500 dark:text-gray-200 uppercase">Price</label>
+                <label className="text-sm font-semi-bold text-gray-500 dark:text-gray-200 ">Price</label>
                 <input type="number" value={form.price} onChange={e => setForm({ ...form, price: Number(e.target.value) })} placeholder="Price" className="w-full bg-gray-100 dark:bg-white rounded-2xl p-4 mt-1" />
                 </div>
                 <div className="">
-                <label className="text-sm font-semi-bold text-gray-500 dark:text-gray-200 uppercase">Currency</label>
+                <label className="text-sm font-semi-bold text-gray-500 dark:text-gray-200 ">Currency</label>
                 <input value={form.currency} onChange={e => setForm({ ...form, currency: e.target.value })} placeholder="Currency" className="w-full bg-gray-100 dark:bg-white rounded-2xl p-4 mt-1" />
               </div>
               </div>
@@ -220,14 +220,14 @@ export default function EditServicePage() {
               <h2 className="text-base font-bold text-purple-500 uppercase border-b pb-2 border-purple-100">02. Logistics & Status</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                <label className="text-sm font-semi-bold text-gray-500 dark:text-gray-200 uppercase">Delivery Time</label>
+                <label className="text-sm font-semi-bold text-gray-500 dark:text-gray-200 ">Delivery Time</label>
                 <div className="relative">
                   <Clock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                   <input value={form.deliveryTime} onChange={e => setForm({ ...form, deliveryTime: e.target.value })} placeholder="Delivery Time" className="w-full bg-gray-100 dark:bg-white rounded-2xl p-4 pl-12 mt-1" />
                 </div>
                 </div>
                 <div>
-                <label className="text-sm font-semi-bold text-gray-500 dark:text-gray-200 uppercase">Location</label>
+                <label className="text-sm font-semi-bold text-gray-500 dark:text-gray-200">Location</label>
                 <div className="relative">
                   <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                   <input value={form.location} onChange={e => setForm({ ...form, location: e.target.value })} placeholder="Location" className="w-full bg-gray-100 dark:bg-white rounded-2xl p-4 pl-12 mt-1" />
@@ -249,7 +249,7 @@ export default function EditServicePage() {
             <section className="space-y-6">
               <h2 className="text-base font-bold text-purple-500 uppercase border-b pb-2 border-purple-100">03. Tags & Images</h2>
               {/* Tags */}
-               <label className="text-sm font-semi-bold text-gray-500 dark:text-gray-200 uppercase ">Tags</label>
+               <label className="text-sm font-semi-bold text-gray-500 dark:text-gray-200 ">Tags</label>
               <div className="flex flex-col md:flex-row gap-2 mb-2 mt-2">
                 <input placeholder="Add tag..." value={tempTag} onChange={e => setTempTag(e.target.value)} className="grow bg-gray-100 dark:bg-white p-4 rounded-2xl" />
                 <button type="button" onClick={() => { if (tempTag) setForm({ ...form, tags: [...(form.tags ?? []), tempTag] }); setTempTag(""); }} className="bg-gray-700 text-white px-4 rounded-2xl font-bold dark:bg-gray-600 py-3">Add</button>
@@ -265,7 +265,7 @@ export default function EditServicePage() {
 
               {/* Images */}
 
-              <label className="text-sm font-semi-bold text-gray-500 dark:text-gray-200 uppercase ">Images</label>
+              <label className="text-sm font-semi-bold text-gray-500 dark:text-gray-200">Images</label>
               <div className="flex flex-col md:flex-row gap-2 mb-2 mt-2">
                 <input placeholder="Paste image URL..." value={tempImg} onChange={e => setTempImg(e.target.value)} className="grow bg-gray-100 dark:bg-white p-4 rounded-2xl" />
                 <button type="button" onClick={() => { if (tempImg) setForm({ ...form, images: [...(form.images ?? []), tempImg] }); setTempImg(""); }} className="bg-gray-700 text-white px-4 rounded-2xl font-bold dark:bg-gray-600 py-3">Add</button>
@@ -285,7 +285,7 @@ export default function EditServicePage() {
               <h2 className="text-base font-bold text-purple-500 uppercase border-b pb-2 border-purple-100">04. Packages, Requirements & FAQ</h2>
               
               {/* Packages */}
-               <label className="text-sm font-semi-bold text-gray-500 dark:text-gray-200 uppercase ">Packages</label>
+               <label className="text-sm font-semi-bold text-gray-500 dark:text-gray-200  ">Packages</label>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-gray-100 dark:bg-gray-800 p-4 rounded-3xl mb-4 mt-2">
                 <input placeholder="Name" value={tempPkg.name} onChange={e => setTempPkg({ ...tempPkg, name: e.target.value })} className="p-3 rounded-xl bg-white border-none" />
                 <input placeholder="Description" value={tempPkg.description} onChange={e => setTempPkg({ ...tempPkg, description: e.target.value })} className="p-3 rounded-xl bg-white border-none" />
@@ -301,7 +301,7 @@ export default function EditServicePage() {
 
               {/* Requirements */}
               <div className="space-y-2 mb-4">
-                 <label className="text-sm font-semi-bold text-gray-500 dark:text-gray-200 uppercase">Requirements</label>
+                 <label className="text-sm font-semi-bold text-gray-500 dark:text-gray-200 ">Requirements</label>
                 <div className="flex flex-col md:flex-row gap-2 mt-2">
                   <input placeholder="Buyer Requirement..." value={tempReq} onChange={e => setTempReq(e.target.value)} className="grow bg-gray-100 dark:bg-white p-4 rounded-2xl" />
                   <button type="button" onClick={() => { if (tempReq) setForm({ ...form, requirements: [...(form.requirements ?? []), tempReq] }); setTempReq(""); }} className="bg-gray-700 text-white px-4 rounded-2xl font-bold dark:bg-gray-600 py-3">Add</button>
@@ -337,7 +337,7 @@ export default function EditServicePage() {
 
             <button
               disabled={updateMutation.isPending}
-              className="w-full  py-4 bg-linear-to-r from-purple-500 to-blue-500 hover:bg-purple-600 text-white uppercase  rounded-xl transition-all shadow-xl shadow-purple-500/20 flex items-center justify-center gap-1 md:gap-3 active:scale-95 disabled:opacity-50"
+              className="w-full  py-4 bg-linear-to-r from-purple-500 to-blue-500 hover:bg-purple-600 text-white   rounded-xl transition-all shadow-xl shadow-purple-500/20 flex items-center justify-center gap-1 md:gap-3 active:scale-95 disabled:opacity-50"
             >
               {updateMutation.isPending ? "UPDATING REGISTRY..." : <>UPDATE<span className="hidden md:flex">SERVICE REGISTRY </span><Send size={22} /></>}
             </button>
