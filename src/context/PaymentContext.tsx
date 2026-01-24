@@ -17,6 +17,7 @@ import {
    // PaymentFormData // Removed unused import
 } from '@/types/payment.types';
 import { paymentAPI } from '@/lib/api/payment.api';
+import { getAccessToken } from '@/store/authSelectors';
 
 // Action Types
 type PaymentAction =
@@ -117,19 +118,7 @@ interface PaymentProviderProps {
 
 // Get auth token helper (moved outside component to prevent recreation)
 const getAuthToken = (): string | null => {
-   if (typeof window === 'undefined') return null;
-
-   const token = localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
-
-   // In development mode, provide a mock token if none exists
-   if (process.env.NODE_ENV === 'development' && !token) {
-      const mockToken = 'mock-jwt-token-for-development';
-      localStorage.setItem('accessToken', mockToken);
-      console.log('Development mode: Mock authentication token created');
-      return mockToken;
-   }
-
-   return token;
+   return getAccessToken();
 };
 
 // Provider Component

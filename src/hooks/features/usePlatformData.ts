@@ -4,6 +4,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import type { PlatformType, UnifiedPlatformData, PlatformAPIError } from '@/types/platform.types';
+import { getAccessToken } from '@/store/authSelectors';
 
 interface UsePlatformDataOptions {
    enabled?: boolean;
@@ -46,7 +47,7 @@ export function usePlatformData(
          console.log(`📡 API URL: ${url}`);
 
          // Get auth token from localStorage for client-side requests
-         const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+         const token = getAccessToken();
 
          const headers: Record<string, string> = {
             'Content-Type': 'application/json',
@@ -176,7 +177,7 @@ export function useMultiplePlatformData(
       const fetchErrors: PlatformAPIError[] = [];
 
       // Get auth token from localStorage for client-side requests (same as single platform hook)
-      const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+      const token = getAccessToken();
 
       const headers: Record<string, string> = {
          'Content-Type': 'application/json',
@@ -317,4 +318,3 @@ export function useCombinedPlatformMetrics(
 
    return metrics;
 }
-

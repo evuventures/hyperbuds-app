@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import notificationSocket from "@/lib/socket/notificationSocket";
 import toast from "react-hot-toast";
+import { useAppSelector } from "@/store/hooks";
 
 function NotificationSocketProvider({
   token,
@@ -19,6 +20,7 @@ function NotificationSocketProvider({
 
     // always reconnect when token changes
     notificationSocket.disconnect();
+
     notificationSocket.connect(token);
 
     const handler = (n: any) => {
@@ -34,17 +36,7 @@ function NotificationSocketProvider({
 }
 
 export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
-  const [token, setToken] = useState<string | null>(null);
-
-  useEffect(() => {
-    setToken(localStorage.getItem("accessToken"));
-
-    const onStorage = (e: StorageEvent) => {
-      if (e.key === "accessToken") setToken(e.newValue);
-    };
-    window.addEventListener("storage", onStorage);
-    return () => window.removeEventListener("storage", onStorage);
-  }, []);
+  const token = useAppSelector((state: any) => state.auth.token);
 
   return <NotificationSocketProvider token={token}>{children}</NotificationSocketProvider>;
 };

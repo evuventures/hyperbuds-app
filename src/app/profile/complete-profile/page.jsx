@@ -8,6 +8,7 @@ import {
 } from 'react-icons/fa';
 import { useRouter } from 'next/navigation';
 import { BASE_URL } from '@/config/baseUrl';
+import { getAccessToken } from '@/store/authSelectors';
 import { LucideAArrowDown, X, Check } from 'lucide-react';
 import { useNiches } from '@/hooks/features/useNiches';
 import { nicheApi } from '@/lib/api/niche.api';
@@ -228,7 +229,7 @@ export default function MultiStepProfileForm() {
       const response = await fetch(`${BASE_URL}/api/v1/users?q=${username}`, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+          'Authorization': `Bearer ${getAccessToken()}`
         }
       });
 
@@ -374,7 +375,7 @@ export default function MultiStepProfileForm() {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+          'Authorization': `Bearer ${getAccessToken()}`
         },
         body: JSON.stringify(cleanedProfileData)
       });

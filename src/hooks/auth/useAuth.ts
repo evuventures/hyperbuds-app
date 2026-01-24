@@ -1,168 +1,145 @@
-// hooks/useAuth.ts
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback } from 'react'
 import { googleAuth } from '@/lib/api/auth.api'
-
-const BASE_URL = 'https://api-hyperbuds-backend.onrender.com'
+import { BASE_URL } from '@/config/baseUrl'
+import { useAppDispatch, useAppSelector } from '@/store/hooks'
+import { clearAuth, setError, setLoading, setToken, setUser } from '@/store/slices/authSlice'
 
 interface User {
-  id: string;
-  name: string;
-  email: string;
-  avatar?: string;
+  id?: string
+  _id?: string
+  name?: string
+  username?: string
+  displayName?: string
+  email?: string
+  avatar?: string
 }
 
 export function useAuth() {
-  const [user, setUser] = useState<User | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [isClient, setIsClient] = useState(false)
+  const dispatch = useAppDispatch()
+  const { user, loading, token } = useAppSelector((state: any) => state.auth)
 
-  // Fix hydration issue by ensuring we're on the client
-  useEffect(() => {
-    setIsClient(true)
-  }, [])
+  const login = useCallback(async (email: string, password: string) => {
+    dispatch(setLoading(true))
+    dispatch(setError(null))
 
-  // Load user on mount
-  useEffect(() => {
-    if (!isClient) return
-
-    const fetchUser = async () => {
-      try {
-        const token = localStorage.getItem('accessToken')
-        if (!token) {
-          setLoading(false)
-          return
-        }
-
-        const res = await fetch(`${BASE_URL}/api/v1/auth/me`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        })
-
-        if (res.ok) {
-          const data = await res.json()
-          setUser(data.user)
-        } else if (res.status === 401) {
-          // Token expired or invalid - clear it and set user to null
-          // No refresh attempt since tokens now last 3 days
-          localStorage.removeItem('accessToken')
-          setUser(null)
-        }
-      } catch (err) {
-        console.error('Error loading user:', err)
-        // Don't set mock user on error - just clear auth state
-        localStorage.removeItem('accessToken')
-        setUser(null)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchUser()
-  }, [isClient])
-
-  const login = async (email: string, password: string) => {
     const res = await fetch(`${BASE_URL}/api/v1/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
-      credentials: 'include'
+      credentials: 'include',
     })
 
     const data = await res.json()
-    if (!res.ok) throw new Error(data.message || 'Login failed')
+    if (!res.ok) {
+      dispatch(setLoading(false))
+      throw new Error(data.message || 'Login failed')
+    }
 
-    localStorage.setItem('accessToken', data.accessToken)
-    
-    // Fetch user data if not in response
+    if (data.accessToken) {
+      localStorage.setItem('accessToken', data.accessToken)
+      dispatch(setToken(data.accessToken))
+    }
+
     if (data.user) {
-      setUser(data.user)
-    } else {
-      // Fetch user data separately
+      dispatch(setUser(data.user))
+    } else if (data.accessToken) {
       try {
         const userRes = await fetch(`${BASE_URL}/api/v1/users/me`, {
           headers: {
-            'Authorization': `Bearer ${data.accessToken}`
-          }
+            Authorization: `Bearer ${data.accessToken}`,
+          },
         })
         if (userRes.ok) {
           const userData = await userRes.json()
-          setUser(userData.user || userData)
+          dispatch(setUser(userData.user || userData))
         }
       } catch (err) {
         console.error('Error fetching user data:', err)
       }
     }
-    
-    return data
-  }
 
-  const googleLogin = async (code: string) => {
+    dispatch(setLoading(false))
+    return data
+  }, [dispatch])
+
+  const googleLogin = useCallback(async (code: string) => {
+    dispatch(setLoading(true))
+    dispatch(setError(null))
+
     try {
       const data = await googleAuth(code)
-      localStorage.setItem('accessToken', data.accessToken)
-      
+      if (data.accessToken) {
+        localStorage.setItem('accessToken', data.accessToken)
+        dispatch(setToken(data.accessToken))
+      }
+
       if (data.user) {
-        setUser(data.user)
-      } else {
-        // Fetch user data separately
+        dispatch(setUser(data.user))
+      } else if (data.accessToken) {
         try {
           const userRes = await fetch(`${BASE_URL}/api/v1/users/me`, {
             headers: {
-              'Authorization': `Bearer ${data.accessToken}`
-            }
+              Authorization: `Bearer ${data.accessToken}`,
+            },
           })
           if (userRes.ok) {
             const userData = await userRes.json()
-            setUser(userData.user || userData)
+            dispatch(setUser(userData.user || userData))
           }
         } catch (err) {
           console.error('Error fetching user data:', err)
         }
       }
-      
+
+      dispatch(setLoading(false))
       return data
     } catch (error) {
+      dispatch(setLoading(false))
       console.error('Google login failed:', error)
       throw error
     }
-  }
+  }, [dispatch])
 
-  const logout = async () => {
+  const logout = useCallback(async () => {
     try {
       await fetch(`${BASE_URL}/api/v1/auth/logout`, {
         method: 'POST',
-        credentials: 'include'
+        credentials: 'include',
       })
     } catch (err) {
       console.error('Logout error:', err)
     } finally {
       localStorage.removeItem('accessToken')
-      setUser(null)
+      dispatch(clearAuth())
     }
-  }
+  }, [dispatch])
 
-  const register = async (userData: Partial<User> & { password: string }) => {
+  const register = useCallback(async (userData: Partial<User> & { password: string }) => {
     const res = await fetch(`${BASE_URL}/api/v1/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(userData)
+      body: JSON.stringify(userData),
     })
     const data = await res.json()
     if (!res.ok) throw new Error(data.message || 'Registration failed')
     return data
-  }
+  }, [])
 
-  // Note: refreshSession is deprecated - tokens now last 3 days, no refresh needed
-  // Keeping for backward compatibility but it should not be used
   const refreshSession = async () => {
     console.warn('refreshSession is deprecated - tokens now last 3 days, no refresh needed')
     return null
   }
 
-  const accessToken = isClient ? localStorage.getItem('accessToken') : null
-
-  return { user, loading, accessToken, login, googleLogin, logout, register, refreshSession }
+  return {
+    user: user as User | null,
+    loading,
+    accessToken: token,
+    login,
+    googleLogin,
+    logout,
+    register,
+    refreshSession,
+  }
 }

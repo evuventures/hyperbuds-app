@@ -1,4 +1,5 @@
 import { BASE_URL } from '@/config/baseUrl';
+import { getAccessToken } from '@/store/authSelectors';
 
 export type SocialPlatform = 'instagram' | 'tiktok' | 'youtube' | 'twitter' | 'twitch';
 
@@ -23,7 +24,7 @@ export const socialApi = {
     url: string
   ): Promise<SocialConnectResponse> => {
     try {
-      const token = localStorage.getItem('accessToken');
+      const token = getAccessToken();
       
       if (!token) {
         throw new Error('Authentication required');
@@ -64,6 +65,5 @@ export const socialApi = {
 };
 
 export default socialApi;
-
 
 

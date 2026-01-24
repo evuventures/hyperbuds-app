@@ -1,5 +1,6 @@
 // src/lib/socket/notificationSocket.ts
 import { io, Socket } from "socket.io-client";
+import { getAccessToken } from "@/store/authSelectors";
 
 class NotificationSocketService {
   private socket: Socket | null = null;
@@ -13,11 +14,7 @@ class NotificationSocketService {
     if (this.socket?.connected) return this.socket;
 
     // Resolve token safely (client-only)
-    const resolvedToken =
-      token ??
-      (typeof window !== "undefined"
-        ? window.localStorage.getItem("accessToken") ?? undefined
-        : undefined);
+    const resolvedToken = token ?? getAccessToken() ?? undefined;
         
 
     if (!resolvedToken) {
