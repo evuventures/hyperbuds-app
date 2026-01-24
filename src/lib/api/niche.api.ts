@@ -1,4 +1,5 @@
 import { BASE_URL } from '@/config/baseUrl';
+import { getAccessToken } from '@/store/authSelectors';
 
 export interface NichesResponse {
   niches: string[];
@@ -47,7 +48,7 @@ export const nicheApi = {
   
   getNiches: async (): Promise<NichesResponse> => {
     // --- 🔑 START: Access Token Logic Added ---
-    const token = localStorage.getItem('accessToken');
+    const token = getAccessToken();
 
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
@@ -128,7 +129,7 @@ export const nicheApi = {
     niches: string[]
   ): Promise<UpdateNichesResponse> => {
     try {
-      const token = localStorage.getItem('accessToken');
+      const token = getAccessToken();
 
       if (!token) {
         throw new Error('Authentication required');

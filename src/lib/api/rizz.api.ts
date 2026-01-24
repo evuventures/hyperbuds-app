@@ -1,4 +1,5 @@
 import { BASE_URL } from '@/config/baseUrl';
+import { getAccessToken } from '@/store/authSelectors';
 
 export interface RizzScoreResponse {
   userId: string;
@@ -30,7 +31,7 @@ export const rizzApi = {
    */
   getRizzScore: async (userId: string): Promise<RizzScoreResponse> => {
     try {
-      const token = localStorage.getItem('accessToken');
+      const token = getAccessToken();
       
       if (!token) {
         throw new Error('Authentication required');
@@ -61,6 +62,5 @@ export const rizzApi = {
     }
   },
 };
-
 
 

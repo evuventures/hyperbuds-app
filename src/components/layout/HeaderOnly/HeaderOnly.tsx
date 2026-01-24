@@ -7,6 +7,7 @@ import DashboardSkeleton from '@/components/ui/skeleton';
 import { useSidebar } from '@/context/SidebarContext';
 import { BASE_URL } from '../../../config/baseUrl';
 import { ThemeProvider } from '@/context/Theme';
+import { getAccessToken } from '@/store/authSelectors';
 
 interface HeaderOnlyLayoutProps {
    children: React.ReactNode;
@@ -25,7 +26,7 @@ export default function HeaderOnlyLayout({ children }: HeaderOnlyLayoutProps) {
          try {
             const res = await fetch(`${BASE_URL}/api/v1/auth/me`, {
                headers: {
-                  Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+                  Authorization: `Bearer ${getAccessToken()}`,
                },
                credentials: "include",
             });

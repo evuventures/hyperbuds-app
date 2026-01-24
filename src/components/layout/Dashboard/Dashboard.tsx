@@ -7,6 +7,7 @@ import { Sidebar } from '../Sidebar/Sidebar';
 // import { RightSidebar } from '../RightSideBar/RightSidebar';
 import DashboardSkeleton from '@/components/ui/skeleton';
 import { BASE_URL } from '../../../config/baseUrl';
+import { getAccessToken } from '@/store/authSelectors';
 import { Menu, X, Moon, Sun, Bell } from 'lucide-react';
 import { ThemeProvider, useTheme } from '@/context/Theme';
 import { useSidebar } from '@/context/SidebarContext';
@@ -85,7 +86,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       try {
         const res = await fetch(`${BASE_URL}/api/v1/users/me`, {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+            Authorization: `Bearer ${getAccessToken()}`,
           },
           credentials: "include",
           cache: "no-store", // Disable caching to get fresh profile data

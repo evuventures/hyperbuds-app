@@ -7,6 +7,7 @@ import { Loader2, Heart, X, RefreshCw } from "lucide-react";
 import { motion } from "framer-motion";
 import { BASE_URL } from "@/config/baseUrl";
 import type { MatchSuggestion, CreatorProfile } from "@/types/matching.types";
+import { getAccessToken } from "@/store/authSelectors";
 import { Button } from "@/components/ui/button";
 //import PreferencesForm from "@/components/matching/PreferencesForm";
 //import MatchCard from "@/components/matching/MatchCard";
@@ -38,7 +39,7 @@ export default function MatchmakerPage() {
   // ✅ Fetch current user profile and matches
   const loadData = async () => {
       try {
-        const accessToken = localStorage.getItem("accessToken");
+        const accessToken = getAccessToken();
         if (!accessToken) {
           console.warn("⚠️ No access token found.");
           setError("Unauthorized. Please log in again.");
@@ -217,7 +218,7 @@ export default function MatchmakerPage() {
 
   const handleCollaboration = async (matchId: string) => {
     try {
-      const accessToken = localStorage.getItem("accessToken");
+      const accessToken = getAccessToken();
       if (accessToken) {
         await fetch(`${BASE_URL}/api/v1/collaborations/invite`, {
           method: "POST",
@@ -258,7 +259,7 @@ export default function MatchmakerPage() {
     setShowAILoader(true); // Show AI loader when processing preferences
 
     try {
-      const accessToken = localStorage.getItem("accessToken");
+      const accessToken = getAccessToken();
       if (accessToken) {
         await fetch(`${BASE_URL}/api/v1/profiles/me`, {
           method: "PUT",

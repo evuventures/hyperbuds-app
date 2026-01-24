@@ -9,6 +9,9 @@ import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { PlatformUsernameGroup } from "@/components/profile/PlatformUsernameInput";
 import { useNiches } from "@/hooks/features/useNiches";
+import { useAppDispatch } from "@/store/hooks";
+import { getAccessToken } from "@/store/authSelectors";
+import { clearAuth } from "@/store/slices/authSlice";
 import { nicheApi } from "@/lib/api/niche.api";
 
 // Define a type for a social media link
@@ -131,6 +134,7 @@ export default function EditProfilePage() {
 
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const dispatch = useAppDispatch();
 
   // Fetch niches from API
   const { data: availableNiches = [], isLoading: isLoadingNiches, error: nichesError } = useNiches();
@@ -150,7 +154,7 @@ export default function EditProfilePage() {
 
   // 🔒 Protect route
   useEffect(() => {
-    const token = localStorage.getItem("accessToken");
+    const token = getAccessToken();
     if (!token) {
       router.push("/auth/login");
     }
@@ -161,7 +165,7 @@ export default function EditProfilePage() {
     const fetchProfile = async () => {
       try {
         setIsLoadingProfile(true);
-        const token = localStorage.getItem("accessToken");
+        const token = getAccessToken();
 
         if (!token) {
           router.push("/auth/signin");
@@ -441,7 +445,7 @@ export default function EditProfilePage() {
     setIsLoading(true);
 
     try {
-      const token = localStorage.getItem("accessToken");
+      const token = getAccessToken();
 
       // Filter out empty social links and validate URLs
       const cleanedSocialLinks: SocialLinks = {};
@@ -621,6 +625,7 @@ export default function EditProfilePage() {
           // Redirect to login after 2 seconds
           setTimeout(() => {
             localStorage.removeItem('accessToken');
+            dispatch(clearAuth());
             router.push("/auth/signin");
           }, 2000);
         } else {

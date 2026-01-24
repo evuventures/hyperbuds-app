@@ -1,12 +1,10 @@
 // src/lib/api/user.api.ts
 import { BASE_URL } from "@/config/baseUrl";
+import { getAccessToken } from "@/store/authSelectors";
 
 export async function getCurrentUser() {
   // Get token from localStorage only if running in browser
-  const token =
-    typeof window !== "undefined"
-      ? localStorage.getItem("accessToken")
-      : null;
+  const token = getAccessToken();
 
   if (!token) throw new Error("No access token found");
 
