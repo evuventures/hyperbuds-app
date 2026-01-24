@@ -16,6 +16,7 @@ import CollaborationStatusCard from "@/components/collaboration/detail/Collabora
 import CollaborationRespondCard from "@/components/collaboration/detail/CollaborationRespondCard";
 import CollaborationDeliverablesCard from "@/components/collaboration/detail/CollaborationDeliverablesCard";
 import CollaborationReviewCard from "@/components/collaboration/detail/CollaborationReviewCard";
+import toast from "react-hot-toast";
 import type {
   DeliverableFormState,
   DeliverableUpdateState,
@@ -120,6 +121,7 @@ export default function CollaborationPage({ params }: CollaborationPageProps) {
   const ensureOwner = () => {
     if (isOwner) return true;
     setActionError("Only the collaboration creator can perform this action.");
+    toast.error("Only the collaboration creator can perform this action.");
     return false;
   };
 
@@ -460,11 +462,11 @@ export default function CollaborationPage({ params }: CollaborationPageProps) {
                 />
               )}
 
-              <CollaborationRespondCard
+              {/* <CollaborationRespondCard
                 isSubmitting={isSubmitting}
                 onAccept={() => handleRespondInvite("accept")}
                 onDecline={() => handleRespondInvite("decline")}
-              />
+              /> */}
 
               <CollaborationDeliverablesCard
                 deliverables={deliverables}

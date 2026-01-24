@@ -596,7 +596,7 @@ const CollaborationsPage: React.FC = () => {
               )}
             </div>
 
-            <div className="p-5 rounded-xl border-2 shadow-xl backdrop-blur-sm sm:p-6 sm:rounded-2xl lg:p-8 border-purple-200/50 bg-white/90 dark:bg-slate-800/90 dark:border-purple-500/30">
+            <div className="p-5">
               {isLoading ? (
                 <div className="flex flex-col justify-center items-center py-12 sm:py-16">
                   <div className="mb-4 w-12 h-12 text-purple-600 animate-spin sm:w-16 sm:h-16">
@@ -643,7 +643,7 @@ const CollaborationsPage: React.FC = () => {
             </div>
             
               {/* footer stats */}
-            <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
+            {/* <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
               <div className="rounded-2xl border border-gray-200/60 bg-white/90 p-4 text-center shadow-md dark:border-white/10 dark:bg-slate-800/90">
                 <p className="text-xs text-gray-500 dark:text-gray-400">Total</p>
                 <p className="text-2xl font-bold text-gray-900 dark:text-white">{collaborations.length}</p>
@@ -656,7 +656,7 @@ const CollaborationsPage: React.FC = () => {
                 <p className="text-xs text-gray-500 dark:text-gray-400">Invites</p>
                 <p className="text-2xl font-bold text-gray-900 dark:text-white">{invites.length}</p>
               </div>
-            </div>
+            </div> */}
 
           </div>
         </div>
