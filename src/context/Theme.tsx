@@ -1,6 +1,8 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { setSystemTheme, setThemeLoaded, setThemeMode, toggleDarkMode as toggleDarkModeAction } from '@/store/slices/uiSlice';
 
 interface ThemeContextType {
   isDarkMode: boolean;
@@ -8,14 +10,15 @@ interface ThemeContextType {
   setDarkMode: (isDark: boolean) => void;
 }
 
-const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
+export const useTheme = (): ThemeContextType => {
+  const dispatch = useAppDispatch();
+  const { isDarkMode } = useAppSelector((state) => state.ui.theme);
 
-export const useTheme = () => {
-  const context = useContext(ThemeContext);
-  if (context === undefined) {
-    throw new Error('useTheme must be used within a ThemeProvider');
-  }
-  return context;
+  return {
+    isDarkMode,
+    toggleDarkMode: () => dispatch(toggleDarkModeAction()),
+    setDarkMode: (isDark: boolean) => dispatch(setThemeMode(isDark ? 'dark' : 'light')),
+  };
 };
 
 interface ThemeProviderProps {
@@ -23,68 +26,49 @@ interface ThemeProviderProps {
 }
 
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
-  const [isDarkMode, setIsDarkMode] = useState(false);
-  const [isLoaded, setIsLoaded] = useState(false);
+  const dispatch = useAppDispatch();
+  const { isDarkMode, preference, isLoaded } = useAppSelector((state) => state.ui.theme);
 
-  // Load theme preference from localStorage on mount
   useEffect(() => {
     const savedTheme = localStorage.getItem('hyperbuds-theme');
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
 
-    const shouldBeDark = savedTheme ? savedTheme === 'dark' : prefersDark;
-    setIsDarkMode(shouldBeDark);
-    setIsLoaded(true);
-  }, []);
+    if (savedTheme === 'dark' || savedTheme === 'light') {
+      dispatch(setThemeMode(savedTheme));
+    } else {
+      dispatch(setSystemTheme(prefersDark));
+    }
+    dispatch(setThemeLoaded(true));
+  }, [dispatch]);
 
-  // Update document class and localStorage when theme changes
   useEffect(() => {
     if (!isLoaded) return;
 
     if (isDarkMode) {
       document.documentElement.classList.add('dark');
-      localStorage.setItem('hyperbuds-theme', 'dark');
     } else {
       document.documentElement.classList.remove('dark');
-      localStorage.setItem('hyperbuds-theme', 'light');
     }
-  }, [isDarkMode, isLoaded]);
 
-  // Listen for system theme changes
+    if (preference === 'system') {
+      localStorage.removeItem('hyperbuds-theme');
+    } else {
+      localStorage.setItem('hyperbuds-theme', preference);
+    }
+  }, [isDarkMode, preference, isLoaded]);
+
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
 
     const handleChange = (e: MediaQueryListEvent) => {
-      // Only follow system preference if user hasn't manually set a preference
-      const savedTheme = localStorage.getItem('hyperbuds-theme');
-      if (!savedTheme) {
-        setIsDarkMode(e.matches);
+      if (preference === 'system') {
+        dispatch(setSystemTheme(e.matches));
       }
     };
 
     mediaQuery.addEventListener('change', handleChange);
     return () => mediaQuery.removeEventListener('change', handleChange);
-  }, []);
+  }, [dispatch, preference]);
 
-  const toggleDarkMode = () => {
-    setIsDarkMode(prev => !prev);
-  };
-
-  const setDarkMode = (isDark: boolean) => {
-    setIsDarkMode(isDark);
-  };
-
-  // Prevent hydration mismatch by not rendering until theme is loaded
-  if (!isLoaded) {
-    return (
-      <ThemeContext.Provider value={{ isDarkMode: false, toggleDarkMode, setDarkMode }}>
-        {children}
-      </ThemeContext.Provider>
-    );
-  }
-
-  return (
-    <ThemeContext.Provider value={{ isDarkMode, toggleDarkMode, setDarkMode }}>
-      {children}
-    </ThemeContext.Provider>
-  );
+  return <>{children}</>;
 };

@@ -5,8 +5,12 @@ import DashboardLayout from "@/components/layout/Dashboard/Dashboard";
 import CollaborationList from "@/components/collaboration/CollaborationList";
 import { collaborationApi } from "@/lib/api/collaboration.api";
 import type { Collaboration } from "@/types/collaboration.types";
+import { useRouter } from "next/navigation";
+import BackLink from "@/components/collaboration/BackLink";
+import CollaborationNav from "@/components/collaboration/CollaborationNav";
 
 export default function CollaborationHistoryPage() {
+  const router = useRouter();
   const [collaborations, setCollaborations] = useState<Collaboration[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -31,19 +35,23 @@ export default function CollaborationHistoryPage() {
 
   return (
     <DashboardLayout>
-      <div className="min-h-full bg-gray-50 dark:bg-slate-900">
-        <div className="p-4 pb-16 lg:p-6 lg:pb-34">
-          <div className="mx-auto max-w-6xl">
-            <div className="mb-6">
-              <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl dark:text-white">
-                Collaboration History
-              </h1>
-              <p className="text-sm text-gray-500 sm:text-base dark:text-gray-400">
-                Completed collaborations and reviews.
-              </p>
-            </div>
+      <div className="min-h-screen bg-white dark:bg-slate-900">
+        <div className="max-w-6xl mx-auto px-6 py-12 space-y-8">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <BackLink onClick={() => router.back()} />
+            <CollaborationNav />
+          </div>
 
-            <div className="p-5 rounded-xl border-2 shadow-xl backdrop-blur-sm sm:p-6 sm:rounded-2xl lg:p-8 border-purple-200/50 bg-white/90 dark:bg-slate-800/90 dark:border-purple-500/30">
+          <div className="space-y-2">
+            <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl dark:text-white">
+              Collaboration History
+            </h1>
+            <p className="text-sm text-gray-500 sm:text-base dark:text-gray-400">
+              Completed collaborations and reviews.
+            </p>
+          </div>
+
+          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900">
               {isLoading ? (
                 <div className="flex flex-col justify-center items-center py-12 sm:py-16">
                   <div className="mb-4 w-12 h-12 text-purple-600 animate-spin sm:w-16 sm:h-16">
@@ -72,7 +80,6 @@ export default function CollaborationHistoryPage() {
                   emptyDescription="Complete a collaboration to see it here."
                 />
               )}
-            </div>
           </div>
         </div>
       </div>

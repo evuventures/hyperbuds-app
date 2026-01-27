@@ -1,12 +1,15 @@
 // utils/api.ts
-const BASE_URL = 'https://api-hyperbuds-backend.onrender.com';
+import { BASE_URL } from '@/config/baseUrl';
+import { getAccessToken as getStoreAccessToken } from '@/store/authSelectors';
+import { store } from '@/store/store';
+import { clearAuth } from '@/store/slices/authSlice';
 
 /**
  * Get access token from localStorage
  * Note: Tokens now last 3 days - no refresh needed
  */
 async function getAccessToken() {
-  return localStorage.getItem("accessToken");
+  return getStoreAccessToken();
 }
 
 /**
@@ -14,6 +17,7 @@ async function getAccessToken() {
  */
 function clearAuthAndRedirect() {
   localStorage.removeItem("accessToken");
+  store.dispatch(clearAuth());
   
   // Only redirect if we're in the browser and not already on auth pages
   if (typeof window !== 'undefined') {

@@ -1,244 +1,211 @@
-"use client";
+'use client';
 
-import React, { useState, useMemo, useEffect } from "react";
-import { useServices } from "@/hooks/features/useMarketplace";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { marketplaceApi } from "@/lib/api/marketplace.api";
 import { ServiceCard } from "@/components/marketplace/ServiceCard/ServiceCard";
-import { ServiceFilters } from "@/components/marketplace/ServiceFilters";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Search,
+  Store,
+  Ticket,
+  Loader2,
+  ShoppingBag,
+  Filter,
+  ChevronDown,
+  MapPin,
+  DollarSign,
+  Sparkles,
+  ArrowUpDown
+} from "lucide-react";
+import Link from "next/link";
+import type { MarketplaceService } from "@/types/marketplace.types";
 import DashboardLayout from "@/components/layout/Dashboard/Dashboard";
-import { Search, Grid, List, Sparkles } from "lucide-react";
-import type { ServiceListFilters } from "@/types/marketplace.types";
 
-type ViewMode = "grid" | "list";
+interface ServicesResponse {
+  services: MarketplaceService[];
+  total?: number;
+}
 
-export default function MarketplacePage() {
-  // Get initial query from URL on mount
-  const getInitialQuery = () => {
-    if (typeof window !== "undefined") {
-      const params = new URLSearchParams(window.location.search);
-      return params.get("q") || "";
-    }
-    return "";
-  };
+export default function MarketplaceDashboard() {
+  // FILTER STATES (Based on Swagger Parameters)
+  const [searchQuery, setSearchQuery] = useState("");
+  const [category, setCategory] = useState<string | undefined>();
+  const [minPrice, setMinPrice] = useState<number | undefined>();
+  const [maxPrice, setMaxPrice] = useState<number | undefined>();
+  const [location, setLocation] = useState<string | undefined>();
+  const [featured, setFeatured] = useState<boolean | undefined>();
+  const [sort, setSort] = useState<string>("recent");
 
-  const initialQuery = getInitialQuery();
-  
-  const [filters, setFilters] = useState<ServiceListFilters>({
-    page: 1,
-    limit: 12,
-    q: initialQuery || undefined,
+  const { data, isLoading } = useQuery<ServicesResponse>({
+    queryKey: ["marketplace-all", searchQuery, category, minPrice, maxPrice, location, featured, sort],
+    queryFn: () =>
+      marketplaceApi.listServices({
+        q: searchQuery,
+        category,
+        minPrice,
+        maxPrice,
+        location,
+        featured,
+        sort: sort as "recent" | "price_low" | "price_high" | "rating",
+        limit: 12,
+      }),
   });
-  const [searchQuery, setSearchQuery] = useState(initialQuery);
-  const [viewMode, setViewMode] = useState<ViewMode>("grid");
-
-  const { data, isLoading, error } = useServices(filters);
-
-  // Extract unique categories from services
-  const categories = useMemo(() => {
-    if (!data?.services) return [];
-    const cats = new Set<string>();
-    data.services.forEach((service) => {
-      if (service.category) cats.add(service.category);
-    });
-    return Array.from(cats).sort();
-  }, [data?.services]);
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    setFilters((prev) => ({
-      ...prev,
-      q: searchQuery || undefined,
-      page: 1,
-    }));
-  };
-
-  const handlePageChange = (newPage: number) => {
-    setFilters((prev) => ({ ...prev, page: newPage }));
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
-  const services = data?.services || [];
-  const pagination = data?.pagination;
 
   return (
     <DashboardLayout>
-      <div className="min-h-full bg-gradient-to-br from-gray-50 via-white to-purple-50/10 dark:from-gray-900 dark:via-gray-900 dark:to-purple-900/10">
-        <div className="p-4 pb-16 lg:p-6 lg:pb-34">
-          <div className="mx-auto max-w-7xl space-y-6">
-            {/* Header */}
-            <div className="flex gap-3 items-center">
-              <div className="p-2 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl shadow-md">
-                <Sparkles className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl dark:text-white">
-                  Marketplace
-                </h1>
-                <p className="text-xs text-gray-500 sm:text-sm dark:text-gray-400">
-                  Discover and book services from creators
-                </p>
-              </div>
-            </div>
+      <div className="min-h-screen bg-white dark:bg-slate-900 text-black dark:text-white transition-colors duration-300 pb-20">
+        <div className="max-w-6xl mx-auto px-6 py-12">
 
-            {/* Search Bar */}
-            <form onSubmit={handleSearch} className="flex gap-2">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 dark:text-gray-400" />
-                <Input
-                  type="text"
-                  placeholder="Search services..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-primary dark:focus:border-purple-500"
-                />
-              </div>
-              <Button 
-                type="submit"
-                className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white shadow-lg"
-              >
-                Search
-              </Button>
-            </form>
-
-            {/* Filters Section - Always Visible Below Search */}
-            <div className="w-full">
-              <ServiceFilters
-                filters={filters}
-                onFiltersChange={setFilters}
-                categories={categories}
-              />
-            </div>
-
-            {/* Main Content */}
-            <div className="w-full space-y-4">
-                {/* View Mode Toggle */}
-                <div className="flex items-center justify-between">
-                  <div className="text-sm text-gray-600 dark:text-gray-300 font-medium">
-                    {pagination?.total ? (
-                      <>
-                        Showing {services.length} of {pagination.total} services
-                      </>
-                    ) : (
-                      "No services found"
-                    )}
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant={viewMode === "grid" ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setViewMode("grid")}
-                      className={viewMode === "grid" 
-                        ? "bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white"
-                        : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700"
-                      }
-                    >
-                      <Grid className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      variant={viewMode === "list" ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setViewMode("list")}
-                      className={viewMode === "list"
-                        ? "bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white"
-                        : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700"
-                      }
-                    >
-                      <List className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-
-                {/* Loading State */}
-                {isLoading && (
-                  <div
-                    className={
-                      viewMode === "grid"
-                        ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
-                        : "space-y-4"
-                    }
-                  >
-                    {Array.from({ length: 6 }).map((_, i) => (
-                      <div key={i} className="space-y-2">
-                        <Skeleton className="h-48 w-full" />
-                        <Skeleton className="h-4 w-3/4" />
-                        <Skeleton className="h-4 w-1/2" />
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* Error State */}
-                {error && (
-                  <div className="text-center py-12">
-                    <p className="text-destructive text-lg font-medium">
-                      {error instanceof Error ? error.message : "Failed to load services"}
-                    </p>
-                    <Button
-                      variant="outline"
-                      onClick={() => window.location.reload()}
-                      className="mt-4 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700"
-                    >
-                      Retry
-                    </Button>
-                  </div>
-                )}
-
-                {/* Services Grid/List */}
-                {!isLoading && !error && services.length === 0 && (
-                  <div className="text-center py-12">
-                    <p className="text-gray-700 dark:text-gray-300 text-lg font-medium">No services found</p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
-                      Try adjusting your filters or search query
-                    </p>
-                  </div>
-                )}
-
-                {!isLoading && !error && services.length > 0 && (
-                  <>
-                    <div
-                      className={
-                        viewMode === "grid"
-                          ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
-                          : "space-y-4"
-                      }
-                    >
-                      {services.map((service) => (
-                        <ServiceCard key={service._id} service={service} />
-                      ))}
-                    </div>
-
-                    {/* Pagination */}
-                    {pagination && pagination.pages > 1 && (
-                      <div className="flex items-center justify-center gap-2 pt-4">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handlePageChange(pagination.page - 1)}
-                          disabled={pagination.page <= 1}
-                          className="border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
-                        >
-                          Previous
-                        </Button>
-                        <span className="text-sm text-gray-600 dark:text-gray-300">
-                          Page {pagination.page} of {pagination.pages}
-                        </span>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handlePageChange(pagination.page + 1)}
-                          disabled={pagination.page >= pagination.pages}
-                          className="border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
-                        >
-                          Next
-                        </Button>
-                      </div>
-                    )}
-                  </>
-                )}
+          {/* TOP NAVIGATION */}
+          <div className="flex justify-end mb-12">
+            <div className="flex items-center gap-2 p-1.5 ">
+              <Link href="/marketplace/services" className="flex items-center gap-2 px-5 py-2.5 rounded-xl  border border-gray-200 dark:border-gray-500 font-bold text-sm text-gray-500 dark:text-white hover:text-purple-600 transition-all">
+                <Store size={14} /> Services
+              </Link>
+              <Link href="/marketplace/bookings" className="flex items-center gap-2 px-5 py-2.5 rounded-xl  border border-gray-200 dark:text-white dark:border-gray-500  font-bold text-sm text-gray-500 hover:text-purple-600 transition-all">
+                <Ticket size={14} /> Bookings
+              </Link>
             </div>
           </div>
+
+          {/* HERO SECTION */}
+          <header className="mb-16 text-center space-y-4">
+            <div className="flex flex-row items-center justify-center">
+              <div className="flex justify-center items-center mb-2 sm:mb-3">
+                <div className="shrink-0 p-2 mr-2 bg-linear-to-br from-purple-500 to-pink-500 rounded-xl shadow-md sm:p-2.5 sm:mr-3 sm:rounded-2xl">
+                  <ShoppingBag className="w-6 h-6 text-white sm:w-7 sm:h-7 lg:w-8 lg:h-8" />
+                </div>
+              </div>
+              <h1 className="text-2xl md:text-4xl font-bold text-gray-900 dark:text-white">
+                Marketplace
+              </h1>
+            </div>
+            <p className="text-gray-500 dark:text-gray-400 text-base flex items-center justify-center gap-2">
+              Connect <span className="text-purple-500">•</span>
+              Collaborate <span className="text-purple-500">•</span>
+              Make Sales
+            </p>
+          </header>
+
+          {/* SEARCH BAR */}
+          <div className="max-w-3xl mx-auto mb-10">
+            <div className="relative group">
+              <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-purple-500 transition-colors" size={22} />
+              <input
+                type="text"
+                placeholder="Search services, skills, or creators..."
+                className="w-full pl-16 pr-6 py-4 md:py-5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-500 rounded-lg focus:ring-4 focus:ring-purple-500/5 outline-none transition-all text-base font-medium"
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+          </div>
+
+          {/* ADVANCED FILTER REGISTRY */}
+          <div className="max-w-6xl mx-auto mb-16 space-y-6">
+            <div className="flex flex-wrap items-center justify-center gap-4">
+
+              {/* Category Dropdown */}
+              <div className="relative group">
+                <select
+                  onChange={(e) => setCategory(e.target.value || undefined)}
+                  className="appearance-none text-gray-500 pl-10 pr-10 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-500 rounded-xl text-sm cursor-pointer outline-none hover:border-purple-500 transition-all"
+                >
+                  <option value="">All Categories</option>
+                  <option value="Design">Design</option>
+                  <option value="Development">Development</option>
+                  <option value="Video">Video</option>
+                  <option value="Audio">Audio</option>
+                  <option value="Writing">Writing</option>
+                </select>
+                <Filter className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" size={14} />
+                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400" size={14} />
+              </div>
+
+              {/* Location Filter */}
+              <div className="relative">
+                <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
+                <input
+                  type="text"
+                  placeholder="location"
+                  className="pl-10 pr-4 py-3 text-gray-500 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-500 rounded-xl text-sm outline-none w-40 hover:border-purple-500 transition-all"
+                  onChange={(e) => setLocation(e.target.value || undefined)}
+                />
+              </div>
+
+              {/* Price Range */}
+              <div className="flex items-center gap-2 px-4 py-2 bg-zinc-50 dark:bg-gray-900/50 rounded-2xl border border-gray-100 dark:border-gray-800">
+                <DollarSign size={14} className="text-zinc-400" />
+                <input
+                  type="number"
+                  placeholder="min"
+                  className="w-16 bg-transparent outline-none text-sm"
+                  onChange={(e) => setMinPrice(e.target.value ? Number(e.target.value) : undefined)}
+                />
+                <span className="text-zinc-300">—</span>
+                <input
+                  type="number"
+                  placeholder="max"
+                  className="w-16 bg-transparent outline-none text-sm"
+                  onChange={(e) => setMaxPrice(e.target.value ? Number(e.target.value) : undefined)}
+                />
+              </div>
+
+              {/* Sort Order Dropdown */}
+              <div className="relative group">
+                <select
+                  onChange={(e) => setSort(e.target.value)}
+                  className="appearance-none text-gray-500  pl-10 pr-10 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-500 rounded-xl text-sm cursor-pointer outline-none hover:border-purple-500 transition-all"
+                >
+                  <option value="recent">Newest First</option>
+                  <option value="price_low">Price: Low to High</option>
+                  <option value="price_high">Price: High to Low</option>
+                  <option value="rating">Top Rated</option>
+                </select>
+                <ArrowUpDown className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
+                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
+              </div>
+
+              {/* Featured Toggle */}
+              <button
+                onClick={() => setFeatured(featured ? undefined : true)}
+                className={`flex items-center gap-2 px-6 py-3 rounded-xl border text-sm transition-all ${featured
+                    ? "bg-linear-to-r from-purple-500 to-blue-500 text-white border-transparent shadow-lg shadow-purple-500/20"
+                    : "bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 text-gray-400 hover:text-purple-500"
+                  }`}
+              >
+                <Sparkles size={14} /> Featured
+              </button>
+
+            </div>
+          </div>
+
+          {/* GRID AREA */}
+          <main>
+            {isLoading ? (
+              <div className="flex flex-col items-center py-32 gap-4">
+                <Loader2 className="animate-spin text-purple-500" size={32} />
+                <p className="text-xs  text-gray-500">Syncing Catalog Registry...</p>
+              </div>
+            ) : !data?.services || data.services.length === 0 ? (
+              <div className="py-32 text-center border border-dashed border-gray-200 dark:border-gray-800 rounded-3xl bg-gray-50/30 dark:bg-gray-900/10">
+                <p className="text-gray-400  text-sm">
+                  No listings match the current filters
+                </p>
+                <button
+                  onClick={() => window.location.reload()}
+                  className="mt-4 text-purple-600 font-bold text-xs"
+                >
+                  Reset Registry
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+                {data.services.map((service: MarketplaceService) => (
+                  <ServiceCard key={service._id} service={service} />
+                ))}
+              </div>
+            )}
+          </main>
         </div>
       </div>
     </DashboardLayout>

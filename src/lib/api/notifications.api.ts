@@ -1,6 +1,7 @@
 // src/lib/api/notifications.api.ts
 
 import { apiClient } from './client';
+import { API_ENDPOINTS } from './endpoints';
 import type {
   NotificationsResponse,
   NotificationPreferences,
@@ -56,16 +57,16 @@ function getUserIdFromMetadata(metadata?: Record<string, unknown>): string | und
  */
 function mapApiNotificationToNotification(apiNotif: ApiNotification): Notification {
   return {
-    id: apiNotif.id,
-    userId: getUserIdFromMetadata(apiNotif.metadata),
+    _id: apiNotif._id,
+    userId: apiNotif.userId,
     type: mapNotificationType(apiNotif.type),
     title: apiNotif.title,
     message: apiNotif.message,
     read: apiNotif.isRead,
     actionUrl: apiNotif.actionUrl,
-    metadata: apiNotif.metadata,
-    createdAt: apiNotif.timestamp,
-    updatedAt: undefined,
+    metadata: apiNotif.data,
+    createdAt: apiNotif.createdAt,
+    updatedAt: apiNotif.updatedAt,
   };
 }
 
@@ -77,22 +78,26 @@ function mapApiResponseToNotificationsResponse(
 ): NotificationsResponse {
   const mappedNotifications = apiResponse.notifications.map(mapApiNotificationToNotification);
   const pagination = apiResponse.pagination;
+  const fallbackUnread = mappedNotifications.reduce(
+    (count, notification) => (notification.read ? count : count + 1),
+    0
+  );
 
   return {
     success: true,
     notifications: mappedNotifications,
-    total: apiResponse.summary.total,
-    unreadCount: apiResponse.summary.unread,
-    page: pagination.page,
-    limit: pagination.limit,
-    hasMore: pagination.page < pagination.pages,
+    total: pagination?.total ?? mappedNotifications.length,
+    unreadCount: pagination?.unreadCount ?? fallbackUnread,
+    page: pagination?.page,
+    limit: pagination?.limit,
+    hasMore: pagination ? pagination.page < pagination.pages : undefined,
   };
 }
 
 export const notificationsApi = {
   /**
    * Get all notifications for the current user
-   * GET /dashboard/notifications
+   * GET /notifications
    */
   getNotifications: async (params?: GetNotificationsParams): Promise<NotificationsResponse> => {
     const queryParams = new URLSearchParams();
@@ -111,18 +116,20 @@ export const notificationsApi = {
       queryParams.append('isRead', params.read.toString());
     }
 
-    const url = `/dashboard/notifications${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+    const url = `${API_ENDPOINTS.notifications}${
+      queryParams.toString() ? `?${queryParams.toString()}` : ''
+    }`;
     const response = await apiClient.get<ApiNotificationsResponse>(url);
     return mapApiResponseToNotificationsResponse(response.data);
   },
 
   /**
    * Mark a notification as read
-   * PUT /dashboard/notifications/{notificationId}/read
+   * PUT /notifications/{notificationId}/read
    */
   markAsRead: async (notificationId: string): Promise<MarkAsReadResponse> => {
     const response = await apiClient.put<ApiMarkAsReadResponse>(
-      `/dashboard/notifications/${notificationId}/read`
+      `${API_ENDPOINTS.notifications}/${notificationId}/read`
     );
 
     return {
@@ -134,11 +141,11 @@ export const notificationsApi = {
 
   /**
    * Mark all notifications as read
-   * PUT /dashboard/notifications/read-all
+   * PUT /notifications/read-all
    */
   markAllAsRead: async (): Promise<MarkAllAsReadResponse> => {
     const response = await apiClient.put<ApiMarkAllAsReadResponse>(
-      '/dashboard/notifications/read-all'
+      `${API_ENDPOINTS.notifications}/read-all`
     );
 
     return {
@@ -150,7 +157,7 @@ export const notificationsApi = {
 
   /**
    * Delete a notification
-   * DELETE /dashboard/notifications/:id
+   * DELETE /notifications/:id
    * 
    * NOTE: This endpoint requires backend implementation.
    * Currently returns an error as the backend does not support DELETE for notifications.
@@ -159,7 +166,7 @@ export const notificationsApi = {
     notificationId: string
   ): Promise<DeleteNotificationResponse> => {
     const response = await apiClient.delete<DeleteNotificationResponse>(
-      `/dashboard/notifications/${notificationId}`
+      `${API_ENDPOINTS.notifications}/${notificationId}`
     );
     const data = response.data;
 
@@ -171,7 +178,7 @@ export const notificationsApi = {
 
   /**
    * Get notification preferences
-   * GET /dashboard/notifications/preferences
+   * GET /notifications/preferences
    * 
    * Note: The API documentation doesn't specify a preferences endpoint,
    * but keeping this function for compatibility.
@@ -207,7 +214,7 @@ export const notificationsApi = {
 
   /**
    * Update notification preferences
-   * PUT /dashboard/notifications/preferences
+   * PUT /notifications/preferences
    * 
    * Note: The API documentation doesn't specify a preferences endpoint,
    * but keeping this function for compatibility.

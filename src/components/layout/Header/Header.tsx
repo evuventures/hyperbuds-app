@@ -217,7 +217,8 @@ export const Header: React.FC<HeaderProps> = ({ user, onMenuClick }) => {
               <div className="flex gap-2 items-center">
                 <div className="flex justify-center items-center w-8 h-8 from-purple-500 to-pink-500 rounded-full bg-linear-to-r">
                   <span className="text-sm font-medium text-white">
-                    {user.username?.[0]?.toUpperCase() || user.email[0].toUpperCase()}
+                    {/* {user.username?.[0]?.toUpperCase() || user.email[0].toUpperCase()} */}
+                    <img src={user?.avatar} alt="User-img" />
                   </span>
                 </div>
                 <div className="hidden text-left lg:block">

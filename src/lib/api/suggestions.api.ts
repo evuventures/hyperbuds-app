@@ -1,4 +1,5 @@
 import { BASE_URL } from '@/config/baseUrl';
+import { getAccessToken } from '@/store/authSelectors';
 
 export interface MatchSuggestion {
   userId: string;
@@ -23,7 +24,7 @@ export const suggestionsApi = {
    */
   getSuggestions: async (userId?: string): Promise<SuggestionsResponse> => {
     try {
-      const token = localStorage.getItem('accessToken');
+      const token = getAccessToken();
       
       if (!token) {
         throw new Error('Authentication required');
@@ -121,6 +122,5 @@ export const suggestionsApi = {
     }
   },
 };
-
 
 

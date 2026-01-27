@@ -2,10 +2,12 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Image from "next/image";
 import { Loader2, Heart, X, RefreshCw } from "lucide-react";
 import { motion } from "framer-motion";
 import { BASE_URL } from "@/config/baseUrl";
 import type { MatchSuggestion, CreatorProfile } from "@/types/matching.types";
+import { getAccessToken } from "@/store/authSelectors";
 import { Button } from "@/components/ui/button";
 //import PreferencesForm from "@/components/matching/PreferencesForm";
 //import MatchCard from "@/components/matching/MatchCard";
@@ -38,7 +40,7 @@ export default function MatchmakerPage() {
   // ✅ Fetch current user profile and matches
   const loadData = async () => {
     try {
-      const accessToken = localStorage.getItem("accessToken");
+      const accessToken = getAccessToken();
       if (!accessToken) {
         console.warn("⚠️ No access token found.");
         setError("Unauthorized. Please log in again.");
@@ -236,7 +238,7 @@ export default function MatchmakerPage() {
 
   const handleCollaboration = async (matchId: string) => {
     try {
-      const accessToken = localStorage.getItem("accessToken");
+      const accessToken = getAccessToken();
       if (accessToken) {
         await fetch(`${BASE_URL}/api/v1/collaborations/invite`, {
           method: "POST",
@@ -277,7 +279,7 @@ export default function MatchmakerPage() {
     setShowAILoader(true); // Show AI loader when processing preferences
 
     try {
-      const accessToken = localStorage.getItem("accessToken");
+      const accessToken = getAccessToken();
       if (accessToken) {
         await fetch(`${BASE_URL}/api/v1/profiles/me`, {
           method: "PUT",
@@ -434,7 +436,7 @@ export default function MatchmakerPage() {
           <div className="mx-auto max-w-6xl">
             <div className="flex gap-2 justify-between items-center mb-6 sm:mb-8">
               <div className="flex items-center gap-3">
-                <div className="flex-shrink-0 p-2 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl shadow-md sm:p-2.5 sm:rounded-2xl">
+                <div className="shrink-0 p-2 bg-linear-to-br from-purple-500 to-pink-500 rounded-xl shadow-md sm:p-2.5 sm:rounded-2xl">
                   <Heart className="w-5 h-5 text-white sm:w-6 sm:h-6" />
                 </div>
                 <div>
@@ -478,7 +480,7 @@ export default function MatchmakerPage() {
                 </div>
               ) : matches.length === 0 ? (
                 <div className="flex flex-col justify-center items-center py-12 sm:py-16">
-                  <div className="p-5 mb-4 bg-gradient-to-br from-purple-100 to-pink-100 rounded-full sm:p-6 dark:from-purple-900/30 dark:to-pink-900/30">
+                  <div className="p-5 mb-4 bg-linear-to-br from-purple-100 to-pink-100 rounded-full sm:p-6 dark:from-purple-900/30 dark:to-pink-900/30">
                     <Heart className="w-12 h-12 text-pink-500 sm:w-16 sm:h-16 dark:text-pink-400" />
                   </div>
                   <h3 className="mb-2 text-xl font-bold text-gray-900 sm:text-2xl dark:text-white">
@@ -489,7 +491,7 @@ export default function MatchmakerPage() {
                   </p>
                   <Button
                     onClick={loadData}
-                    className="text-xs sm:text-sm bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+                    className="text-xs sm:text-sm bg-linear-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
                   >
                     Refresh Suggestions
                   </Button>

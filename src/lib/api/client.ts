@@ -1,10 +1,11 @@
 // src/lib/api/client.ts
 import axios, { AxiosError } from "axios";
+import { API_BASE_URL } from "./endpoints";
+import { getAccessToken } from "@/store/authSelectors";
 
 // ✅ 1. Base URL (auto from .env or fallback)
-const baseURL =
-  process.env.NEXT_PUBLIC_API_BASE_URL ||
-  "https://api-hyperbuds-backend.onrender.com/api/v1";
+const baseURL = API_BASE_URL;
+
 
 // ✅ 2. Create Axios instance
 export const apiClient = axios.create({
@@ -20,11 +21,9 @@ export const apiClient = axios.create({
 // ✅ 3. Request Interceptor — attach token
 apiClient.interceptors.request.use(
   (config) => {
-    if (typeof window !== "undefined") {
-      const token = localStorage.getItem("accessToken");
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
+    const token = getAccessToken();
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },
@@ -48,6 +47,7 @@ apiClient.interceptors.response.use(
     if (status === 401) {
       console.warn("⚠️ Unauthorized. Clearing token and redirecting...");
       localStorage.removeItem("accessToken");
+      store.dispatch(clearAuth());
 
       // Redirect to login if we're in the browser
       if (typeof window !== "undefined") {

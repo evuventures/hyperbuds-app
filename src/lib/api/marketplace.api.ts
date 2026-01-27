@@ -32,6 +32,15 @@ export const marketplaceApi = {
     return response.data;
   },
 
+  getServicesBySellerId: async (
+    sellerId: string,
+    extraFilters: Omit<ServiceListFilters, "sellerId"> = {}
+  ): Promise<MarketplaceListResponse> => {
+    return marketplaceApi.listServices({ ...extraFilters, sellerId });
+  },
+
+  
+
   getService: async (serviceId: string): Promise<{ service: MarketplaceService }> => {
     const response = await apiClient.get(`/marketplace/services/${serviceId}`);
     return response.data;

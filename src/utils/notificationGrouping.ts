@@ -60,7 +60,7 @@ export function groupNotifications(
       // Single notification
       const notif = groupNotifications[0];
       result.push({
-        id: notif.id,
+        id: notif._id,
         type: 'single',
         notifications: [notif],
         title: notif.title,
@@ -95,7 +95,7 @@ export function groupNotifications(
       };
 
       result.push({
-        id: `group-${key}-${latest.id}`,
+        id: `group-${key}-${latest._id}`,
         type: 'grouped',
         notifications: groupNotifications,
         title: typeLabels[type] || 'Notifications',

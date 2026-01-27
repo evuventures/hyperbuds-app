@@ -1,17 +1,13 @@
 import { ReactNode } from "react";
-import { Inter } from "next/font/google";
 import "./globals.css";
-import { AuthProvider } from "../providers/AuthProvider";
 import { ThemeProvider } from "../providers/ThemeProvider";
 import { SidebarProvider } from "../context/SidebarContext";
 import { QueryProvider } from "../providers/QueryProvider";
+import { Toaster } from "react-hot-toast";
+import { SocketProvider } from "../providers/SocketProvider";
+import { ReduxProvider } from "../providers/ReduxProvider";
+import { AuthBootstrap } from "../providers/AuthBootstrap";
 import { BookingArchiveProvider } from "../context/BookingArchiveContext";
-import { Toaster } from "sonner";
-
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
-});
 
 export const metadata = {
   title: "Hyperbuds – Collaborative AI Platform for Seamless Teamwork",
@@ -19,11 +15,7 @@ export const metadata = {
     "Hyperbuds brings collaborators together with AI, providing the tools and connections needed to enhance productivity and foster creativity in every project.",
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: ReactNode;
-}) {
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -50,19 +42,23 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={`${inter.variable} antialiased bg-white dark:bg-gray-900`}>
-        <QueryProvider>
-          <ThemeProvider>
-            <SidebarProvider>
-              <AuthProvider>
-                <BookingArchiveProvider>
-                  {children}
-                  <Toaster richColors position="top-right" />
-                </BookingArchiveProvider>
-              </AuthProvider>
-            </SidebarProvider>
-          </ThemeProvider>
-        </QueryProvider>
+      <body className="antialiased bg-white dark:bg-gray-900 font-sans">
+        <ReduxProvider>
+          <QueryProvider>
+            <ThemeProvider>
+              <SidebarProvider>
+                <AuthBootstrap>
+                  <SocketProvider>
+                    <BookingArchiveProvider>
+                      {children}
+                    </BookingArchiveProvider>
+                  </SocketProvider>
+                </AuthBootstrap>
+                <Toaster position="top-right" />
+              </SidebarProvider>
+            </ThemeProvider>
+          </QueryProvider>
+        </ReduxProvider>
       </body>
     </html>
   );

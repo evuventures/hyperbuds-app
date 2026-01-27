@@ -232,7 +232,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ user, activeTab, collapsed, on
                         >
                           {/* Active indicator */}
                           {currentActiveTab === item.id && (
-                            <div className="absolute inset-0 bg-gradient-to-r rounded-lg active-indicator from-purple-500/10 to-pink-500/10" />
+                            <div className="absolute inset-0 bg-linear-to-r rounded-lg active-indicator from-purple-500/10 to-pink-500/10" />
                           )}
 
                           <div className={`relative flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'}`}>
@@ -274,7 +274,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ user, activeTab, collapsed, on
                       >
                         {/* Active indicator */}
                         {currentActiveTab === item.id && (
-                          <div className="absolute inset-0 bg-gradient-to-r rounded-lg active-indicator from-purple-500/10 to-pink-500/10" />
+                          <div className="absolute inset-0 bg-linear-to-r rounded-lg active-indicator from-purple-500/10 to-pink-500/10" />
                         )}
 
                         <div className={`relative flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'}`}>
@@ -310,12 +310,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ user, activeTab, collapsed, on
             <>
               <div className='flex flex-col gap-3'>
                 <div className="flex gap-2 items-center">
-                  <div className="flex justify-center items-center w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full avatar">
+                  <div className="flex justify-center items-center w-10 h-10 bg-linear-to-r from-purple-500 to-pink-500 rounded-full avatar">
                     <span className="text-sm font-medium text-white">
                       {user.username?.[0]?.toUpperCase() || user.email[0].toUpperCase()}
                     </span>
                   </div>
-                  <div className='max-w-[150px]'>
+                  <div className='max-w-37.5'>
                     <div className="mb-1 text-xs font-medium text-gray-900 truncate dark:text-gray-100">
                       {user.username || user.email}
                     </div>
@@ -339,7 +339,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ user, activeTab, collapsed, on
             </>
           ) : (
             <div className="flex flex-col gap-2 items-center">
-              <div className="flex justify-center items-center w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full avatar">
+              <div className="flex justify-center items-center w-10 h-10 bg-linear-to-r from-purple-500 to-pink-500 rounded-full avatar">
                 <span className="text-xs font-medium text-white">
                   {user.username?.[0]?.toUpperCase() || user.email[0].toUpperCase()}
                 </span>
