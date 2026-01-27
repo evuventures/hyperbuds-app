@@ -72,7 +72,7 @@ export default function MarketplaceDashboard() {
           <header className="mb-16 text-center space-y-4">
             <div className="flex flex-row items-center justify-center">
               <div className="flex justify-center items-center mb-2 sm:mb-3">
-                <div className="shrink-0 p-2 mr-2 bg-linear-to-br from-purple-500 to-blue-500 rounded-xl shadow-md sm:p-2.5 sm:mr-3 sm:rounded-2xl">
+                <div className="shrink-0 p-2 mr-2 bg-linear-to-br from-purple-500 to-pink-500 rounded-xl shadow-md sm:p-2.5 sm:mr-3 sm:rounded-2xl">
                   <ShoppingBag className="w-6 h-6 text-white sm:w-7 sm:h-7 lg:w-8 lg:h-8" />
                 </div>
               </div>

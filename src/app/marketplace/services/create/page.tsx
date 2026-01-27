@@ -4,26 +4,14 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { marketplaceApi } from "@/lib/api/marketplace.api";
-import {
-  CreateServiceRequest,
-  MarketplacePackage,
-  MarketplaceFaq
-} from "@/types/marketplace.types";
-import {
-  ArrowLeft,
-  Send,
-  MapPin,
-  Clock,
-  Tag,
-  X
-} from "lucide-react";
+import {CreateServiceRequest, MarketplacePackage, MarketplaceFaq } from "@/types/marketplace.types";
+import {ArrowLeft, Send, MapPin, Clock,Tag, X} from "lucide-react";
 import Image from "next/image";
 import DashboardLayout from "@/components/layout/Dashboard/Dashboard";
 
 export const CreateServicePage = () => {
   const router = useRouter();
   const queryClient = useQueryClient();
-
   const [form, setForm] = useState<CreateServiceRequest>({
     title: "",
     description: "",
@@ -54,8 +42,6 @@ export const CreateServicePage = () => {
     question: "",
     answer: "",
   });
-
-
   const sanitizeForm = (data: CreateServiceRequest): CreateServiceRequest => {
     const cleanPackages = data.packages?.map(pkg => ({
       ...pkg,
@@ -78,38 +64,31 @@ export const CreateServicePage = () => {
       router.push("/marketplace/services");
     },
   });
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const sanitized = sanitizeForm(form);
     mutation.mutate(sanitized);
   };
-
-
   const removeTag = (index: number) => {
     const newTags = [...(form.tags || [])];
     newTags.splice(index, 1);
     setForm({ ...form, tags: newTags });
   };
-
   const removeImage = (index: number) => {
     const newImages = [...(form.images || [])];
     newImages.splice(index, 1);
     setForm({ ...form, images: newImages });
   };
-
   const removePackage = (index: number) => {
     const newPackages = [...(form.packages || [])];
     newPackages.splice(index, 1);
     setForm({ ...form, packages: newPackages });
   };
-
   const removeRequirement = (index: number) => {
     const newReqs = [...(form.requirements || [])];
     newReqs.splice(index, 1);
     setForm({ ...form, requirements: newReqs });
   };
-
   const removeFaq = (index: number) => {
     const newFaq = [...(form.faq || [])];
     newFaq.splice(index, 1);
@@ -129,10 +108,10 @@ export const CreateServicePage = () => {
 
           <form
             onSubmit={handleSubmit}
-            className="space-y-12 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-800 rounded-[2.5rem] p-4 md:p-6 pt-8 lg:p-12 shadow-2xl"
+            className="space-y-12 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-4 md:p-6 pt-8 lg:p-12 shadow-2xl"
           >
             <header>
-              <h1 className="text-3xl font-semibold uppercase dark:text-white">Create New Service</h1>
+              <h1 className="text-3xl font-semibold  dark:text-white">Create New Service</h1>
               <p className="text-gray-500 mt-2 font-medium dark:text-gray-400">
                 Configure your professional listing details below.
               </p>
@@ -140,13 +119,13 @@ export const CreateServicePage = () => {
 
             {/* 01. ESSENTIAL INFO */}
             <section className="space-y-6">
-              <h2 className="text-base font-bold text-purple-500 uppercase  border-b pb-2 border-purple-100">
+              <h2 className="text-base font-bold text-purple-500  border-b pb-2 border-purple-100">
                 01. Essential Information
               </h2>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="text-sm uppercase font-semi-bold text-gray-400 dark:text-gray-200">Service Title *</label>
+                  <label className="text-base font-semi-bold text-gray-400 dark:text-gray-200">Service Title *</label>
                   <input
                     required
                     className="w-full bg-gray-100 dark:bg-white rounded-2xl mt-1 p-4"
@@ -155,7 +134,7 @@ export const CreateServicePage = () => {
                   />
                 </div>
                 <div>
-                  <label className="text-sm uppercase font-semi-bold text-gray-400 dark:text-gray-200">Category *</label>
+                  <label className="text-base font-semi-bold text-gray-400 dark:text-gray-200">Category *</label>
                   <input
                     required
                     className="w-full bg-gray-100 dark:bg-white rounded-2xl mt-1 p-4"
@@ -166,7 +145,7 @@ export const CreateServicePage = () => {
               </div>
 
               <div>
-                <label className="text-sm uppercase font-semi-bold text-gray-400 dark:text-gray-200">Subcategory</label>
+                <label className="text-base font-semi-bold text-gray-400 dark:text-gray-200">Subcategory</label>
                 <input
                   className="w-full bg-gray-100 dark:bg-white rounded-2xl mt-1 p-4"
                   onChange={(e) => setForm({ ...form, subcategory: e.target.value })}
@@ -175,7 +154,7 @@ export const CreateServicePage = () => {
               </div>
 
               <div>
-                <label className="text-sm uppercase font-semi-bold text-gray-400 dark:text-gray-200">Description *</label>
+                <label className="text-base  font-semi-bold text-gray-400 dark:text-gray-200">Description *</label>
                 <textarea
                   required
                   className="w-full bg-gray-100 dark:bg-white rounded-2xl p-4 h-32 resize-none mt-1"
@@ -187,7 +166,7 @@ export const CreateServicePage = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="relative">
                   <div>
-                    <label className="text-sm uppercase font-semi-bold text-gray-400 dark:text-gray-200">Price *</label>
+                    <label className="text-base font-semi-bold text-gray-400 dark:text-gray-200">Price *</label>
                     <input
                       required
                       type="number"
@@ -198,7 +177,7 @@ export const CreateServicePage = () => {
                   </div>
                 </div>
                 <div>
-                  <label className="text-sm uppercase font-semi-bold text-gray-400 dark:text-gray-200">Currency *</label>
+                  <label className="text-base font-semi-bold text-gray-400 dark:text-gray-200">Currency *</label>
                   <input
                     className="w-full bg-gray-100 dark:bg-white rounded-2xl p-4 mt-1"
                     value={form.currency}
@@ -211,13 +190,13 @@ export const CreateServicePage = () => {
 
             {/* 02. LOGISTICS */}
             <section className="space-y-6 pt-6">
-              <h2 className="text-base font-bold text-purple-500 uppercase border-b pb-2 border-purple-100 dark:border-gray-300">
+              <h2 className="text-base font-bold text-purple-500  border-b pb-2 border-purple-100 dark:border-gray-300">
                 02. Logistics & Status
               </h2>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                <label className="text-sm uppercase font-semi-bold text-gray-400 dark:text-gray-200">Delivery time</label>
+                <label className="text-base font-semi-bold text-gray-400 dark:text-gray-200">Delivery time</label>
                 <div className="relative">
                   <Clock className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" size={18} />
                   <input
@@ -228,7 +207,7 @@ export const CreateServicePage = () => {
                 </div>
                 </div>
                 <div>
-                <label className="text-sm uppercase font-semi-bold text-gray-400 dark:text-gray-200">Location</label>
+                <label className="text-base font-semi-bold text-gray-400 dark:text-gray-200">Location</label>
                 <div className="relative">
                   <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                   <input
@@ -263,13 +242,13 @@ export const CreateServicePage = () => {
 
             {/* 03. TAGS & IMAGES */}
             <section className="space-y-6 pt-6">
-              <h2 className="text-base font-bold text-purple-500 uppercase border-b pb-2 border-purple-100 dark:border-gray-300">
+              <h2 className="text-base font-bold text-purple-500 border-b pb-2 border-purple-100 dark:border-gray-300">
                 03. Tags & Images
               </h2>
 
               {/* Tags */}
               <div className="space-y-3">
-                <label className="text-sm uppercase font-semi-bold text-gray-400 dark:text-gray-200">Tags</label>
+                <label className="text-base font-semi-bold text-gray-400 dark:text-gray-200">Tags</label>
                 <div className="flex flex-col md:flex-row gap-2 mt-1">
                   <input
                     value={tempTag}
@@ -311,7 +290,7 @@ export const CreateServicePage = () => {
 
               {/* Images */}
               <div className="space-y-3">
-                <label className="text-sm uppercase font-semi-bold text-gray-400 dark:text-gray-200">Images</label>
+                <label className="text-base font-semi-bold text-gray-400 dark:text-gray-200">Images</label>
                 <div className="flex flex-col md:flex-row gap-2 mt-1">
                   <input
                     value={tempImg}
@@ -359,17 +338,17 @@ export const CreateServicePage = () => {
 
             {/* 04. PACKAGES, REQUIREMENTS, FAQ */}
             <section className="space-y-10 pt-6">
-              <h2 className="text-base font-bold text-purple-500 uppercase border-b pb-2 border-purple-100 dark:border-gray-100">
+              <h2 className="text-base font-bold text-purple-500 border-b pb-2 border-purple-100 dark:border-gray-100">
                 04. Packages, Requirements & FAQ
               </h2>
 
               {/* Packages */}
               <div className="space-y-3">
-                <label className="text-sm uppercase font-semi-bold text-gray-400 dark:text-gray-200">Packages</label>
+                <label className="text-base font-semi-bold text-gray-400 dark:text-gray-200">Packages</label>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 md:gap-2 lg:gap-4 bg-gray-100 dark:bg-gray-800 px-2 p-6 md:px-4 md:p-4 rounded-3xl space-y-3 mt-1">
 
                   <div className="flex flex-col ">
-                    <label className="text-xs font-semi-bold uppercase text-gray-400">Name</label>
+                    <label className="text-sm font-semi-bold text-gray-400">Name</label>
                     <input
                       placeholder=""
                       value={tempPkg.name}
@@ -378,7 +357,7 @@ export const CreateServicePage = () => {
                     />
                   </div>
                   <div className="flex flex-col">
-                    <label className="text-xs font-semi-bold uppercase text-gray-400 mt-1">Description</label>
+                    <label className="text-sm font-semi-bold text-gray-400 mt-1">Description</label>
                     <input
                       placeholder=""
                       value={tempPkg.description}
@@ -387,7 +366,7 @@ export const CreateServicePage = () => {
                     />
                   </div>
                   <div className="flex flex-col">
-                    <label className="text-xs font-semi-bold uppercase text-gray-400">Price</label>
+                    <label className="text-sm font-semi-bold text-gray-400">Price</label>
                     <input
                       type="number"
                       placeholder=""
@@ -436,7 +415,7 @@ export const CreateServicePage = () => {
 
               {/* Requirements */}
               <div className="space-y-3">
-                <label className="text-sm uppercase font-semi-bold text-gray-400 dark:text-gray-200">Requirement</label>
+                <label className="text-base font-semi-bold text-gray-400 dark:text-gray-200">Requirement</label>
                 <div className="flex flex-col md:flex-row gap-2">
                   <input
                     value={tempReq}
@@ -476,7 +455,7 @@ export const CreateServicePage = () => {
 
               {/* FAQ */}
               <div className="space-y-3">
-                <label className="text-sm uppercase font-semi-bold text-gray-400 dark:text-gray-200">FAQ</label>
+                <label className="text-base font-semi-bold text-gray-400 dark:text-gray-200">FAQ</label>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-100 dark:bg-gray-800 p-4 rounded-3xl mt-1">
                   <input
                     placeholder="Question"
@@ -531,9 +510,9 @@ export const CreateServicePage = () => {
 
             <button
               disabled={mutation.isPending}
-              className="w-full  py-4 bg-linear-to-r from-purple-500 to-blue-500 hover:bg-purple-600 text-white uppercase  rounded-xl transition-all shadow-xl shadow-purple-500/20 flex items-center justify-center gap-3 active:scale-95 disabled:opacity-50"
+              className="w-full  py-4 bg-linear-to-r from-purple-500 to-pink-500 hover:bg-purple-600 text-white  rounded-xl transition-all shadow-xl shadow-purple-500/20 flex items-center justify-center gap-3 active:scale-95 disabled:opacity-50"
             >
-              {mutation.isPending ? "PROCESSING..." : <>PUBLISH SERVICE <Send size={22} /></>}
+              {mutation.isPending ? "Processing..." : <>Publish Service <Send size={22} /></>}
             </button>
           </form>
         </div>

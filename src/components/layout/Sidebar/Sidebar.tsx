@@ -85,7 +85,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ user, activeTab, collapsed, on
     if (pathname === '/dashboard') return 'home';
     if (pathname.startsWith('/profile')) return 'profile';
     //if (pathname === '/ai-matches') return 'matches';
-    if (pathname === '/matching') return 'matching';
+    if (pathname === '/ai-matches') return 'matching';
     if (pathname.startsWith('/collaborations')) return 'collaborations';
     if (pathname === '/streaming') return 'streaming';
 
@@ -112,7 +112,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ user, activeTab, collapsed, on
     { id: 'home', icon: House, label: 'Home', count: notifications.matches, path: '/dashboard' },
     { id: 'profile', icon: User2, label: 'Profile', path: '/profile' },
     //{ id: 'matches', icon: Heart, label: 'AI Matches', count: notifications.matches, path: '/ai-matches' },
-    { id: 'matching', icon: Heart, label: 'Matching', path: '/matching' },
+    { id: 'matching', icon: Heart, label: 'Matching', path: '/ai-matches' },
     { id: 'collaborations', icon: Users, label: 'Collaborations', count: notifications.collaborations, path: '/collaborations' },
     //{ id: 'streaming', icon: Users, label: 'Live Streaming', path: '/streaming' }
   ];
