@@ -7,7 +7,7 @@ import { Loader2, Heart, X, RefreshCw } from "lucide-react";
 import { motion } from "framer-motion";
 import { BASE_URL } from "@/config/baseUrl";
 import type { MatchSuggestion, CreatorProfile } from "@/types/matching.types";
-import { getAccessToken } from "@/store/authSelectors";
+import { getAccessToken } from "@/stores/auth.store";
 import { Button } from "@/components/ui/button";
 //import PreferencesForm from "@/components/matching/PreferencesForm";
 //import MatchCard from "@/components/matching/MatchCard";

@@ -1,16 +1,7 @@
 'use client';
 
 import React, { useEffect } from 'react';
-import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import {
-  setRightSidebarOpen,
-  setSidebarCollapsed,
-  setSidebarInitialized,
-  setSidebarOpen,
-  toggleRightSidebarOpen,
-  toggleSidebarCollapse,
-  toggleSidebarOpen,
-} from '@/store/slices/uiSlice';
+import { useUiStore } from '@/stores/ui.store';
 
 interface SidebarContextType {
   sidebarCollapsed: boolean;
@@ -26,20 +17,25 @@ interface SidebarContextType {
 }
 
 export const useSidebar = (): SidebarContextType => {
-  const dispatch = useAppDispatch();
-  const sidebar = useAppSelector((state) => state.ui.sidebar);
+  const sidebar = useUiStore((state) => state.sidebar);
+  const setSidebarCollapsed = useUiStore((state) => state.setSidebarCollapsed);
+  const setSidebarOpen = useUiStore((state) => state.setSidebarOpen);
+  const setRightSidebarOpen = useUiStore((state) => state.setRightSidebarOpen);
+  const toggleSidebarCollapse = useUiStore((state) => state.toggleSidebarCollapse);
+  const toggleSidebarOpen = useUiStore((state) => state.toggleSidebarOpen);
+  const toggleRightSidebarOpen = useUiStore((state) => state.toggleRightSidebarOpen);
 
   return {
     sidebarCollapsed: sidebar.sidebarCollapsed,
     sidebarOpen: sidebar.sidebarOpen,
     rightSidebarOpen: sidebar.rightSidebarOpen,
     isInitialized: sidebar.isInitialized,
-    setSidebarCollapsed: (collapsed) => dispatch(setSidebarCollapsed(collapsed)),
-    setSidebarOpen: (open) => dispatch(setSidebarOpen(open)),
-    setRightSidebarOpen: (open) => dispatch(setRightSidebarOpen(open)),
-    toggleSidebarCollapse: () => dispatch(toggleSidebarCollapse()),
-    toggleSidebarOpen: () => dispatch(toggleSidebarOpen()),
-    toggleRightSidebarOpen: () => dispatch(toggleRightSidebarOpen()),
+    setSidebarCollapsed,
+    setSidebarOpen,
+    setRightSidebarOpen,
+    toggleSidebarCollapse,
+    toggleSidebarOpen,
+    toggleRightSidebarOpen,
   };
 };
 
@@ -48,23 +44,26 @@ interface SidebarProviderProps {
 }
 
 export const SidebarProvider: React.FC<SidebarProviderProps> = ({ children }) => {
-  const dispatch = useAppDispatch();
-  const { sidebarCollapsed, isInitialized } = useAppSelector((state) => state.ui.sidebar);
+  const sidebarCollapsed = useUiStore((state) => state.sidebar.sidebarCollapsed);
+  const isInitialized = useUiStore((state) => state.sidebar.isInitialized);
+  const setSidebarCollapsed = useUiStore((state) => state.setSidebarCollapsed);
+  const setSidebarOpen = useUiStore((state) => state.setSidebarOpen);
+  const setSidebarInitialized = useUiStore((state) => state.setSidebarInitialized);
 
   useEffect(() => {
     const savedCollapsedState = localStorage.getItem('sidebarCollapsed');
     const isLargeScreen = window.innerWidth >= 1280;
 
     if (savedCollapsedState !== null && isLargeScreen) {
-      dispatch(setSidebarCollapsed(JSON.parse(savedCollapsedState)));
+      setSidebarCollapsed(JSON.parse(savedCollapsedState));
     } else if (!isLargeScreen) {
-      dispatch(setSidebarCollapsed(true));
+      setSidebarCollapsed(true);
     } else {
-      dispatch(setSidebarCollapsed(false));
+      setSidebarCollapsed(false);
     }
 
-    dispatch(setSidebarInitialized(true));
-  }, [dispatch]);
+    setSidebarInitialized(true);
+  }, [setSidebarCollapsed, setSidebarInitialized]);
 
   useEffect(() => {
     if (isInitialized) {
@@ -76,21 +75,21 @@ export const SidebarProvider: React.FC<SidebarProviderProps> = ({ children }) =>
     if (!isInitialized) return;
 
     const handleResize = () => {
-      if (window.innerWidth >= 1024) dispatch(setSidebarOpen(false));
+      if (window.innerWidth >= 1024) setSidebarOpen(false);
 
       if (window.innerWidth < 1280) {
-        dispatch(setSidebarCollapsed(true));
+        setSidebarCollapsed(true);
       } else {
         const savedCollapsedState = localStorage.getItem('sidebarCollapsed');
         if (savedCollapsedState !== null) {
-          dispatch(setSidebarCollapsed(JSON.parse(savedCollapsedState)));
+          setSidebarCollapsed(JSON.parse(savedCollapsedState));
         }
       }
     };
 
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, [dispatch, isInitialized]);
+  }, [isInitialized, setSidebarOpen, setSidebarCollapsed]);
 
   return <>{children}</>;
 };

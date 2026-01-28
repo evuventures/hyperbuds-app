@@ -1,7 +1,7 @@
 // src/lib/api/client.ts
 import axios, { AxiosError } from "axios";
 import { API_BASE_URL } from "./endpoints";
-import { getAccessToken } from "@/store/authSelectors";
+import { getAccessToken, useAuthStore } from "@/stores/auth.store";
 
 // ✅ 1. Base URL (auto from .env or fallback)
 const baseURL = API_BASE_URL;
@@ -46,8 +46,7 @@ apiClient.interceptors.response.use(
     // 🔒 Handle expired or invalid tokens
     if (status === 401) {
       console.warn("⚠️ Unauthorized. Clearing token and redirecting...");
-      localStorage.removeItem("accessToken");
-      store.dispatch(clearAuth());
+      useAuthStore.getState().clearAuth();
 
       // Redirect to login if we're in the browser
       if (typeof window !== "undefined") {

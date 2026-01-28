@@ -4,7 +4,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import type { PlatformType, UnifiedPlatformData, PlatformAPIError } from '@/types/platform.types';
-import { getAccessToken } from '@/store/authSelectors';
+import { getAccessToken } from '@/stores/auth.store';
 
 interface UsePlatformDataOptions {
    enabled?: boolean;

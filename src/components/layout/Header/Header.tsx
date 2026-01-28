@@ -20,7 +20,6 @@ import Link from 'next/link';
 import { NotificationDropdown } from './NotificationDropdown';
 import { UserSearchDropdown } from './UserSearchDropdown';
 import { useUnreadNotificationCount } from '@/hooks/features/useNotifications';
-import { useNotificationSocket } from '@/hooks/features/useNotificationSocket';
 
 interface HeaderProps {
   user: {
@@ -37,6 +36,7 @@ export const Header: React.FC<HeaderProps> = ({ user, onMenuClick }) => {
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [avatarError, setAvatarError] = useState(false);
   const { isDarkMode, toggleDarkMode } = useTheme();
   const { logout } = useAuth();
   const router = useRouter();
@@ -47,10 +47,10 @@ export const Header: React.FC<HeaderProps> = ({ user, onMenuClick }) => {
   const userMenuButtonRef = useRef<HTMLButtonElement>(null);
   const userMenuDropdownRef = useRef<HTMLDivElement>(null);
 
-  // Connect to notification WebSocket for real-time updates
-  useNotificationSocket({
-    enabled: true,
-  });
+  // Reset avatar error when user changes
+  useEffect(() => {
+    setAvatarError(false);
+  }, [user?.avatar]);
 
   // Handle search input focus to show dropdown
   useEffect(() => {
@@ -215,12 +215,22 @@ export const Header: React.FC<HeaderProps> = ({ user, onMenuClick }) => {
               className="flex items-center gap-3 p-1.5 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
             >
               <div className="flex gap-2 items-center">
-                <div className="flex justify-center items-center w-8 h-8 from-purple-500 to-pink-500 rounded-full bg-linear-to-r">
-                  <span className="text-sm font-medium text-white">
-                    {/* {user.username?.[0]?.toUpperCase() || user.email[0].toUpperCase()} */}
-                    <img src={user?.avatar} alt="User-img" />
-                  </span>
-                </div>
+                {user?.avatar && !avatarError ? (
+                  <div className="relative flex justify-center items-center w-8 h-8 overflow-hidden rounded-full">
+                    <img 
+                      src={user.avatar} 
+                      alt={user.displayName || user.username || 'User'} 
+                      className="object-cover w-full h-full"
+                      onError={() => setAvatarError(true)}
+                    />
+                  </div>
+                ) : (
+                  <div className="flex justify-center items-center w-8 h-8 from-purple-500 to-pink-500 rounded-full bg-linear-to-r">
+                    <span className="text-sm font-medium text-white">
+                      {(user.username?.[0] || user.email[0] || 'U').toUpperCase()}
+                    </span>
+                  </div>
+                )}
                 <div className="hidden text-left lg:block">
                   <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
                     {user.displayName || user.username || 'User'}
@@ -239,11 +249,22 @@ export const Header: React.FC<HeaderProps> = ({ user, onMenuClick }) => {
               >
                 <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700">
                   <div className="flex gap-3 items-center">
-                    <div className="flex justify-center items-center w-10 h-10 from-purple-500 to-pink-500 rounded-full bg-linear-to-r">
-                      <span className="font-medium text-white">
-                        {user.username?.[0]?.toUpperCase() || user.email[0].toUpperCase()}
-                      </span>
-                    </div>
+                    {user?.avatar && !avatarError ? (
+                      <div className="relative flex justify-center items-center w-10 h-10 overflow-hidden rounded-full">
+                        <img 
+                          src={user.avatar} 
+                          alt={user.displayName || user.username || 'User'} 
+                          className="object-cover w-full h-full"
+                          onError={() => setAvatarError(true)}
+                        />
+                      </div>
+                    ) : (
+                      <div className="flex justify-center items-center w-10 h-10 from-purple-500 to-pink-500 rounded-full bg-linear-to-r">
+                        <span className="font-medium text-white">
+                          {(user.username?.[0] || user.email[0] || 'U').toUpperCase()}
+                        </span>
+                      </div>
+                    )}
                     <div className='max-w-40'>
                       <p className="font-medium text-gray-900 dark:text-gray-100">
                         {user.displayName || user.username || 'User'}

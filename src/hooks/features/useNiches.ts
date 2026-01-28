@@ -20,7 +20,8 @@ export const useNiches = () => {
     queryKey: NICHE_KEYS.list(),
     queryFn: () => updateApi.getNiches(),
     staleTime: 10 * 60 * 1000, // 10 minutes - niches don't change often
-    select: (data) => data.niches,
+    select: (data) => (Array.isArray(data?.niches) ? data.niches : []),
+    enabled: typeof window !== "undefined", // skip during SSR to avoid prerender errors
   });
 };
 

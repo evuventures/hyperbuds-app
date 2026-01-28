@@ -17,7 +17,7 @@ import {
    // PaymentFormData // Removed unused import
 } from '@/types/payment.types';
 import { paymentAPI } from '@/lib/api/payment.api';
-import { getAccessToken } from '@/store/authSelectors';
+import { getAccessToken } from '@/stores/auth.store';
 
 // Action Types
 type PaymentAction =

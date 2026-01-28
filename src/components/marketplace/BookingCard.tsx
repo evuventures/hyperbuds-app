@@ -25,13 +25,13 @@ export function BookingCard({ booking, role, onStatusUpdate, isArchived = false 
       ? booking.serviceId._id
       : booking.serviceId;
 
-  const buyerName =
+  const buyerName: string =
     typeof booking.buyerId === "object" && booking.buyerId
-      ? booking.buyerId.name || booking.buyerId.username || "Unknown"
+      ? String(booking.buyerId.name || booking.buyerId.username || "Unknown")
       : "Unknown";
-  const sellerName =
+  const sellerName: string =
     typeof booking.sellerId === "object" && booking.sellerId
-      ? booking.sellerId.name || booking.sellerId.username || "Unknown"
+      ? String(booking.sellerId.name || booking.sellerId.username || "Unknown")
       : "Unknown";
 
   const formatDate = (dateString?: string) => {

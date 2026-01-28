@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import {
     Conversation,
     Message,
@@ -10,7 +11,6 @@ import {
     MessageSearchResult
 } from '@/types/messaging.types';
 import { messagingAPI } from '@/lib/api/messaging.api';
-import { messagingSocketService } from '@/lib/socket/messagingSocket';
 import { getUserIdFromToken, isTokenValid } from '@/lib/utils/jwt';
 
 interface UseMessagingReturn {
@@ -68,112 +68,43 @@ export function useMessaging(accessToken: string): UseMessagingReturn {
     const typingTimeouts = useRef<Record<string, NodeJS.Timeout>>({});
     const currentUserId = useRef<string>('');
 
-    // Setup socket event listeners (Memoized with useCallback)
-    const setupSocketListeners = useCallback(() => {
-        // New message received
-        const handleNewMessage = (data: { conversationId: string; message: Message }) => {
-            setMessages(prev => {
-                // Avoid duplicates
-                if (prev.some(m => m._id === data.message._id)) return prev;
-                return [...prev, data.message];
-            });
+    // Poll messages when conversation is active (5s interval)
+    const { data: polledMessages } = useQuery({
+        queryKey: ['messages', currentConversation?._id],
+        queryFn: async () => {
+            if (!currentConversation || !accessToken) return null;
+            const result = await messagingAPI.getMessages(accessToken, currentConversation._id, 1, 50);
+            return result.messages;
+        },
+        enabled: !!currentConversation && !!accessToken && isTokenValid(accessToken),
+        refetchInterval: currentConversation ? 5000 : false, // Poll every 5s when conversation active
+    });
 
-            // Update conversation's last message
-            setConversations(prev => prev.map(conv =>
-                conv._id === data.conversationId
-                    ? {
-                        ...conv,
-                        lastMessage: {
-                            _id: data.message._id,
-                            content: data.message.content,
-                            createdAt: data.message.createdAt
-                        },
-                        lastActivity: data.message.createdAt,
-                        unreadCount: conv._id === currentConversation?._id ? conv.unreadCount : conv.unreadCount + 1
-                    }
-                    : conv
-            ));
-        };
+    // Update messages when polled data changes
+    useEffect(() => {
+        if (polledMessages) {
+            setMessages(polledMessages.reverse());
+        }
+    }, [polledMessages]);
 
-        // Message read status
-        const handleMessageRead = (data: { conversationId: string; readBy: string; messageIds: string[]; readAt: string }) => {
-            setMessages(prev => prev.map(msg =>
-                data.messageIds.includes(msg._id) ? { ...msg, isRead: true, readAt: data.readAt } : msg
-            ));
-        };
+    // Poll conversations (30s interval when not actively viewing messages)
+    const { data: polledConversations } = useQuery({
+        queryKey: ['conversations'],
+        queryFn: async () => {
+            if (!accessToken) return null;
+            const result = await messagingAPI.getConversations(accessToken);
+            return result.conversations;
+        },
+        enabled: !!accessToken && isTokenValid(accessToken),
+        refetchInterval: 30000, // Poll every 30s
+    });
 
-        // Message deleted
-        const handleMessageDeleted = (data: { conversationId: string; messageId: string; deletedBy: string }) => {
-            setMessages(prev => prev.filter(msg => msg._id !== data.messageId));
-        };
-
-        // Typing indicators
-        const handleTyping = (data: { conversationId: string; userId: string; isTyping: boolean }) => {
-            if (data.userId === currentUserId.current) return; // Don't show own typing
-
-            if (data.isTyping) {
-                setTypingUsers(prev => {
-                    const conversationTyping = prev[data.conversationId] || [];
-                    const userAlreadyTyping = conversationTyping.some(user => user.userId === data.userId);
-
-                    if (userAlreadyTyping) return prev;
-
-                    return {
-                        ...prev,
-                        [data.conversationId]: [
-                            ...conversationTyping,
-                            { userId: data.userId, name: `User ${data.userId}`, timestamp: new Date().toISOString() }
-                        ]
-                    };
-                });
-            } else {
-                setTypingUsers(prev => ({
-                    ...prev,
-                    [data.conversationId]: (prev[data.conversationId] || []).filter(user => user.userId !== data.userId)
-                }));
-            }
-        };
-
-        // Conversation updates
-        const handleConversationUpdated = (conversation: Conversation) => {
-            setConversations(prev => prev.map(conv =>
-                conv._id === conversation._id ? conversation : conv
-            ));
-
-            if (currentConversation?._id === conversation._id) {
-                setCurrentConversation(conversation);
-            }
-        };
-
-        // User status updates
-        const handleUserStatus = (data: { userId: string; status: 'online' | 'offline' | 'away' | undefined }) => {
-            if (!data.status) return;
-
-            setConversations(prev => prev.map(conv => ({
-                ...conv,
-                participants: conv.participants.map(participant =>
-                    participant._id === data.userId ? { ...participant, status: data.status! } : participant
-                )
-            })));
-        };
-
-        // Register listeners
-        messagingSocketService.onNewMessage(handleNewMessage);
-        messagingSocketService.onMessageRead(handleMessageRead);
-        messagingSocketService.onMessageDeleted(handleMessageDeleted);
-        messagingSocketService.onTyping(handleTyping);
-        messagingSocketService.onConversationUpdated(handleConversationUpdated);
-        messagingSocketService.onUserStatus(handleUserStatus);
-
-        return () => {
-            messagingSocketService.offNewMessage(handleNewMessage);
-            messagingSocketService.offMessageRead(handleMessageRead);
-            messagingSocketService.offMessageDeleted(handleMessageDeleted);
-            messagingSocketService.offTyping(handleTyping);
-            messagingSocketService.offConversationUpdated(handleConversationUpdated);
-            messagingSocketService.offUserStatus(handleUserStatus);
-        };
-    }, [currentConversation?._id]);
+    // Update conversations when polled data changes
+    useEffect(() => {
+        if (polledConversations) {
+            setConversations(polledConversations);
+        }
+    }, [polledConversations]);
 
 
     // Load conversations (Memoized with useCallback)
@@ -232,11 +163,6 @@ export function useMessaging(accessToken: string): UseMessagingReturn {
             // Load messages
             await loadMessages(conversationId);
 
-            // Join conversation room for real-time updates
-            if (messagingSocketService.isConnected()) {
-                messagingSocketService.joinConversation(conversationId);
-            }
-
             // Mark as read
             await messagingAPI.markMessagesAsRead(accessToken, conversationId);
 
@@ -288,10 +214,7 @@ export function useMessaging(accessToken: string): UseMessagingReturn {
                     : conv
             ));
 
-            // Emit typing stop event
-            if (messagingSocketService.isConnected()) {
-                messagingSocketService.stopTyping(conversationId);
-            }
+            // Typing stop handled by timeout
 
         } catch (err) {
             console.error('Failed to send message:', err);
@@ -403,23 +326,16 @@ export function useMessaging(accessToken: string): UseMessagingReturn {
 
  // Handle typing stop (Memoized with useCallback)
     const handleTypingStop = useCallback((conversationId: string) => {
-        if (!currentUserId.current) return;
-
-        messagingSocketService.stopTyping(conversationId);
-
         // Clear timeout
         if (typingTimeouts.current[conversationId]) {
             clearTimeout(typingTimeouts.current[conversationId]);
             delete typingTimeouts.current[conversationId];
         }
+        // Note: Typing indicators removed with socket - polling will update UI
     }, []);
     
     // Handle typing start (Memoized with useCallback)
     const handleTypingStart = useCallback((conversationId: string) => {
-        if (!currentUserId.current) return;
-
-        messagingSocketService.startTyping(conversationId);
-
         // Clear existing timeout
         if (typingTimeouts.current[conversationId]) {
             clearTimeout(typingTimeouts.current[conversationId]);
@@ -429,7 +345,8 @@ export function useMessaging(accessToken: string): UseMessagingReturn {
         typingTimeouts.current[conversationId] = setTimeout(() => {
             handleTypingStop(conversationId);
         }, 3000);
-    }, [handleTypingStop]); // FIXED: Added missing dependency
+        // Note: Typing indicators removed with socket - polling will update UI
+    }, [handleTypingStop]);
 
 
    
@@ -487,7 +404,7 @@ export function useMessaging(accessToken: string): UseMessagingReturn {
     }, [currentConversation, loadMessages]);
 
 
-    // Initialize messaging and setup sockets
+    // Initialize messaging (load conversations on mount)
     useEffect(() => {
         if (!accessToken) return;
 
@@ -495,35 +412,6 @@ export function useMessaging(accessToken: string): UseMessagingReturn {
             try {
                 setLoadingConversations(true);
                 await loadConversations();
-
-                // Connect to socket
-                if (!isTokenValid(accessToken)) {
-                    console.warn('Invalid token, skipping socket connection');
-                    return;
-                }
-                const socket = messagingSocketService.connect(accessToken);
-                setupSocketListeners();
-
-                const handleConnect = () => setIsConnected(true);
-                const handleDisconnect = () => setIsConnected(false);
-
-                socket.on('connect', handleConnect);
-                socket.on('disconnect', handleDisconnect);
-
-                setIsConnected(socket.connected);
-
-                const connectionTimeout = setTimeout(() => {
-                    if (!socket.connected) {
-                        console.warn('Socket connection timeout, continuing without real-time features');
-                        setIsConnected(false);
-                    }
-                }, 5000);
-
-                return () => {
-                    clearTimeout(connectionTimeout);
-                    socket.off('connect', handleConnect);
-                    socket.off('disconnect', handleDisconnect);
-                };
             } catch (err) {
                 setError(err instanceof Error ? err.message : 'Failed to initialize messaging');
             } finally {
@@ -532,13 +420,7 @@ export function useMessaging(accessToken: string): UseMessagingReturn {
         };
 
         initializeMessaging();
-
-        // Cleanup
-        return () => {
-            messagingSocketService.disconnect();
-            setIsConnected(false);
-        };
-    }, [accessToken, loadConversations, setupSocketListeners]); // FIXED: Added missing dependencies
+    }, [accessToken, loadConversations]);
 
 
     // Get current user ID from JWT token
@@ -574,8 +456,8 @@ export function useMessaging(accessToken: string): UseMessagingReturn {
         loadingMoreMessages,
         hasMoreMessages,
 
-        // Connection state
-        isConnected,
+        // Connection state (always false - no socket)
+        isConnected: false,
         error,
 
         // Actions

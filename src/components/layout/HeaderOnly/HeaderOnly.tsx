@@ -7,7 +7,7 @@ import DashboardSkeleton from '@/components/ui/skeleton';
 import { useSidebar } from '@/context/SidebarContext';
 import { BASE_URL } from '../../../config/baseUrl';
 import { ThemeProvider } from '@/context/Theme';
-import { getAccessToken } from '@/store/authSelectors';
+import { getAccessToken } from '@/stores/auth.store';
 
 interface HeaderOnlyLayoutProps {
    children: React.ReactNode;

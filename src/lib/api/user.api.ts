@@ -1,6 +1,6 @@
 // src/lib/api/user.api.ts
 import { BASE_URL } from "@/config/baseUrl";
-import { getAccessToken } from "@/store/authSelectors";
+import { getAccessToken } from "@/stores/auth.store";
 import { apiClient } from "./client";
 
 export interface UserSearchResult {

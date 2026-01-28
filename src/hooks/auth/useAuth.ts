@@ -3,8 +3,7 @@
 import { useCallback } from 'react'
 import { googleAuth } from '@/lib/api/auth.api'
 import { BASE_URL } from '@/config/baseUrl'
-import { useAppDispatch, useAppSelector } from '@/store/hooks'
-import { clearAuth, setError, setLoading, setToken, setUser } from '@/store/slices/authSlice'
+import { useAuthStore } from '@/stores/auth.store'
 
 interface User {
   id?: string
@@ -17,12 +16,11 @@ interface User {
 }
 
 export function useAuth() {
-  const dispatch = useAppDispatch()
-  const { user, loading, token } = useAppSelector((state: any) => state.auth)
+  const { user, loading, token, setToken, setUser, setLoading, setError, clearAuth } = useAuthStore()
 
   const login = useCallback(async (email: string, password: string) => {
-    dispatch(setLoading(true))
-    dispatch(setError(null))
+    setLoading(true)
+    setError(null)
 
     const res = await fetch(`${BASE_URL}/api/v1/auth/login`, {
       method: 'POST',
@@ -33,17 +31,16 @@ export function useAuth() {
 
     const data = await res.json()
     if (!res.ok) {
-      dispatch(setLoading(false))
+      setLoading(false)
       throw new Error(data.message || 'Login failed')
     }
 
     if (data.accessToken) {
-      localStorage.setItem('accessToken', data.accessToken)
-      dispatch(setToken(data.accessToken))
+      setToken(data.accessToken)
     }
 
     if (data.user) {
-      dispatch(setUser(data.user))
+      setUser(data.user)
     } else if (data.accessToken) {
       try {
         const userRes = await fetch(`${BASE_URL}/api/v1/users/me`, {
@@ -53,30 +50,29 @@ export function useAuth() {
         })
         if (userRes.ok) {
           const userData = await userRes.json()
-          dispatch(setUser(userData.user || userData))
+          setUser(userData.user || userData)
         }
       } catch (err) {
         console.error('Error fetching user data:', err)
       }
     }
 
-    dispatch(setLoading(false))
+    setLoading(false)
     return data
-  }, [dispatch])
+  }, [setToken, setUser, setLoading, setError])
 
   const googleLogin = useCallback(async (code: string) => {
-    dispatch(setLoading(true))
-    dispatch(setError(null))
+    setLoading(true)
+    setError(null)
 
     try {
       const data = await googleAuth(code)
       if (data.accessToken) {
-        localStorage.setItem('accessToken', data.accessToken)
-        dispatch(setToken(data.accessToken))
+        setToken(data.accessToken)
       }
 
       if (data.user) {
-        dispatch(setUser(data.user))
+        setUser(data.user)
       } else if (data.accessToken) {
         try {
           const userRes = await fetch(`${BASE_URL}/api/v1/users/me`, {
@@ -86,21 +82,21 @@ export function useAuth() {
           })
           if (userRes.ok) {
             const userData = await userRes.json()
-            dispatch(setUser(userData.user || userData))
+            setUser(userData.user || userData)
           }
         } catch (err) {
           console.error('Error fetching user data:', err)
         }
       }
 
-      dispatch(setLoading(false))
+      setLoading(false)
       return data
     } catch (error) {
-      dispatch(setLoading(false))
+      setLoading(false)
       console.error('Google login failed:', error)
       throw error
     }
-  }, [dispatch])
+  }, [setToken, setUser, setLoading, setError])
 
   const logout = useCallback(async () => {
     try {
@@ -111,10 +107,9 @@ export function useAuth() {
     } catch (err) {
       console.error('Logout error:', err)
     } finally {
-      localStorage.removeItem('accessToken')
-      dispatch(clearAuth())
+      clearAuth()
     }
-  }, [dispatch])
+  }, [clearAuth])
 
   const register = useCallback(async (userData: Partial<User> & { password: string }) => {
     const res = await fetch(`${BASE_URL}/api/v1/auth/register`, {

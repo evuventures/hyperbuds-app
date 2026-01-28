@@ -1,8 +1,7 @@
 'use client';
 
 import React, { useEffect } from 'react';
-import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { setSystemTheme, setThemeLoaded, setThemeMode, toggleDarkMode as toggleDarkModeAction } from '@/store/slices/uiSlice';
+import { useUiStore } from '@/stores/ui.store';
 
 interface ThemeContextType {
   isDarkMode: boolean;
@@ -11,13 +10,14 @@ interface ThemeContextType {
 }
 
 export const useTheme = (): ThemeContextType => {
-  const dispatch = useAppDispatch();
-  const { isDarkMode } = useAppSelector((state) => state.ui.theme);
+  const isDarkMode = useUiStore((state) => state.theme.isDarkMode);
+  const toggleDarkMode = useUiStore((state) => state.toggleDarkMode);
+  const setThemeMode = useUiStore((state) => state.setThemeMode);
 
   return {
     isDarkMode,
-    toggleDarkMode: () => dispatch(toggleDarkModeAction()),
-    setDarkMode: (isDark: boolean) => dispatch(setThemeMode(isDark ? 'dark' : 'light')),
+    toggleDarkMode,
+    setDarkMode: (isDark: boolean) => setThemeMode(isDark ? 'dark' : 'light'),
   };
 };
 
@@ -26,20 +26,22 @@ interface ThemeProviderProps {
 }
 
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
-  const dispatch = useAppDispatch();
-  const { isDarkMode, preference, isLoaded } = useAppSelector((state) => state.ui.theme);
+  const { isDarkMode, preference, isLoaded } = useUiStore((state) => state.theme);
+  const setThemeMode = useUiStore((state) => state.setThemeMode);
+  const setSystemTheme = useUiStore((state) => state.setSystemTheme);
+  const setThemeLoaded = useUiStore((state) => state.setThemeLoaded);
 
   useEffect(() => {
     const savedTheme = localStorage.getItem('hyperbuds-theme');
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
 
     if (savedTheme === 'dark' || savedTheme === 'light') {
-      dispatch(setThemeMode(savedTheme));
+      setThemeMode(savedTheme);
     } else {
-      dispatch(setSystemTheme(prefersDark));
+      setSystemTheme(prefersDark);
     }
-    dispatch(setThemeLoaded(true));
-  }, [dispatch]);
+    setThemeLoaded(true);
+  }, [setThemeMode, setSystemTheme, setThemeLoaded]);
 
   useEffect(() => {
     if (!isLoaded) return;
@@ -62,13 +64,13 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
 
     const handleChange = (e: MediaQueryListEvent) => {
       if (preference === 'system') {
-        dispatch(setSystemTheme(e.matches));
+        setSystemTheme(e.matches);
       }
     };
 
     mediaQuery.addEventListener('change', handleChange);
     return () => mediaQuery.removeEventListener('change', handleChange);
-  }, [dispatch, preference]);
+  }, [preference, setSystemTheme]);
 
   return <>{children}</>;
 };

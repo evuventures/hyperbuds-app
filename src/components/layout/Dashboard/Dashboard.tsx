@@ -7,7 +7,7 @@ import { Sidebar } from '../Sidebar/Sidebar';
 // import { RightSidebar } from '../RightSideBar/RightSidebar';
 import DashboardSkeleton from '@/components/ui/skeleton';
 import { BASE_URL } from '../../../config/baseUrl';
-import { getAccessToken } from '@/store/authSelectors';
+import { getAccessToken } from '@/stores/auth.store';
 import { Menu, X, Moon, Sun, Bell } from 'lucide-react';
 import { ThemeProvider, useTheme } from '@/context/Theme';
 import { useSidebar } from '@/context/SidebarContext';

@@ -1,5 +1,5 @@
 import { BASE_URL } from '@/config/baseUrl';
-import { getAccessToken } from '@/store/authSelectors';
+import { getAccessToken } from '@/stores/auth.store';
 
 export interface NichesResponse {
   niches: string[];

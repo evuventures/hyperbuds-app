@@ -4,8 +4,6 @@ import { ThemeProvider } from "../providers/ThemeProvider";
 import { SidebarProvider } from "../context/SidebarContext";
 import { QueryProvider } from "../providers/QueryProvider";
 import { Toaster } from "react-hot-toast";
-import { SocketProvider } from "../providers/SocketProvider";
-import { ReduxProvider } from "../providers/ReduxProvider";
 import { AuthBootstrap } from "../providers/AuthBootstrap";
 import { BookingArchiveProvider } from "../context/BookingArchiveContext";
 
@@ -43,22 +41,18 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         />
       </head>
       <body className="antialiased bg-white dark:bg-gray-900 font-sans">
-        <ReduxProvider>
-          <QueryProvider>
-            <ThemeProvider>
-              <SidebarProvider>
-                <AuthBootstrap>
-                  <SocketProvider>
-                    <BookingArchiveProvider>
-                      {children}
-                    </BookingArchiveProvider>
-                  </SocketProvider>
-                </AuthBootstrap>
-                <Toaster position="top-right" />
-              </SidebarProvider>
-            </ThemeProvider>
-          </QueryProvider>
-        </ReduxProvider>
+        <QueryProvider>
+          <ThemeProvider>
+            <SidebarProvider>
+              <AuthBootstrap>
+                <BookingArchiveProvider>
+                  {children}
+                </BookingArchiveProvider>
+              </AuthBootstrap>
+              <Toaster position="top-right" />
+            </SidebarProvider>
+          </ThemeProvider>
+        </QueryProvider>
       </body>
     </html>
   );

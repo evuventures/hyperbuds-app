@@ -1,11 +1,9 @@
 // utils/api.ts
 import { BASE_URL } from '@/config/baseUrl';
-import { getAccessToken as getStoreAccessToken } from '@/store/authSelectors';
-import { store } from '@/store/store';
-import { clearAuth } from '@/store/slices/authSlice';
+import { getAccessToken as getStoreAccessToken, useAuthStore } from '@/stores/auth.store';
 
 /**
- * Get access token from localStorage
+ * Get access token from Zustand store
  * Note: Tokens now last 3 days - no refresh needed
  */
 async function getAccessToken() {
@@ -16,8 +14,7 @@ async function getAccessToken() {
  * Clear authentication and redirect to login
  */
 function clearAuthAndRedirect() {
-  localStorage.removeItem("accessToken");
-  store.dispatch(clearAuth());
+  useAuthStore.getState().clearAuth();
   
   // Only redirect if we're in the browser and not already on auth pages
   if (typeof window !== 'undefined') {
