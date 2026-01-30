@@ -143,7 +143,7 @@ export const Header: React.FC<HeaderProps> = ({ user, onMenuClick }) => {
         {/* Search Bar */}
         <div className="hidden relative flex-1 mx-4 max-w-lg md:block" ref={searchContainerRef}>
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 w-4 h-4 text-gray-400 transform -translate-y-1/2 dark:text-gray-500" />
+            <Search className="absolute left-3 top-1/2 w-4 h-4 text-gray-600 transform -translate-y-1/2 dark:text-gray-500" />
             <input
               ref={searchInputRef}
               type="text"
@@ -155,7 +155,7 @@ export const Header: React.FC<HeaderProps> = ({ user, onMenuClick }) => {
                   setShowSearchDropdown(true);
                 }
               }}
-              className="pl-10 pr-4 py-2.5 w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 dark:focus:ring-purple-400 focus:bg-white dark:focus:bg-gray-700 transition-all duration-200 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
+              className="pl-10 pr-4 py-2.5 w-full bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 dark:focus:ring-purple-400 focus:bg-white dark:focus:bg-gray-700 transition-all duration-200 text-gray-900 dark:text-gray-100 placeholder-gray-600 dark:placeholder-gray-400"
             />
 
             {/* Search Dropdown */}
@@ -235,9 +235,9 @@ export const Header: React.FC<HeaderProps> = ({ user, onMenuClick }) => {
                   <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
                     {user.displayName || user.username || 'User'}
                   </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Premium Creator</p>
+                  <p className="text-xs text-gray-600 dark:text-gray-400">Premium Creator</p>
                 </div>
-                <ChevronDown className="hidden w-4 h-4 text-gray-400 dark:text-gray-500 lg:block" />
+                <ChevronDown className="hidden w-4 h-4 text-gray-600 dark:text-gray-500 lg:block" />
               </div>
             </button>
 
@@ -312,13 +312,13 @@ export const Header: React.FC<HeaderProps> = ({ user, onMenuClick }) => {
       {/* Mobile Search Bar 
       <div className="px-6 pb-4 md:hidden">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 w-4 h-4 text-gray-400 transform -translate-y-1/2 dark:text-gray-500" />
+          <Search className="absolute left-3 top-1/2 w-4 h-4 text-gray-600 transform -translate-y-1/2 dark:text-gray-500" />
           <input
             type="text"
             placeholder="Search..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 pr-4 py-2.5 w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 dark:focus:ring-purple-400 focus:bg-white dark:focus:bg-gray-700 transition-all duration-200 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
+            className="pl-10 pr-4 py-2.5 w-full bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 dark:focus:ring-purple-400 focus:bg-white dark:focus:bg-gray-700 transition-all duration-200 text-gray-900 dark:text-gray-100 placeholder-gray-600 dark:placeholder-gray-400"
           />
         </div>
       </div> */}

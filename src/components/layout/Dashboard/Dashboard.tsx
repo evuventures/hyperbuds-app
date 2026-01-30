@@ -5,7 +5,11 @@ import { useRouter } from 'next/navigation';
 import { Header } from '@/components/layout/Header/Header';
 import { Sidebar } from '../Sidebar/Sidebar';
 // import { RightSidebar } from '../RightSideBar/RightSidebar';
-import DashboardSkeleton from '@/components/ui/skeleton';
+import {
+  HeaderSkeleton,
+  SidebarSkeleton,
+  Skeleton,
+} from '@/components/ui/skeleton';
 import { BASE_URL } from '../../../config/baseUrl';
 import { getAccessToken } from '@/stores/auth.store';
 import { Menu, X, Moon, Sun, Bell } from 'lucide-react';
@@ -133,12 +137,58 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     fetchUser();
   }, [router]);
 
+  // When layout is loading (user fetch), keep the same shell and show skeletons only in header/sidebar.
+  // Main area always shows {children} so route-level loading.tsx can show content skeleton without full-page swap.
+  const collapsed = sidebarInitialized ? sidebarCollapsed : false;
   if (loading || !user) {
-    // Wait for sidebar to be initialized before showing skeleton with correct state
-    if (!sidebarInitialized) {
-      return <DashboardSkeleton collapsed={false} />; // Default state while initializing
-    }
-    return <DashboardSkeleton collapsed={sidebarCollapsed} />;
+    return (
+      <ThemeProvider>
+        <div className="overflow-hidden h-screen bg-linear-to-br from-gray-50 via-white to-gray-100 transition-colors duration-200 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
+          {/* Mobile Header Skeleton */}
+          <div className="fixed top-0 right-0 left-0 z-50 border-b shadow-sm backdrop-blur-lg lg:hidden bg-white/95 dark:bg-gray-900/95 border-gray-200/50 dark:border-gray-700/50">
+            <div className="flex justify-between items-center px-4 py-3">
+              <div className="flex gap-3 items-center">
+                <Skeleton className="w-9 h-9 rounded-xl" />
+                <Skeleton className="w-24 h-6" />
+              </div>
+              <div className="flex gap-2 items-center">
+                <Skeleton className="w-9 h-9 rounded-xl xl:hidden" />
+                <Skeleton className="w-8 h-8 rounded-full" />
+              </div>
+            </div>
+          </div>
+          {/* Desktop Header Skeleton */}
+          <div className="hidden lg:block">
+            <HeaderSkeleton />
+          </div>
+          <div className="flex overflow-hidden pt-16 h-full lg:pt-0">
+            <div
+              className={`
+                fixed inset-y-0 left-0 z-40 transform transition-all duration-300 ease-in-out
+                lg:relative lg:translate-x-0 lg:z-auto lg:pt-0
+                translate-x-0 hidden md:flex
+                ${collapsed ? 'lg:w-16' : 'w-60'}
+              `}
+            >
+              <div className="relative pt-16 h-full bg-white border-r shadow-xl transition-colors duration-200 lg:pt-0 dark:bg-gray-900 border-gray-200/50 dark:border-gray-700/50 lg:shadow-none">
+                <div className="h-full overflow-y-auto [&::-webkit-scrollbar]:hidden">
+                  <SidebarSkeleton collapsed={collapsed} />
+                </div>
+              </div>
+            </div>
+            <div className="flex flex-col w-full min-w-0 h-full">
+              <div className="flex h-full">
+                <main className="flex-1 overflow-y-auto [&::-webkit-scrollbar]:hidden transition-colors duration-200">
+                  <div className="w-full h-full">
+                    {children}
+                  </div>
+                </main>
+              </div>
+            </div>
+          </div>
+        </div>
+      </ThemeProvider>
+    );
   }
 
   return (

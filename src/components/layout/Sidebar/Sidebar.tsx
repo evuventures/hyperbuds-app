@@ -204,7 +204,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ user, activeTab, collapsed, on
           {[mainMenuItems, businessItems, commItems].map((section, idx) => (
             <div key={idx}>
               {!isCollapsed && (
-                <h3 className="px-3 mb-1 text-xs font-semibold tracking-wider text-gray-500 uppercase dark:text-gray-400">
+                <h3 className="px-3 mb-1 text-xs font-semibold tracking-wider text-gray-600 uppercase dark:text-gray-400">
                   {idx === 0 ? "Main" : idx === 1 ? "Business" : "Communication"}
                 </h3>
               )}

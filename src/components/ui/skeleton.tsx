@@ -245,5 +245,10 @@ const DashboardSkeleton: React.FC<{ collapsed?: boolean }> = ({ collapsed = fals
   );
 };
 
-export { Skeleton };
+export {
+  Skeleton,
+  HeaderSkeleton,
+  SidebarSkeleton,
+  MainContentSkeleton,
+};
 export default DashboardSkeleton;

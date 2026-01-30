@@ -40,7 +40,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           }}
         />
       </head>
-      <body className="antialiased bg-white dark:bg-gray-900 font-sans">
+      <body className="antialiased bg-white dark:bg-gray-900 font-sans text-gray-900 dark:text-gray-100">
         <QueryProvider>
           <ThemeProvider>
             <SidebarProvider>

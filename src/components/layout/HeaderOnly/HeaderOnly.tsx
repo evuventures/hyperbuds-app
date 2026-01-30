@@ -3,8 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Header } from '@/components/layout/Header/Header';
-import DashboardSkeleton from '@/components/ui/skeleton';
-import { useSidebar } from '@/context/SidebarContext';
+import { HeaderSkeleton, Skeleton } from '@/components/ui/skeleton';
 import { BASE_URL } from '../../../config/baseUrl';
 import { ThemeProvider } from '@/context/Theme';
 import { getAccessToken } from '@/stores/auth.store';
@@ -17,9 +16,6 @@ export default function HeaderOnlyLayout({ children }: HeaderOnlyLayoutProps) {
    const router = useRouter();
    const [user, setUser] = useState<{ id: string; name: string; email: string; avatar?: string } | null>(null);
    const [loading, setLoading] = useState(true);
-
-   // Use global sidebar context for skeleton
-   const { sidebarCollapsed, isInitialized: sidebarInitialized } = useSidebar();
 
    useEffect(() => {
       const fetchUser = async () => {
@@ -49,12 +45,29 @@ export default function HeaderOnlyLayout({ children }: HeaderOnlyLayoutProps) {
       fetchUser();
    }, [router]);
 
+   // When layout is loading, keep the same shell and show header skeleton only; main area shows {children}.
    if (loading || !user) {
-      // Wait for sidebar to be initialized before showing skeleton with correct state
-      if (!sidebarInitialized) {
-         return <DashboardSkeleton collapsed={false} />; // Default state while initializing
-      }
-      return <DashboardSkeleton collapsed={sidebarCollapsed} />;
+      return (
+         <ThemeProvider>
+            <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 transition-colors duration-200 overflow-y-clip dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
+               {/* Mobile Header Skeleton */}
+               <div className="fixed top-0 right-0 left-0 z-50 border-b shadow-sm backdrop-blur-lg lg:hidden bg-white/95 dark:bg-gray-900/95 border-gray-200/50 dark:border-gray-700/50">
+                  <div className="flex justify-between items-center px-4 py-3">
+                     <Skeleton className="w-24 h-6" />
+                     <Skeleton className="w-8 h-8 rounded-full" />
+                  </div>
+               </div>
+               <div className="hidden lg:block">
+                  <HeaderSkeleton />
+               </div>
+               <div className="pt-16 lg:pt-0">
+                  <main className="w-full min-h-screen">
+                     {children}
+                  </main>
+               </div>
+            </div>
+         </ThemeProvider>
+      );
    }
 
    return (

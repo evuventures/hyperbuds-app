@@ -2,19 +2,22 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Light mode: high-contrast foreground for visibility */
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #111827;
+  --muted-foreground: #374151;
+  --border-default: #d1d5db;
+  --input-placeholder: #4b5563;
 }
 
 /* Dark theme CSS variables */
-:root.dark {
-  --background: linear-gradient(to bottom right,
-      rgba(249, 250, 251, 1) 0%,
-      rgba(255, 255, 255, 1) 50%,
-      rgba(243, 244, 246, 1) 100%);
-  ;
-  --foreground: #ededed;
+.dark {
+  --background: #111827;
+  --foreground: #f9fafb;
+  --muted-foreground: #d1d5db;
+  --border-default: #374151;
+  --input-placeholder: #9ca3af;
 }
 
 /* Modern Custom Scrollbar Styles */
@@ -127,6 +130,50 @@
   background: linear-gradient(135deg, rgba(129, 140, 248, 0.15), rgba(99, 102, 241, 0.1)) !important;
   color: rgb(129, 140, 248) !important;
   border-left-color: rgb(129, 140, 248) !important;
+}
+
+/* ============================
+   ☀️ LIGHT MODE VISIBILITY
+   Ensures sufficient contrast for all elements in light mode.
+============================ */
+/* Placeholder text: darker in light mode for readability */
+:root:not(.dark) input::placeholder,
+:root:not(.dark) textarea::placeholder {
+  color: var(--input-placeholder);
+  opacity: 1;
+}
+
+/* Form inputs and labels: ensure visible text in light mode */
+:root:not(.dark) input,
+:root:not(.dark) textarea,
+:root:not(.dark) select {
+  color: #111827;
+}
+
+:root:not(.dark) label {
+  color: #374151;
+}
+
+/* Cards and surfaces: stronger borders in light mode (gray-300 / gray-400) */
+:root:not(.dark) .border-gray-100,
+:root:not(.dark) .border-gray-200,
+:root:not(.dark) [class*="border-gray-200"] {
+  border-color: #d1d5db;
+}
+
+:root:not(.dark) .border-gray-300 {
+  border-color: #9ca3af;
+}
+
+/* Opacity variants: more visible in light mode */
+:root:not(.dark) [class*="border-gray-200/"] {
+  border-color: rgba(209, 213, 219, 0.85);
+}
+
+/* Muted/secondary text: minimum contrast in light mode (gray-600 equivalent) */
+:root:not(.dark) .text-gray-400,
+:root:not(.dark) .text-gray-500 {
+  color: #4b5563;
 }
 
 :root {
