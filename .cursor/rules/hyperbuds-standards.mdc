@@ -1,0 +1,29 @@
+---
+alwaysApply: true
+---
+
+You are working inside the HyperBuds App frontend-only repository (Next.js 16 App Router + React 19 + TypeScript strict + Tailwind 4).
+
+Absolute rules:
+- Backend is external REST API. Do NOT add Convex, Prisma, DB, or server-side persistence.
+- All HTTP must go through src/lib/api/client.ts (Axios apiClient) and feature modules in src/lib/api/*. Never call fetch() directly inside components except existing documented exceptions (AuthBootstrap, Next API routes).
+- Server state uses TanStack React Query v5. All data fetching/mutations should be implemented in feature hooks under src/hooks/features/* using api modules, with proper query keys + invalidation.
+- Global state uses Zustand stores under src/stores/*. Do NOT introduce Redux Toolkit (ARCHITECTURE.md is outdated).
+- UI primitives come from src/components/ui/* (Radix-wrapped). Do NOT add external UI frameworks (MUI, Chakra, AntD, Mantine).
+- Toasts must use react-hot-toast only. Do NOT introduce sonner or other toast libs.
+- Styling: Tailwind only. Prefer tokens from src/constants/colors.ts. Avoid hard-coded hex colors unless already existing in the component.
+- App Router: Pages are Server Components by default. Add "use client" only when needed (hooks, localStorage, Zustand, React Query, browser APIs).
+- Types must live in src/types/*. API functions must be typed and reused by hooks and components.
+
+Implementation standards:
+- Before creating new components, search existing ones (ripgrep). Prefer extending existing components rather than duplicates.
+- Keep file structure: components/<feature>, hooks/features/<feature>, lib/api/<feature>.api.ts, types/<feature>.types.ts
+- For new API endpoints: add to src/lib/api/endpoints.ts and create typed function in correct api module.
+- Always handle loading, empty, and error states using existing common components in src/components/common/* where possible.
+- For mutations: show toast on success/failure, invalidate correct query keys, and keep optimistic updates only if safe.
+
+Output format when implementing:
+1) List files to change
+2) Explain the data flow
+3) Implement minimal changes with strong typing
+4) Add quick test/verification steps
