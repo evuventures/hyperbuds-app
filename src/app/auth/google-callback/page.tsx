@@ -56,8 +56,11 @@ export default function GoogleCallbackPage() {
           localStorage.setItem("accessToken", data.accessToken);
         }
 
-        // Get redirect destination from sessionStorage (set before Google redirect)
-        const redirectPath = sessionStorage.getItem("authRedirect") || "/dashboard";
+        // Get redirect destination from sessionStorage (set before Google redirect).
+        // Never send user back to an auth page after login; dashboard is the home.
+        const storedRedirect = sessionStorage.getItem("authRedirect") || "";
+        const isAuthRoute = !storedRedirect || storedRedirect.startsWith("/auth/");
+        const redirectPath = isAuthRoute ? "/dashboard" : storedRedirect;
 
         // Check if user has completed profile
         if (data.user) {

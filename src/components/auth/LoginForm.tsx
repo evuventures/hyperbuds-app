@@ -91,8 +91,8 @@ export default function LoginForm() {
           }
         }
 
-        // If profile is complete, go to dashboard
-        router.push('/');
+        // If profile is complete, go to dashboard (dashboard is the home page)
+        router.push("/dashboard");
       } else {
         // Handle specific error cases
         if (response.status === 404) {

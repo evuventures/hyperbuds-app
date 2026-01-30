@@ -128,7 +128,7 @@ export const Header: React.FC<HeaderProps> = ({ user, onMenuClick }) => {
           </button>
 
           {/* Logo */}
-          <div className="flex gap-2 items-center cursor-pointer sm:gap-3" onClick={() => window.location.href = '/'}>
+          <div className="flex gap-2 items-center cursor-pointer sm:gap-3" onClick={() => window.location.href = '/dashboard'}>
             <div className="flex gap-2 items-center" >
               <div className="flex justify-center items-center w-7 h-7 from-purple-600 to-pink-600 rounded-lg cursor-pointer bg-linear-to-r sm:w-8 sm:h-8">
                 <span className="text-xs font-bold text-white cursor-pointer sm:text-sm">H</span>
@@ -216,7 +216,7 @@ export const Header: React.FC<HeaderProps> = ({ user, onMenuClick }) => {
             >
               <div className="flex gap-2 items-center">
                 {user?.avatar && !avatarError ? (
-                  <div className="relative flex justify-center items-center w-8 h-8 overflow-hidden rounded-full">
+                  <div className="flex overflow-hidden relative justify-center items-center w-8 h-8 rounded-full">
                     <img 
                       src={user.avatar} 
                       alt={user.displayName || user.username || 'User'} 
@@ -250,7 +250,7 @@ export const Header: React.FC<HeaderProps> = ({ user, onMenuClick }) => {
                 <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700">
                   <div className="flex gap-3 items-center">
                     {user?.avatar && !avatarError ? (
-                      <div className="relative flex justify-center items-center w-10 h-10 overflow-hidden rounded-full">
+                      <div className="flex overflow-hidden relative justify-center items-center w-10 h-10 rounded-full">
                         <img 
                           src={user.avatar} 
                           alt={user.displayName || user.username || 'User'} 
