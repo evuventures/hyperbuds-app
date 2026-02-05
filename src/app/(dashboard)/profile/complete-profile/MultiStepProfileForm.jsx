@@ -417,7 +417,7 @@ export function MultiStepProfileForm() {
             value={avatarUrl}
             onChange={handleAvatarUrlChange}
             placeholder="https://example.com/your-image.jpg"
-            className={`px-4 py-3 w-full rounded-xl border-2 transition-all duration-200 focus:ring-2 ${
+            className={`px-4 py-3 w-full rounded-xl border-2 text-black transition-all duration-200 focus:ring-2 ${
               avatarUrlError ? 'border-red-300 focus:border-red-500' : 'border-gray-200 focus:border-purple-500'
             }`}
           />
@@ -445,7 +445,7 @@ export function MultiStepProfileForm() {
                 if (value.length <= 30) setUsername(value);
                 setIsUsernameAvailable(null);
               }}
-              className="px-4 py-3 w-full rounded-xl border-2 border-gray-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
+              className="px-4 py-3 w-full rounded-xl border-2 border-gray-200 text-black focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
               placeholder="coolcreator123"
               maxLength={30}
             />
@@ -473,7 +473,7 @@ export function MultiStepProfileForm() {
             type="text"
             value={displayName}
             onChange={(e) => setDisplayName(e.target.value)}
-            className="px-4 py-3 w-full rounded-xl border-2 border-gray-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
+            className="px-4 py-3 w-full rounded-xl border-2 border-gray-200 text-black focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
             placeholder="Cool Creator"
             maxLength={50}
           />
@@ -496,7 +496,7 @@ export function MultiStepProfileForm() {
             value={bio}
             onChange={(e) => setBio(e.target.value)}
             maxLength={500}
-            className="px-4 py-3 w-full rounded-xl border-2 border-gray-200 resize-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
+            className="px-4 py-3 w-full rounded-xl border-2 border-gray-200 text-black resize-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
             placeholder="Tell us about yourself..."
           />
           <p className="mt-1 text-xs text-right text-gray-500">{bio.length} / 500</p>
@@ -571,7 +571,7 @@ export function MultiStepProfileForm() {
                       placeholder="Search niches..."
                       value={search}
                       onChange={(e) => setSearch(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2.5 text-sm border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      className="w-full pl-10 pr-4 py-2.5 text-sm text-black border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-purple-500"
                     />
                   </div>
                 </div>
@@ -626,7 +626,7 @@ export function MultiStepProfileForm() {
               type="text"
               value={location.city}
               onChange={(e) => setLocation((prev) => ({ ...prev, city: e.target.value }))}
-              className="px-4 py-3 w-full rounded-xl border-2 border-gray-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
+              className="px-4 py-3 w-full rounded-xl border-2 border-gray-200 text-black focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
               placeholder="San Francisco"
             />
           </div>
@@ -636,7 +636,7 @@ export function MultiStepProfileForm() {
               type="text"
               value={location.state}
               onChange={(e) => setLocation((prev) => ({ ...prev, state: e.target.value }))}
-              className="px-4 py-3 w-full rounded-xl border-2 border-gray-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
+              className="px-4 py-3 w-full rounded-xl border-2 border-gray-200 text-black focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
               placeholder="CA"
             />
           </div>
@@ -646,7 +646,7 @@ export function MultiStepProfileForm() {
               type="text"
               value={location.country}
               onChange={(e) => setLocation((prev) => ({ ...prev, country: e.target.value }))}
-              className="px-4 py-3 w-full rounded-xl border-2 border-gray-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
+              className="px-4 py-3 w-full rounded-xl border-2 border-gray-200 text-black focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
               placeholder="USA"
             />
           </div>
@@ -673,7 +673,7 @@ export function MultiStepProfileForm() {
                 type="url"
                 value={socialLinks[platform.id] || ''}
                 onChange={(e) => handleSocialInputChange(platform.id, e.target.value)}
-                className="flex-1 px-4 py-3 border-2 border-gray-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
+                className="flex-1 px-4 py-3 border-2 border-gray-200 text-black focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
                 placeholder={platform.placeholder}
               />
             </div>
