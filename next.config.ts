@@ -1,6 +1,11 @@
 import type { NextConfig } from "next";
+import path from "path";
 
 const nextConfig: NextConfig = {
+  turbopack: {
+    // Force project root so Tailwind and deps resolve from this app, not parent /work
+    root: path.resolve(process.cwd()),
+  },
   images: {
     remotePatterns: [
       {
