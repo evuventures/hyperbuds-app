@@ -168,7 +168,7 @@ export default function App() {
                   id="email"
                   value={email}
                   onChange={handleEmailChange}
-                  className="block px-4 py-2 mt-1 w-full rounded-md border border-gray-300 shadow-sm transition-colors duration-200 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  className="block px-4 py-2 mt-1 w-full rounded-md border border-gray-300 shadow-sm transition-colors duration-200 focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-black"
                   required
                   aria-describedby="email-validation"
                 />
@@ -182,7 +182,7 @@ export default function App() {
                     id="password"
                     value={password}
                     onChange={handlePasswordChange}
-                    className="block px-4 py-2 pr-10 w-full rounded-md border border-gray-300 shadow-sm transition-colors duration-200 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    className="block px-4 py-2 pr-10 w-full rounded-md border border-gray-300 shadow-sm transition-colors duration-200 focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-black"
                     required
                     aria-describedby="password-validation"
                   />
@@ -216,7 +216,7 @@ export default function App() {
                 )}
               </button>
             </form>
-            <p className='mx-auto mt-4 text-base text-center'>Already have an account? <a href="/auth/signin" className='font-semibold text-blue-600 transition-colors duration-200 hover:text-blue-500'>signin</a></p>
+            <p className="mx-auto mt-4 text-base text-center text-black">Already have an account? <a href="/auth/signin" className="font-semibold text-blue-600 transition-colors duration-200 hover:text-blue-500">signin</a></p>
           </div>
         </div>
 
