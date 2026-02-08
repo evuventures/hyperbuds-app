@@ -72,7 +72,7 @@ const AIMatchesPage: React.FC = () => {
 
             <div className="mb-5 text-center sm:mb-6">
               <div className="flex justify-center items-center mb-2 sm:mb-3">
-                <div className="flex-shrink-0 p-2 mr-2 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl shadow-md sm:p-2.5 sm:mr-3 sm:rounded-2xl">
+                <div className="shrink-0 p-2 mr-2 bg-linear-to-br from-purple-500 to-pink-500 rounded-xl shadow-md sm:p-2.5 sm:mr-3 sm:rounded-2xl">
                   <Heart className="w-6 h-6 text-white sm:w-7 sm:h-7 lg:w-8 lg:h-8" />
                 </div>
                 <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl lg:text-4xl dark:text-white">AI Matches</h1>
@@ -109,7 +109,7 @@ const AIMatchesPage: React.FC = () => {
                 </div>
               ) : matches.length === 0 ? (
                 <div className="flex flex-col justify-center items-center py-12 sm:py-16">
-                  <div className="p-5 mb-4 bg-gradient-to-br from-purple-100 to-pink-100 rounded-full sm:p-6 dark:from-purple-900/30 dark:to-pink-900/30">
+                  <div className="p-5 mb-4 bg-linear-to-br from-purple-100 to-pink-100 rounded-full sm:p-6 dark:from-purple-900/30 dark:to-pink-900/30">
                     <Heart className="w-12 h-12 text-pink-500 sm:w-16 sm:h-16 dark:text-pink-400" />
                   </div>
                   <h3 className="mb-2 text-xl font-bold text-gray-900 sm:text-2xl dark:text-white">
@@ -118,7 +118,7 @@ const AIMatchesPage: React.FC = () => {
                   <p className="px-4 mb-6 max-w-md text-sm text-center text-gray-600 sm:text-base dark:text-gray-400">
                     Refresh your suggestions or fine-tune your preferences to find collaborators faster.
                   </p>
-                  <Button onClick={handleRefresh} className="text-xs sm:text-sm bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600">
+                  <Button onClick={handleRefresh} className="text-xs sm:text-sm bg-linear-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600">
                     Refresh Suggestions
                   </Button>
                 </div>

@@ -2,6 +2,8 @@
 import axios, { AxiosError } from "axios";
 import { API_BASE_URL } from "./endpoints";
 import { getAccessToken } from "@/store/authSelectors";
+import { store } from "@/store/store";
+import { clearAuth } from "@/store/slices/authSlice";
 
 // ✅ 1. Base URL (auto from .env or fallback)
 const baseURL = API_BASE_URL;
