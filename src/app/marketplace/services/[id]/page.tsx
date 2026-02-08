@@ -69,7 +69,7 @@ export const ServiceDetailsPage = () => {
           <div className="flex justify-between items-center">
             <button 
               onClick={() => router.push("/marketplace")} 
-              className="flex items-center gap-2 text-gray-400 dark:text-gray-400 text-sm hover:text-purple-600 dark:hover:text-purple-400 transition"
+              className="flex items-center gap-2 text-gray-400 dark:text-gray-200 text-sm hover:text-purple-600 dark:hover:text-purple-400 transition"
             >
               <ArrowLeft size={16} /> Back
             </button>

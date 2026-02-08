@@ -4,34 +4,8 @@ import Image from "next/image";
 import { PlatformStats } from "@/components/collaboration/PlatformStats";
 import { useMultiplePlatformData, useCombinedPlatformMetrics } from "@/hooks/features/usePlatformData";
 import { useMatchSuggestions } from "@/hooks/features/useMatching";
-import {
-  User,
-
-  Mail,
-
-  MoreHorizontal,
-
-  Users,
-  TrendingUp,
-  Star,
-
-  Target,
-  Activity,
-
-  Share2,
-  Heart,
-  MessageCircle,
-
-  Copy,
-  Check,
-  ExternalLink,
-  Verified,
-  Sparkles,
-  UserCheck,
-  PartyPopper,
-  Info,
-  Database,
-} from "lucide-react";
+import {User, Mail, MoreHorizontal, Users, TrendingUp, Star, Target, Activity, Share2, Heart, MessageCircle,
+Copy, Check, ExternalLink, Verified, Sparkles, UserCheck, PartyPopper, Info, Database,} from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 
@@ -185,7 +159,7 @@ export default function UserProfileHeader({
     router.push("/profile/rizz-score");
   };
 
-  // Show loading skeleton if no userData or isLoading is true
+  
   if (isLoading || !userData || !userData.profile) {
     return <LoadingSkeleton />;
   }
@@ -197,13 +171,7 @@ export default function UserProfileHeader({
     return `${location.city}, ${location.state}, ${location.country}`;
   };
 
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  };
+ 
 
   const formatShortDate = (dateString) => {
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -453,7 +421,7 @@ export default function UserProfileHeader({
           {/* Enhanced Action Buttons */}
           {isOwnProfile ? (
             <div className="flex justify-start">
-              <Link href="/matching">
+              <Link href="/ai-matches">
                 <button className="flex gap-2 justify-center items-center px-6 py-3 text-sm font-semibold text-white bg-linear-to-r from-purple-500 to-pink-500 rounded-lg shadow-lg transition-all transform cursor-pointer hover:scale-105 hover:from-purple-600 hover:to-pink-600 dark:from-purple-600 dark:to-pink-600 dark:hover:from-purple-700 dark:hover:to-pink-700 hover:shadow-xl">
                   <Heart size={18} />
                   Get Match
@@ -672,91 +640,6 @@ export default function UserProfileHeader({
         )
       }
 
-      {/* Enhanced Contact Information 
-      <div className="p-6 bg-white rounded-2xl border shadow-lg backdrop-blur-sm dark:bg-gray-800/50 border-gray-200/60 dark:border-gray-700/60">
-        <h3 className="flex gap-3 items-center mb-6 text-xl font-bold text-gray-900 dark:text-gray-100">
-          <div className="p-2 bg-gradient-to-br from-green-100 to-blue-100 rounded-lg dark:from-green-500/20 dark:to-blue-500/20">
-            <User size={24} className="text-green-600 dark:text-green-400" />
-          </div>
-          Contact Information
-        </h3>
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {[
-            {
-              icon: Phone,
-              label: "Phone Number",
-              value: user.phone,
-              color: "blue",
-            },
-            {
-              icon: Mail,
-              label: "Email Address",
-              value: user.email,
-              color: "green",
-            },
-            {
-              icon: Globe,
-              label: "Website",
-              value: user.website,
-              color: "purple",
-              isLink: true,
-            },
-          ]
-            .filter((item) => item.value)
-            .map((contact, index) => (
-              <div
-                key={index}
-                className="group p-5 rounded-xl transition-all hover:scale-[1.02] bg-gray-50/80 dark:bg-gray-700/40 border border-gray-200 dark:border-gray-600/50 hover:border-gray-300 dark:hover:border-gray-500/70 hover:shadow-lg"
-              >
-                <div className="flex gap-4 items-center">
-                  <div
-                    className={`p-4 rounded-xl bg-gradient-to-br ${contact.color === "blue"
-                      ? "from-blue-100 to-blue-200 dark:from-blue-500/20 dark:to-blue-600/30"
-                      : contact.color === "green"
-                        ? "from-green-100 to-green-200 dark:from-green-500/20 dark:to-green-600/30"
-                        : "from-purple-100 to-purple-200 dark:from-purple-500/20 dark:to-purple-600/30"
-                      } group-hover:scale-110 transition-transform`}
-                  >
-                    <contact.icon
-                      size={24}
-                      className={`${contact.color === "blue"
-                        ? "text-blue-600 dark:text-blue-400"
-                        : contact.color === "green"
-                          ? "text-green-600 dark:text-green-400"
-                          : "text-purple-600 dark:text-purple-400"
-                        }`}
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <div className="mb-1 text-xs font-bold tracking-wider text-gray-500 uppercase dark:text-gray-400">
-                      {contact.label}
-                    </div>
-                    {contact.isLink ? (
-                      <a
-                        href={
-                          contact.value.startsWith("http")
-                            ? contact.value
-                            : `https://${contact.value}`
-                        }
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex gap-2 items-center text-base font-semibold text-gray-900 transition-colors dark:text-gray-100 hover:text-blue-600 dark:hover:text-blue-400"
-                      >
-                        {contact.value}
-                        <ExternalLink size={14} />
-                      </a>
-                    ) : (
-                      <div className="text-base font-semibold text-gray-900 dark:text-gray-100">
-                        {contact.value}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ))}
-        </div>
-      </div>*/}
-
       {/* Social Media Links */}
       {user.socialLinks && Object.keys(user.socialLinks).length > 0 && (
         <div className="p-6 bg-white rounded-2xl border shadow-lg backdrop-blur-sm dark:bg-gray-800/50 border-gray-200/60 dark:border-gray-700/60">
@@ -807,75 +690,7 @@ export default function UserProfileHeader({
         </div>
       )}
 
-      {/* Enhanced Platform Performance
-      {user?.profile?.socialLinks && (() => {
-        // Extract usernames from social links URLs for connected platforms only
-        const platformCreds = {};
-        const socialLinks = user.profile.socialLinks;
-
-        // Extract TikTok username from URL
-        if (socialLinks.tiktok) {
-          const match = socialLinks.tiktok.match(/tiktok\.com\/@?([^/?]+)/);
-          if (match) {
-            platformCreds.tiktok = match[1];
-          }
-        }
-
-        // Extract Twitter username from URL
-        if (socialLinks.twitter) {
-          const match = socialLinks.twitter.match(/(?:twitter|x)\.com\/([^/?]+)/);
-          if (match) {
-            platformCreds.twitter = match[1];
-          }
-        }
-
-        // Extract Twitch username from URL
-        if (socialLinks.twitch) {
-          const match = socialLinks.twitch.match(/twitch\.tv\/([^/?]+)/);
-          if (match) {
-            platformCreds.twitch = match[1];
-          }
-        }
-
-        // Extract Instagram username from URL
-        if (socialLinks.instagram) {
-          const match = socialLinks.instagram.match(/instagram\.com\/([^/?]+)/);
-          if (match) {
-            platformCreds.instagram = match[1];
-          }
-        }
-
-        // Extract YouTube username from URL
-        if (socialLinks.youtube) {
-          const match = socialLinks.youtube.match(/(?:youtube\.com\/@|youtube\.com\/c\/)([^/?]+)/) ||
-            socialLinks.youtube.match(/youtube\.com\/user\/([^/?]+)/);
-          if (match) {
-            platformCreds.youtube = match[1];
-          }
-        }
-{/*
-        const hasPlatforms = Object.values(platformCreds).some(v => v);
-
-        return hasPlatforms && (
-          <div className="p-6 bg-white rounded-2xl border shadow-lg backdrop-blur-sm dark:bg-gray-800/50 border-gray-200/60 dark:border-gray-700/60">
-            <h3 className="flex gap-3 items-center mb-6 text-xl font-bold text-gray-900 dark:text-gray-100">
-              <div className="p-2 bg-gradient-to-br from-purple-100 to-pink-100 rounded-lg dark:from-purple-500/20 dark:to-pink-500/20">
-                <TrendingUp
-                  size={24}
-                  className="text-purple-600 dark:text-purple-400"
-                />
-              </div>
-              Platform Performance
-            </h3>
-
-            <PlatformStats
-              platformCredentials={platformCreds}
-              showCombinedMetrics={false}
-              compact={true}
-            />
-          </div>
-        ); 
-      })()} */}
+    
     </div >
   );
 }

@@ -338,55 +338,10 @@ export default function EditProfilePage() {
     setNiches(prev => prev.filter(n => n !== niche));
   };
 
-{/*const handleSocialChange = (platformId: string, value: string) => {
-    // Clean the URL and validate format
-    let cleanedValue = value.trim();
-
-    // If empty, remove from socialLinks
-    if (!cleanedValue) {
-      setSocialLinks((prev: SocialLinks) => {
-        const newLinks = { ...prev };
-        delete newLinks[platformId];
-        return newLinks;
-      });
-      return;
-    }
-
-    // Auto-format URLs
-    if (!cleanedValue.startsWith('http://') && !cleanedValue.startsWith('https://')) {
-      // Check if it's just a username (starts with @ or doesn't contain domain)
-      if (cleanedValue.startsWith('@') || !cleanedValue.includes('.')) {
-        const username = cleanedValue.replace('@', '');
-
-        // Platform-specific formatting
-        if (platformId === 'tiktok') {
-          cleanedValue = `https://tiktok.com/@${username}`;
-        } else if (platformId === 'youtube') {
-          cleanedValue = `https://youtube.com/@${username}`;
-        } else {
-          // Default formatting for other platforms
-          const platform = SOCIAL_PLATFORMS.find(p => p.id === platformId);
-          if (platform) {
-            const domain = platform.placeholder.replace('https://', '').split('/')[0];
-            cleanedValue = `https://${domain}/${username}`;
-          } else {
-            cleanedValue = `https://${cleanedValue}`;
-          }
-        }
-      } else {
-        cleanedValue = `https://${cleanedValue}`;
-      }
-    }
-
-    // Save the value (validation will be shown in UI)
-    setSocialLinks((prev: SocialLinks) => ({ ...prev, [platformId]: cleanedValue }));
-  };*/}
-
   const handleAvatarClick = () => {
     console.log("Avatar clicked - opening file picker");
     fileInputRef.current?.click();
   };
-
   const handleAvatarUpload = async (file: File) => {
     console.log("File selected:", file.name, file.type, file.size);
     setMessage("");
@@ -839,23 +794,7 @@ export default function EditProfilePage() {
               </div>
             </motion.div>
 
-            {/* Username 
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5, duration: 0.4 }}
-              className="mb-6"
-            >
-              <label className="block mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300">Username</label>
-              <input
-                type="text"
-                value={profile?.username || ""}
-                disabled
-                className="px-4 py-3 w-full text-gray-600 bg-gray-100 rounded-xl border-2 border-gray-200 cursor-not-allowed dark:border-gray-700 dark:bg-gray-700 dark:text-gray-300"
-              />
-              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Username cannot be changed</p>
-            </motion.div>
-*/}
+           
             {/* Display Name */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -908,7 +847,7 @@ export default function EditProfilePage() {
               {/* Selected Chips Container */}
               <div
                 onClick={() => setIsNicheDropdownOpen(!isNicheDropdownOpen)}
-                className={`relative border-2 rounded-xl bg-white dark:bg-gray-800 px-4 py-3 min-h-[56px] flex flex-wrap items-center gap-2 cursor-pointer transition-all duration-200 ${
+                className={`relative border-2 rounded-xl bg-white dark:bg-gray-800 px-4 py-3 min-h-14 flex flex-wrap items-center gap-2 cursor-pointer transition-all duration-200 ${
                   isNicheDropdownOpen 
                     ? "border-purple-500 ring-2 ring-purple-200 dark:ring-purple-800" 
                     : "border-gray-300 dark:border-gray-600 hover:border-purple-400 dark:hover:border-purple-500"
@@ -928,7 +867,7 @@ export default function EditProfilePage() {
                         }
                       }}
                       className={`px-4 py-2 text-sm font-medium rounded-full transition ${isSelected
-                        ? "text-white bg-gradient-to-r from-purple-500 to-blue-500 shadow-lg cursor-pointer"
+                        ? "text-white bg-linear-to-r from-purple-500 to-blue-500 shadow-lg cursor-pointer"
                         : niches.length >= 5
                         ? "text-gray-400 bg-gray-100 dark:bg-gray-700 cursor-not-allowed opacity-50"
                         : "text-gray-700 bg-gray-100 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 cursor-pointer"
@@ -1034,7 +973,7 @@ export default function EditProfilePage() {
                               onClick={() => !isDisabled && toggleNiche(niche)}
                               className={`group relative px-4 py-2.5 rounded-lg cursor-pointer text-sm mb-1 flex items-center justify-between transition-all ${
                                 isSelected
-                                  ? "bg-gradient-to-r from-purple-500 to-blue-500 text-white shadow-sm"
+                                  ? "bg-linear-to-r from-purple-500 to-pink-500 text-white shadow-sm"
                                   : isDisabled
                                   ? "bg-gray-50 dark:bg-gray-900 text-gray-400 dark:text-gray-600 cursor-not-allowed opacity-60"
                                   : "hover:bg-purple-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 active:bg-purple-100 dark:active:bg-gray-600"
@@ -1112,7 +1051,7 @@ export default function EditProfilePage() {
             <motion.button
               onClick={handleSubmit}
               disabled={isLoading || isNavigating}
-              className="overflow-hidden relative py-4 w-full font-semibold text-white bg-linear-to-r from-purple-500 to-blue-500 rounded-xl shadow-lg transition-all disabled:opacity-50"
+              className="overflow-hidden relative py-4 w-full font-semibold text-white bg-linear-to-r from-purple-500 to-pink-500 rounded-xl shadow-lg transition-all disabled:opacity-50"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               initial={{ opacity: 0, y: 20 }}
@@ -1121,7 +1060,7 @@ export default function EditProfilePage() {
             >
               {/* Button background animation */}
               <motion.div
-                className="absolute inset-0 bg-linear-to-r from-blue-500 to-purple-500 opacity-0"
+                className="absolute inset-0 bg-linear-to-r from-purple-500 to-pink-500 opacity-0"
                 whileHover={{ opacity: 0.1 }}
                 transition={{ duration: 0.2 }}
               />
