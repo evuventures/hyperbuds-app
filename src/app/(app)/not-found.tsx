@@ -4,6 +4,12 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Home, ArrowLeft, Loader2 } from "lucide-react";
 
+/**
+ * 404 page for routes under (app) - e.g. /dashboard/ss.
+ * Renders as a fixed full-viewport overlay (z-9999) so it sits above
+ * DashboardLayout and captures all clicks. Without this, the 404 would
+ * be inside the main content area and layout overlays could block clicks.
+ */
 export default function NotFound() {
   const router = useRouter();
   const [navigating, setNavigating] = useState(false);
