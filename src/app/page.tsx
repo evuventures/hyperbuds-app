@@ -1,14 +1,5 @@
-import React from 'react'
-import DashboardLayout from '@/components/layout/Dashboard/Dashboard';
-import MainContent  from "@/app/dashboard/page";
-const page = () => {
-  return (
-    <div >
-      <DashboardLayout>
-        <MainContent />
-      </DashboardLayout>
-    </div>
-  )
-}
+import { redirect } from "next/navigation";
 
-export default page
+export default function HomePage() {
+  redirect("/dashboard");
+}

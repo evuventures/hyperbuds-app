@@ -1,134 +1,129 @@
 "use client";
 
-import React from 'react';
+import React from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 
-// Skeleton Loading Components
+// Skeleton Loading Components - use shared Skeleton primitive
 export function PaymentFormSkeleton() {
-   return (
-      <div className="space-y-6 animate-pulse">
-         <div>
-            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/4 mb-2"></div>
-            <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded"></div>
-         </div>
-         <div>
-            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/4 mb-2"></div>
-            <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded"></div>
-         </div>
-         <div>
-            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/4 mb-2"></div>
-            <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded"></div>
-         </div>
-         <div className="grid grid-cols-2 gap-4">
-            <div>
-               <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/3 mb-2"></div>
-               <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded"></div>
-            </div>
-            <div>
-               <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/3 mb-2"></div>
-               <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded"></div>
-            </div>
-         </div>
-         <div className="h-12 bg-gray-200 dark:bg-gray-700 rounded"></div>
+  return (
+    <div className="space-y-6">
+      <div>
+        <Skeleton className="mb-2 h-4 w-24" />
+        <Skeleton className="h-10 w-full rounded" />
       </div>
-   );
+      <div>
+        <Skeleton className="mb-2 h-4 w-24" />
+        <Skeleton className="h-10 w-full rounded" />
+      </div>
+      <div>
+        <Skeleton className="mb-2 h-4 w-24" />
+        <Skeleton className="h-10 w-full rounded" />
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Skeleton className="mb-2 h-4 w-28" />
+          <Skeleton className="h-10 w-full rounded" />
+        </div>
+        <div>
+          <Skeleton className="mb-2 h-4 w-28" />
+          <Skeleton className="h-10 w-full rounded" />
+        </div>
+      </div>
+      <Skeleton className="h-12 w-full rounded" />
+    </div>
+  );
 }
 
 export function PaymentMethodsSkeleton() {
-   return (
-      <div className="space-y-3">
-         {Array.from({ length: 3 }).map((_, index) => (
-            <div key={index} className="animate-pulse">
-               <div className="h-16 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
-            </div>
-         ))}
-      </div>
-   );
+  return (
+    <div className="space-y-3">
+      {Array.from({ length: 3 }).map((_, index) => (
+        <Skeleton key={index} className="h-16 w-full rounded-lg" />
+      ))}
+    </div>
+  );
 }
 
 export function PricingPlansSkeleton() {
-   return (
-      <div className="space-y-6">
-         {Array.from({ length: 3 }).map((_, index) => (
-            <div key={index} className="animate-pulse">
-               <div className="p-5 rounded-xl border border-gray-200 dark:border-gray-700">
-                  <div className="flex justify-between items-start mb-3">
-                     <div className="flex-1">
-                        <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-1/3 mb-2"></div>
-                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-2/3"></div>
-                     </div>
-                     <div className="h-4 w-4 bg-gray-200 dark:bg-gray-700 rounded"></div>
-                  </div>
-                  <div className="mb-4">
-                     <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/4"></div>
-                  </div>
-                  <div className="space-y-2">
-                     {Array.from({ length: 3 }).map((_, featureIndex) => (
-                        <div key={featureIndex} className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
-                     ))}
-                  </div>
-               </div>
+  return (
+    <div className="space-y-6">
+      {Array.from({ length: 3 }).map((_, index) => (
+        <div key={index} className="rounded-xl border border-gray-200 p-5 dark:border-gray-700">
+          <div className="mb-3 flex items-start justify-between">
+            <div className="flex-1">
+              <Skeleton className="mb-2 h-6 w-24" />
+              <Skeleton className="h-4 w-48" />
             </div>
-         ))}
-      </div>
-   );
+            <Skeleton className="h-4 w-4 rounded" />
+          </div>
+          <div className="mb-4">
+            <Skeleton className="h-8 w-20" />
+          </div>
+          <div className="space-y-2">
+            {Array.from({ length: 3 }).map((_, featureIndex) => (
+              <Skeleton key={featureIndex} className="h-4 w-3/4 max-w-[14rem]" />
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
 }
 
 export function BillingHistorySkeleton() {
-   return (
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md">
-         <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-            <div className="flex items-center justify-between">
-               <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-1/4"></div>
-               <div className="flex space-x-2">
-                  <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-24"></div>
-                  <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-24"></div>
-               </div>
-            </div>
-         </div>
-         <div className="divide-y divide-gray-200 dark:divide-gray-700">
-            {Array.from({ length: 5 }).map((_, index) => (
-               <div key={index} className="p-6 animate-pulse">
-                  <div className="flex items-center space-x-4">
-                     <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
-                     <div className="flex-1 space-y-2">
-                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/4"></div>
-                        <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
-                     </div>
-                     <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-20"></div>
-                  </div>
-               </div>
-            ))}
-         </div>
+  return (
+    <div className="rounded-lg bg-white shadow-md dark:bg-gray-800">
+      <div className="border-b border-gray-200 p-6 dark:border-gray-700">
+        <div className="flex items-center justify-between">
+          <Skeleton className="h-6 w-24" />
+          <div className="flex space-x-2">
+            <Skeleton className="h-8 w-24 rounded" />
+            <Skeleton className="h-8 w-24 rounded" />
+          </div>
+        </div>
       </div>
-   );
+      <div className="divide-y divide-gray-200 dark:divide-gray-700">
+        {Array.from({ length: 5 }).map((_, index) => (
+          <div key={index} className="flex items-center space-x-4 p-6">
+            <Skeleton className="h-10 w-10 flex-shrink-0 rounded-full" />
+            <div className="flex-1 space-y-2">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-3 w-40" />
+            </div>
+            <Skeleton className="h-4 w-20" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 export function SubscriptionCardSkeleton() {
-   return (
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-700 animate-pulse">
-         <div className="flex items-center justify-between mb-4">
-            <div>
-               <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-1/3 mb-2"></div>
-               <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
-            </div>
-            <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-16"></div>
-         </div>
-         <div className="space-y-3">
-            <div className="flex justify-between items-center">
-               <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/3"></div>
-               <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/4"></div>
-            </div>
-            <div className="flex justify-between items-center">
-               <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/4"></div>
-               <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/4"></div>
-            </div>
-         </div>
-         <div className="mt-6 flex gap-3">
-            <div className="flex-1 h-10 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
-            <div className="flex-1 h-10 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
-         </div>
+  return (
+    <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-md dark:border-gray-700 dark:bg-gray-800">
+      <div className="mb-4 flex items-center justify-between">
+        <div>
+          <Skeleton className="mb-2 h-6 w-24" />
+          <Skeleton className="h-4 w-32" />
+        </div>
+        <Skeleton className="h-6 w-16" />
       </div>
-   );
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <Skeleton className="h-4 w-24" />
+          <Skeleton className="h-4 w-16" />
+        </div>
+        <div className="flex items-center justify-between">
+          <Skeleton className="h-4 w-16" />
+          <Skeleton className="h-4 w-16" />
+        </div>
+      </div>
+      <div className="mt-6 flex gap-3">
+        <Skeleton className="h-10 flex-1 rounded-lg" />
+        <Skeleton className="h-10 flex-1 rounded-lg" />
+      </div>
+    </div>
+  );
 }
 
 // Loading Spinner Component

@@ -1,11 +1,11 @@
 import React from "react";
 
-// Reusable Skeleton component with typed props
-interface SkeletonProps {
+// Reusable Skeleton component - base primitive for all skeleton UIs
+export interface SkeletonProps {
   className?: string;
 }
 
-const Skeleton: React.FC<SkeletonProps> = ({ className = "" }) => (
+export const Skeleton: React.FC<SkeletonProps> = ({ className = "" }) => (
   <div className={`bg-gray-200 rounded animate-pulse dark:bg-gray-700 ${className}`} />
 );
 
@@ -68,8 +68,8 @@ const SidebarSkeleton: React.FC<{ collapsed?: boolean }> = ({ collapsed = false 
   </div>
 );
 
-// Main Content Skeleton
-const MainContentSkeleton: React.FC = () => (
+// Page Content Skeleton - generic page layout (header + cards + table)
+export const PageContentSkeleton: React.FC = () => (
   <div className="flex-1 p-6">
     {/* Page header */}
     <div className="mb-6">
@@ -128,6 +128,81 @@ const MainContentSkeleton: React.FC = () => (
         ))}
       </div>
     </div>
+  </div>
+);
+
+// Alias for backward compatibility
+const MainContentSkeleton = PageContentSkeleton;
+
+// Card Grid Skeleton - for marketplace, dashboard cards
+export const CardGridSkeleton: React.FC<{ count?: number; columns?: 2 | 3 | 4 }> = ({
+  count = 6,
+  columns = 4,
+}) => {
+  const colClass =
+    columns === 2 ? "lg:grid-cols-2" : columns === 3 ? "lg:grid-cols-3" : "lg:grid-cols-4";
+  return (
+  <div className={`grid grid-cols-1 gap-6 md:grid-cols-2 ${colClass}`}>
+    {Array.from({ length: count }).map((_, i) => (
+      <div key={i} className="p-6 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+        <div className="flex justify-between items-center mb-4">
+          <Skeleton className="w-6 h-6 rounded" />
+          <Skeleton className="w-4 h-4 rounded" />
+        </div>
+        <Skeleton className="mb-2 w-16 h-8" />
+        <Skeleton className="w-24 h-4" />
+      </div>
+    ))}
+  </div>
+  );
+};
+
+// Table Skeleton - for data tables
+export const TableSkeleton: React.FC<{ rows?: number; cols?: number }> = ({
+  rows = 6,
+  cols = 5,
+}) => (
+  <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 overflow-hidden">
+    <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+      <div className="flex justify-between items-center">
+        <Skeleton className="w-28 h-6" />
+        <Skeleton className="w-24 h-8 rounded-md" />
+      </div>
+    </div>
+    <div className="p-6">
+      <div
+        className="grid gap-4 mb-4"
+        style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}
+      >
+        {Array.from({ length: cols }).map((_, i) => (
+          <Skeleton key={i} className="h-4" />
+        ))}
+      </div>
+      {Array.from({ length: rows }).map((_, i) => (
+        <div
+          key={i}
+          className="grid gap-4 mb-3"
+          style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}
+        >
+          {Array.from({ length: cols }).map((_, j) => (
+            <Skeleton key={j} className="h-4" />
+          ))}
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
+// Form Skeleton - for form layouts
+export const FormSkeleton: React.FC<{ fields?: number }> = ({ fields = 5 }) => (
+  <div className="space-y-6">
+    {Array.from({ length: fields }).map((_, i) => (
+      <div key={i}>
+        <Skeleton className="mb-2 w-1/4 h-4 max-w-[8rem]" />
+        <Skeleton className="w-full h-10 rounded" />
+      </div>
+    ))}
+    <Skeleton className="w-full h-12 rounded-lg" />
   </div>
 );
 
@@ -245,4 +320,5 @@ const DashboardSkeleton: React.FC<{ collapsed?: boolean }> = ({ collapsed = fals
   );
 };
 
+export { MainContentSkeleton };
 export default DashboardSkeleton;

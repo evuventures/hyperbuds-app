@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { Skeleton } from "@/components/ui/skeleton";
 import { PlatformStats } from "@/components/collaboration/PlatformStats";
 import { useMultiplePlatformData, useCombinedPlatformMetrics } from "@/hooks/features/usePlatformData";
 import { useMatchSuggestions } from "@/hooks/features/useMatching";
@@ -9,17 +10,17 @@ Copy, Check, ExternalLink, Verified, Sparkles, UserCheck, PartyPopper, Info, Dat
 import Link from "next/link";
 import { toast } from "sonner";
 
-// Enhanced Loading skeleton component
+// Enhanced Loading skeleton component - uses shared Skeleton primitive
 const LoadingSkeleton = () => (
   <div className="bg-gray-50 transition-all dark:bg-gray-900">
-    <div className="p-8 bg-white rounded-3xl border border-gray-200 shadow-lg backdrop-blur-sm transition-all dark:bg-gray-800/50 dark:border-gray-700/50">
-      <div className="flex justify-between items-start mb-8">
-        <div className="flex gap-6 items-center">
-          <div className="w-32 h-32 bg-gray-300 rounded-3xl animate-pulse dark:bg-gray-700"></div>
+    <div className="rounded-3xl border border-gray-200 bg-white p-8 shadow-lg backdrop-blur-sm transition-all dark:border-gray-700/50 dark:bg-gray-800/50">
+      <div className="mb-8 flex items-start justify-between">
+        <div className="flex items-center gap-6">
+          <Skeleton className="h-32 w-32 rounded-3xl" />
           <div className="space-y-4">
-            <div className="w-72 h-12 bg-gray-300 rounded-lg animate-pulse dark:bg-gray-700"></div>
-            <div className="w-48 h-6 bg-gray-300 rounded animate-pulse dark:bg-gray-700"></div>
-            <div className="w-96 h-5 bg-gray-300 rounded animate-pulse dark:bg-gray-700"></div>
+            <Skeleton className="h-12 w-72 rounded-lg" />
+            <Skeleton className="h-6 w-48 rounded" />
+            <Skeleton className="h-5 w-96 max-w-full rounded" />
           </div>
         </div>
       </div>
