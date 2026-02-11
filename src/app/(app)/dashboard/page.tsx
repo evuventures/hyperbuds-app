@@ -1,15 +1,19 @@
 "use client";
 
-import React from "react";
+import React, { Suspense, lazy } from "react";
 import {
   Video,
   Zap,
   Plus,
+  RefreshCw,
 } from "lucide-react";
 import Trending from "@/components/dashboard/Trending";
 //import Recommended from "@/components/dashboard/Recommended";
-import Recommendations from "@/components/dashboard/Recommendations";
 import Link from "next/link";
+
+const Recommendations = lazy(() =>
+  import("@/components/dashboard/Recommendations").then((m) => ({ default: m.default }))
+);
 // Mock data for quick stats
 const mockStats = {
   totalCollaborations: 1247,
@@ -83,7 +87,30 @@ const MainContent: React.FC = () => {
 
         {/* <Recommended />*/}
 
-        <Recommendations />
+        <Suspense
+          fallback={
+            <section className="space-y-6">
+              <div className="flex gap-3 items-center">
+                <div className="p-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl">
+                  <RefreshCw className="w-5 h-5 text-white animate-pulse" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                    Recommendations
+                  </h2>
+                  <p className="text-gray-600 dark:text-gray-400">
+                    Loading...
+                  </p>
+                </div>
+              </div>
+              <div className="flex justify-center items-center py-12">
+                <RefreshCw className="w-8 h-8 text-purple-600 animate-spin dark:text-purple-400" />
+              </div>
+            </section>
+          }
+        >
+          <Recommendations />
+        </Suspense>
 
         {/* Call to Action */}
         <div className="p-8 mt-8 text-center text-white bg-gradient-to-r from-purple-600 to-indigo-600 rounded-2xl shadow-lg dark:from-purple-700 dark:to-indigo-700">
