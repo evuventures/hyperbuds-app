@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from "react";
 import {
   Search,
   Bell,
@@ -39,7 +39,21 @@ export const Header: React.FC<HeaderProps> = ({ user, onMenuClick }) => {
   const { logout } = useAuth();
   const router = useRouter();
   const { unreadCount } = useUnreadNotificationCount();
-  const notificationButtonRef = React.useRef<HTMLButtonElement>(null);
+  const notificationButtonRef = useRef<HTMLButtonElement>(null);
+  const userMenuRef = useRef<HTMLDivElement>(null);
+
+  // Close user menu when clicking outside
+  useEffect(() => {
+    if (!showUserMenu) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as Node;
+      if (userMenuRef.current && !userMenuRef.current.contains(target)) {
+        setShowUserMenu(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showUserMenu]);
 
   // Connect to notification WebSocket for real-time updates
   useNotificationSocket({
@@ -138,17 +152,29 @@ export const Header: React.FC<HeaderProps> = ({ user, onMenuClick }) => {
           </div>
 
           {/* User Profile Dropdown */}
-          <div className="relative">
+          <div className="relative" ref={userMenuRef}>
             <button
               onClick={() => setShowUserMenu(!showUserMenu)}
               className="flex items-center gap-3 p-1.5 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+              aria-expanded={showUserMenu}
+              aria-haspopup="true"
             >
               <div className="flex gap-2 items-center">
-                <div className="flex justify-center items-center w-8 h-8 bg-linear-to-r from-purple-500 to-pink-500 rounded-full">
-                  <span className="text-sm font-medium text-white">
-                    {/* {user.username?.[0]?.toUpperCase() || user.email[0].toUpperCase()} */}
-                    <img src={user?.avatar} alt="User-img" />
-                  </span>
+                <div className="flex justify-center items-center w-8 h-8 overflow-hidden rounded-full bg-linear-to-r from-purple-500 to-pink-500 shrink-0">
+                  {user?.avatar ? (
+                    <img
+                      src={user.avatar}
+                      alt={user.displayName || user.username || "User"}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-sm font-medium text-white">
+                      {user?.username?.[0]?.toUpperCase() ||
+                        user?.displayName?.[0]?.toUpperCase() ||
+                        user?.email?.[0]?.toUpperCase() ||
+                        "?"}
+                    </span>
+                  )}
                 </div>
                 <div className="hidden text-left lg:block">
                   <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
