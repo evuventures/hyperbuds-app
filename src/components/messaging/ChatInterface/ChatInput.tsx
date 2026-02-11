@@ -305,7 +305,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
    }, [isRecording]);
 
    return (
-      <div className="flex-shrink-0 p-3 w-full bg-white border-t border-gray-200 md:p-4 dark:bg-gray-900 dark:border-gray-700">
+      <div className="flex-shrink-0 p-3 w-full bg-white border-t border-gray-300 md:p-4 dark:bg-gray-900 dark:border-gray-700">
          {/* Typing indicator */}
          {typingIndicator?.isTyping && typingIndicator.users.length > 0 && (
             <div className="px-3 py-1 mb-2 bg-blue-50 rounded-lg dark:bg-blue-900/20">
@@ -317,7 +317,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
 
          {/* File previews */}
          {selectedFiles.length > 0 && (
-            <div className="p-2 mb-3 bg-gray-50 rounded-lg border border-gray-200 md:p-3 md:mb-4 dark:bg-gray-800 dark:border-gray-700">
+            <div className="p-2 mb-3 bg-gray-50 rounded-lg border border-gray-300 md:p-3 md:mb-4 dark:bg-gray-800 dark:border-gray-700">
                <div className="flex flex-wrap gap-2 mb-2">
                   {selectedFiles.map((file, index) => {
                      const fileId = `${file.name}-${index}`;
@@ -326,7 +326,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
 
                      return (
                         <div key={index} className="relative group">
-                           <div className="flex gap-2 items-center p-2 bg-white rounded-lg border border-gray-200 dark:bg-gray-700 dark:border-gray-600">
+                           <div className="flex gap-2 items-center p-2 bg-white rounded-lg border border-gray-300 dark:bg-gray-700 dark:border-gray-600">
                               {isImage ? (
                                  <div className="flex overflow-hidden justify-center items-center w-10 h-10 bg-gray-200 rounded-lg md:w-12 md:h-12 dark:bg-gray-600">
                                     <Image
@@ -415,7 +415,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                   onKeyPress={handleKeyPress}
                   placeholder={placeholder}
                   disabled={disabled}
-                  className={`px-3 py-2 w-full max-h-28 ${disabled ? 'text-[8px] sm:text-[9px] md:text-[10px] lg:text-xs' : 'text-xs lg:text-sm'} placeholder-gray-500 text-gray-900 bg-gray-50 rounded-2xl border border-gray-200 transition-all duration-200 resize-none md:px-4 md:py-3 md:max-h-32 scrollbar-hide hover:scrollbar-thin hover:scrollbar-thumb-gray-300 hover:dark:scrollbar-thumb-gray-600 dark:bg-gray-800 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:bg-white dark:focus:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400`}
+                  className={`px-3 py-2 w-full max-h-28 ${disabled ? 'text-[8px] sm:text-[9px] md:text-[10px] lg:text-xs' : 'text-xs lg:text-sm'} placeholder-gray-500 text-gray-900 bg-gray-50 rounded-2xl border border-gray-300 transition-all duration-200 resize-none md:px-4 md:py-3 md:max-h-32 scrollbar-hide hover:scrollbar-thin hover:scrollbar-thumb-gray-300 hover:dark:scrollbar-thumb-gray-600 dark:bg-gray-800 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:bg-white dark:focus:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400`}
                   rows={1}
                />
 
@@ -469,7 +469,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
          {showEmojiPicker && (
             <div
                ref={emojiPickerRef}
-               className="absolute right-0 bottom-20 z-50 p-3 w-72 bg-white rounded-lg border border-gray-200 shadow-lg md:p-4 md:w-80 dark:bg-gray-800 dark:border-gray-700"
+               className="absolute right-0 bottom-20 z-50 p-3 w-72 bg-white rounded-lg border border-gray-300 shadow-lg md:p-4 md:w-80 dark:bg-gray-800 dark:border-gray-700"
             >
                <div className="flex justify-between items-center mb-3">
                   <h3 className="text-sm font-medium text-gray-900 dark:text-white">

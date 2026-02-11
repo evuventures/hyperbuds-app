@@ -5,8 +5,8 @@ export const MessagingSkeleton: React.FC = () => {
   return (
     <div className="flex h-[90vh] bg-gray-100 dark:bg-gray-900">
       {/* Chat List Skeleton */}
-      <div className="w-1/3 bg-white border-r border-gray-200 dark:border-gray-700 dark:bg-gray-800">
-        <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+      <div className="w-1/3 bg-white border-r border-gray-300 dark:border-gray-700 dark:bg-gray-800">
+        <div className="p-4 border-b border-gray-300 dark:border-gray-700">
           <div className="flex items-center justify-between">
             <Skeleton className="h-8 w-32 rounded" />
             <Skeleton className="h-8 w-8 rounded-full" />
@@ -33,7 +33,7 @@ export const MessagingSkeleton: React.FC = () => {
 
       {/* Chat Interface Skeleton */}
       <div className="flex flex-1 flex-col">
-        <div className="border-b border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
+        <div className="border-b border-gray-300 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
           <div className="flex items-center space-x-3">
             <Skeleton className="h-10 w-10 flex-shrink-0 rounded-full" />
             <div className="flex-1">
@@ -87,7 +87,7 @@ export const MessagingSkeleton: React.FC = () => {
           </div>
         </div>
 
-        <div className="border-t border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
+        <div className="border-t border-gray-300 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
           <div className="flex items-center space-x-3">
             <Skeleton className="h-8 w-8 flex-shrink-0 rounded-full" />
             <Skeleton className="h-10 flex-1 rounded-lg" />
@@ -151,7 +151,7 @@ export const MessageListSkeleton: React.FC = () => (
 );
 
 export const ChatHeaderSkeleton: React.FC = () => (
-  <div className="border-b border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
+  <div className="border-b border-gray-300 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
     <div className="flex items-center space-x-3">
       <Skeleton className="h-10 w-10 flex-shrink-0 rounded-full" />
       <div className="flex-1">
@@ -167,7 +167,7 @@ export const ChatHeaderSkeleton: React.FC = () => (
 );
 
 export const ChatInputSkeleton: React.FC = () => (
-  <div className="border-t border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
+  <div className="border-t border-gray-300 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
     <div className="flex items-center space-x-3">
       <Skeleton className="h-8 w-8 flex-shrink-0 rounded-full" />
       <Skeleton className="h-10 flex-1 rounded-lg" />

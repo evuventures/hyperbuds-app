@@ -129,7 +129,7 @@ export function PaymentMethods({ selectedMethod, onMethodSelect, onAddNew }: Pay
                key={method.id}
                className={`p-4 border rounded-lg cursor-pointer transition-colors ${selectedMethod === method.id
                   ? 'border-purple-500 bg-purple-50 dark:bg-purple-900'
-                  : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                  : 'border-gray-300 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
                   }`}
                onClick={() => onMethodSelect(method.id)}
             >

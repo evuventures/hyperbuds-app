@@ -56,10 +56,10 @@ export default function MarketplaceDashboard() {
           {/* TOP NAVIGATION */}
           <div className="flex justify-end mb-12">
             <div className="flex items-center gap-2 p-1.5 ">
-              <Link href="/marketplace/services" className="flex items-center gap-2 px-5 py-2.5 rounded-xl  border border-gray-200 dark:border-gray-500 font-bold text-sm text-gray-500 dark:text-white hover:text-purple-600 transition-all">
+              <Link href="/marketplace/services" className="flex items-center gap-2 px-5 py-2.5 rounded-xl  border border-gray-300 dark:border-gray-500 font-bold text-sm text-gray-500 dark:text-white hover:text-purple-600 transition-all">
                 <Store size={14} /> Services
               </Link>
-              <Link href="/marketplace/bookings" className="flex items-center gap-2 px-5 py-2.5 rounded-xl  border border-gray-200 dark:text-white dark:border-gray-500  font-bold text-sm text-gray-500 hover:text-purple-600 transition-all">
+              <Link href="/marketplace/bookings" className="flex items-center gap-2 px-5 py-2.5 rounded-xl  border border-gray-300 dark:text-white dark:border-gray-500  font-bold text-sm text-gray-500 hover:text-purple-600 transition-all">
                 <Ticket size={14} /> Bookings
               </Link>
             </div>
@@ -91,7 +91,7 @@ export default function MarketplaceDashboard() {
               <input
                 type="text"
                 placeholder="Search services, skills, or creators..."
-                className="w-full pl-16 pr-6 py-4 md:py-5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-500 rounded-lg focus:ring-4 focus:ring-purple-500/5 outline-none transition-all text-base font-medium"
+                className="w-full pl-16 pr-6 py-4 md:py-5 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-500 rounded-lg focus:ring-4 focus:ring-purple-500/5 outline-none transition-all text-base font-medium"
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
@@ -105,7 +105,7 @@ export default function MarketplaceDashboard() {
               <div className="relative group">
                 <select
                   onChange={(e) => setCategory(e.target.value || undefined)}
-                  className="appearance-none text-gray-500 pl-10 pr-10 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-500 rounded-xl text-sm cursor-pointer outline-none hover:border-purple-500 transition-all"
+                  className="appearance-none text-gray-500 pl-10 pr-10 py-3 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-500 rounded-xl text-sm cursor-pointer outline-none hover:border-purple-500 transition-all"
                 >
                   <option value="">All Categories</option>
                   <option value="Design">Design</option>
@@ -124,13 +124,13 @@ export default function MarketplaceDashboard() {
                 <input
                   type="text"
                   placeholder="location"
-                  className="pl-10 pr-4 py-3 text-gray-500 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-500 rounded-xl text-sm outline-none w-40 hover:border-purple-500 transition-all"
+                  className="pl-10 pr-4 py-3 text-gray-500 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-500 rounded-xl text-sm outline-none w-40 hover:border-purple-500 transition-all"
                   onChange={(e) => setLocation(e.target.value || undefined)}
                 />
               </div>
 
               {/* Price Range */}
-              <div className="flex items-center gap-2 px-4 py-2 bg-zinc-50 dark:bg-gray-900/50 rounded-2xl border border-gray-100 dark:border-gray-800">
+              <div className="flex items-center gap-2 px-4 py-2 bg-zinc-50 dark:bg-gray-900/50 rounded-2xl border border-gray-300 dark:border-gray-800">
                 <DollarSign size={14} className="text-zinc-400" />
                 <input
                   type="number"
@@ -151,7 +151,7 @@ export default function MarketplaceDashboard() {
               <div className="relative group">
                 <select
                   onChange={(e) => setSort(e.target.value)}
-                  className="appearance-none text-gray-500  pl-10 pr-10 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-500 rounded-xl text-sm cursor-pointer outline-none hover:border-purple-500 transition-all"
+                  className="appearance-none text-gray-500  pl-10 pr-10 py-3 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-500 rounded-xl text-sm cursor-pointer outline-none hover:border-purple-500 transition-all"
                 >
                   <option value="recent">Newest First</option>
                   <option value="price_low">Price: Low to High</option>
@@ -167,7 +167,7 @@ export default function MarketplaceDashboard() {
                 onClick={() => setFeatured(featured ? undefined : true)}
                 className={`flex items-center gap-2 px-6 py-3 rounded-xl border text-sm transition-all ${featured
                     ? "bg-linear-to-r from-purple-500 to-blue-500 text-white border-transparent shadow-lg shadow-purple-500/20"
-                    : "bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 text-gray-400 hover:text-purple-500"
+                    : "bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-800 text-gray-400 hover:text-purple-500"
                   }`}
               >
                 <Sparkles size={14} /> Featured
@@ -184,7 +184,7 @@ export default function MarketplaceDashboard() {
                 <p className="text-xs  text-gray-500">Syncing Catalog Registry...</p>
               </div>
             ) : !data?.services || data.services.length === 0 ? (
-              <div className="py-32 text-center border border-dashed border-gray-200 dark:border-gray-800 rounded-3xl bg-gray-50/30 dark:bg-gray-900/10">
+              <div className="py-32 text-center border border-dashed border-gray-300 dark:border-gray-800 rounded-3xl bg-gray-50/30 dark:bg-gray-900/10">
                 <p className="text-gray-400  text-sm">
                   No listings match the current filters
                 </p>

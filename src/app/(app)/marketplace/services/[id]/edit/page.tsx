@@ -118,7 +118,7 @@ export default function EditServicePage() {
       {/* DELETE CONFIRMATION MODAL */}
       {isDeleteModalOpen && (
         <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-white dark:bg-gray-900 w-full max-w-md rounded-lg border border-gray-200 dark:border-zinc-800 shadow-2xl p-6 md:p-10 overflow-hidden">
+          <div className="bg-white dark:bg-gray-900 w-full max-w-md rounded-lg border border-gray-300 dark:border-zinc-800 shadow-2xl p-6 md:p-10 overflow-hidden">
             <div className="flex flex-col items-center text-center space-y-6">
               <div className="w-20 h-20 bg-red-50 dark:bg-red-900/20 rounded-full flex items-center justify-center text-red-500">
                 <AlertTriangle size={40} />
@@ -168,7 +168,7 @@ export default function EditServicePage() {
 
           <form 
             onSubmit={(e) => { e.preventDefault(); updateMutation.mutate(form); }}
-            className="space-y-12 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-[2.5rem] p-4 pt-12 md:p-12 shadow-2xl">
+            className="space-y-12 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-800 rounded-[2.5rem] p-4 pt-12 md:p-12 shadow-2xl">
             <header>
               <h1 className="text-3xl font-semibold  dark:text-white">Edit Service Details</h1>
               <p className="text-gray-500 mt-2 font-medium dark:text-gray-200">Update your professional parameters and pricing.</p>

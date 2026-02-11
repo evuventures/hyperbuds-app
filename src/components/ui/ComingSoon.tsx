@@ -85,7 +85,7 @@ export const ComingSoon: React.FC<ComingSoonProps> = ({
    // Variant: Feature (For sidebar features)
    if (variant === 'feature') {
       return (
-         <div className="p-6 bg-gradient-to-br from-gray-50 via-white rounded-3xl border shadow-lg backdrop-blur-sm to-purple-50/20 dark:from-gray-900 dark:via-gray-800 dark:to-purple-950/20 border-gray-200/60 dark:border-gray-700/60">
+         <div className="p-6 bg-gradient-to-br from-gray-50 via-white rounded-3xl border shadow-lg backdrop-blur-sm to-purple-50/20 dark:from-gray-900 dark:via-gray-800 dark:to-purple-950/20 border-gray-300 dark:border-gray-700/60">
             <div className="text-center">
                <div className="flex justify-center mb-4">
                   <div className="p-3 bg-gradient-to-br from-purple-100 to-blue-100 rounded-2xl dark:from-purple-500/20 dark:to-blue-500/20">
@@ -118,7 +118,7 @@ export const ComingSoon: React.FC<ComingSoonProps> = ({
    // Variant: Minimal (Simple and clean)
    if (variant === 'minimal') {
       return (
-         <div className="p-6 text-center bg-gray-50 rounded-2xl border border-gray-200 dark:bg-gray-800/50 dark:border-gray-700">
+         <div className="p-6 text-center bg-gray-50 rounded-2xl border border-gray-300 dark:bg-gray-800/50 dark:border-gray-700">
             <div className="flex justify-center mb-3">
                <div className="text-gray-400 dark:text-gray-500">
                   {getIcon()}
@@ -142,7 +142,7 @@ export const ComingSoon: React.FC<ComingSoonProps> = ({
 
    // Variant: Default
    return (
-      <div className="p-6 bg-white rounded-3xl border shadow-lg backdrop-blur-sm dark:bg-gray-800/50 border-gray-200/60 dark:border-gray-700/60">
+      <div className="p-6 bg-white rounded-3xl border shadow-lg backdrop-blur-sm dark:bg-gray-800/50 border-gray-300 dark:border-gray-700/60">
          <div className="text-center">
             <div className="flex justify-center mb-4">
                <div className="p-3 bg-gradient-to-br from-blue-100 to-purple-100 rounded-xl dark:from-blue-500/20 dark:to-purple-500/20">

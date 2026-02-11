@@ -36,7 +36,7 @@ export const ServiceCard = ({ service, ownerView = false }: ServiceCardProps) =>
   };
 
   return (
-    <div className="relative group bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-3xl flex flex-col overflow-hidden hover:border-purple-500/50 transition-all duration-300 shadow-sm hover:shadow-xl hover:shadow-purple-500/5">
+    <div className="relative group bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-800 rounded-3xl flex flex-col overflow-hidden hover:border-purple-500/50 transition-all duration-300 shadow-sm hover:shadow-xl hover:shadow-purple-500/5">
       
       {/* SERVICE IMAGE */}
       <Link href={`/marketplace/services/${service._id}`} className="block">
@@ -57,7 +57,7 @@ export const ServiceCard = ({ service, ownerView = false }: ServiceCardProps) =>
           
           {/* Featured Badge */}
           {service.featured && (
-            <div className="absolute top-4 left-4 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md px-3 py-1 rounded-lg border border-gray-200 dark:border-gray-700 flex items-center gap-1.5 shadow-sm">
+            <div className="absolute top-4 left-4 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md px-3 py-1 rounded-lg border border-gray-300 dark:border-gray-700 flex items-center gap-1.5 shadow-sm">
               <ShieldCheck size={12} className="text-purple-500" />
               <span className="text-xs  text-gray-500 dark:text-gray-100  ">Featured</span>
             </div>
@@ -83,7 +83,7 @@ export const ServiceCard = ({ service, ownerView = false }: ServiceCardProps) =>
         </Link>
 
         {/* PRICE & ACTION */}
-        <div className="mt-6 pt-5 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between">
+        <div className="mt-6 pt-5 border-t border-gray-300 dark:border-gray-800 flex items-center justify-between">
           <div className="flex flex-col">
             
             <div className="flex items-baseline gap-1">
@@ -106,7 +106,7 @@ export const ServiceCard = ({ service, ownerView = false }: ServiceCardProps) =>
         <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 transform -translate-y-1 group-hover:translate-y-0">
           <Link
             href={`/marketplace/services/${service._id}/edit`}
-            className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-md text-gray-600 dark:text-gray-300 p-2 rounded-lg border border-gray-200 dark:border-gray-700 hover:text-purple-600 dark:hover:text-purple-400 shadow-lg transition-all"
+            className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-md text-gray-600 dark:text-gray-300 p-2 rounded-lg border border-gray-300 dark:border-gray-700 hover:text-purple-600 dark:hover:text-purple-400 shadow-lg transition-all"
             title="Edit Service"
           >
             <Edit3 size={14} />
@@ -118,7 +118,7 @@ export const ServiceCard = ({ service, ownerView = false }: ServiceCardProps) =>
             className={`p-2 rounded-lg backdrop-blur-md border shadow-lg transition-all ${
               confirming
                 ? "bg-red-500 text-white border-red-400"
-                : "bg-white/90 dark:bg-gray-800/90 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:text-red-500"
+                : "bg-white/90 dark:bg-gray-800/90 text-gray-600 dark:text-gray-300 border-gray-300 dark:border-gray-700 hover:text-red-500"
             }`}
             title={confirming ? "Confirm Delete" : "Delete Service"}
           >

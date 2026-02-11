@@ -106,7 +106,7 @@ export const CreateServicePage = () => {
 
           <form
             onSubmit={handleSubmit}
-            className="space-y-12 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-4 md:p-6 pt-8 lg:p-12 shadow-2xl"
+            className="space-y-12 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-800 rounded-lg p-4 md:p-6 pt-8 lg:p-12 shadow-2xl"
           >
             <header>
               <h1 className="text-3xl font-semibold  dark:text-white">Create New Service</h1>
@@ -336,7 +336,7 @@ export const CreateServicePage = () => {
 
             {/* 04. PACKAGES, REQUIREMENTS, FAQ */}
             <section className="space-y-10 pt-6">
-              <h2 className="text-base font-bold text-purple-500 border-b pb-2 border-purple-100 dark:border-gray-100">
+              <h2 className="text-base font-bold text-purple-500 border-b pb-2 border-purple-100 dark:border-gray-300">
                 04. Packages, Requirements & FAQ
               </h2>
 

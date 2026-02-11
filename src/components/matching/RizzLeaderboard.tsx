@@ -169,11 +169,11 @@ const RizzLeaderboard: React.FC<RizzLeaderboardProps> = ({
          case 1:
             return 'bg-gradient-to-r from-yellow-50 to-yellow-100 dark:from-yellow-900/20 dark:to-yellow-800/20 border-yellow-200 dark:border-yellow-700';
          case 2:
-            return 'bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800/50 dark:to-gray-700/50 border-gray-200 dark:border-gray-600';
+            return 'bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800/50 dark:to-gray-700/50 border-gray-300 dark:border-gray-600';
          case 3:
             return 'bg-gradient-to-r from-amber-50 to-amber-100 dark:from-amber-900/20 dark:to-amber-800/20 border-amber-200 dark:border-amber-700';
          default:
-            return 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700';
+            return 'bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700';
       }
    };
 
@@ -183,7 +183,7 @@ const RizzLeaderboard: React.FC<RizzLeaderboardProps> = ({
          <div className="space-y-4">
             {[...Array(5)].map((_, i) => (
                <div key={i} className="animate-pulse">
-                  <div className="flex items-center gap-4 p-4 bg-white rounded-xl border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+                  <div className="flex items-center gap-4 p-4 bg-white rounded-xl border border-gray-300 dark:bg-gray-800 dark:border-gray-700">
                      <div className="w-8 h-8 bg-gray-300 rounded-full dark:bg-gray-600"></div>
                      <div className="flex-1 space-y-2">
                         <div className="h-4 bg-gray-300 rounded w-1/4 dark:bg-gray-600"></div>

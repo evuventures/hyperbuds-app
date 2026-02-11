@@ -183,7 +183,7 @@ export function BillingHistory({ className = '' }: BillingHistoryProps) {
 
     return (
         <div className={`bg-white dark:bg-gray-800 rounded-lg shadow-md ${className}`}>
-            <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+            <div className="p-6 border-b border-gray-300 dark:border-gray-700">
                 <div className="flex items-center justify-between">
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                         Billing History
@@ -212,7 +212,7 @@ export function BillingHistory({ className = '' }: BillingHistoryProps) {
                 </div>
             </div>
 
-            <div className="divide-y divide-gray-200 dark:divide-gray-700">
+            <div className="divide-y divide-gray-300 dark:divide-gray-700">
                 {isLoading ? (
                     Array.from({ length: 5 }).map((_, index) => (
                         <div key={index} className="p-6 animate-pulse">
@@ -278,7 +278,7 @@ export function BillingHistory({ className = '' }: BillingHistoryProps) {
 
             {/* Pagination */}
             {pagination.pages > 1 && (
-                <div className="p-6 border-t border-gray-200 dark:border-gray-700">
+                <div className="p-6 border-t border-gray-300 dark:border-gray-700">
                     <div className="flex items-center justify-between">
                         <p className="text-sm text-gray-600 dark:text-gray-400">
                             Showing {((pagination.currentPage - 1) * pagination.limit) + 1} to{' '}

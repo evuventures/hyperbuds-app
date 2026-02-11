@@ -152,7 +152,7 @@ export const MessagesContent: React.FC = () => {
          )}
 
          {/* Chat List Sidebar - Mobile overlay or desktop sidebar */}
-         <div className={`${showSidebar ? 'fixed inset-y-0 left-0 z-50 w-80' : 'hidden'} md:flex md:w-1/3 h-screen bg-white border-r border-gray-200 dark:border-gray-700 dark:bg-gray-900`}>
+         <div className={`${showSidebar ? 'fixed inset-y-0 left-0 z-50 w-80' : 'hidden'} md:flex md:w-1/3 h-screen bg-white border-r border-gray-300 dark:border-gray-700 dark:bg-gray-900`}>
             <ChatList
                conversations={conversations}
                selectedConversationId={currentConversation?._id}

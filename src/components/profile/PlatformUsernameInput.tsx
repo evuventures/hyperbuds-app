@@ -109,11 +109,11 @@ export function PlatformUsernameInput({
    };
 
    const getStatusColor = () => {
-      if (!value || !shouldValidate) return 'border-gray-200 dark:border-gray-700';
+      if (!value || !shouldValidate) return 'border-gray-300 dark:border-gray-700';
       if (loading) return 'border-blue-300 dark:border-blue-600';
       if (error) return 'border-red-300 dark:border-red-600';
       if (data) return 'border-green-300 dark:border-green-600';
-      return 'border-gray-200 dark:border-gray-700';
+      return 'border-gray-300 dark:border-gray-700';
    };
 
    return (
@@ -368,7 +368,7 @@ export function PlatformUsernameGroup({
                   </div>
 
                   {/* Input Container */}
-                  <div className="p-6 bg-white rounded-2xl border-2 border-gray-200 shadow-sm transition-shadow dark:bg-gray-800 dark:border-gray-700 hover:shadow-md">
+                  <div className="p-6 bg-white rounded-2xl border-2 border-gray-300 shadow-sm transition-shadow dark:bg-gray-800 dark:border-gray-700 hover:shadow-md">
                      <PlatformUsernameInput
                         platform={platform.type}
                         value={values[platform.type as keyof PlatformCredentials] || ''}

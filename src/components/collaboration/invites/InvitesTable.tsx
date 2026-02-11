@@ -25,21 +25,21 @@ interface InvitesTableProps {
 const InvitesTable: React.FC<InvitesTableProps> = ({ invites, onSelect }) => {
   if (!invites.length) {
     return (
-      <div className="py-16 text-center border border-dashed border-gray-200 dark:border-gray-800 rounded-3xl bg-gray-50/50 dark:bg-gray-900/40">
+      <div className="py-16 text-center border border-dashed border-gray-300 dark:border-gray-800 rounded-3xl bg-gray-50/50 dark:bg-gray-900/40">
         <p className="text-sm text-gray-500 dark:text-gray-400">No pending invites right now.</p>
       </div>
     );
   }
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
+    <div className="overflow-hidden rounded-2xl border border-gray-300 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
       <div className="hidden md:grid grid-cols-12 gap-4 px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800/70">
         <div className="col-span-5">Collaboration</div>
         <div className="col-span-3">Creator</div>
         <div className="col-span-2">Scheduled</div>
         <div className="col-span-2 text-right">Status</div>
       </div>
-      <div className="divide-y divide-gray-200 dark:divide-gray-800">
+      <div className="divide-y divide-gray-300 dark:divide-gray-800">
         {invites.map((invite) => (
           <button
             key={invite._id}

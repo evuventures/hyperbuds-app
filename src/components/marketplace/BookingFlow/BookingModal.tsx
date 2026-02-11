@@ -66,7 +66,7 @@ export const BookingModal = ({ serviceId, isOpen, onClose }: BookingModalProps) 
       <div className="bg-white dark:bg-gray-900 w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-2xl animate-in fade-in zoom-in duration-200 no-scrollbar">
         
         {/* Modal Header */}
-        <div className="sticky top-0 bg-white dark:bg-gray-900 z-10 p-8 pb-4 border-b border-gray-100 dark:border-gray-800 flex justify-between items-start">
+        <div className="sticky top-0 bg-white dark:bg-gray-900 z-10 p-8 pb-4 border-b border-gray-300 dark:border-gray-800 flex justify-between items-start">
           <div className="space-y-1">
             <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Book now</h2>
           </div>
@@ -89,7 +89,7 @@ export const BookingModal = ({ serviceId, isOpen, onClose }: BookingModalProps) 
               </label>
               <textarea 
                 required
-                className="w-full p-5 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 focus:border-purple-500 dark:focus:border-purple-500 rounded-2xl outline-none transition-all min-h-30 text-sm font-medium text-gray-700 dark:text-gray-100 placeholder:text-gray-400"
+                className="w-full p-5 bg-gray-50 dark:bg-gray-800/50 border border-gray-300 dark:border-gray-700 focus:border-purple-500 dark:focus:border-purple-500 rounded-2xl outline-none transition-all min-h-30 text-sm font-medium text-gray-700 dark:text-gray-100 placeholder:text-gray-400"
                 placeholder="Explain what you need..."
                 value={formData.message}
                 onChange={(e) => setFormData({ ...formData, message: e.target.value })}
@@ -102,7 +102,7 @@ export const BookingModal = ({ serviceId, isOpen, onClose }: BookingModalProps) 
                 <Calendar size={14} className="text-blue-500" /> Specific Requirements
               </label>
               <textarea 
-                className="w-full p-5 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 focus:border-blue-500 dark:focus:border-blue-500 rounded-2xl outline-none transition-all min-h-25 text-sm font-medium text-gray-700 dark:text-gray-100 placeholder:text-gray-400"
+                className="w-full p-5 bg-gray-50 dark:bg-gray-800/50 border border-gray-300 dark:border-gray-700 focus:border-blue-500 dark:focus:border-blue-500 rounded-2xl outline-none transition-all min-h-25 text-sm font-medium text-gray-700 dark:text-gray-100 placeholder:text-gray-400"
                 placeholder="List technical specs, colors, or file formats..."
                 value={formData.requirements}
                 onChange={(e) => setFormData({ ...formData, requirements: e.target.value })}
@@ -111,7 +111,7 @@ export const BookingModal = ({ serviceId, isOpen, onClose }: BookingModalProps) 
           </div>
 
           {/* Warning Note */}
-          <div className="flex items-start gap-3 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-2xl border border-gray-100 dark:border-gray-800">
+          <div className="flex items-start gap-3 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-2xl border border-gray-300 dark:border-gray-800">
             <AlertCircle size={18} className="text-purple-500 shrink-0 mt-0.5" />
             <p className="text-xs text-gray-500 dark:text-gray-200">
               By clicking send, you agree to start a formal transaction. 

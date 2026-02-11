@@ -94,7 +94,7 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
    const subtitle = getSubtitle();
 
    return (
-      <div className="flex justify-between items-center p-3 bg-white border-b border-gray-200 md:p-4 dark:bg-gray-900 dark:border-gray-700">
+      <div className="flex justify-between items-center p-3 bg-white border-b border-gray-300 md:p-4 dark:bg-gray-900 dark:border-gray-700">
          {/* Left side - User info */}
          <div className="flex flex-1 gap-2 items-center min-w-0 md:gap-3">
             {/* Back button for mobile */}
@@ -193,7 +193,7 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
                      />
 
                      {/* Menu */}
-                     <div className="absolute right-0 top-full z-20 mt-2 w-48 bg-white rounded-lg border border-gray-200 shadow-lg dark:bg-gray-800 dark:border-gray-700">
+                     <div className="absolute right-0 top-full z-20 mt-2 w-48 bg-white rounded-lg border border-gray-300 shadow-lg dark:bg-gray-800 dark:border-gray-700">
                         <div className="py-1">
                            <button
                               onClick={() => handleMenuAction('info')}
@@ -216,7 +216,7 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
                               Start Voice Call
                            </button>
 
-                           <div className="my-1 border-t border-gray-200 dark:border-gray-700"></div>
+                           <div className="my-1 border-t border-gray-300 dark:border-gray-700"></div>
 
                            <button
                               onClick={() => handleMenuAction('archive')}

@@ -38,7 +38,7 @@ export function PaymentNavigation() {
    ];
 
    return (
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-700">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-300 dark:border-gray-700">
          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
             Payment System Testing
          </h2>
@@ -50,7 +50,7 @@ export function PaymentNavigation() {
                   <Link
                      key={item.name}
                      href={item.href}
-                     className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group"
+                     className="p-4 border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group"
                   >
                      <div className="flex items-center space-x-3 mb-2">
                         <Icon className="w-5 h-5 text-purple-600 dark:text-purple-400" />

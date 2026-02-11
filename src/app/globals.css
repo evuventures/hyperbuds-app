@@ -5,6 +5,9 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  /* Light mode: stronger borders for visibility */
+  --border: 220 13% 81%;
+  --input: 220 13% 81%;
 }
 
 /* Dark theme CSS variables */
@@ -15,6 +18,8 @@
       rgba(243, 244, 246, 1) 100%);
   ;
   --foreground: #ededed;
+  --border: 217 33% 17%;
+  --input: 217 33% 17%;
 }
 
 /* Modern Custom Scrollbar Styles */

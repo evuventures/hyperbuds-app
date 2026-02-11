@@ -110,7 +110,7 @@ export const ServiceDetailsPage = () => {
               {images.length > 0 && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   {images.map((img: string, i: number) => (
-                    <div key={i} className="relative aspect-video rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-800 bg-gray-100 dark:bg-gray-900">
+                    <div key={i} className="relative aspect-video rounded-2xl overflow-hidden border border-gray-300 dark:border-gray-800 bg-gray-100 dark:bg-gray-900">
                       <Image fill src={img} alt="Showcase" className="object-cover" />
                     </div>
                   ))}
@@ -125,7 +125,7 @@ export const ServiceDetailsPage = () => {
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {packages.map((pkg: MarketplacePackage, i: number) => (
-                      <div key={i} className="p-6 bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl space-y-3">
+                      <div key={i} className="p-6 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-800 rounded-xl space-y-3">
                         <div className="flex justify-between items-start">
                           <span className=" text-lg  text-purple-600">{pkg.name}</span>
                           <span className=" text-xl ">{pkg.price}</span>
@@ -143,7 +143,7 @@ export const ServiceDetailsPage = () => {
                   <h3 className="text-lg  text-gray-500 dark:text-gray-200 flex items-center gap-2">
                     <HelpCircle size={16} className="text-purple-500" />FAQ
                   </h3>
-                  <div className="divide-y divide-gray-100 dark:divide-gray-800 border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden bg-white dark:bg-gray-900 shadow-sm">
+                  <div className="divide-y divide-gray-300 dark:divide-gray-800 border border-gray-300 dark:border-gray-800 rounded-xl overflow-hidden bg-white dark:bg-gray-900 shadow-sm">
                     {faq.map((item: MarketplaceFaq, i: number) => (
                       <details key={i} className="group p-6">
                         <summary className="flex justify-between items-center font-semibold text-base text-gray-600 dark:text-gray-300 cursor-pointer list-none outline-none">
@@ -179,7 +179,7 @@ export const ServiceDetailsPage = () => {
 
             {/* Action Card */}
             <div className="lg:col-start-3">
-              <div className="sticky top-8 mt-8 lg:mt-0 px-4 md:px-10 p-10 border border-gray-200 dark:border-gray-800 rounded-[2.5rem] space-y-8 bg-white dark:bg-gray-900 shadow-xl shadow-zinc-200/50 dark:shadow-none">
+              <div className="sticky top-8 mt-8 lg:mt-0 px-4 md:px-10 p-10 border border-gray-300 dark:border-gray-800 rounded-[2.5rem] space-y-8 bg-white dark:bg-gray-900 shadow-xl shadow-zinc-200/50 dark:shadow-none">
                 <div className="space-y-2 text-center md:text-left">
                   <span className="text-xs text-gray-400 uppercase">Base Investment</span>
                   <div className="flex items-baseline justify-center md:justify-start gap-2">
@@ -197,7 +197,7 @@ export const ServiceDetailsPage = () => {
                   </button>
                
 
-                <div className="space-y-5 pt-8 border-t border-gray-100 dark:border-gray-800">
+                <div className="space-y-5 pt-8 border-t border-gray-300 dark:border-gray-800">
                   <div className="flex justify-between text-sm ">
                     <span className="text-gray-400 flex items-center gap-1.5"><Clock size={14}/> Delivery Time</span>
                     <span className="text-gray-700 dark:text-gray-200">{service.deliveryTime}</span>

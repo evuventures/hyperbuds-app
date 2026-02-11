@@ -68,7 +68,7 @@ const CollaborationList: React.FC<CollaborationListProps> = ({
         <Link
           key={collab._id}
           href={`/collaborations/${collab._id}`}
-          className="group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md dark:border-gray-800 dark:bg-gray-900"
+          className="group relative overflow-hidden rounded-2xl border border-gray-300 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md dark:border-gray-800 dark:bg-gray-900"
         >
           <div className="absolute inset-0 opacity-0 transition-opacity duration-300 bg-gradient-to-br from-purple-500/10 via-transparent to-pink-500/10 group-hover:opacity-100" />
           <div className="relative space-y-4">

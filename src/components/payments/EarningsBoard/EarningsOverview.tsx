@@ -27,7 +27,7 @@ export function EarningsOverview({ earnings, isLoading = false }: EarningsOvervi
 
    if (isLoading) {
       return (
-         <div className="p-6 bg-white rounded-lg border border-gray-200 shadow-md dark:bg-gray-800 dark:border-gray-700">
+         <div className="p-6 bg-white rounded-lg border border-gray-300 shadow-md dark:bg-gray-800 dark:border-gray-700">
             <h3 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
                Earnings Overview
             </h3>
@@ -45,7 +45,7 @@ export function EarningsOverview({ earnings, isLoading = false }: EarningsOvervi
 
    if (!displayEarnings) {
       return (
-         <div className="p-6 bg-white rounded-lg border border-gray-200 shadow-md dark:bg-gray-800 dark:border-gray-700">
+         <div className="p-6 bg-white rounded-lg border border-gray-300 shadow-md dark:bg-gray-800 dark:border-gray-700">
             <h3 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
                Earnings Overview
             </h3>
@@ -114,7 +114,7 @@ export function EarningsOverview({ earnings, isLoading = false }: EarningsOvervi
    ];
 
    return (
-      <div className="p-6 bg-white rounded-lg border border-gray-200 shadow-md dark:bg-gray-800 dark:border-gray-700">
+      <div className="p-6 bg-white rounded-lg border border-gray-300 shadow-md dark:bg-gray-800 dark:border-gray-700">
          <h3 className="mb-6 text-lg font-semibold text-gray-900 dark:text-white">
             Earnings Overview
          </h3>
@@ -136,7 +136,7 @@ export function EarningsOverview({ earnings, isLoading = false }: EarningsOvervi
          </div>
 
          {/* Additional Stats */}
-         <div className="pt-6 mt-6 border-t border-gray-200 dark:border-gray-700">
+         <div className="pt-6 mt-6 border-t border-gray-300 dark:border-gray-700">
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                <div className="text-center">
                   <p className="text-sm text-gray-600 dark:text-gray-400">Completed Payouts</p>

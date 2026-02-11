@@ -18,7 +18,7 @@ const CollaborationReviewCard: React.FC<CollaborationReviewCardProps> = ({
   onSubmit,
 }) => {
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900 lg:col-span-3">
+    <div className="rounded-2xl border border-gray-300 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900 lg:col-span-3">
       <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Leave a Review</h2>
       <p className="text-xs text-gray-500 dark:text-gray-400">
         Share feedback about this collaboration.
@@ -28,7 +28,7 @@ const CollaborationReviewCard: React.FC<CollaborationReviewCardProps> = ({
           <select
             value={reviewForm.rating}
             onChange={(event) => onChange({ rating: event.target.value })}
-            className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-gray-800 dark:bg-gray-900 dark:text-white"
+            className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-gray-800 dark:bg-gray-900 dark:text-white"
           >
             {[5, 4, 3, 2, 1].map((value) => (
               <option key={value} value={String(value)}>
@@ -40,7 +40,7 @@ const CollaborationReviewCard: React.FC<CollaborationReviewCardProps> = ({
             value={reviewForm.comment}
             onChange={(event) => onChange({ comment: event.target.value })}
             placeholder="Optional comment"
-            className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-gray-800 dark:bg-gray-900 dark:text-white"
+            className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-gray-800 dark:bg-gray-900 dark:text-white"
           />
         </div>
         <Button

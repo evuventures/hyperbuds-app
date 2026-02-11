@@ -122,7 +122,7 @@ export const NotificationCenter: React.FC = () => {
    return (
       <div className="flex flex-col h-full max-w-4xl mx-auto bg-white dark:bg-gray-900">
          {/* Header */}
-         <div className="sticky top-0 z-10 px-6 py-4 bg-white border-b border-gray-200 dark:bg-gray-900 dark:border-gray-700">
+         <div className="sticky top-0 z-10 px-6 py-4 bg-white border-b border-gray-300 dark:bg-gray-900 dark:border-gray-700">
             <div className="flex items-center justify-between mb-4">
                <div className="flex items-center gap-3">
                   <Bell className="w-6 h-6 text-purple-600 dark:text-purple-400" />

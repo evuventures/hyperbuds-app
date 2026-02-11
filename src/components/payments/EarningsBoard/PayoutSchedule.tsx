@@ -148,7 +148,7 @@ export function PayoutSchedule({ className = '' }: PayoutScheduleProps) {
 
    return (
       <div className={`bg-white dark:bg-gray-800 rounded-lg shadow-md ${className}`}>
-         <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+         <div className="p-6 border-b border-gray-300 dark:border-gray-700">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                Payout Schedule
             </h3>
@@ -157,7 +157,7 @@ export function PayoutSchedule({ className = '' }: PayoutScheduleProps) {
             </p>
          </div>
 
-         <div className="divide-y divide-gray-200 dark:divide-gray-700">
+         <div className="divide-y divide-gray-300 dark:divide-gray-700">
             {isLoading ? (
                Array.from({ length: 3 }).map((_, index) => (
                   <div key={index} className="p-6 animate-pulse">
@@ -233,7 +233,7 @@ export function PayoutSchedule({ className = '' }: PayoutScheduleProps) {
          </div>
 
          {payouts.length > 0 && (
-            <div className="p-6 border-t border-gray-200 dark:border-gray-700">
+            <div className="p-6 border-t border-gray-300 dark:border-gray-700">
                <button className="w-full px-4 py-2 text-sm font-medium text-purple-600 bg-purple-50 dark:bg-purple-900 dark:text-purple-400 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-800 transition-colors">
                   View All Payouts
                </button>

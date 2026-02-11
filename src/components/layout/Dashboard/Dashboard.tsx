@@ -145,7 +145,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     <ThemeProvider>
       <div className="overflow-hidden h-screen bg-linear-to-br from-gray-50 via-white to-gray-100 transition-colors duration-200 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
         {/* Mobile Header */}
-        <div className="fixed top-0 right-0 left-0 z-50 border-b shadow-sm backdrop-blur-lg lg:hidden bg-white/95 dark:bg-gray-900/95 border-gray-200/50 dark:border-gray-700/50">
+        <div className="fixed top-0 right-0 left-0 z-50 border-b shadow-sm backdrop-blur-lg lg:hidden bg-white/95 dark:bg-gray-900/95 border-gray-300 dark:border-gray-700/50">
           <div className="flex justify-between items-center px-4 py-3">
             <div className="flex gap-3 items-center">
               <button
@@ -179,7 +179,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               ${sidebarCollapsed ? 'lg:w-16' : 'lg:w-60'}
             `}
           >
-            <div className="relative pt-16 h-full bg-white border-r shadow-xl transition-colors duration-200 lg:pt-0 dark:bg-gray-900 border-gray-200/50 dark:border-gray-700/50 lg:shadow-none">
+            <div className="relative pt-16 h-full bg-white border-r shadow-xl transition-colors duration-200 lg:pt-0 dark:bg-gray-900 border-gray-300 dark:border-gray-700/50 lg:shadow-none">
               {/* Mobile close button */}
               <div className="absolute top-4 right-4 z-10 lg:hidden">
                 <button
@@ -227,7 +227,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
               {/* Right Sidebar */}
               {/* <div className={`
-                fixed inset-y-0 right-0 z-40 w-80 transform transition-all duration-300 ease-in-out bg-white dark:bg-gray-900 border-l border-gray-200/50 dark:border-gray-700/50 shadow-xl
+                fixed inset-y-0 right-0 z-40 w-80 transform transition-all duration-300 ease-in-out bg-white dark:bg-gray-900 border-l border-gray-300 dark:border-gray-700/50 shadow-xl
                 xl:relative xl:translate-x-0 xl:z-auto xl:shadow-none xl:pt-0 xl:h-full
                 ${rightSidebarOpen ? 'translate-x-0' : 'translate-x-full xl:translate-x-0'}
               `}>

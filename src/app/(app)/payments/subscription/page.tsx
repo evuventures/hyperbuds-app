@@ -167,7 +167,7 @@ function SubscriptionManagement() {
                         isLoading={isProcessing}
                      />
                   ) : (
-                     <div className="p-6 bg-white rounded-lg border border-gray-200 shadow-md dark:bg-gray-800 dark:border-gray-700">
+                     <div className="p-6 bg-white rounded-lg border border-gray-300 shadow-md dark:bg-gray-800 dark:border-gray-700">
                         <div className="text-center">
                            <div className="flex justify-center items-center mx-auto mb-4 w-16 h-16 bg-gray-100 rounded-full dark:bg-gray-700">
                               <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -258,7 +258,7 @@ function SubscriptionManagement() {
                         </h2>
                         <div className="space-y-4">
                            {availablePlans.map((plan) => (
-                              <div key={plan.id} className="p-4 bg-white rounded-lg border border-gray-200 shadow-md dark:bg-gray-800 dark:border-gray-700">
+                              <div key={plan.id} className="p-4 bg-white rounded-lg border border-gray-300 shadow-md dark:bg-gray-800 dark:border-gray-700">
                                  <div className="flex justify-between items-start">
                                     <div>
                                        <h3 className="font-semibold text-gray-900 dark:text-white">

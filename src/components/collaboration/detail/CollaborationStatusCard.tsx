@@ -20,7 +20,7 @@ const CollaborationStatusCard: React.FC<CollaborationStatusCardProps> = ({
   onUpdate,
 }) => {
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+    <div className="rounded-2xl border border-gray-300 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900">
       <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Update Status</h2>
       <p className="text-xs text-gray-500 dark:text-gray-400">
         Keep your collaboration state up to date.
@@ -29,7 +29,7 @@ const CollaborationStatusCard: React.FC<CollaborationStatusCardProps> = ({
         <select
           value={status}
           onChange={(event) => onChange(event.target.value as Collaboration['status'])}
-          className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-gray-800 dark:bg-gray-900 dark:text-white"
+          className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-gray-800 dark:bg-gray-900 dark:text-white"
         >
           {statusOptions.map((option) => (
             <option key={option} value={option}>

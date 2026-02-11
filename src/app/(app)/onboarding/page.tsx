@@ -63,7 +63,7 @@ export default function OnboardingCarousel() {
           animate="in"
           exit="out"
           transition={{ type: "tween", duration: 0.5 }}
-          className="bg-white p-8 sm:p-12 rounded-3xl shadow-xl border border-gray-200 w-full max-w-lg text-center"
+          className="bg-white p-8 sm:p-12 rounded-3xl shadow-xl border border-gray-300 w-full max-w-lg text-center"
         >
           <div className="flex justify-center items-center mb-6">
             {onboardingSlides[currentSlide].icon}

@@ -456,7 +456,7 @@ export default function MatchmakerPage() {
                   {matches.map((match, index) => (
                     <motion.div
                       key={match.id || match._id || index}
-                      className="relative overflow-hidden p-6 rounded-2xl border shadow-lg bg-white/95 dark:bg-slate-800/90 border-gray-200/60 dark:border-white/10 flex flex-col items-center"
+                      className="relative overflow-hidden p-6 rounded-2xl border shadow-lg bg-white/95 dark:bg-slate-800/90 border-gray-300 dark:border-white/10 flex flex-col items-center"
                       whileHover={{ scale: 1.02 }}
                       transition={{ duration: 0.2 }}
                     >

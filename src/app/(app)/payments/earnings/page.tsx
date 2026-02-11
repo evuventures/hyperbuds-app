@@ -174,7 +174,7 @@ function EarningsDashboard() {
 
                     {/* Quick Actions */}
                     <div className="space-y-6">
-                        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-700">
+                        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-300 dark:border-gray-700">
                             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
                                 Quick Actions
                             </h3>
@@ -213,7 +213,7 @@ function EarningsDashboard() {
 
                         {/* Available Balance */}
                         {displayedEarnings && (
-                            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-700">
+                            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-300 dark:border-gray-700">
                                 <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
                                     Available Balance
                                 </h4>

@@ -26,7 +26,7 @@ const InviteDecisionModal: React.FC<InviteDecisionModalProps> = ({
   return (
     <div className="fixed inset-0 z-100 flex items-center justify-center p-4 md:p-6 bg-white/60 dark:bg-zinc-950/60 backdrop-blur-sm transition-colors duration-300">
       <div className="bg-white dark:bg-gray-900 w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-2xl animate-in fade-in zoom-in duration-200">
-        <div className="sticky top-0 bg-white dark:bg-gray-900 z-10 p-6 border-b border-gray-100 dark:border-gray-800 flex justify-between items-start">
+        <div className="sticky top-0 bg-white dark:bg-gray-900 z-10 p-6 border-b border-gray-300 dark:border-gray-800 flex justify-between items-start">
           <div>
             <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Collaboration Invite</h2>
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
@@ -43,7 +43,7 @@ const InviteDecisionModal: React.FC<InviteDecisionModalProps> = ({
         </div>
 
         <div className="p-6 space-y-6">
-          <div className="rounded-2xl border border-gray-200 bg-gray-50/80 p-4 text-sm text-gray-600 dark:border-gray-800 dark:bg-gray-800/40 dark:text-gray-300">
+          <div className="rounded-2xl border border-gray-300 bg-gray-50/80 p-4 text-sm text-gray-600 dark:border-gray-800 dark:bg-gray-800/40 dark:text-gray-300">
             <p className="font-semibold text-gray-900 dark:text-white">About this collaboration</p>
             <p className="mt-2">{invite.description || 'No description provided.'}</p>
           </div>

@@ -31,7 +31,7 @@ const CollaborationEditForm: React.FC<CollaborationEditFormProps> = ({
             value={editForm.title}
             onChange={(event) => onChange({ title: event.target.value })}
             required
-            className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-gray-800 dark:bg-gray-900 dark:text-white"
+            className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-gray-800 dark:bg-gray-900 dark:text-white"
           />
         </div>
         <div className="space-y-2">
@@ -39,7 +39,7 @@ const CollaborationEditForm: React.FC<CollaborationEditFormProps> = ({
           <select
             value={editForm.type}
             onChange={(event) => onChange({ type: event.target.value })}
-            className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-gray-800 dark:bg-gray-900 dark:text-white"
+            className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-gray-800 dark:bg-gray-900 dark:text-white"
           >
             {typeOptions.map((option) => (
               <option key={option} value={option}>
@@ -56,7 +56,7 @@ const CollaborationEditForm: React.FC<CollaborationEditFormProps> = ({
           onChange={(event) => onChange({ description: event.target.value })}
           required
           rows={4}
-          className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-gray-800 dark:bg-gray-900 dark:text-white"
+          className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-gray-800 dark:bg-gray-900 dark:text-white"
         />
       </div>
       <div className="grid gap-4 md:grid-cols-3">
@@ -66,7 +66,7 @@ const CollaborationEditForm: React.FC<CollaborationEditFormProps> = ({
             type="date"
             value={editForm.scheduledDate}
             onChange={(event) => onChange({ scheduledDate: event.target.value })}
-            className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-gray-800 dark:bg-gray-900 dark:text-white"
+            className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-gray-800 dark:bg-gray-900 dark:text-white"
           />
         </div>
         <div className="space-y-2">
@@ -76,7 +76,7 @@ const CollaborationEditForm: React.FC<CollaborationEditFormProps> = ({
             min="1"
             value={editForm.duration}
             onChange={(event) => onChange({ duration: event.target.value })}
-            className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-gray-800 dark:bg-gray-900 dark:text-white"
+            className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-gray-800 dark:bg-gray-900 dark:text-white"
           />
         </div>
         <div className="space-y-2">
@@ -84,7 +84,7 @@ const CollaborationEditForm: React.FC<CollaborationEditFormProps> = ({
           <input
             value={editForm.location}
             onChange={(event) => onChange({ location: event.target.value })}
-            className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-gray-800 dark:bg-gray-900 dark:text-white"
+            className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-gray-800 dark:bg-gray-900 dark:text-white"
           />
         </div>
       </div>
@@ -105,7 +105,7 @@ const CollaborationEditForm: React.FC<CollaborationEditFormProps> = ({
               className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
                 editForm.platforms.includes(platform)
                   ? 'border-purple-500 bg-purple-500 text-white'
-                  : 'border-gray-200 bg-white text-gray-600 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300'
+                  : 'border-gray-300 bg-white text-gray-600 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300'
               }`}
             >
               {platform}
@@ -119,7 +119,7 @@ const CollaborationEditForm: React.FC<CollaborationEditFormProps> = ({
           <input
             value={editForm.requirements}
             onChange={(event) => onChange({ requirements: event.target.value })}
-            className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-gray-800 dark:bg-gray-900 dark:text-white"
+            className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-gray-800 dark:bg-gray-900 dark:text-white"
           />
         </div>
         <div className="space-y-2">
@@ -127,7 +127,7 @@ const CollaborationEditForm: React.FC<CollaborationEditFormProps> = ({
           <input
             value={editForm.tags}
             onChange={(event) => onChange({ tags: event.target.value })}
-            className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-gray-800 dark:bg-gray-900 dark:text-white"
+            className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-gray-800 dark:bg-gray-900 dark:text-white"
           />
         </div>
       </div>
@@ -139,7 +139,7 @@ const CollaborationEditForm: React.FC<CollaborationEditFormProps> = ({
             onChange={(event) =>
               onChange({ compensationType: event.target.value as EditFormState['compensationType'] })
             }
-            className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-gray-800 dark:bg-gray-900 dark:text-white"
+            className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-gray-800 dark:bg-gray-900 dark:text-white"
           >
             {['none', 'revenue_share', 'fixed_fee', 'barter'].map((option) => (
               <option key={option} value={option}>
@@ -155,7 +155,7 @@ const CollaborationEditForm: React.FC<CollaborationEditFormProps> = ({
             min="0"
             value={editForm.compensationAmount}
             onChange={(event) => onChange({ compensationAmount: event.target.value })}
-            className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-gray-800 dark:bg-gray-900 dark:text-white"
+            className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-gray-800 dark:bg-gray-900 dark:text-white"
           />
         </div>
         <div className="space-y-2">
@@ -163,7 +163,7 @@ const CollaborationEditForm: React.FC<CollaborationEditFormProps> = ({
           <input
             value={editForm.compensationCurrency}
             onChange={(event) => onChange({ compensationCurrency: event.target.value })}
-            className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-gray-800 dark:bg-gray-900 dark:text-white"
+            className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-gray-800 dark:bg-gray-900 dark:text-white"
           />
         </div>
       </div>
@@ -173,7 +173,7 @@ const CollaborationEditForm: React.FC<CollaborationEditFormProps> = ({
           <input
             value={editForm.theme}
             onChange={(event) => onChange({ theme: event.target.value })}
-            className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-gray-800 dark:bg-gray-900 dark:text-white"
+            className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-gray-800 dark:bg-gray-900 dark:text-white"
           />
         </div>
         <div className="space-y-2">
@@ -181,7 +181,7 @@ const CollaborationEditForm: React.FC<CollaborationEditFormProps> = ({
           <input
             value={editForm.targetAudience}
             onChange={(event) => onChange({ targetAudience: event.target.value })}
-            className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-gray-800 dark:bg-gray-900 dark:text-white"
+            className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-gray-800 dark:bg-gray-900 dark:text-white"
           />
         </div>
       </div>
@@ -191,7 +191,7 @@ const CollaborationEditForm: React.FC<CollaborationEditFormProps> = ({
           <input
             value={editForm.hashtags}
             onChange={(event) => onChange({ hashtags: event.target.value })}
-            className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-gray-800 dark:bg-gray-900 dark:text-white"
+            className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-gray-800 dark:bg-gray-900 dark:text-white"
           />
         </div>
         <div className="space-y-2">
@@ -199,7 +199,7 @@ const CollaborationEditForm: React.FC<CollaborationEditFormProps> = ({
           <input
             value={editForm.goals}
             onChange={(event) => onChange({ goals: event.target.value })}
-            className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-gray-800 dark:bg-gray-900 dark:text-white"
+            className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-gray-800 dark:bg-gray-900 dark:text-white"
           />
         </div>
       </div>

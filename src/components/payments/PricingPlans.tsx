@@ -49,7 +49,7 @@ const PricingPlanCard = memo(function PricingPlanCard({ plan, isSelected, isLoad
          className={`flex flex-col p-5 rounded-xl border transition hover:shadow-md cursor-pointer relative
             ${isSelected
                ? "border-purple-500 bg-purple-50 dark:bg-purple-900 shadow-lg"
-               : "border-gray-200 dark:border-gray-700"
+               : "border-gray-300 dark:border-gray-700"
             } ${isLoading ? 'opacity-50 pointer-events-none' : ''}`}
       >
          {/* Radio Input */}

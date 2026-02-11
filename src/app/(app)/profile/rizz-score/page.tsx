@@ -45,7 +45,7 @@ const RizzScorePage: React.FC = () => {
          >
             {/* Header Section */}
             <motion.div
-               className="relative bg-white border-b border-gray-200 shadow-sm dark:bg-gray-900 dark:border-gray-700"
+               className="relative bg-white border-b border-gray-300 shadow-sm dark:bg-gray-900 dark:border-gray-700"
                initial={{ opacity: 0, y: -30 }}
                animate={{ opacity: 1, y: 0 }}
                transition={{ duration: 0.5, ease: "easeOut" }}
@@ -296,7 +296,7 @@ const RizzScorePage: React.FC = () => {
                      )}
                      
                      {/* Enhanced Rizz Score Display */}
-                     <div className="overflow-hidden bg-white rounded-2xl border border-gray-200 shadow-xl dark:bg-gray-900 dark:border-gray-700">
+                     <div className="overflow-hidden bg-white rounded-2xl border border-gray-300 shadow-xl dark:bg-gray-900 dark:border-gray-700">
                         <RizzScoreDisplay
                            userId={rizzScore.userId}
                            showDetails={true}
@@ -308,7 +308,7 @@ const RizzScorePage: React.FC = () => {
                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-4 lg:gap-6">
                         {/* Engagement Rate */}
                         <motion.div
-                           className="p-4 bg-white rounded-xl border border-gray-200 shadow-lg dark:bg-gray-900 dark:border-gray-700 sm:p-5 lg:p-6"
+                           className="p-4 bg-white rounded-xl border border-gray-300 shadow-lg dark:bg-gray-900 dark:border-gray-700 sm:p-5 lg:p-6"
                            whileHover={{ scale: 1.02, y: -2 }}
                            transition={{ duration: 0.2 }}
                         >
@@ -328,7 +328,7 @@ const RizzScorePage: React.FC = () => {
 
                         {/* Content Frequency */}
                         <motion.div
-                           className="p-4 bg-white rounded-xl border border-gray-200 shadow-lg dark:bg-gray-900 dark:border-gray-700 sm:p-5 lg:p-6"
+                           className="p-4 bg-white rounded-xl border border-gray-300 shadow-lg dark:bg-gray-900 dark:border-gray-700 sm:p-5 lg:p-6"
                            whileHover={{ scale: 1.02, y: -2 }}
                            transition={{ duration: 0.2 }}
                         >
@@ -348,7 +348,7 @@ const RizzScorePage: React.FC = () => {
 
                         {/* Consistency Score */}
                         <motion.div
-                           className="p-4 bg-white rounded-xl border border-gray-200 shadow-lg dark:bg-gray-900 dark:border-gray-700 sm:p-5 lg:p-6"
+                           className="p-4 bg-white rounded-xl border border-gray-300 shadow-lg dark:bg-gray-900 dark:border-gray-700 sm:p-5 lg:p-6"
                            whileHover={{ scale: 1.02, y: -2 }}
                            transition={{ duration: 0.2 }}
                         >
@@ -368,7 +368,7 @@ const RizzScorePage: React.FC = () => {
 
                         {/* Last Updated */}
                         <motion.div
-                           className="p-4 bg-white rounded-xl border border-gray-200 shadow-lg dark:bg-gray-900 dark:border-gray-700 sm:p-5 lg:p-6"
+                           className="p-4 bg-white rounded-xl border border-gray-300 shadow-lg dark:bg-gray-900 dark:border-gray-700 sm:p-5 lg:p-6"
                            whileHover={{ scale: 1.02, y: -2 }}
                            transition={{ duration: 0.2 }}
                         >

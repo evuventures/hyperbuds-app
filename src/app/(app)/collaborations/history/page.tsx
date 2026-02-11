@@ -49,7 +49,7 @@ export default function CollaborationHistoryPage() {
             </p>
           </div>
 
-          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+          <div className="rounded-2xl border border-gray-300 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900">
               {isLoading ? (
                 <div className="flex flex-col justify-center items-center py-12 sm:py-16">
                   <div className="mb-4 w-12 h-12 text-purple-600 animate-spin sm:w-16 sm:h-16">

@@ -72,7 +72,7 @@ export const ChatList: React.FC<ChatListProps> = ({
    if (loading) {
       return (
          <div className="flex flex-col h-full w-full bg-white dark:bg-gray-900">
-            <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+            <div className="p-4 border-b border-gray-300 dark:border-gray-700">
                <div className="mb-4 h-8 bg-gray-200 rounded animate-pulse dark:bg-gray-700"></div>
                <div className="h-10 bg-gray-200 rounded animate-pulse dark:bg-gray-700"></div>
             </div>
@@ -94,7 +94,7 @@ export const ChatList: React.FC<ChatListProps> = ({
    return (
       <div className="flex flex-col h-full w-full bg-white dark:bg-gray-900">
          {/* Header */}
-         <div className="p-3 md:p-4 w-full border-b border-gray-200 dark:border-gray-700">
+         <div className="p-3 md:p-4 w-full border-b border-gray-300 dark:border-gray-700">
             <div className="flex justify-between items-center mb-3 md:mb-4">
                <h1 className="text-lg md:text-xl font-bold text-gray-900 dark:text-white">
                   Messages
@@ -115,7 +115,7 @@ export const ChatList: React.FC<ChatListProps> = ({
                   placeholder="Search conversations..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="py-2 pr-16 md:pr-20 pl-10 w-full text-sm placeholder-gray-500 text-gray-900 bg-gray-50 rounded-lg border border-gray-200 transition-all duration-200 dark:bg-gray-800 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:bg-white dark:focus:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400"
+                  className="py-2 pr-16 md:pr-20 pl-10 w-full text-sm placeholder-gray-500 text-gray-900 bg-gray-50 rounded-lg border border-gray-300 transition-all duration-200 dark:bg-gray-800 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:bg-white dark:focus:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400"
                />
                <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex space-x-1">
                   <button
@@ -178,7 +178,7 @@ export const ChatList: React.FC<ChatListProps> = ({
                   </div>
                </div>
             ) : (
-               <div className="divide-y divide-gray-200 dark:divide-gray-700 w-full">
+               <div className="divide-y divide-gray-300 dark:divide-gray-700 w-full">
                   {sortedConversations.map((conversation) => {
                      const isSelected = conversation._id === selectedConversationId;
                      const displayName = getConversationDisplayName(conversation);

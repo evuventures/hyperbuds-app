@@ -128,7 +128,7 @@ const PreferencesForm: React.FC<PreferencesFormProps> = ({ onSubmit, isSubmittin
          transition={{ duration: 0.6 }}
          className="mx-auto max-w-4xl"
       >
-         <Card className="border border-gray-200 backdrop-blur-sm bg-white/80 dark:bg-white/10 dark:border-white/20">
+         <Card className="border border-gray-300 backdrop-blur-sm bg-white/80 dark:bg-white/10 dark:border-white/20">
             <CardHeader>
                <CardTitle className="text-2xl font-bold text-center text-gray-900 dark:text-white">
                   Collaboration Preferences
@@ -156,7 +156,7 @@ const PreferencesForm: React.FC<PreferencesFormProps> = ({ onSubmit, isSubmittin
                                  key={type.id}
                                  className={`flex items-start space-x-3 p-4 rounded-lg border transition-all duration-200 hover:scale-105 ${isSelected
                                     ? 'bg-gradient-to-r from-purple-500/20 to-pink-500/20 border-purple-400/50 hover:from-purple-500/30 hover:to-pink-500/30'
-                                    : 'bg-gray-50 border-gray-200 dark:bg-white/5 dark:border-white/10 hover:bg-gray-100 dark:hover:bg-white/10'
+                                    : 'bg-gray-50 border-gray-300 dark:bg-white/5 dark:border-white/10 hover:bg-gray-100 dark:hover:bg-white/10'
                                     }`}
                               >
                                  <Checkbox
@@ -269,7 +269,7 @@ const PreferencesForm: React.FC<PreferencesFormProps> = ({ onSubmit, isSubmittin
                            <SelectTrigger className="flex-1 text-gray-900 dark:text-white bg-gray-100 dark:bg-white/10 border-gray-300 dark:border-white/20 [&>svg]:text-gray-900 dark:[&>svg]:text-white cursor-pointer focus:border-gray-400 dark:focus:border-white/30 focus:ring-0">
                               <SelectValue placeholder="Select a location" />
                            </SelectTrigger>
-                           <SelectContent className="bg-white border-gray-200 dark:bg-slate-800 dark:border-slate-700">
+                           <SelectContent className="bg-white border-gray-300 dark:bg-slate-800 dark:border-slate-700">
                               {locations.map((location) => (
                                  <SelectItem
                                     key={location}
@@ -329,7 +329,7 @@ const PreferencesForm: React.FC<PreferencesFormProps> = ({ onSubmit, isSubmittin
                            <SelectTrigger className="flex-1 text-gray-900 dark:text-white bg-gray-100 dark:bg-white/10 border-gray-300 dark:border-white/20 [&>svg]:text-gray-900 dark:[&>svg]:text-white cursor-pointer focus:border-gray-400 dark:focus:border-white/30 focus:ring-0">
                               <SelectValue placeholder="Select a niche" />
                            </SelectTrigger>
-                           <SelectContent className="bg-white border-gray-200 dark:bg-slate-800 dark:border-slate-700">
+                           <SelectContent className="bg-white border-gray-300 dark:bg-slate-800 dark:border-slate-700">
                               {niches.map((niche) => (
                                  <SelectItem
                                     key={niche}
@@ -434,7 +434,7 @@ const PreferencesForm: React.FC<PreferencesFormProps> = ({ onSubmit, isSubmittin
                            <SelectTrigger className="text-gray-900 dark:text-white bg-gray-100 dark:bg-white/10 border-gray-300 dark:border-white/20 [&>svg]:text-gray-900 dark:[&>svg]:text-white cursor-pointer focus:border-gray-400 dark:focus:border-white/30 focus:ring-0">
                               <SelectValue />
                            </SelectTrigger>
-                           <SelectContent className="bg-white border-gray-200 dark:bg-slate-800 dark:border-slate-700">
+                           <SelectContent className="bg-white border-gray-300 dark:bg-slate-800 dark:border-slate-700">
                               <SelectItem value="daily" className="text-gray-900 cursor-pointer dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 focus:bg-gray-100 dark:focus:bg-slate-700">Daily</SelectItem>
                               <SelectItem value="weekly" className="text-gray-900 cursor-pointer dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 focus:bg-gray-100 dark:focus:bg-slate-700">Weekly</SelectItem>
                               <SelectItem value="bi-weekly" className="text-gray-900 cursor-pointer dark:text-white hover:bg-gray-100 dark:hover:bg-slate-700 focus:bg-gray-100 dark:focus:bg-slate-700">Bi-weekly</SelectItem>

@@ -624,7 +624,7 @@ export default function EditProfilePage() {
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.4, ease: "easeOut" }}
-        className="relative z-10 p-6 mx-auto w-full max-w-4xl rounded-3xl border shadow-2xl backdrop-blur-sm bg-white/90 dark:bg-gray-800/90 md:p-10 border-gray-200/50 dark:border-gray-700/50"
+        className="relative z-10 p-6 mx-auto w-full max-w-4xl rounded-3xl border shadow-2xl backdrop-blur-sm bg-white/90 dark:bg-gray-800/90 md:p-10 border-gray-300 dark:border-gray-700/50"
       >
         {/* Header with Enhanced Back Button */}
         <motion.div
@@ -807,7 +807,7 @@ export default function EditProfilePage() {
                 type="text"
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
-                className="px-4 py-3 w-full text-gray-800 bg-white rounded-xl border-2 border-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 dark:focus:ring-purple-800"
+                className="px-4 py-3 w-full text-gray-800 bg-white rounded-xl border-2 border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 dark:focus:ring-purple-800"
                 placeholder="Enter your display name"
               />
             </motion.div>
@@ -824,7 +824,7 @@ export default function EditProfilePage() {
                 rows={3}
                 value={bio}
                 onChange={(e) => setBio(e.target.value)}
-                className="px-4 py-3 w-full text-gray-800 bg-white rounded-xl border-2 border-gray-200 resize-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 dark:focus:ring-purple-800"
+                className="px-4 py-3 w-full text-gray-800 bg-white rounded-xl border-2 border-gray-300 resize-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 dark:focus:ring-purple-800"
                 placeholder="Tell us about yourself..."
               />
             </motion.div>
@@ -942,10 +942,10 @@ export default function EditProfilePage() {
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: -10, scale: 0.95 }}
                     transition={{ duration: 0.2 }}
-                    className="absolute z-50 mt-2 w-full bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-xl shadow-xl max-h-80 overflow-hidden"
+                    className="absolute z-50 mt-2 w-full bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-700 rounded-xl shadow-xl max-h-80 overflow-hidden"
                   >
                     {/* Search Bar */}
-                    <div className="sticky top-0 bg-white dark:bg-gray-800 z-10 p-3 border-b border-gray-200 dark:border-gray-700">
+                    <div className="sticky top-0 bg-white dark:bg-gray-800 z-10 p-3 border-b border-gray-300 dark:border-gray-700">
                       <div className="relative">
                         <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
                         <input
@@ -1020,21 +1020,21 @@ export default function EditProfilePage() {
                 value={location.city}
                 onChange={(e) => setLocation({ ...location, city: e.target.value })}
                 placeholder="City"
-                className="px-4 py-3 text-gray-800 bg-white rounded-xl border-2 border-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 focus:border-purple-500 dark:focus:border-purple-600"
+                className="px-4 py-3 text-gray-800 bg-white rounded-xl border-2 border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 focus:border-purple-500 dark:focus:border-purple-600"
               />
               <input
                 type="text"
                 value={location.state}
                 onChange={(e) => setLocation({ ...location, state: e.target.value })}
                 placeholder="State"
-                className="px-4 py-3 text-gray-800 bg-white rounded-xl border-2 border-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 focus:border-purple-500 dark:focus:border-purple-600"
+                className="px-4 py-3 text-gray-800 bg-white rounded-xl border-2 border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 focus:border-purple-500 dark:focus:border-purple-600"
               />
               <input
                 type="text"
                 value={location.country}
                 onChange={(e) => setLocation({ ...location, country: e.target.value })}
                 placeholder="Country"
-                className="px-4 py-3 text-gray-800 bg-white rounded-xl border-2 border-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 focus:border-purple-500 dark:focus:border-purple-600"
+                className="px-4 py-3 text-gray-800 bg-white rounded-xl border-2 border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 focus:border-purple-500 dark:focus:border-purple-600"
               />
             </div>
 

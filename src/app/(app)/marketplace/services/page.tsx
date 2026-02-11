@@ -35,10 +35,10 @@ export default function MyServicesPage() {
           {/* NAV BAR */}
           <div className="flex justify-end mb-4">
             <div className="flex items-center gap-2 p-1.5 ">
-              <Link href="/marketplace" className="flex items-center gap-2 px-5 py-2.5 rounded-xl  border border-gray-200 dark:text-white dark:border-gray-500  font-bold text-sm text-gray-500 hover:text-purple-600 transition-all">
+              <Link href="/marketplace" className="flex items-center gap-2 px-5 py-2.5 rounded-xl  border border-gray-300 dark:text-white dark:border-gray-500  font-bold text-sm text-gray-500 hover:text-purple-600 transition-all">
                 <Search size={14} /> Explore
               </Link>
-              <Link href="/marketplace/bookings" className="flex items-center gap-2 px-5 py-2.5 rounded-xl  border border-gray-200 dark:text-white dark:border-gray-500  font-bold text-sm text-gray-500 hover:text-purple-600 transition-all">
+              <Link href="/marketplace/bookings" className="flex items-center gap-2 px-5 py-2.5 rounded-xl  border border-gray-300 dark:text-white dark:border-gray-500  font-bold text-sm text-gray-500 hover:text-purple-600 transition-all">
                 <Ticket size={14} /> Bookings
               </Link>
             </div>

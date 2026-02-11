@@ -169,7 +169,7 @@ const Recommendations: React.FC = () => {
             </div>
 
             {/* Error State */}
-            <div className="p-12 text-center text-gray-900 bg-white rounded-3xl border border-gray-200 shadow-sm dark:bg-gray-800 dark:text-white dark:border-gray-700">
+            <div className="p-12 text-center text-gray-900 bg-white rounded-3xl border border-gray-300 shadow-sm dark:bg-gray-800 dark:text-white dark:border-gray-700">
                <div className="flex flex-col gap-6 items-center mx-auto max-w-md">
                   <div className="p-4 bg-gradient-to-r from-purple-100 to-pink-100 rounded-full dark:from-purple-900/40 dark:to-pink-900/40">
                      <X className="w-12 h-12 text-purple-600 dark:text-purple-400" />
@@ -221,7 +221,7 @@ const Recommendations: React.FC = () => {
             </div>
 
             {/* Empty State */}
-            <div className="p-12 text-center text-gray-900 bg-white rounded-3xl border border-gray-200 shadow-sm dark:bg-gray-800 dark:text-white dark:border-gray-700">
+            <div className="p-12 text-center text-gray-900 bg-white rounded-3xl border border-gray-300 shadow-sm dark:bg-gray-800 dark:text-white dark:border-gray-700">
                <div className="flex flex-col gap-6 items-center mx-auto max-w-md">
                   <div className="p-4 bg-gradient-to-r from-purple-100 to-pink-100 rounded-full dark:from-purple-900/40 dark:to-pink-900/40">
                      <Star className="w-12 h-12 text-purple-600 dark:text-purple-400" />
@@ -317,7 +317,7 @@ const Recommendations: React.FC = () => {
                            transition={{ duration: 0.3, ease: "easeOut" }}
                            className="p-2 w-full h-full"
                         >
-                           <Card className="overflow-hidden h-full border border-gray-200 shadow-sm backdrop-blur-sm transition-all duration-300 group bg-white/80 dark:bg-slate-800/80 dark:border-slate-700 hover:shadow-xl hover:shadow-purple-500/10 dark:hover:shadow-purple-500/20 hover:border-purple-300 dark:hover:border-purple-500/50">
+                           <Card className="overflow-hidden h-full border border-gray-300 shadow-sm backdrop-blur-sm transition-all duration-300 group bg-white/80 dark:bg-slate-800/80 dark:border-slate-700 hover:shadow-xl hover:shadow-purple-500/10 dark:hover:shadow-purple-500/20 hover:border-purple-300 dark:hover:border-purple-500/50">
                               <CardContent className="flex flex-col p-4 h-full sm:p-5">
                                  {/* Enhanced Avatar and Basic Info */}
                                  <div className="flex items-center mb-4 space-x-3 sm:space-x-4">
@@ -394,7 +394,7 @@ const Recommendations: React.FC = () => {
                                        {card.specialties.length > 3 && (
                                           <Badge
                                              variant="outline"
-                                             className="text-xs sm:text-sm px-2.5 py-1 text-gray-600 bg-gradient-to-r from-gray-50 to-gray-100 border-gray-200 transition-all duration-200 dark:from-gray-700/30 dark:to-gray-600/30 dark:border-gray-600/30 dark:text-gray-300 hover:from-gray-100 hover:to-gray-200 dark:hover:from-gray-600/40 dark:hover:to-gray-500/40 hover:border-gray-300 dark:hover:border-gray-500/50 hover:scale-105 cursor-default"
+                                             className="text-xs sm:text-sm px-2.5 py-1 text-gray-600 bg-gradient-to-r from-gray-50 to-gray-100 border-gray-300 transition-all duration-200 dark:from-gray-700/30 dark:to-gray-600/30 dark:border-gray-600/30 dark:text-gray-300 hover:from-gray-100 hover:to-gray-200 dark:hover:from-gray-600/40 dark:hover:to-gray-500/40 hover:border-gray-300 dark:hover:border-gray-500/50 hover:scale-105 cursor-default"
                                           >
                                              +{card.specialties.length - 3}
                                           </Badge>
@@ -406,7 +406,7 @@ const Recommendations: React.FC = () => {
                                  <div className="flex-1" />
 
                                  {/* Action Buttons - Matching AI-matches style */}
-                                 <div className="grid grid-cols-3 gap-1.5 sm:gap-2 py-3 border-t border-gray-100 dark:border-slate-700">
+                                 <div className="grid grid-cols-3 gap-1.5 sm:gap-2 py-3 border-t border-gray-300 dark:border-slate-700">
                                     <Button
                                        variant="outline"
                                        size="sm"

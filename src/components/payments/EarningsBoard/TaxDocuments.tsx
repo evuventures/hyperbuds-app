@@ -107,7 +107,7 @@ export function TaxDocuments({ className = '' }: TaxDocumentsProps) {
 
    return (
       <div className={`bg-white dark:bg-gray-800 rounded-lg shadow-md ${className}`}>
-         <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+         <div className="p-6 border-b border-gray-300 dark:border-gray-700">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                Tax Documents
             </h3>
@@ -116,7 +116,7 @@ export function TaxDocuments({ className = '' }: TaxDocumentsProps) {
             </p>
          </div>
 
-         <div className="divide-y divide-gray-200 dark:divide-gray-700">
+         <div className="divide-y divide-gray-300 dark:divide-gray-700">
             {documents.length === 0 ? (
                <div className="p-6 text-center">
                   <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center">
@@ -188,7 +188,7 @@ export function TaxDocuments({ className = '' }: TaxDocumentsProps) {
             )}
          </div>
 
-         <div className="p-6 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700">
+         <div className="p-6 border-t border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-700">
             <div className="flex items-start space-x-3">
                <svg className="w-5 h-5 text-blue-500 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />

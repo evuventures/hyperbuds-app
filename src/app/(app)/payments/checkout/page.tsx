@@ -126,7 +126,7 @@ function CheckoutContent() {
                <div className="flex justify-center">
                   <div className="grid grid-cols-1 w-full max-w-6xl bg-white rounded-2xl shadow-lg dark:bg-gray-800 lg:grid-cols-2">
                      {/* Left side - Pricing Plans */}
-                     <div className="p-10 border-b border-gray-200 lg:border-b-0 lg:border-r dark:border-gray-700">
+                     <div className="p-10 border-b border-gray-300 lg:border-b-0 lg:border-r dark:border-gray-700">
                         <h2 className="mb-8 text-xl font-bold text-gray-900 dark:text-white">
                            Choose Your Plan
                         </h2>

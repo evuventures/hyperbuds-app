@@ -22,7 +22,7 @@ function PaymentHistoryPage() {
                   <div className="space-y-6">
                      <BillingHistory />
 
-                     <div className="p-6 bg-white rounded-2xl border shadow-lg backdrop-blur-sm dark:bg-gray-800/50 border-gray-200/60 dark:border-gray-700/60">
+                     <div className="p-6 bg-white rounded-2xl border shadow-lg backdrop-blur-sm dark:bg-gray-800/50 border-gray-300 dark:border-gray-700/60">
                         <h3 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
                            Payment Information
                         </h3>
@@ -50,14 +50,14 @@ function PaymentHistoryPage() {
                         </div>
                      </div>
 
-                     <div className="p-6 bg-white rounded-2xl border shadow-lg backdrop-blur-sm dark:bg-gray-800/50 border-gray-200/60 dark:border-gray-700/60">
+                     <div className="p-6 bg-white rounded-2xl border shadow-lg backdrop-blur-sm dark:bg-gray-800/50 border-gray-300 dark:border-gray-700/60">
                         <h3 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
                            Quick Actions
                         </h3>
                         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                            <button
                               onClick={() => window.location.href = '/payments/subscription'}
-                              className="p-4 text-left border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                              className="p-4 text-left border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                            >
                               <div className="flex items-center space-x-3">
                                  <div className="flex items-center justify-center w-10 h-10 bg-purple-100 rounded-full dark:bg-purple-900">
@@ -73,7 +73,7 @@ function PaymentHistoryPage() {
                            </button>
                            <button
                               onClick={() => window.location.href = '/payments/earnings'}
-                              className="p-4 text-left border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                              className="p-4 text-left border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                            >
                               <div className="flex items-center space-x-3">
                                  <div className="flex items-center justify-center w-10 h-10 bg-green-100 rounded-full dark:bg-green-900">
@@ -89,7 +89,7 @@ function PaymentHistoryPage() {
                            </button>
                            <button
                               onClick={() => window.location.href = '/payments/checkout'}
-                              className="p-4 text-left border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                              className="p-4 text-left border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                            >
                               <div className="flex items-center space-x-3">
                                  <div className="flex items-center justify-center w-10 h-10 bg-blue-100 rounded-full dark:bg-blue-900">

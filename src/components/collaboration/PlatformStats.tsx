@@ -205,7 +205,7 @@ export function PlatformStats({
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
                         whileHover={{ scale: 1.02 }}
-                        className={`group p-5 rounded-xl transition-all hover:scale-[1.02] bg-gray-50/80 dark:bg-gray-700/40 border border-gray-200 dark:border-gray-600/50 hover:border-gray-300 dark:hover:border-gray-500/70 hover:shadow-lg ${clickable ? 'cursor-pointer' : ''}`}
+                        className={`group p-5 rounded-xl transition-all hover:scale-[1.02] bg-gray-50/80 dark:bg-gray-700/40 border border-gray-300 dark:border-gray-600/50 hover:border-gray-300 dark:hover:border-gray-500/70 hover:shadow-lg ${clickable ? 'cursor-pointer' : ''}`}
                         onClick={() => handlePlatformClick(platform)}
                      >
                         <div className="flex justify-between items-center mb-4">
@@ -266,7 +266,7 @@ export function PlatformStats({
                      initial={{ opacity: 0, scale: 0.95 }}
                      animate={{ opacity: 1, scale: 1 }}
                      whileHover={{ scale: 1.02 }}
-                     className="overflow-hidden bg-white rounded-xl border border-gray-200 shadow-md transition-shadow dark:bg-gray-800 dark:border-gray-700 hover:shadow-lg"
+                     className="overflow-hidden bg-white rounded-xl border border-gray-300 shadow-md transition-shadow dark:bg-gray-800 dark:border-gray-700 hover:shadow-lg"
                   >
                      {/* Platform Header */}
                      <div className={`p-4 bg-gradient-to-r ${platformColors[platform]}`}>
@@ -297,7 +297,7 @@ export function PlatformStats({
                                  alt={platformData.displayName}
                                  width={48}
                                  height={48}
-                                 className="w-12 h-12 rounded-full border-2 border-gray-200 dark:border-gray-700"
+                                 className="w-12 h-12 rounded-full border-2 border-gray-300 dark:border-gray-700"
                                  unoptimized
                               />
                            )}
@@ -313,7 +313,7 @@ export function PlatformStats({
                            </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                        <div className="grid grid-cols-2 gap-3 pt-3 border-t border-gray-300 dark:border-gray-700">
                            <div className="flex gap-2 items-center">
                               <Users className="w-4 h-4 text-blue-500" />
                               <div>
@@ -361,7 +361,7 @@ export function PlatformStats({
 
                         {/* Sync Button */}
                         {showSyncButtons && (
-                           <div className="pt-3 mt-3 border-t border-gray-200 dark:border-gray-700">
+                           <div className="pt-3 mt-3 border-t border-gray-300 dark:border-gray-700">
                               <SyncPlatformButton
                                  platform={platform}
                                  platformData={platformData}

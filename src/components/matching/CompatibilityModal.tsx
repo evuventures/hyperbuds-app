@@ -41,7 +41,7 @@ const CompatibilityModal: React.FC<CompatibilityModalProps> = ({
 
    return (
       <Dialog open={isOpen} onOpenChange={onClose}>
-         <DialogContent className="overflow-hidden p-0 w-full max-w-lg bg-white border-gray-200 dark:bg-slate-900 dark:border-slate-700 [&>button:not(.custom-close-btn)]:hidden">
+         <DialogContent className="overflow-hidden p-0 w-full max-w-lg bg-white border-gray-300 dark:bg-slate-900 dark:border-slate-700 [&>button:not(.custom-close-btn)]:hidden">
             <motion.div
                initial={{ opacity: 0, scale: 0.95 }}
                animate={{ opacity: 1, scale: 1 }}
@@ -72,7 +72,7 @@ const CompatibilityModal: React.FC<CompatibilityModalProps> = ({
                {/* Content */}
                <div className="px-6 pb-6">
                   {/* Profile Info */}
-                  <div className="flex items-center p-4 mb-6 space-x-4 bg-gray-50 rounded-lg border border-gray-200 dark:bg-white/5 dark:border-white/10">
+                  <div className="flex items-center p-4 mb-6 space-x-4 bg-gray-50 rounded-lg border border-gray-300 dark:bg-white/5 dark:border-white/10">
                      <Avatar className="w-16 h-16 border-2 border-gray-300 dark:border-white/30">
                         <AvatarImage src={profile.avatar} alt={profile.displayName} />
                         <AvatarFallback className="text-lg font-bold text-gray-900 bg-gray-200 dark:text-white dark:bg-white/20">
@@ -107,7 +107,7 @@ const CompatibilityModal: React.FC<CompatibilityModalProps> = ({
                      <h5 className="font-semibold text-gray-900 dark:text-white">Compatibility Breakdown</h5>
 
                      <div className="space-y-3">
-                        <div className="flex justify-between items-center p-3 bg-gray-100 rounded-lg border border-gray-200 dark:bg-white/5 dark:border-white/10">
+                        <div className="flex justify-between items-center p-3 bg-gray-100 rounded-lg border border-gray-300 dark:bg-white/5 dark:border-white/10">
                            <div className="flex items-center space-x-2">
                               <Target className="w-4 h-4 text-blue-500 dark:text-blue-400" />
                               <span className="text-sm text-gray-700 dark:text-white/80">Niche Match</span>
@@ -117,7 +117,7 @@ const CompatibilityModal: React.FC<CompatibilityModalProps> = ({
                            </span>
                         </div>
 
-                        <div className="flex justify-between items-center p-3 bg-gray-100 rounded-lg border border-gray-200 dark:bg-white/5 dark:border-white/10">
+                        <div className="flex justify-between items-center p-3 bg-gray-100 rounded-lg border border-gray-300 dark:bg-white/5 dark:border-white/10">
                            <div className="flex items-center space-x-2">
                               <Users className="w-4 h-4 text-green-500 dark:text-green-400" />
                               <span className="text-sm text-gray-700 dark:text-white/80">Audience Overlap</span>
@@ -127,7 +127,7 @@ const CompatibilityModal: React.FC<CompatibilityModalProps> = ({
                            </span>
                         </div>
 
-                        <div className="flex justify-between items-center p-3 bg-gray-100 rounded-lg border border-gray-200 dark:bg-white/5 dark:border-white/10">
+                        <div className="flex justify-between items-center p-3 bg-gray-100 rounded-lg border border-gray-300 dark:bg-white/5 dark:border-white/10">
                            <div className="flex items-center space-x-2">
                               <TrendingUp className="w-4 h-4 text-orange-500 dark:text-orange-400" />
                               <span className="text-sm text-gray-700 dark:text-white/80">Engagement Style</span>
@@ -137,7 +137,7 @@ const CompatibilityModal: React.FC<CompatibilityModalProps> = ({
                            </span>
                         </div>
 
-                        <div className="flex justify-between items-center p-3 bg-gray-100 rounded-lg border border-gray-200 dark:bg-white/5 dark:border-white/10">
+                        <div className="flex justify-between items-center p-3 bg-gray-100 rounded-lg border border-gray-300 dark:bg-white/5 dark:border-white/10">
                            <div className="flex items-center space-x-2">
                               <Zap className="w-4 h-4 text-purple-500 dark:text-purple-400" />
                               <span className="text-sm text-gray-700 dark:text-white/80">Rizz Compatibility</span>

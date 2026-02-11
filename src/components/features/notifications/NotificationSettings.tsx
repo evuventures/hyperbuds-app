@@ -80,7 +80,7 @@ export const NotificationSettings: React.FC = () => {
   ];
 
   return (
-    <div className="max-w-4xl mx-auto p-6 bg-white rounded-xl border border-gray-200 shadow-sm dark:bg-gray-800 dark:border-gray-700">
+    <div className="max-w-4xl mx-auto p-6 bg-white rounded-xl border border-gray-300 shadow-sm dark:bg-gray-800 dark:border-gray-700">
       <div className="mb-6">
         <h1 className="flex items-center gap-3 text-2xl font-bold text-gray-900 dark:text-gray-100">
           <Bell className="w-6 h-6 text-purple-600 dark:text-purple-400" />
@@ -93,7 +93,7 @@ export const NotificationSettings: React.FC = () => {
 
       <div className="space-y-6">
         {/* Email Notifications */}
-        <section className="p-6 bg-gray-50 rounded-xl border border-gray-200 dark:bg-gray-900/50 dark:border-gray-700">
+        <section className="p-6 bg-gray-50 rounded-xl border border-gray-300 dark:bg-gray-900/50 dark:border-gray-700">
           <div className="flex items-center gap-3 mb-4">
             <Mail className="w-5 h-5 text-purple-600 dark:text-purple-400" />
             <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Email Notifications</h2>
@@ -117,7 +117,7 @@ export const NotificationSettings: React.FC = () => {
         </section>
 
         {/* Push Notifications */}
-        <section className="p-6 bg-gray-50 rounded-xl border border-gray-200 dark:bg-gray-900/50 dark:border-gray-700">
+        <section className="p-6 bg-gray-50 rounded-xl border border-gray-300 dark:bg-gray-900/50 dark:border-gray-700">
           <div className="flex items-center gap-3 mb-4">
             <Smartphone className="w-5 h-5 text-purple-600 dark:text-purple-400" />
             <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Push Notifications</h2>
@@ -141,7 +141,7 @@ export const NotificationSettings: React.FC = () => {
         </section>
 
         {/* In-App Notifications */}
-        <section className="p-6 bg-gray-50 rounded-xl border border-gray-200 dark:bg-gray-900/50 dark:border-gray-700">
+        <section className="p-6 bg-gray-50 rounded-xl border border-gray-300 dark:bg-gray-900/50 dark:border-gray-700">
           <div className="flex items-center gap-3 mb-4">
             <Monitor className="w-5 h-5 text-purple-600 dark:text-purple-400" />
             <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">In-App Notifications</h2>
@@ -166,7 +166,7 @@ export const NotificationSettings: React.FC = () => {
       </div>
 
       {/* Save Button */}
-      <div className="flex justify-end gap-4 mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+      <div className="flex justify-end gap-4 mt-6 pt-6 border-t border-gray-300 dark:border-gray-700">
         <button
           onClick={handleSave}
           disabled={updateMutation.isPending}

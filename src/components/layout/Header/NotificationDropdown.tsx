@@ -58,10 +58,10 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 10, scale: 0.95 }}
           transition={{ duration: 0.2 }}
-          className="absolute right-0 z-50 py-2 mt-2 w-96 bg-white rounded-xl border border-gray-200 shadow-xl dark:bg-gray-800 dark:border-gray-700"
+          className="absolute right-0 z-50 py-2 mt-2 w-96 bg-white rounded-xl border border-gray-300 shadow-xl dark:bg-gray-800 dark:border-gray-700"
         >
           {/* Header */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-gray-700">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-300 dark:border-gray-700">
             <div className="flex items-center gap-2">
               <Bell className="w-5 h-5 text-gray-600 dark:text-gray-400" />
               <h3 className="font-semibold text-gray-900 dark:text-gray-100">
@@ -84,7 +84,7 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
 
           {/* Actions */}
           {notifications.length > 0 && unreadCount > 0 && (
-            <div className="flex items-center justify-end px-4 py-2 border-b border-gray-100 dark:border-gray-700">
+            <div className="flex items-center justify-end px-4 py-2 border-b border-gray-300 dark:border-gray-700">
               <button
                 onClick={handleMarkAllAsRead}
                 disabled={markAllAsReadMutation.isPending}
@@ -136,7 +136,7 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
                 </p>
               </div>
             ) : (
-              <div className="divide-y divide-gray-100 dark:divide-gray-700">
+              <div className="divide-y divide-gray-300 dark:divide-gray-700">
                 {notifications.map((notification) => (
                   <NotificationItem
                     key={notification._id}
@@ -150,7 +150,7 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
 
           {/* Footer */}
           {notifications.length > 0 && (
-            <div className="px-4 py-2 border-t border-gray-100 dark:border-gray-700">
+            <div className="px-4 py-2 border-t border-gray-300 dark:border-gray-700">
               <a
                 href="/notifications"
                 className="block w-full py-2 text-sm font-medium text-center text-purple-600 rounded-lg hover:bg-purple-50 dark:text-purple-400 dark:hover:bg-purple-900/20 transition-colors"

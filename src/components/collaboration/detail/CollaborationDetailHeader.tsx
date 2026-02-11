@@ -39,7 +39,7 @@ const CollaborationDetailHeader: React.FC<CollaborationDetailHeaderProps> = ({
             size="sm"
             onClick={onToggleEdit}
             disabled={isSubmitting}
-            className="text-xs text-gray-600 border-gray-200 sm:text-sm hover:bg-gray-100 dark:text-gray-200 dark:border-gray-700 dark:hover:bg-gray-800"
+            className="text-xs text-gray-600 border-gray-300 sm:text-sm hover:bg-gray-100 dark:text-gray-200 dark:border-gray-700 dark:hover:bg-gray-800"
           >
             {isEditing ? 'Close' : 'Edit'}
           </Button>

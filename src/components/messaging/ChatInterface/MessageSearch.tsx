@@ -72,7 +72,7 @@ export const MessageSearch: React.FC<MessageSearchProps> = ({
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-2xl max-h-[80vh] flex flex-col">
         {/* Header */}
-        <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+        <div className="p-4 border-b border-gray-300 dark:border-gray-700">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
               Search Messages
@@ -87,7 +87,7 @@ export const MessageSearch: React.FC<MessageSearchProps> = ({
         </div>
 
         {/* Search Input */}
-        <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+        <div className="p-4 border-b border-gray-300 dark:border-gray-700">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 w-4 h-4 text-gray-400 transform -translate-y-1/2" />
             <input
@@ -135,7 +135,7 @@ export const MessageSearch: React.FC<MessageSearchProps> = ({
                 <div
                   key={result._id}
                   onClick={() => handleMessageClick(result.conversationId._id, result._id)}
-                  className="p-3 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors"
+                  className="p-3 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors"
                 >
                   <div className="flex items-start space-x-3">
                     <div className="shrink-0">
@@ -171,7 +171,7 @@ export const MessageSearch: React.FC<MessageSearchProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+        <div className="p-4 border-t border-gray-300 dark:border-gray-700">
           <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
             {results.length > 0 && `${results.length} result${results.length === 1 ? '' : 's'} found`}
           </p>

@@ -224,7 +224,7 @@ const CollaborationsPage: React.FC = () => {
                 size="sm"
                 onClick={loadCollaborations}
                 disabled={isLoading}
-                className="text-xs text-gray-600 border-gray-200 sm:text-sm hover:bg-gray-100 dark:text-gray-200 dark:border-gray-700 dark:hover:bg-gray-800"
+                className="text-xs text-gray-600 border-gray-300 sm:text-sm hover:bg-gray-100 dark:text-gray-200 dark:border-gray-700 dark:hover:bg-gray-800"
               >
                 <RefreshCw className={`w-3.5 h-3.5 mr-1.5 sm:w-4 sm:h-4 sm:mr-2 ${isLoading ? "animate-spin" : ""}`} />
                 <span className="hidden sm:inline">Refresh</span>
@@ -299,7 +299,7 @@ const CollaborationsPage: React.FC = () => {
               </Button>
             </div>
 
-            <div className="mb-6 rounded-2xl border border-gray-200/60 bg-white/90 p-5 shadow-lg backdrop-blur-sm dark:border-white/10 dark:bg-slate-800/90">
+            <div className="mb-6 rounded-2xl border border-gray-300 bg-white/90 p-5 shadow-lg backdrop-blur-sm dark:border-white/10 dark:bg-slate-800/90">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
@@ -330,7 +330,7 @@ const CollaborationsPage: React.FC = () => {
                         value={formState.title}
                         onChange={(event) => setFormState((prev) => ({ ...prev, title: event.target.value }))}
                         required
-                        className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-white/10 dark:bg-slate-900/60 dark:text-white"
+                        className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-white/10 dark:bg-slate-900/60 dark:text-white"
                         placeholder="Collaboration title"
                       />
                     </div>
@@ -341,7 +341,7 @@ const CollaborationsPage: React.FC = () => {
                       <select
                         value={formState.type}
                         onChange={(event) => setFormState((prev) => ({ ...prev, type: event.target.value }))}
-                        className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-white/10 dark:bg-slate-900/60 dark:text-white"
+                        className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-white/10 dark:bg-slate-900/60 dark:text-white"
                       >
                         {["video", "livestream", "podcast", "photo_shoot", "event", "challenge", "series", "other"].map(
                           (value) => (
@@ -362,7 +362,7 @@ const CollaborationsPage: React.FC = () => {
                       value={formState.description}
                       onChange={(event) => setFormState((prev) => ({ ...prev, description: event.target.value }))}
                       required
-                      className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-white/10 dark:bg-slate-900/60 dark:text-white"
+                      className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-white/10 dark:bg-slate-900/60 dark:text-white"
                       rows={4}
                       placeholder="Describe the collaboration goals"
                     />
@@ -377,7 +377,7 @@ const CollaborationsPage: React.FC = () => {
                         type="date"
                         value={formState.scheduledDate}
                         onChange={(event) => setFormState((prev) => ({ ...prev, scheduledDate: event.target.value }))}
-                        className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-white/10 dark:bg-slate-900/60 dark:text-white"
+                        className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-white/10 dark:bg-slate-900/60 dark:text-white"
                       />
                     </div>
                     <div className="space-y-2">
@@ -389,7 +389,7 @@ const CollaborationsPage: React.FC = () => {
                         min="1"
                         value={formState.duration}
                         onChange={(event) => setFormState((prev) => ({ ...prev, duration: event.target.value }))}
-                        className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-white/10 dark:bg-slate-900/60 dark:text-white"
+                        className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-white/10 dark:bg-slate-900/60 dark:text-white"
                         placeholder="120"
                       />
                     </div>
@@ -400,7 +400,7 @@ const CollaborationsPage: React.FC = () => {
                       <input
                         value={formState.location}
                         onChange={(event) => setFormState((prev) => ({ ...prev, location: event.target.value }))}
-                        className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-white/10 dark:bg-slate-900/60 dark:text-white"
+                        className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-white/10 dark:bg-slate-900/60 dark:text-white"
                         placeholder="Virtual or city"
                       />
                     </div>
@@ -419,7 +419,7 @@ const CollaborationsPage: React.FC = () => {
                           className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
                             formState.platforms.includes(platform)
                               ? "border-purple-500 bg-purple-500 text-white"
-                              : "border-gray-200 bg-white text-gray-600 dark:border-white/10 dark:bg-slate-900/60 dark:text-gray-300"
+                              : "border-gray-300 bg-white text-gray-600 dark:border-white/10 dark:bg-slate-900/60 dark:text-gray-300"
                           }`}
                         >
                           {platform}
@@ -436,7 +436,7 @@ const CollaborationsPage: React.FC = () => {
                       <input
                         value={formState.requirements}
                         onChange={(event) => setFormState((prev) => ({ ...prev, requirements: event.target.value }))}
-                        className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-white/10 dark:bg-slate-900/60 dark:text-white"
+                        className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-white/10 dark:bg-slate-900/60 dark:text-white"
                         placeholder="Camera, lighting"
                       />
                     </div>
@@ -447,7 +447,7 @@ const CollaborationsPage: React.FC = () => {
                       <input
                         value={formState.tags}
                         onChange={(event) => setFormState((prev) => ({ ...prev, tags: event.target.value }))}
-                        className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-white/10 dark:bg-slate-900/60 dark:text-white"
+                        className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-white/10 dark:bg-slate-900/60 dark:text-white"
                         placeholder="gaming, tech"
                       />
                     </div>
@@ -461,7 +461,7 @@ const CollaborationsPage: React.FC = () => {
                       <select
                         value={formState.compensationType}
                         onChange={(event) => setFormState((prev) => ({ ...prev, compensationType: event.target.value }))}
-                        className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-white/10 dark:bg-slate-900/60 dark:text-white"
+                        className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-white/10 dark:bg-slate-900/60 dark:text-white"
                       >
                         {["none", "revenue_share", "fixed_fee", "barter"].map((value) => (
                           <option key={value} value={value}>
@@ -479,7 +479,7 @@ const CollaborationsPage: React.FC = () => {
                         min="0"
                         value={formState.compensationAmount}
                         onChange={(event) => setFormState((prev) => ({ ...prev, compensationAmount: event.target.value }))}
-                        className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-white/10 dark:bg-slate-900/60 dark:text-white"
+                        className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-white/10 dark:bg-slate-900/60 dark:text-white"
                         placeholder="0"
                       />
                     </div>
@@ -490,7 +490,7 @@ const CollaborationsPage: React.FC = () => {
                       <input
                         value={formState.compensationCurrency}
                         onChange={(event) => setFormState((prev) => ({ ...prev, compensationCurrency: event.target.value }))}
-                        className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-white/10 dark:bg-slate-900/60 dark:text-white"
+                        className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-white/10 dark:bg-slate-900/60 dark:text-white"
                       />
                     </div>
                   </div>
@@ -502,7 +502,7 @@ const CollaborationsPage: React.FC = () => {
                     <input
                       value={formState.compensationDescription}
                       onChange={(event) => setFormState((prev) => ({ ...prev, compensationDescription: event.target.value }))}
-                      className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-white/10 dark:bg-slate-900/60 dark:text-white"
+                      className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-white/10 dark:bg-slate-900/60 dark:text-white"
                       placeholder="Optional details about compensation"
                     />
                   </div>
@@ -515,7 +515,7 @@ const CollaborationsPage: React.FC = () => {
                       <input
                         value={formState.theme}
                         onChange={(event) => setFormState((prev) => ({ ...prev, theme: event.target.value }))}
-                        className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-white/10 dark:bg-slate-900/60 dark:text-white"
+                        className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-white/10 dark:bg-slate-900/60 dark:text-white"
                         placeholder="Theme"
                       />
                     </div>
@@ -526,7 +526,7 @@ const CollaborationsPage: React.FC = () => {
                       <input
                         value={formState.hashtags}
                         onChange={(event) => setFormState((prev) => ({ ...prev, hashtags: event.target.value }))}
-                        className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-white/10 dark:bg-slate-900/60 dark:text-white"
+                        className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-white/10 dark:bg-slate-900/60 dark:text-white"
                         placeholder="#collab, #creator"
                       />
                     </div>
@@ -537,7 +537,7 @@ const CollaborationsPage: React.FC = () => {
                       <input
                         value={formState.goals}
                         onChange={(event) => setFormState((prev) => ({ ...prev, goals: event.target.value }))}
-                        className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-white/10 dark:bg-slate-900/60 dark:text-white"
+                        className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-white/10 dark:bg-slate-900/60 dark:text-white"
                         placeholder="engagement, reach"
                       />
                     </div>
@@ -551,7 +551,7 @@ const CollaborationsPage: React.FC = () => {
                       <input
                         value={formState.targetAudience}
                         onChange={(event) => setFormState((prev) => ({ ...prev, targetAudience: event.target.value }))}
-                        className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-white/10 dark:bg-slate-900/60 dark:text-white"
+                        className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-white/10 dark:bg-slate-900/60 dark:text-white"
                         placeholder="Audience profile"
                       />
                     </div>
@@ -586,7 +586,7 @@ const CollaborationsPage: React.FC = () => {
                       type="button"
                       variant="outline"
                       onClick={() => setIsCreating(false)}
-                      className="text-xs text-gray-600 border-gray-200 sm:text-sm hover:bg-gray-50 dark:text-gray-300 dark:border-white/10 dark:hover:bg-slate-900/40"
+                      className="text-xs text-gray-600 border-gray-300 sm:text-sm hover:bg-gray-50 dark:text-gray-300 dark:border-white/10 dark:hover:bg-slate-900/40"
                     >
                       Cancel
                     </Button>
@@ -643,15 +643,15 @@ const CollaborationsPage: React.FC = () => {
             
               {/* footer stats */}
             {/* <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
-              <div className="rounded-2xl border border-gray-200/60 bg-white/90 p-4 text-center shadow-md dark:border-white/10 dark:bg-slate-800/90">
+              <div className="rounded-2xl border border-gray-300 bg-white/90 p-4 text-center shadow-md dark:border-white/10 dark:bg-slate-800/90">
                 <p className="text-xs text-gray-500 dark:text-gray-400">Total</p>
                 <p className="text-2xl font-bold text-gray-900 dark:text-white">{collaborations.length}</p>
               </div>
-              <div className="rounded-2xl border border-gray-200/60 bg-white/90 p-4 text-center shadow-md dark:border-white/10 dark:bg-slate-800/90">
+              <div className="rounded-2xl border border-gray-300 bg-white/90 p-4 text-center shadow-md dark:border-white/10 dark:bg-slate-800/90">
                 <p className="text-xs text-gray-500 dark:text-gray-400">Active</p>
                 <p className="text-2xl font-bold text-gray-900 dark:text-white">{activeCollaborations.length}</p>
               </div>
-              <div className="rounded-2xl border border-gray-200/60 bg-white/90 p-4 text-center shadow-md dark:border-white/10 dark:bg-slate-800/90">
+              <div className="rounded-2xl border border-gray-300 bg-white/90 p-4 text-center shadow-md dark:border-white/10 dark:bg-slate-800/90">
                 <p className="text-xs text-gray-500 dark:text-gray-400">Invites</p>
                 <p className="text-2xl font-bold text-gray-900 dark:text-white">{invites.length}</p>
               </div>

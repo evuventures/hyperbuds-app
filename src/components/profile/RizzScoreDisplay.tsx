@@ -83,7 +83,7 @@ export const RizzScoreDisplay: React.FC<RizzScoreDisplayProps> = ({
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
-            className={`p-6 bg-white rounded-2xl border shadow-lg backdrop-blur-sm dark:bg-gray-800/50 border-gray-200/60 dark:border-gray-700/60 ${className}`}
+            className={`p-6 bg-white rounded-2xl border shadow-lg backdrop-blur-sm dark:bg-gray-800/50 border-gray-300 dark:border-gray-700/60 ${className}`}
          >
             <motion.div
                initial={{ opacity: 0 }}
@@ -123,7 +123,7 @@ export const RizzScoreDisplay: React.FC<RizzScoreDisplayProps> = ({
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.4, type: "spring", stiffness: 200 }}
-            className={`p-6 bg-white rounded-2xl border shadow-lg backdrop-blur-sm dark:bg-gray-800/50 border-gray-200/60 dark:border-gray-700/60 ${className}`}
+            className={`p-6 bg-white rounded-2xl border shadow-lg backdrop-blur-sm dark:bg-gray-800/50 border-gray-300 dark:border-gray-700/60 ${className}`}
          >
             <motion.div
                initial={{ x: -20, opacity: 0 }}
@@ -176,7 +176,7 @@ export const RizzScoreDisplay: React.FC<RizzScoreDisplayProps> = ({
          variants={containerVariants}
          initial="hidden"
          animate="visible"
-         className={`p-6 bg-white rounded-2xl border shadow-lg backdrop-blur-sm dark:bg-gray-800/50 border-gray-200/60 dark:border-gray-700/60 ${className}`}
+         className={`p-6 bg-white rounded-2xl border shadow-lg backdrop-blur-sm dark:bg-gray-800/50 border-gray-300 dark:border-gray-700/60 ${className}`}
       >
          {/* Header */}
          <motion.div

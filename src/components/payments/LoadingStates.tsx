@@ -48,7 +48,7 @@ export function PricingPlansSkeleton() {
   return (
     <div className="space-y-6">
       {Array.from({ length: 3 }).map((_, index) => (
-        <div key={index} className="rounded-xl border border-gray-200 p-5 dark:border-gray-700">
+        <div key={index} className="rounded-xl border border-gray-300 p-5 dark:border-gray-700">
           <div className="mb-3 flex items-start justify-between">
             <div className="flex-1">
               <Skeleton className="mb-2 h-6 w-24" />
@@ -73,7 +73,7 @@ export function PricingPlansSkeleton() {
 export function BillingHistorySkeleton() {
   return (
     <div className="rounded-lg bg-white shadow-md dark:bg-gray-800">
-      <div className="border-b border-gray-200 p-6 dark:border-gray-700">
+      <div className="border-b border-gray-300 p-6 dark:border-gray-700">
         <div className="flex items-center justify-between">
           <Skeleton className="h-6 w-24" />
           <div className="flex space-x-2">
@@ -82,7 +82,7 @@ export function BillingHistorySkeleton() {
           </div>
         </div>
       </div>
-      <div className="divide-y divide-gray-200 dark:divide-gray-700">
+      <div className="divide-y divide-gray-300 dark:divide-gray-700">
         {Array.from({ length: 5 }).map((_, index) => (
           <div key={index} className="flex items-center space-x-4 p-6">
             <Skeleton className="h-10 w-10 flex-shrink-0 rounded-full" />
@@ -100,7 +100,7 @@ export function BillingHistorySkeleton() {
 
 export function SubscriptionCardSkeleton() {
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-md dark:border-gray-700 dark:bg-gray-800">
+    <div className="rounded-lg border border-gray-300 bg-white p-6 shadow-md dark:border-gray-700 dark:bg-gray-800">
       <div className="mb-4 flex items-center justify-between">
         <div>
           <Skeleton className="mb-2 h-6 w-24" />

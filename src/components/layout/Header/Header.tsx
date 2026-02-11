@@ -72,7 +72,7 @@ export const Header: React.FC<HeaderProps> = ({ user, onMenuClick }) => {
 
 
   return (
-    <header className="sticky top-0 z-50 border-b shadow-sm backdrop-blur-lg transition-colors duration-200 bg-white/95 dark:bg-gray-900/95 border-gray-200/50 dark:border-gray-700/50">
+    <header className="sticky top-0 z-50 border-b shadow-sm backdrop-blur-lg transition-colors duration-200 bg-white/95 dark:bg-gray-900/95 border-gray-300 dark:border-gray-700/50">
       <div className="flex justify-between items-center px-3 py-3 sm:px-6 sm:py-4">
 
         {/* Left Section */}
@@ -108,7 +108,7 @@ export const Header: React.FC<HeaderProps> = ({ user, onMenuClick }) => {
               placeholder="Search creators, collaborations..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 pr-4 py-2.5 w-80 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 dark:focus:ring-purple-400 focus:bg-white dark:focus:bg-gray-700 transition-all duration-200 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
+              className="pl-10 pr-4 py-2.5 w-80 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 dark:focus:ring-purple-400 focus:bg-white dark:focus:bg-gray-700 transition-all duration-200 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
             />
           </div>
         </div>
@@ -188,8 +188,8 @@ export const Header: React.FC<HeaderProps> = ({ user, onMenuClick }) => {
 
             {/* User Menu Dropdown */}
             {showUserMenu && (
-              <div className="absolute right-0 z-50 py-2 mt-2 w-64 bg-white rounded-xl border border-gray-200 shadow-xl dark:bg-gray-800 dark:border-gray-700">
-                <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700">
+              <div className="absolute right-0 z-50 py-2 mt-2 w-64 bg-white rounded-xl border border-gray-300 shadow-xl dark:bg-gray-800 dark:border-gray-700">
+                <div className="px-4 py-3 border-b border-gray-300 dark:border-gray-700">
                   <div className="flex gap-3 items-center">
                     <div className="flex justify-center items-center w-10 h-10 bg-linear-to-r from-purple-500 to-pink-500 rounded-full">
                       <span className="font-medium text-white">
@@ -225,7 +225,7 @@ export const Header: React.FC<HeaderProps> = ({ user, onMenuClick }) => {
                   </button>
                 </div>
 
-                <div className="py-2 border-t border-gray-100 dark:border-gray-700">
+                <div className="py-2 border-t border-gray-300 dark:border-gray-700">
                   <button
                     onClick={handleLogout}
                     className="flex gap-3 items-center px-4 py-2 w-full text-left text-red-600 transition-colors cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 dark:text-red-400"
@@ -249,7 +249,7 @@ export const Header: React.FC<HeaderProps> = ({ user, onMenuClick }) => {
             placeholder="Search..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 pr-4 py-2.5 w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 dark:focus:ring-purple-400 focus:bg-white dark:focus:bg-gray-700 transition-all duration-200 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
+            className="pl-10 pr-4 py-2.5 w-full bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 dark:focus:ring-purple-400 focus:bg-white dark:focus:bg-gray-700 transition-all duration-200 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
           />
         </div>
       </div> */}

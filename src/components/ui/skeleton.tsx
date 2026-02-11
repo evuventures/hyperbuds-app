@@ -11,7 +11,7 @@ export const Skeleton: React.FC<SkeletonProps> = ({ className = "" }) => (
 
 // Header Skeleton
 const HeaderSkeleton: React.FC = () => (
-  <div className="px-6 py-4 bg-white border-b border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+  <div className="px-6 py-4 bg-white border-b border-gray-300 dark:bg-gray-800 dark:border-gray-700">
     <div className="flex justify-between items-center">
       {/* Logo/Brand */}
       <div className="flex items-center space-x-3">
@@ -59,7 +59,7 @@ const SidebarSkeleton: React.FC<{ collapsed?: boolean }> = ({ collapsed = false 
     </div>
 
     {/* Bottom section */}
-    <div className="pt-4 mt-8 border-t border-gray-200 dark:border-gray-700">
+    <div className="pt-4 mt-8 border-t border-gray-300 dark:border-gray-700">
       <div className={`flex items-center ${collapsed ? 'justify-center p-2' : 'p-3 space-x-3'}`}>
         <Skeleton className="w-5 h-5 rounded" />
         {!collapsed && <Skeleton className="w-16 h-4" />}
@@ -80,7 +80,7 @@ export const PageContentSkeleton: React.FC = () => (
     {/* Stats cards */}
     <div className="grid grid-cols-1 gap-6 mb-8 md:grid-cols-2 lg:grid-cols-4">
       {Array.from({ length: 4 }).map((_, i) => (
-        <div key={i} className="p-6 bg-white rounded-lg border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+        <div key={i} className="p-6 bg-white rounded-lg border border-gray-300 dark:bg-gray-800 dark:border-gray-700">
           <div className="flex justify-between items-center mb-4">
             <Skeleton className="w-6 h-6 rounded" />
             <Skeleton className="w-4 h-4 rounded" />
@@ -92,7 +92,7 @@ export const PageContentSkeleton: React.FC = () => (
     </div>
 
     {/* Main chart/content area */}
-    <div className="p-6 mb-6 bg-white rounded-lg border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+    <div className="p-6 mb-6 bg-white rounded-lg border border-gray-300 dark:bg-gray-800 dark:border-gray-700">
       <div className="flex justify-between items-center mb-6">
         <Skeleton className="w-32 h-6" />
         <div className="flex space-x-2">
@@ -104,8 +104,8 @@ export const PageContentSkeleton: React.FC = () => (
     </div>
 
     {/* Data table */}
-    <div className="bg-white rounded-lg border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
-      <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+    <div className="bg-white rounded-lg border border-gray-300 dark:bg-gray-800 dark:border-gray-700">
+      <div className="p-6 border-b border-gray-300 dark:border-gray-700">
         <div className="flex justify-between items-center">
           <Skeleton className="w-28 h-6" />
           <Skeleton className="w-24 h-8 rounded-md" />
@@ -144,7 +144,7 @@ export const CardGridSkeleton: React.FC<{ count?: number; columns?: 2 | 3 | 4 }>
   return (
   <div className={`grid grid-cols-1 gap-6 md:grid-cols-2 ${colClass}`}>
     {Array.from({ length: count }).map((_, i) => (
-      <div key={i} className="p-6 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+      <div key={i} className="p-6 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800">
         <div className="flex justify-between items-center mb-4">
           <Skeleton className="w-6 h-6 rounded" />
           <Skeleton className="w-4 h-4 rounded" />
@@ -162,8 +162,8 @@ export const TableSkeleton: React.FC<{ rows?: number; cols?: number }> = ({
   rows = 6,
   cols = 5,
 }) => (
-  <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 overflow-hidden">
-    <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+  <div className="rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 overflow-hidden">
+    <div className="p-6 border-b border-gray-300 dark:border-gray-700">
       <div className="flex justify-between items-center">
         <Skeleton className="w-28 h-6" />
         <Skeleton className="w-24 h-8 rounded-md" />
@@ -208,7 +208,7 @@ export const FormSkeleton: React.FC<{ fields?: number }> = ({ fields = 5 }) => (
 
 // Right Sidebar Skeleton - Commented out (right sidebar removed)
 /* const RightSidebarSkeleton: React.FC = () => (
-  <div className="p-4 bg-white border-l border-gray-200 lg:w-80 dark:bg-gray-800 dark:border-gray-700">
+  <div className="p-4 bg-white border-l border-gray-300 lg:w-80 dark:bg-gray-800 dark:border-gray-700">
     {/* Notifications section *\/}
     <div className="mb-6">
       <Skeleton className="mb-4 w-24 h-5" />
@@ -258,7 +258,7 @@ const DashboardSkeleton: React.FC<{ collapsed?: boolean }> = ({ collapsed = fals
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 transition-colors duration-200 overflow-y-clip dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
       {/* Mobile Header Skeleton */}
-      <div className="fixed top-0 right-0 left-0 z-50 border-b shadow-sm backdrop-blur-lg lg:hidden bg-white/95 dark:bg-gray-900/95 border-gray-200/50 dark:border-gray-700/50">
+      <div className="fixed top-0 right-0 left-0 z-50 border-b shadow-sm backdrop-blur-lg lg:hidden bg-white/95 dark:bg-gray-900/95 border-gray-300 dark:border-gray-700/50">
         <div className="flex justify-between items-center px-4 py-3">
           <div className="flex gap-3 items-center">
             <Skeleton className="w-9 h-9 rounded-xl" />
@@ -287,7 +287,7 @@ const DashboardSkeleton: React.FC<{ collapsed?: boolean }> = ({ collapsed = fals
             ${collapsed ? 'lg:w-16' : 'w-60'}
           `}
         >
-          <div className="relative pt-16 h-full bg-white border-r shadow-xl transition-colors duration-200 lg:pt-0 dark:bg-gray-900 border-gray-200/50 dark:border-gray-700/50 lg:shadow-none">
+          <div className="relative pt-16 h-full bg-white border-r shadow-xl transition-colors duration-200 lg:pt-0 dark:bg-gray-900 border-gray-300 dark:border-gray-700/50 lg:shadow-none">
             <div className="h-full overflow-y-auto [&::-webkit-scrollbar]:hidden">
               <SidebarSkeleton collapsed={collapsed} />
             </div>
@@ -306,7 +306,7 @@ const DashboardSkeleton: React.FC<{ collapsed?: boolean }> = ({ collapsed = fals
             </main>
 
             {/* Right Sidebar */}
-            {/* <div className="fixed inset-y-0 right-0 z-40 w-80 bg-white border-l shadow-xl transition-all duration-300 ease-in-out transform translate-x-0 dark:bg-gray-900 border-gray-200/50 dark:border-gray-700/50 xl:relative xl:translate-x-0 xl:z-auto xl:shadow-none xl:pt-0">
+            {/* <div className="fixed inset-y-0 right-0 z-40 w-80 bg-white border-l shadow-xl transition-all duration-300 ease-in-out transform translate-x-0 dark:bg-gray-900 border-gray-300 dark:border-gray-700/50 xl:relative xl:translate-x-0 xl:z-auto xl:shadow-none xl:pt-0">
               <div className="pt-16 h-full xl:pt-0">
                 <div className="overflow-y-auto h-full scrollbar-hide">
                   <RightSidebarSkeleton />

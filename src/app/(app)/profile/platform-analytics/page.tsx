@@ -142,7 +142,7 @@ export default function PlatformAnalyticsPage() {
                >
                   <button
                      onClick={() => router.back()}
-                     className="flex gap-3 items-center px-4 py-3 bg-linear-to-r from-gray-100 to-gray-200 rounded-xl border border-gray-200 shadow-md transition-all duration-200 cursor-pointer group dark:from-gray-800 dark:to-gray-700 hover:from-gray-200 hover:to-gray-300 dark:hover:from-gray-700 dark:hover:to-gray-600 hover:shadow-lg dark:border-gray-600"
+                     className="flex gap-3 items-center px-4 py-3 bg-linear-to-r from-gray-100 to-gray-200 rounded-xl border border-gray-300 shadow-md transition-all duration-200 cursor-pointer group dark:from-gray-800 dark:to-gray-700 hover:from-gray-200 hover:to-gray-300 dark:hover:from-gray-700 dark:hover:to-gray-600 hover:shadow-lg dark:border-gray-600"
                   >
                      <ArrowLeft className="w-5 h-5 text-gray-700 transition-colors dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white" />
                      <span className="text-sm font-medium text-gray-700 transition-colors dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white">
@@ -164,7 +164,7 @@ export default function PlatformAnalyticsPage() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.1 }}
-                  className="overflow-hidden relative p-8 rounded-3xl border shadow-xl backdrop-blur-sm bg-white/80 dark:bg-gray-800/80 border-gray-200/60 dark:border-gray-700/60"
+                  className="overflow-hidden relative p-8 rounded-3xl border shadow-xl backdrop-blur-sm bg-white/80 dark:bg-gray-800/80 border-gray-300 dark:border-gray-700/60"
                >
                   {/* Decorative background elements */}
                   <div className="absolute top-0 right-0 w-32 h-32 bg-linear-to-br from-purple-100 to-pink-100 rounded-full blur-3xl translate-x-16 -translate-y-16 dark:from-purple-500/20 dark:to-pink-500/20"></div>
@@ -194,7 +194,7 @@ export default function PlatformAnalyticsPage() {
                      initial={{ opacity: 0, y: 20 }}
                      animate={{ opacity: 1, y: 0 }}
                      transition={{ delay: 0.2 }}
-                     className="p-6 bg-white rounded-2xl border shadow-lg backdrop-blur-sm dark:bg-gray-800/50 border-gray-200/60 dark:border-gray-700/60"
+                     className="p-6 bg-white rounded-2xl border shadow-lg backdrop-blur-sm dark:bg-gray-800/50 border-gray-300 dark:border-gray-700/60"
                   >
                      <div className="flex justify-between items-center mb-6">
                         <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">

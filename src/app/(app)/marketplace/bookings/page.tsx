@@ -38,10 +38,10 @@ export const BookingsList = () => {
           {/* NAVIGATION BAR - Responsive sizing */}
           <div className="flex justify-end">
             <div className="flex items-center gap-2 p-1.5">
-              <Link href="/marketplace" className="flex items-center gap-2 px-4 md:px-5 py-2 md:py-2.5 rounded-xl border border-gray-200 dark:text-white dark:border-gray-500 font-bold text-xs md:text-sm text-gray-500 hover:text-purple-600 transition-all shadow-sm">
+              <Link href="/marketplace" className="flex items-center gap-2 px-4 md:px-5 py-2 md:py-2.5 rounded-xl border border-gray-300 dark:text-white dark:border-gray-500 font-bold text-xs md:text-sm text-gray-500 hover:text-purple-600 transition-all shadow-sm">
                 <Search size={14} /> Explore
               </Link>
-              <Link href="/marketplace/services" className="flex items-center gap-2 px-4 md:px-5 py-2 md:py-2.5 rounded-xl border border-gray-200 dark:text-white dark:border-gray-500 font-bold text-xs md:text-sm text-gray-500 hover:text-purple-600 transition-all shadow-sm">
+              <Link href="/marketplace/services" className="flex items-center gap-2 px-4 md:px-5 py-2 md:py-2.5 rounded-xl border border-gray-300 dark:text-white dark:border-gray-500 font-bold text-xs md:text-sm text-gray-500 hover:text-purple-600 transition-all shadow-sm">
                 <Store size={14} /> Services
               </Link>
             </div>
@@ -53,7 +53,7 @@ export const BookingsList = () => {
           </div>
 
           {/* ROLE TOGGLE - Responsive width */}
-          <div className="flex gap-2 p-1.5 border border-gray-200 dark:border-gray-800 rounded-2xl w-full md:w-fit bg-gray-50/50 dark:bg-gray-900/50 shadow-sm">
+          <div className="flex gap-2 p-1.5 border border-gray-300 dark:border-gray-800 rounded-2xl w-full md:w-fit bg-gray-50/50 dark:bg-gray-900/50 shadow-sm">
             {['buyer', 'seller'].map((r) => (
               <button
                 key={r}
@@ -88,7 +88,7 @@ export const BookingsList = () => {
                   <div 
                     key={booking._id}
                     onClick={() => setSelectedBooking(booking)}
-                    className="group flex flex-col md:flex-row md:items-center justify-between p-6 md:p-7 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl hover:border-purple-500/50 transition-all cursor-pointer shadow-sm hover:shadow-md gap-6"
+                    className="group flex flex-col md:flex-row md:items-center justify-between p-6 md:p-7 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-800 rounded-2xl hover:border-purple-500/50 transition-all cursor-pointer shadow-sm hover:shadow-md gap-6"
                   >
                     <div className="flex flex-col gap-2">
                       <span className="text-[10px] md:text-xs font-bold uppercase px-2 py-0.5 bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 rounded w-fit">
@@ -117,7 +117,7 @@ export const BookingsList = () => {
          
           {selectedBooking && (
             <div className="fixed inset-0 z-100 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
-               <div className="bg-white dark:bg-gray-900 w-full max-w-lg rounded-4xl md:rounded-[2.5rem] border border-gray-200 dark:border-gray-800 shadow-2xl p-6 md:p-10 my-auto">
+               <div className="bg-white dark:bg-gray-900 w-full max-w-lg rounded-4xl md:rounded-[2.5rem] border border-gray-300 dark:border-gray-800 shadow-2xl p-6 md:p-10 my-auto">
                 <div className="flex justify-between items-start mb-8">
                   <div className="space-y-1">
                     <h2 className="text-2xl md:text-3xl font-bold">Order Profile</h2>
@@ -141,7 +141,7 @@ export const BookingsList = () => {
                         defaultValue={selectedBooking.status}
                         onChange={(e) => updateMutation.mutate(e.target.value)}
                         disabled={updateMutation.isPending || role === 'buyer'}
-                        className={`w-full p-4 md:p-5 bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl text-xs font-bold uppercase outline-none appearance-none ${role === 'buyer' ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer ring-purple-500/10 focus:ring-4 transition-all'}`}
+                        className={`w-full p-4 md:p-5 bg-white dark:bg-gray-950 border border-gray-300 dark:border-gray-800 rounded-xl text-xs font-bold uppercase outline-none appearance-none ${role === 'buyer' ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer ring-purple-500/10 focus:ring-4 transition-all'}`}
                       >
                         <option value="pending">Pending Review</option>
                         <option value="accepted">Accepted</option>

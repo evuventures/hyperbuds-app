@@ -274,7 +274,7 @@ const LeaderboardPage: React.FC = () => {
                   }}
                   className="overflow-hidden"
                >
-                  <div className="relative z-10 p-4 mb-6 bg-white rounded-xl border border-gray-200 shadow-sm transition-all duration-300 sm:p-6 dark:bg-gray-800 dark:border-gray-700">
+                  <div className="relative z-10 p-4 mb-6 bg-white rounded-xl border border-gray-300 shadow-sm transition-all duration-300 sm:p-6 dark:bg-gray-800 dark:border-gray-700">
                      <div className="flex flex-col gap-3 mb-4 sm:flex-row sm:justify-between sm:items-center sm:gap-4">
                         <h3 className="flex-shrink-0 text-base font-semibold text-gray-900 sm:text-lg dark:text-white">
                            Filter Leaderboard
@@ -634,7 +634,7 @@ const LeaderboardPage: React.FC = () => {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.2 }}
-                  className="relative z-0 bg-white rounded-xl border border-gray-200 shadow-sm dark:bg-gray-800 dark:border-gray-700"
+                  className="relative z-0 bg-white rounded-xl border border-gray-300 shadow-sm dark:bg-gray-800 dark:border-gray-700"
                >
                   <div className="p-3 sm:p-4 lg:p-6">
                      <RizzLeaderboard

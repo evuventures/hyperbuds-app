@@ -26,7 +26,7 @@ const CollaborationNav: React.FC = () => {
             className={`flex items-center gap-2 px-5 py-2.5 rounded-xl border font-bold text-sm transition-all ${
               isActive
                 ? 'border-purple-500 text-purple-600 bg-purple-50 dark:bg-purple-900/20 dark:text-purple-300'
-                : 'border-gray-200 text-gray-500 hover:text-purple-600 dark:text-white dark:border-gray-500'
+                : 'border-gray-300 text-gray-500 hover:text-purple-600 dark:text-white dark:border-gray-500'
             }`}
           >
             <Icon size={14} /> {link.label}

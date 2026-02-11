@@ -107,7 +107,7 @@ const MatchHistoryGallery: React.FC<MatchHistoryGalleryProps> = ({
               </div>
 
               {/* Main card */}
-              <div className={`relative p-4 rounded-2xl border backdrop-blur-xl transition-all duration-500 bg-white/90 dark:bg-slate-800/90 border-gray-200/60 dark:border-white/20 hover:scale-110 hover:shadow-2xl hover:shadow-purple-500/15 dark:hover:shadow-purple-500/15 hover:-translate-y-1 ${stat.shadow}`}>
+              <div className={`relative p-4 rounded-2xl border backdrop-blur-xl transition-all duration-500 bg-white/90 dark:bg-slate-800/90 border-gray-300 dark:border-white/20 hover:scale-110 hover:shadow-2xl hover:shadow-purple-500/15 dark:hover:shadow-purple-500/15 hover:-translate-y-1 ${stat.shadow}`}>
                 <div className="text-center">
                   {/* Number with enhanced gradient */}
                   <div className={`text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r mb-1 transition-all duration-300 group-hover:scale-110 ${stat.textGradient}`}>
@@ -160,7 +160,7 @@ const MatchHistoryGallery: React.FC<MatchHistoryGalleryProps> = ({
         </div>
 
         {/* Right Side - Filter Tabs */}
-        <div className="inline-flex relative rounded-2xl border shadow-lg backdrop-blur-sm bg-white/80 dark:bg-slate-800/50 border-gray-200/50 dark:border-white/10 px-1 sm:px-1.5">
+        <div className="inline-flex relative rounded-2xl border shadow-lg backdrop-blur-sm bg-white/80 dark:bg-slate-800/50 border-gray-300 dark:border-white/10 px-1 sm:px-1.5">
           {/* Animated background for active tab */}
           <div
             className="absolute top-1.5 bottom-1.5 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 transition-all duration-300 ease-out shadow-lg"

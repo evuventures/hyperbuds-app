@@ -13,7 +13,7 @@ import { toast } from "sonner";
 // Enhanced Loading skeleton component - uses shared Skeleton primitive
 const LoadingSkeleton = () => (
   <div className="bg-gray-50 transition-all dark:bg-gray-900">
-    <div className="rounded-3xl border border-gray-200 bg-white p-8 shadow-lg backdrop-blur-sm transition-all dark:border-gray-700/50 dark:bg-gray-800/50">
+    <div className="rounded-3xl border border-gray-300 bg-white p-8 shadow-lg backdrop-blur-sm transition-all dark:border-gray-700/50 dark:bg-gray-800/50">
       <div className="mb-8 flex items-start justify-between">
         <div className="flex items-center gap-6">
           <Skeleton className="h-32 w-32 rounded-3xl" />
@@ -204,7 +204,7 @@ export default function UserProfileHeader({
     <div className="space-y-6">
       {/* Enhanced Header Profile Card */}
 
-      <div className="overflow-hidden relative bg-linear-to-br from-white to-white rounded-3xl border shadow-xl backdrop-blur-sm via-gray-50/50 dark:from-gray-800 dark:via-gray-800/80 dark:to-gray-900 border-gray-200/60 dark:border-gray-700/60">
+      <div className="overflow-hidden relative bg-linear-to-br from-white to-white rounded-3xl border shadow-xl backdrop-blur-sm via-gray-50/50 dark:from-gray-800 dark:via-gray-800/80 dark:to-gray-900 border-gray-300 dark:border-gray-700/60">
         {/* Decorative Background Pattern */}
         <div className="absolute inset-0 opacity-5 dark:opacity-10">
           <div className="absolute -top-24 -right-24 w-96 h-96 bg-linear-to-br from-blue-500 to-purple-500 rounded-full blur-3xl"></div>
@@ -213,10 +213,10 @@ export default function UserProfileHeader({
 
         <div className="relative p-4 sm:p-6 md:p-8">
           {/* Quick Actions Menu - Mobile First */}
-          <div className="flex gap-2 justify-end items-center mb-8 pb-4 border-b border-gray-200 dark:border-gray-700 md:hidden">
+          <div className="flex gap-2 justify-end items-center mb-8 pb-4 border-b border-gray-300 dark:border-gray-700 md:hidden">
             <button
               onClick={copyProfileUrl}
-              className="p-3 text-gray-600 rounded-xl border shadow-md transition-all cursor-pointer hover:scale-105 bg-gray-100/80 dark:bg-gray-700/60 hover:bg-gray-200 dark:hover:bg-gray-600/80 dark:text-gray-300 border-gray-200/50 dark:border-gray-600/50 group"
+              className="p-3 text-gray-600 rounded-xl border shadow-md transition-all cursor-pointer hover:scale-105 bg-gray-100/80 dark:bg-gray-700/60 hover:bg-gray-200 dark:hover:bg-gray-600/80 dark:text-gray-300 border-gray-300 dark:border-gray-600/50 group"
               title="Copy profile URL"
             >
               {copied ? (
@@ -226,7 +226,7 @@ export default function UserProfileHeader({
               )}
             </button>
 
-            <button className="p-3 text-gray-600 rounded-xl border shadow-md transition-all cursor-pointer hover:scale-105 bg-gray-100/80 dark:bg-gray-700/60 hover:bg-gray-200 dark:hover:bg-gray-600/80 dark:text-gray-300 border-gray-200/50 dark:border-gray-600/50">
+            <button className="p-3 text-gray-600 rounded-xl border shadow-md transition-all cursor-pointer hover:scale-105 bg-gray-100/80 dark:bg-gray-700/60 hover:bg-gray-200 dark:hover:bg-gray-600/80 dark:text-gray-300 border-gray-300 dark:border-gray-600/50">
               <Share2 size={18} />
             </button>
 
@@ -235,7 +235,7 @@ export default function UserProfileHeader({
                 {/* Trigger button */}
                 <button
                   onClick={() => setOpen(!open)}
-                  className="p-3 text-gray-600 rounded-xl border shadow-md transition-all cursor-pointer hover:scale-105 bg-gray-100/80 dark:bg-gray-700/60 hover:bg-gray-200 dark:hover:bg-gray-600/80 dark:text-gray-300 border-gray-200/50 dark:border-gray-600/50"
+                  className="p-3 text-gray-600 rounded-xl border shadow-md transition-all cursor-pointer hover:scale-105 bg-gray-100/80 dark:bg-gray-700/60 hover:bg-gray-200 dark:hover:bg-gray-600/80 dark:text-gray-300 border-gray-300 dark:border-gray-600/50"
                 >
                   <MoreHorizontal size={18} />
                 </button>
@@ -316,7 +316,7 @@ export default function UserProfileHeader({
                     <div
                       className={`px-3 py-1 rounded-full text-sm font-medium flex items-center gap-2 ${user.isActive
                         ? "bg-purple-50 dark:bg-purple-500/20 text-purple-500 dark:text-purple-300 border border-purple-200 dark:border-purple-500/30"
-                        : "bg-gray-50 dark:bg-gray-500/20 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-500/30"
+                        : "bg-gray-50 dark:bg-gray-500/20 text-gray-600 dark:text-gray-400 border border-gray-300 dark:border-gray-500/30"
                         }`}
                     >
                       <div
@@ -355,7 +355,7 @@ export default function UserProfileHeader({
             <div className="hidden gap-2 justify-end items-center md:flex">
               <button
                 onClick={copyProfileUrl}
-                className="p-3 text-gray-600 rounded-xl border shadow-md transition-all cursor-pointer hover:scale-105 bg-gray-100/80 dark:bg-gray-700/60 hover:bg-gray-200 dark:hover:bg-gray-600/80 dark:text-gray-300 border-gray-200/50 dark:border-gray-600/50 group"
+                className="p-3 text-gray-600 rounded-xl border shadow-md transition-all cursor-pointer hover:scale-105 bg-gray-100/80 dark:bg-gray-700/60 hover:bg-gray-200 dark:hover:bg-gray-600/80 dark:text-gray-300 border-gray-300 dark:border-gray-600/50 group"
                 title="Copy profile URL"
               >
                 {copied ? (
@@ -365,7 +365,7 @@ export default function UserProfileHeader({
                 )}
               </button>
 
-              <button className="p-3 text-gray-600 rounded-xl border shadow-md transition-all cursor-pointer hover:scale-105 bg-gray-100/80 dark:bg-gray-700/60 hover:bg-gray-200 dark:hover:bg-gray-600/80 dark:text-gray-300 border-gray-200/50 dark:border-gray-600/50">
+              <button className="p-3 text-gray-600 rounded-xl border shadow-md transition-all cursor-pointer hover:scale-105 bg-gray-100/80 dark:bg-gray-700/60 hover:bg-gray-200 dark:hover:bg-gray-600/80 dark:text-gray-300 border-gray-300 dark:border-gray-600/50">
                 <Share2 size={18} />
               </button>
 
@@ -374,7 +374,7 @@ export default function UserProfileHeader({
                   {/* Trigger button */}
                   <button
                     onClick={() => setOpen(!open)}
-                    className="p-3 text-gray-600 rounded-xl border shadow-md transition-all cursor-pointer hover:scale-105 bg-gray-100/80 dark:bg-gray-700/60 hover:bg-gray-200 dark:hover:bg-gray-600/80 dark:text-gray-300 border-gray-200/50 dark:border-gray-600/50"
+                    className="p-3 text-gray-600 rounded-xl border shadow-md transition-all cursor-pointer hover:scale-105 bg-gray-100/80 dark:bg-gray-700/60 hover:bg-gray-200 dark:hover:bg-gray-600/80 dark:text-gray-300 border-gray-300 dark:border-gray-600/50"
                   >
                     <MoreHorizontal size={18} />
                   </button>
@@ -453,13 +453,13 @@ export default function UserProfileHeader({
 
               <button
                 onClick={() => onMessage?.(user.id)}
-                className="flex gap-3 justify-center items-center px-6 py-4 font-semibold text-gray-700 bg-white rounded-xl border-2 border-gray-200 shadow-lg transition-all hover:scale-105 dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500"
+                className="flex gap-3 justify-center items-center px-6 py-4 font-semibold text-gray-700 bg-white rounded-xl border-2 border-gray-300 shadow-lg transition-all hover:scale-105 dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500"
               >
                 <MessageCircle size={20} />
                 Message
               </button>
 
-              <button className="flex gap-3 justify-center items-center px-6 py-4 font-semibold text-gray-700 bg-white rounded-xl border-2 border-gray-200 shadow-lg transition-all hover:scale-105 dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500">
+              <button className="flex gap-3 justify-center items-center px-6 py-4 font-semibold text-gray-700 bg-white rounded-xl border-2 border-gray-300 shadow-lg transition-all hover:scale-105 dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500">
                 <Mail size={20} />
                 Email
               </button>
@@ -508,7 +508,7 @@ export default function UserProfileHeader({
             ].map((stat, index) => (
               <div
                 key={stat.label}
-                className={`group relative overflow-hidden rounded-2xl bg-white dark:bg-gray-800/50 border border-gray-200/60 dark:border-gray-700/60 p-4 sm:p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] backdrop-blur-sm ${stat.label === "Profile Rizz Score" && isOwnProfile ? "cursor-pointer" : ""
+                className={`group relative overflow-hidden rounded-2xl bg-white dark:bg-gray-800/50 border border-gray-300 dark:border-gray-700/60 p-4 sm:p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] backdrop-blur-sm ${stat.label === "Profile Rizz Score" && isOwnProfile ? "cursor-pointer" : ""
                   }`}
                 onClick={stat.label === "Profile Rizz Score" && isOwnProfile ? handleNavigateToRizzScore : undefined}
               >
@@ -618,7 +618,7 @@ export default function UserProfileHeader({
       {/* Enhanced Content Niches */}
       {
         user.niche && user.niche.length > 0 && (
-          <div className="p-6 bg-white rounded-2xl border shadow-lg backdrop-blur-sm dark:bg-gray-800/50 border-gray-200/60 dark:border-gray-700/60">
+          <div className="p-6 bg-white rounded-2xl border shadow-lg backdrop-blur-sm dark:bg-gray-800/50 border-gray-300 dark:border-gray-700/60">
             <h3 className="flex gap-3 items-center mb-6 text-xl font-bold text-gray-900 dark:text-gray-100">
               <div className="p-2 bg-linear-to-br from-blue-100 to-purple-100 rounded-lg dark:from-blue-500/20 dark:to-purple-500/20">
                 <Target size={24} className="text-blue-600 dark:text-blue-400" />
@@ -643,7 +643,7 @@ export default function UserProfileHeader({
 
       {/* Social Media Links */}
       {user.socialLinks && Object.keys(user.socialLinks).length > 0 && (
-        <div className="p-6 bg-white rounded-2xl border shadow-lg backdrop-blur-sm dark:bg-gray-800/50 border-gray-200/60 dark:border-gray-700/60">
+        <div className="p-6 bg-white rounded-2xl border shadow-lg backdrop-blur-sm dark:bg-gray-800/50 border-gray-300 dark:border-gray-700/60">
           <h3 className="flex gap-3 items-center mb-6 text-xl font-bold text-gray-900 dark:text-gray-100">
             <div className="p-2 bg-linear-to-br from-purple-100 to-purple-100 rounded-lg dark:from-purple-500/20 dark:to-purple-500/20">
               <Share2 size={24} className="text-purple-600 dark:text-purple-400" />
@@ -668,7 +668,7 @@ export default function UserProfileHeader({
                   href={url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="group p-4 rounded-xl transition-all hover:scale-[1.02] bg-gray-50/80 dark:bg-gray-700/40 border border-gray-200 dark:border-gray-600/50 hover:border-gray-300 dark:hover:border-gray-500/70 hover:shadow-lg"
+                  className="group p-4 rounded-xl transition-all hover:scale-[1.02] bg-gray-50/80 dark:bg-gray-700/40 border border-gray-300 dark:border-gray-600/50 hover:border-gray-300 dark:hover:border-gray-500/70 hover:shadow-lg"
                 >
                   <div className="flex gap-3 items-center">
                     <div className={`p-3 rounded-xl bg-linear-to-br ${info.color} group-hover:scale-110 transition-transform`}>

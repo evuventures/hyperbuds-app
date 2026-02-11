@@ -535,7 +535,7 @@ export default function MultiStepProfileForm() {
               type="text"
               value={username}
               onChange={handleUsernameChange}
-              className="px-4 py-3 w-full rounded-xl border-2 border-gray-200 transition-all duration-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
+              className="px-4 py-3 w-full rounded-xl border-2 border-gray-300 transition-all duration-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
               placeholder="coolcreator123"
               maxLength={30}
             />
@@ -564,7 +564,7 @@ export default function MultiStepProfileForm() {
             type="text"
             value={displayName}
             onChange={(e) => setDisplayName(e.target.value)}
-            className="px-4 py-3 w-full rounded-xl border-2 border-gray-200 transition-all duration-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
+            className="px-4 py-3 w-full rounded-xl border-2 border-gray-300 transition-all duration-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
             placeholder="Cool Creator"
             maxLength={50}
           />
@@ -590,7 +590,7 @@ export default function MultiStepProfileForm() {
             value={bio}
             onChange={(e) => setBio(e.target.value)}
             maxLength={500}
-            className="px-4 py-3 w-full rounded-xl border-2 border-gray-200 transition-all duration-200 resize-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
+            className="px-4 py-3 w-full rounded-xl border-2 border-gray-300 transition-all duration-200 resize-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
             placeholder="Tell us about yourself and your content..."
           />
           <p className="mt-1 text-xs text-right text-gray-500">
@@ -685,10 +685,10 @@ export default function MultiStepProfileForm() {
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -10, scale: 0.95 }}
                 transition={{ duration: 0.2 }}
-                className="absolute z-50 mt-2 w-full bg-white border-2 border-gray-200 rounded-xl shadow-xl max-h-80 overflow-hidden"
+                className="absolute z-50 mt-2 w-full bg-white border-2 border-gray-300 rounded-xl shadow-xl max-h-80 overflow-hidden"
               >
                 {/* Search Bar */}
-                <div className="sticky top-0 bg-white z-10 p-3 border-b border-gray-200">
+                <div className="sticky top-0 bg-white z-10 p-3 border-b border-gray-300">
                   <div className="relative">
                     <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                     <input
@@ -752,7 +752,7 @@ export default function MultiStepProfileForm() {
 
                 {/* Footer with count */}
                 {selectedNiches.length > 0 && (
-                  <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-4 py-2.5">
+                  <div className="sticky bottom-0 bg-gray-50 border-t border-gray-300 px-4 py-2.5">
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-gray-600">
                         {selectedNiches.length} of {MAX_NICHES} selected
@@ -796,7 +796,7 @@ export default function MultiStepProfileForm() {
               type="text"
               value={location.city}
               onChange={(e) => setLocation(prev => ({ ...prev, city: e.target.value }))}
-              className="px-4 py-3 w-full rounded-xl border-2 border-gray-200 transition-all duration-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
+              className="px-4 py-3 w-full rounded-xl border-2 border-gray-300 transition-all duration-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
               placeholder="San Francisco"
             />
           </div>
@@ -806,7 +806,7 @@ export default function MultiStepProfileForm() {
               type="text"
               value={location.state}
               onChange={(e) => setLocation(prev => ({ ...prev, state: e.target.value }))}
-              className="px-4 py-3 w-full rounded-xl border-2 border-gray-200 transition-all duration-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
+              className="px-4 py-3 w-full rounded-xl border-2 border-gray-300 transition-all duration-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
               placeholder="CA"
             />
           </div>
@@ -816,7 +816,7 @@ export default function MultiStepProfileForm() {
               type="text"
               value={location.country}
               onChange={(e) => setLocation(prev => ({ ...prev, country: e.target.value }))}
-              className="px-4 py-3 w-full rounded-xl border-2 border-gray-200 transition-all duration-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
+              className="px-4 py-3 w-full rounded-xl border-2 border-gray-300 transition-all duration-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
               placeholder="USA"
             />
           </div>
@@ -839,14 +839,14 @@ export default function MultiStepProfileForm() {
           <div key={platform.id}>
             <label className="block mb-2 text-sm font-semibold text-gray-700">{platform.name}</label>
             <div className="flex overflow-hidden rounded-xl shadow-sm">
-              <span className="inline-flex items-center px-4 text-gray-500 bg-gray-50 border-2 border-r-0 border-gray-200">
+              <span className="inline-flex items-center px-4 text-gray-500 bg-gray-50 border-2 border-r-0 border-gray-300">
                 <platform.icon className="w-5 h-5" />
               </span>
               <input
                 type="url"
                 value={socialLinks[platform.id] || ''}
                 onChange={(e) => handleSocialInputChange(platform.id, e.target.value)}
-                className="flex-1 px-4 py-3 border-2 border-gray-200 transition-all duration-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
+                className="flex-1 px-4 py-3 border-2 border-gray-300 transition-all duration-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
                 placeholder={platform.placeholder}
               />
             </div>

@@ -169,7 +169,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ user, activeTab, collapsed, on
           visibility: visible !important;
         }
       `}</style>
-      <div className={`${isCollapsed ? 'w-16' : 'w-60'} flex flex-col border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 h-[90vh] overflow-hidden transition-all duration-300 relative ${isCollapsed ? 'sidebar-collapsed' : ''} ${className || ''}`}>
+      <div className={`${isCollapsed ? 'w-16' : 'w-60'} flex flex-col border-r border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 h-[90vh] overflow-hidden transition-all duration-300 relative ${isCollapsed ? 'sidebar-collapsed' : ''} ${className || ''}`}>
 
         {/* Collapse Toggle */}
         <motion.button
@@ -302,7 +302,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ user, activeTab, collapsed, on
         </div >
 
         {/* Footer */}
-        <div className={`mt-auto ${isCollapsed ? 'p-2' : 'p-4'} border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800`}>
+        <div className={`mt-auto ${isCollapsed ? 'p-2' : 'p-4'} border-t border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800`}>
           {!isCollapsed ? (
             <>
               <div className='flex flex-col gap-3'>

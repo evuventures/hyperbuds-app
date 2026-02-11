@@ -15,7 +15,7 @@ export default function SuggestedMatches() {
 
   if (isLoading) {
     return (
-      <div className="p-6 bg-white rounded-2xl border shadow-lg backdrop-blur-sm dark:bg-gray-800/50 border-gray-200/60 dark:border-gray-700/60">
+      <div className="p-6 bg-white rounded-2xl border shadow-lg backdrop-blur-sm dark:bg-gray-800/50 border-gray-300 dark:border-gray-700/60">
         <div className="flex gap-3 items-center mb-6">
           <div className="p-2 bg-gradient-to-br from-pink-100 to-purple-100 rounded-lg dark:from-pink-500/20 dark:to-purple-500/20">
             <Heart size={24} className="text-pink-600 dark:text-pink-400" />
@@ -33,7 +33,7 @@ export default function SuggestedMatches() {
 
   if (error) {
     return (
-      <div className="p-6 bg-white rounded-2xl border shadow-lg backdrop-blur-sm dark:bg-gray-800/50 border-gray-200/60 dark:border-gray-700/60">
+      <div className="p-6 bg-white rounded-2xl border shadow-lg backdrop-blur-sm dark:bg-gray-800/50 border-gray-300 dark:border-gray-700/60">
         <div className="flex gap-3 items-center mb-6">
           <div className="p-2 bg-gradient-to-br from-pink-100 to-purple-100 rounded-lg dark:from-pink-500/20 dark:to-purple-500/20">
             <Heart size={24} className="text-pink-600 dark:text-pink-400" />
@@ -47,7 +47,7 @@ export default function SuggestedMatches() {
 
   if (matches.length === 0) {
     return (
-      <div className="p-6 bg-white rounded-2xl border shadow-lg backdrop-blur-sm dark:bg-gray-800/50 border-gray-200/60 dark:border-gray-700/60">
+      <div className="p-6 bg-white rounded-2xl border shadow-lg backdrop-blur-sm dark:bg-gray-800/50 border-gray-300 dark:border-gray-700/60">
         <div className="flex gap-3 items-center mb-6">
           <div className="p-2 bg-gradient-to-br from-pink-100 to-purple-100 rounded-lg dark:from-pink-500/20 dark:to-purple-500/20">
             <Heart size={24} className="text-pink-600 dark:text-pink-400" />
@@ -70,7 +70,7 @@ export default function SuggestedMatches() {
   }
 
   return (
-    <div className="p-6 bg-white rounded-2xl border shadow-lg backdrop-blur-sm dark:bg-gray-800/50 border-gray-200/60 dark:border-gray-700/60">
+    <div className="p-6 bg-white rounded-2xl border shadow-lg backdrop-blur-sm dark:bg-gray-800/50 border-gray-300 dark:border-gray-700/60">
       <div className="flex gap-3 justify-between items-center mb-6">
         <div className="flex gap-3 items-center">
           <div className="p-2 bg-gradient-to-br from-pink-100 to-purple-100 rounded-lg dark:from-pink-500/20 dark:to-purple-500/20">
@@ -98,7 +98,7 @@ export default function SuggestedMatches() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
-              className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-white to-gray-50 border border-gray-200 shadow-md transition-all duration-300 hover:shadow-xl hover:scale-[1.02] dark:from-gray-800 dark:to-gray-900 dark:border-gray-700"
+              className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-white to-gray-50 border border-gray-300 shadow-md transition-all duration-300 hover:shadow-xl hover:scale-[1.02] dark:from-gray-800 dark:to-gray-900 dark:border-gray-700"
             >
               <Link href={`/creator/${profile?.username || match.targetUserId}`}>
                 <div className="p-4">

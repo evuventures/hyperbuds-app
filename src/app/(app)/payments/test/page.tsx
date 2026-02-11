@@ -21,7 +21,7 @@ function PaymentTestPage() {
             <PaymentNavigation />
 
             <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
-               <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-700">
+               <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-300 dark:border-gray-700">
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
                      Features Implemented
                   </h3>
@@ -39,7 +39,7 @@ function PaymentTestPage() {
                   </ul>
                </div>
 
-               <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-700">
+               <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-300 dark:border-gray-700">
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
                      Quick Links
                   </h3>
