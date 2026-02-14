@@ -30,7 +30,18 @@ const AIMatchesPage: React.FC = () => {
     }
   }, [matches]);
 
-  const handleMessage = (userId: string) => router.push(`/messages?userId=${userId}`);
+ const handleMessage = (match: MatchSuggestion) => {
+  const userId = match.targetUser?.userId || 
+                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (match.targetUser as any)?.id ||  match.targetUserId;
+
+  if (userId && userId !== 'undefined') {
+    router.push(`/messages?userId=${userId}`);
+  } else {
+    console.error("User ID not found. targetUser content:", match.targetUser);
+  }
+};
+
   const handleViewProfile = (userId: string) => router.push(`/profile/user-profile/${userId}`);
 
   const handleRefresh = async () => {

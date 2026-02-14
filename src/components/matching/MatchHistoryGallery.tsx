@@ -8,7 +8,7 @@ import type { MatchSuggestion, CreatorProfile } from "@/types/matching.types";
 
 interface MatchHistoryGalleryProps {
   historyMatches: MatchSuggestion[];
-  onMessage: (userId: string) => void;
+  onMessage: (match: MatchSuggestion) => void;
   onViewProfile?: (userId: string) => void;
   likedMatches?: Set<string>;
 }
@@ -35,10 +35,14 @@ const MatchHistoryGallery: React.FC<MatchHistoryGalleryProps> = ({
     }
   };
 
-  const handleMessage = (userId: string) => {
-    onMessage(userId);
-    console.log("Opening chat with user:", userId);
-  };
+  // Update the parameter from 'userId: string' to 'match: MatchSuggestion'
+const handleMessage = (match: MatchSuggestion) => {
+  // Pass the whole object up to the parent (the AI Matches page)
+  onMessage(match);
+  
+  // For debugging, you can log a specific ID from the object
+  console.log("Opening chat with user ID:", match.targetUserId || match.userId);
+};
 
   // Filter matches based on selected filter
   const filteredMatches = historyMatches.filter(match => {
@@ -98,10 +102,10 @@ const MatchHistoryGallery: React.FC<MatchHistoryGalleryProps> = ({
               style={{ animationDelay: `${index * 100}ms` }}
             >
               {/* Animated gradient background */}
-              <div className={`absolute inset-0 bg-gradient-to-r rounded-2xl opacity-0 blur-xl transition-all duration-500 ${stat.gradient} group-hover:opacity-30 dark:group-hover:opacity-60 group-hover:blur-lg`}></div>
+              <div className={`absolute inset-0 bg-linear-to-r rounded-2xl opacity-0 blur-xl transition-all duration-500 ${stat.gradient} group-hover:opacity-30 dark:group-hover:opacity-60 group-hover:blur-lg`}></div>
 
               {/* Glowing border effect */}
-              <div className={`absolute inset-0 rounded-2xl bg-gradient-to-r ${stat.gradient} opacity-0 transition-opacity duration-300 group-hover:opacity-10 dark:group-hover:opacity-20`}
+              <div className={`absolute inset-0 rounded-2xl bg-linear-to-r ${stat.gradient} opacity-0 transition-opacity duration-300 group-hover:opacity-10 dark:group-hover:opacity-20`}
                 style={{ padding: '1px' }}>
                 <div className="w-full h-full bg-white rounded-2xl dark:bg-slate-900"></div>
               </div>
@@ -110,7 +114,7 @@ const MatchHistoryGallery: React.FC<MatchHistoryGalleryProps> = ({
               <div className={`relative p-4 rounded-2xl border backdrop-blur-xl transition-all duration-500 bg-white/90 dark:bg-slate-800/90 border-gray-200/60 dark:border-white/20 hover:scale-110 hover:shadow-2xl hover:shadow-purple-500/15 dark:hover:shadow-purple-500/15 hover:-translate-y-1 ${stat.shadow}`}>
                 <div className="text-center">
                   {/* Number with enhanced gradient */}
-                  <div className={`text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r mb-1 transition-all duration-300 group-hover:scale-110 ${stat.textGradient}`}>
+                  <div className={`text-2xl font-black bg-clip-text text-transparent bg-linear-to-r mb-1 transition-all duration-300 group-hover:scale-110 ${stat.textGradient}`}>
                     {stat.value}
                   </div>
 
@@ -121,7 +125,7 @@ const MatchHistoryGallery: React.FC<MatchHistoryGalleryProps> = ({
                 </div>
 
                 {/* Subtle inner glow */}
-                <div className={`absolute inset-0 rounded-2xl bg-gradient-to-r ${stat.gradient} opacity-0 transition-opacity duration-500 group-hover:opacity-3 dark:group-hover:opacity-5`}></div>
+                <div className={`absolute inset-0 rounded-2xl bg-linear-to-r ${stat.gradient} opacity-0 transition-opacity duration-500 group-hover:opacity-3 dark:group-hover:opacity-5`}></div>
               </div>
 
               {/* Floating particles effect */}
@@ -163,7 +167,7 @@ const MatchHistoryGallery: React.FC<MatchHistoryGalleryProps> = ({
         <div className="inline-flex relative rounded-2xl border shadow-lg backdrop-blur-sm bg-white/80 dark:bg-slate-800/50 border-gray-200/50 dark:border-white/10 px-1 sm:px-1.5">
           {/* Animated background for active tab */}
           <div
-            className="absolute top-1.5 bottom-1.5 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 transition-all duration-300 ease-out shadow-lg"
+            className="absolute top-1.5 bottom-1.5 rounded-xl bg-linear-to-r from-purple-500 to-pink-500 transition-all duration-300 ease-out shadow-lg"
             style={{
               width: 'calc(33.333% - 0.5rem)',
               left: `calc(${(['all', 'liked', 'mutual'].indexOf(filter) * 33.333)}% + 0.25rem)`,

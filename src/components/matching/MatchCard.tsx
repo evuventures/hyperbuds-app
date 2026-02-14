@@ -13,7 +13,7 @@ interface MatchCardProps {
    match: MatchSuggestion;
    onAction: (matchId: string, action: "like" | "unlike" | "pass" | "view") => void;
    onCollaboration: (matchId: string) => void;
-   onMessage?: (matchId: string) => void;
+   onMessage?: (match: MatchSuggestion) => void;
    onViewProfile?: (matchId: string) => void;
    isLiked?: boolean;
    isSidebarContext?: boolean;
@@ -68,10 +68,10 @@ const MatchCard: React.FC<MatchCardProps> = ({
                      whileHover={{ scale: 1.08 }}
                      whileTap={{ scale: 0.95 }}
                      transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                     className="relative flex-shrink-0"
+                     className="relative shrink-0"
                   >
                      {/* Glowing Ring Effect */}
-                     <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full opacity-0 blur-md transition-opacity duration-300 group-hover:opacity-30" />
+                     <div className="absolute inset-0 bg-linear-to-r from-purple-500 to-pink-500 rounded-full opacity-0 blur-md transition-opacity duration-300 group-hover:opacity-30" />
 
                      {/* Avatar with Enhanced Styling */}
                      <Avatar className="relative w-14 h-14 border-2 ring-2 ring-transparent shadow-md transition-all duration-300 sm:w-16 sm:h-16 group-hover:ring-purple-500/30 border-white/50 dark:border-slate-600 shadow-purple-500/10">
@@ -80,7 +80,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
                            alt={profile.displayName}
                            className="object-cover"
                         />
-                        <AvatarFallback className="text-base font-bold text-white bg-gradient-to-br from-purple-500 to-pink-500 sm:text-lg">
+                        <AvatarFallback className="text-base font-bold text-white bg-linear-to-br from-purple-500 to-pink-500 sm:text-lg">
                            {profile.displayName?.charAt(0) || "U"}
                         </AvatarFallback>
                      </Avatar>
@@ -113,7 +113,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
                         <Badge
                            key={tag}
                            variant="outline"
-                           className="text-xs sm:text-sm px-2.5 py-1 bg-gradient-to-r transition-all duration-200 from-purple-50 to-pink-50 dark:from-purple-500/10 dark:to-pink-500/10 border-purple-200 dark:border-purple-500/30 text-purple-700 dark:text-purple-300 hover:from-purple-100 hover:to-pink-100 dark:hover:from-purple-500/20 dark:hover:to-pink-500/20 hover:border-purple-300 dark:hover:border-purple-400/50 hover:scale-105 cursor-default"
+                           className="text-xs sm:text-sm px-2.5 py-1 bg-linear-to-r transition-all duration-200 from-purple-50 to-pink-50 dark:from-purple-500/10 dark:to-pink-500/10 border-purple-200 dark:border-purple-500/30 text-purple-700 dark:text-purple-300 hover:from-purple-100 hover:to-pink-100 dark:hover:from-purple-500/20 dark:hover:to-pink-500/20 hover:border-purple-300 dark:hover:border-purple-400/50 hover:scale-105 cursor-default"
                         >
                            #{tag}
                         </Badge>
@@ -121,7 +121,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
                      {profile.niche.length > 3 && (
                         <Badge
                            variant="outline"
-                           className="text-xs sm:text-sm px-2.5 py-1 text-gray-600 bg-gradient-to-r from-gray-50 to-gray-100 border-gray-200 transition-all duration-200 dark:from-gray-700/30 dark:to-gray-600/30 dark:border-gray-600/30 dark:text-gray-300 hover:from-gray-100 hover:to-gray-200 dark:hover:from-gray-600/40 dark:hover:to-gray-500/40 hover:border-gray-300 dark:hover:border-gray-500/50 hover:scale-105 cursor-default"
+                           className="text-xs sm:text-sm px-2.5 py-1 text-gray-600 bg-linear-to-r from-gray-50 to-gray-100 border-gray-200 transition-all duration-200 dark:from-gray-700/30 dark:to-gray-600/30 dark:border-gray-600/30 dark:text-gray-300 hover:from-gray-100 hover:to-gray-200 dark:hover:from-gray-600/40 dark:hover:to-gray-500/40 hover:border-gray-300 dark:hover:border-gray-500/50 hover:scale-105 cursor-default"
                         >
                            +{profile.niche.length - 3}
                         </Badge>
@@ -138,7 +138,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
                   <div className="flex gap-1.5 sm:gap-2 pt-3 border-t border-gray-100 dark:border-slate-700">
                      {/* Liked Icon (if liked) */}
                      {isLiked && (
-                        <div className="flex flex-shrink-0 justify-center items-center w-8 h-8 rounded-lg border transition-all duration-200 sm:w-9 sm:h-9 bg-green-500/20 border-green-400/30 hover:scale-110">
+                        <div className="flex shrink-0 justify-center items-center w-8 h-8 rounded-lg border transition-all duration-200 sm:w-9 sm:h-9 bg-green-500/20 border-green-400/30 hover:scale-110">
                            <Heart className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-green-400 fill-current" />
                         </div>
                      )}
@@ -147,8 +147,8 @@ const MatchCard: React.FC<MatchCardProps> = ({
                      <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => onMessage?.(profile.userId)}
-                        className="flex-1 h-8 text-xs font-semibold text-blue-600 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-lg border border-blue-200 shadow-sm transition-all duration-200 cursor-pointer sm:h-9 sm:text-sm dark:text-blue-400 dark:from-blue-500/20 dark:to-cyan-500/20 dark:border-blue-500/40 hover:from-blue-100 hover:to-cyan-100 dark:hover:from-blue-500/30 dark:hover:to-cyan-500/30 hover:border-blue-300 dark:hover:border-blue-400/60 hover:text-blue-700 dark:hover:text-blue-300 hover:shadow-md hover:shadow-blue-500/20 hover:scale-105"
+                        onClick={() => onMessage?.(match)}
+                        className="flex-1 h-8 text-xs font-semibold text-blue-600 bg-linear-to-r from-blue-50 to-cyan-50 rounded-lg border border-blue-200 shadow-sm transition-all duration-200 cursor-pointer sm:h-9 sm:text-sm dark:text-blue-400 dark:from-blue-500/20 dark:to-cyan-500/20 dark:border-blue-500/40 hover:from-blue-100 hover:to-cyan-100 dark:hover:from-blue-500/30 dark:hover:to-cyan-500/30 hover:border-blue-300 dark:hover:border-blue-400/60 hover:text-blue-700 dark:hover:text-blue-300 hover:shadow-md hover:shadow-blue-500/20 hover:scale-105"
                      >
                         <MessageCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-1" />
                         <span className="hidden sm:inline">Message</span>
@@ -159,7 +159,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
                         variant="outline"
                         size="sm"
                         onClick={() => onViewProfile?.(profile.userId)}
-                        className="flex-1 h-8 text-xs font-semibold text-purple-600 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border border-purple-200 shadow-sm transition-all duration-200 cursor-pointer sm:h-9 sm:text-sm dark:text-purple-400 dark:from-purple-500/20 dark:to-pink-500/20 dark:border-purple-500/40 hover:from-purple-100 hover:to-pink-100 dark:hover:from-purple-500/30 dark:hover:to-pink-500/30 hover:border-purple-300 dark:hover:border-purple-400/60 hover:text-purple-700 dark:hover:text-purple-300 hover:shadow-md hover:shadow-purple-500/20 hover:scale-105"
+                        className="flex-1 h-8 text-xs font-semibold text-purple-600 bg-linear-to-r from-purple-50 to-pink-50 rounded-lg border border-purple-200 shadow-sm transition-all duration-200 cursor-pointer sm:h-9 sm:text-sm dark:text-purple-400 dark:from-purple-500/20 dark:to-pink-500/20 dark:border-purple-500/40 hover:from-purple-100 hover:to-pink-100 dark:hover:from-purple-500/30 dark:hover:to-pink-500/30 hover:border-purple-300 dark:hover:border-purple-400/60 hover:text-purple-700 dark:hover:text-purple-300 hover:shadow-md hover:shadow-purple-500/20 hover:scale-105"
                      >
                         <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-1" />
                         <span className="hidden sm:inline">View</span>
@@ -173,7 +173,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
                            variant="outline"
                            size="sm"
                            onClick={() => onAction(profile.userId, "pass")}
-                           className="h-9 text-xs font-semibold text-red-600 bg-gradient-to-r from-red-50 to-rose-50 rounded-lg border border-red-200 shadow-sm transition-all duration-200 cursor-pointer sm:h-10 sm:text-sm dark:text-red-400 dark:from-red-500/20 dark:to-rose-500/20 dark:border-red-500/40 hover:from-red-100 hover:to-rose-100 dark:hover:from-red-500/30 dark:hover:to-rose-500/30 hover:border-red-300 dark:hover:border-red-400/60 hover:text-red-700 dark:hover:text-red-300 hover:shadow-md hover:shadow-red-500/20 hover:scale-105"
+                           className="h-9 text-xs font-semibold text-red-600 bg-linear-to-r from-red-50 to-rose-50 rounded-lg border border-red-200 shadow-sm transition-all duration-200 cursor-pointer sm:h-10 sm:text-sm dark:text-red-400 dark:from-red-500/20 dark:to-rose-500/20 dark:border-red-500/40 hover:from-red-100 hover:to-rose-100 dark:hover:from-red-500/30 dark:hover:to-rose-500/30 hover:border-red-300 dark:hover:border-red-400/60 hover:text-red-700 dark:hover:text-red-300 hover:shadow-md hover:shadow-red-500/20 hover:scale-105"
                         >
                            <X className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-1" />
                            <span className="hidden sm:inline">Pass</span>
@@ -183,7 +183,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
                            variant="outline"
                            size="sm"
                            onClick={() => onAction(profile.userId, "view")}
-                           className="h-9 text-xs font-semibold text-blue-600 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-lg border border-blue-200 shadow-sm transition-all duration-200 cursor-pointer sm:h-10 sm:text-sm dark:text-blue-400 dark:from-blue-500/20 dark:to-cyan-500/20 dark:border-blue-500/40 hover:from-blue-100 hover:to-cyan-100 dark:hover:from-blue-500/30 dark:hover:to-cyan-500/30 hover:border-blue-300 dark:hover:border-blue-400/60 hover:text-blue-700 dark:hover:text-blue-300 hover:shadow-md hover:shadow-blue-500/20 hover:scale-105"
+                           className="h-9 text-xs font-semibold text-blue-600 bg-linear-to-r from-blue-50 to-cyan-50 rounded-lg border border-blue-200 shadow-sm transition-all duration-200 cursor-pointer sm:h-10 sm:text-sm dark:text-blue-400 dark:from-blue-500/20 dark:to-cyan-500/20 dark:border-blue-500/40 hover:from-blue-100 hover:to-cyan-100 dark:hover:from-blue-500/30 dark:hover:to-cyan-500/30 hover:border-blue-300 dark:hover:border-blue-400/60 hover:text-blue-700 dark:hover:text-blue-300 hover:shadow-md hover:shadow-blue-500/20 hover:scale-105"
                         >
                            <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-1" />
                            <span className="hidden sm:inline">View</span>
@@ -195,7 +195,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
                            onClick={handleLikeToggle}
                            className={`h-9 sm:h-10 text-xs sm:text-sm rounded-lg border cursor-pointer transition-all duration-200 font-semibold shadow-sm hover:shadow-md hover:scale-105 ${isLiked
                               ? "text-white bg-green-500 border-green-400 dark:bg-green-600 dark:border-green-500 hover:bg-green-600 dark:hover:bg-green-700 hover:text-white hover:shadow-green-500/30"
-                              : "text-green-600 bg-gradient-to-r from-green-50 to-emerald-50 border-green-200 dark:text-green-400 dark:from-green-500/20 dark:to-emerald-500/20 dark:border-green-500/40 hover:from-green-100 hover:to-emerald-100 dark:hover:from-green-500/30 dark:hover:to-emerald-500/30 hover:border-green-300 dark:hover:border-green-400/60 hover:text-green-700 dark:hover:text-green-300 hover:shadow-green-500/20"
+                              : "text-green-600 bg-linear-to-r from-green-50 to-emerald-50 border-green-200 dark:text-green-400 dark:from-green-500/20 dark:to-emerald-500/20 dark:border-green-500/40 hover:from-green-100 hover:to-emerald-100 dark:hover:from-green-500/30 dark:hover:to-emerald-500/30 hover:border-green-300 dark:hover:border-green-400/60 hover:text-green-700 dark:hover:text-green-300 hover:shadow-green-500/20"
                               }`}
                         >
                            <Heart className={`w-3.5 h-3.5 sm:w-4 sm:h-4 inline ${isLiked ? "fill-current sm:mr-1" : "sm:mr-1"}`} />
@@ -207,7 +207,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
                      <div className="mt-2">
                         <Button
                            onClick={() => onCollaboration(profile.userId)}
-                           className="w-full h-10 sm:h-11 text-sm sm:text-base font-bold text-white bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg border-0 shadow-md transition-all duration-200 cursor-pointer hover:from-purple-600 hover:to-pink-600 hover:text-white hover:shadow-lg hover:shadow-purple-500/40 hover:scale-[1.02]"
+                           className="w-full h-10 sm:h-11 text-sm sm:text-base font-bold text-white bg-linear-to-r from-purple-500 to-pink-500 rounded-lg border-0 shadow-md transition-all duration-200 cursor-pointer hover:from-purple-600 hover:to-pink-600 hover:text-white hover:shadow-lg hover:shadow-purple-500/40 hover:scale-[1.02]"
                         >
                            <Zap className="mr-1.5 sm:mr-2 w-4 h-4 sm:w-5 sm:h-5" />
                            Start Collab
