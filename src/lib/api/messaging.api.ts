@@ -42,7 +42,8 @@ async startConversation(participantId: string): Promise<Conversation> {
     return response.data.conversation;
   }
 
-  async archiveConversation(id: string): Promise<void> {
+  async toggleArchive(id: string): Promise<void> {
+    // Hits DELETE /messaging/conversations/:id/archive
     await apiClient.delete(`/messaging/conversations/${id}/archive`);
   }
 

@@ -29,8 +29,8 @@ class MessagingSocketService {
   private setupDefaultListeners(): void {
     if (!this.socket) return;
 
-    this.socket.on('connect', () => console.log('✅ Connected to Hyperbuds Socket'));
-    this.socket.on('disconnect', (reason) => console.log('❌ Socket Disconnected:', reason));
+    this.socket.on('connect', () => {});
+    this.socket.on('disconnect', (reason) => console.log('❌ Socket Disconnected:', reason))
     this.socket.on('connect_error', (error) => console.error('⚠️ Socket Auth Error:', error.message));
   }
 

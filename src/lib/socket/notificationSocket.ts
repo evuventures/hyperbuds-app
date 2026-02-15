@@ -3,8 +3,10 @@ import { getAccessToken } from "@/store/authSelectors";
 
 export interface NotificationData {
   _id: string;
-  type: 'new_message' | 'collab_request' | 'system_alert';
+  // Added 'debug' to the type union to handle the system logs
+  type: 'new_message' | 'collab_request' | 'system_alert' | 'debug';
   content: string;
+  message?: string; // Added to support the "Socket is working" structure
   isRead: boolean;
   createdAt: string;
 }
@@ -33,10 +35,16 @@ class NotificationSocketService {
 
   private setupEventListeners(): void {
     if (!this.socket) return;
-    this.socket.on("notification:new", (data: NotificationData) => this.localEmit("notification:new", data));
+
+    // Filter out debug notifications before they reach the rest of the app
+    this.socket.on("notification:new", (data: NotificationData) => {
+      if (data.type === 'debug') return; // Silence the "Socket is working" logs
+      this.localEmit("notification:new", data);
+    });
+
     this.socket.on("notifications:read-all", () => this.localEmit("notifications:read-all"));
   }
-
+  
   // Restoring the missing function!
   public isConnected(): boolean {
     return this.socket?.connected ?? false;

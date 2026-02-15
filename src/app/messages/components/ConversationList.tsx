@@ -10,32 +10,44 @@ type FilterType = 'All' | 'Unread' | 'Archived';
 
 export const ConversationList = () => {
   const dispatch = useDispatch();
-  
-  // Only read from Redux - No local fetch here!
   const { conversations, activeConversationId } = useSelector((state: RootState) => state.chat);
   const { user: currentUser } = useSelector((state: RootState) => state.auth);
-
+  
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<FilterType>('All');
 
-  // Safety logic: Remove any duplicates by ID and filter by search/tab
+  // 1. Calculate counts for the tabs
+  const counts = useMemo(() => {
+    const safeConversations = Array.isArray(conversations) ? conversations : [];
+    
+    return {
+      All: safeConversations.filter(c => !c.isArchived).length,
+      Unread: safeConversations.filter(c => {
+        const userUnread = (c.unreadCounts ?? []).find(u => u.userId === currentUser?.id);
+        return (userUnread?.count || 0) > 0 && !c.isArchived;
+      }).length,
+      Archived: safeConversations.filter(c => c.isArchived).length,
+    };
+  }, [conversations, currentUser?.id]);
+
+  // 2. Filtered list for display
   const filteredConversations = useMemo(() => {
-    // Deduplicate by _id to prevent the visual double-populating
-    const uniqueList = Array.from(
-      new Map(conversations.map(c => [c._id, c])).values()
-    );
+    const safeConversations = Array.isArray(conversations) ? conversations : [];
+    const uniqueList = Array.from(new Map(safeConversations.map(c => [c._id, c])).values());
 
     return uniqueList.filter((chat) => {
-      // Correctly find the other participant (not Esther)
-      const otherUser = chat.participants.find(p => p._id !== currentUser?.id) || chat.participants[0];
-      const name = otherUser?.name?.toLowerCase() || "";
-      const email = otherUser?.email?.toLowerCase() || "";
+      const otherUser = chat.participants?.find(p => p._id !== currentUser?.id) || chat.participants?.[0];
+      const fullName = otherUser?.fullName?.toLowerCase() || "";
+      const username = otherUser?.username?.toLowerCase() || "";
       const query = searchQuery.toLowerCase();
 
-      const matchesSearch = name.includes(query) || email.includes(query);
-      
-      if (activeFilter === 'Unread') return matchesSearch && chat.unreadCount > 0;
-      return matchesSearch;
+      const matchesSearch = fullName.includes(query) || username.includes(query);
+      const userUnreadData = (chat.unreadCounts ?? []).find(u => u.userId === currentUser?.id);
+      const hasUnread = (userUnreadData?.count || 0) > 0;
+
+      if (activeFilter === 'Archived') return matchesSearch && chat.isArchived;
+      if (activeFilter === 'Unread') return matchesSearch && hasUnread && !chat.isArchived;
+      return matchesSearch && !chat.isArchived;
     });
   }, [conversations, searchQuery, activeFilter, currentUser?.id]);
 
@@ -49,42 +61,49 @@ export const ConversationList = () => {
           </button>
         </div>
 
-        {/* Search */}
         <div className="relative mb-5">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" size={16} />
           <input 
             type="text" 
-            placeholder="Search conversations..." 
+            placeholder="Search creators..." 
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full bg-[#1E293B] border-none rounded-xl py-2.5 pl-11 pr-12 text-sm text-slate-200 placeholder:text-slate-500 focus:ring-1 focus:ring-purple-500/50 transition-all outline-none"
           />
         </div>
 
-        {/* Filter Tabs */}
+        {/* Filter Tabs with Dynamic Counts */}
         <div className="flex p-1 bg-[#1E293B] rounded-xl mb-6">
           {(['All', 'Unread', 'Archived'] as FilterType[]).map((tab) => (
             <button 
               key={tab}
               onClick={() => setActiveFilter(tab)}
-              className={`flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+              className={`flex-1 flex items-center justify-center gap-2 py-1.5 text-xs font-semibold rounded-lg transition-all ${
                 activeFilter === tab 
                   ? 'bg-slate-700 text-white shadow-sm' 
                   : 'text-slate-500 hover:text-slate-300'
               }`}
             >
-              {tab}
+              <span>{tab}</span>
+              {counts[tab] > 0 && (
+                <span className={`px-1.5 py-0.5 rounded-md text-[10px] ${
+                  activeFilter === tab ? 'bg-purple-600 text-white' : 'bg-slate-800 text-slate-400'
+                }`}>
+                  {counts[tab]}
+                </span>
+              )}
             </button>
           ))}
         </div>
       </div>
 
-      {/* Scrollable List Container */}
       <div className="flex-1 overflow-y-auto px-2 pb-4 scrollbar-hide">
         {filteredConversations.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full px-10 text-center opacity-30">
-             <Search size={32} className="text-slate-400 mb-4" />
-             <p className="text-sm font-bold text-white">No matches found</p>
+            <Search size={32} className="text-slate-400 mb-4" />
+            <p className="text-sm font-bold text-white">
+              {activeFilter === 'Archived' ? 'No archived chats' : 'No messages found'}
+            </p>
           </div>
         ) : (
           filteredConversations.map((chat) => (
@@ -100,3 +119,5 @@ export const ConversationList = () => {
     </div>
   );
 };
+
+export default ConversationList;

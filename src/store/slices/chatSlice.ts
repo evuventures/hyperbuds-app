@@ -6,6 +6,8 @@ interface ChatState {
   activeConversationId: string | null;
   messages: Message[];
   isLoading: boolean;
+  typingUsers: Record<string, string[]>;
+
 }
 
 const initialState: ChatState = {
@@ -13,6 +15,7 @@ const initialState: ChatState = {
   activeConversationId: null,
   messages: [],
   isLoading: false,
+  typingUsers: {},
 };
 
 const chatSlice = createSlice({
@@ -20,39 +23,115 @@ const chatSlice = createSlice({
   initialState,
   reducers: {
     setConversations: (state, action: PayloadAction<Conversation[]>) => {
+      // Replaces the list entirely to prevent the "populate twice" issue
       state.conversations = action.payload;
     },
     setActiveConversation: (state, action: PayloadAction<string | null>) => {
       state.activeConversationId = action.payload;
-      // Clear messages when switching chats to avoid "ghosting" from the previous chat
-      state.messages = []; 
+      // Clear messages when switching chats to avoid "ghosting"
+      state.messages = [];
     },
     setMessages: (state, action: PayloadAction<Message[]>) => {
       state.messages = action.payload;
     },
-    // This is the most important part: handling the real-time message
     addMessage: (state, action: PayloadAction<Message>) => {
       // 1. If the message belongs to the open chat, add it to the feed
       if (state.activeConversationId === action.payload.conversationId) {
         state.messages.push(action.payload);
       }
-      
+
       // 2. Update the conversation preview in the sidebar
       const convIndex = state.conversations.findIndex(c => c._id === action.payload.conversationId);
       if (convIndex !== -1) {
-        state.conversations[convIndex].lastMessage = {
-          _id: action.payload._id,
-          content: action.payload.content,
-          createdAt: action.payload.createdAt
-        };
-        // If it's not the active chat, increment unread count
+        // FIX for error 2740: Assign the full message object as required by the schema
+        state.conversations[convIndex].lastMessage = action.payload;
+        state.conversations[convIndex].lastActivity = action.payload.createdAt;
+
+        // 3. Update unread logic based on backend unreadCounts array
+        // FIX for error 2551: Increment the count within the user-specific array
         if (state.activeConversationId !== action.payload.conversationId) {
-          state.conversations[convIndex].unreadCount += 1;
+          const unreadEntry = state.conversations[convIndex].unreadCounts.find(
+            u => u.userId !== action.payload.sender._id // Targeting the recipient's entry
+          );
+
+          if (unreadEntry) {
+            unreadEntry.count += 1;
+          }
         }
       }
     },
+    setTypingStatus: (state, action: PayloadAction<{
+      conversationId: string;
+      userId: string;
+      isTyping: boolean
+    }>) => {
+      const { conversationId, userId, isTyping } = action.payload;
+
+      if (!state.typingUsers[conversationId]) {
+        state.typingUsers[conversationId] = [];
+      }
+
+      if (isTyping) {
+        if (!state.typingUsers[conversationId].includes(userId)) {
+          state.typingUsers[conversationId].push(userId);
+        }
+      } else {
+        state.typingUsers[conversationId] = state.typingUsers[conversationId]
+          .filter(id => id !== userId);
+      }
+    },
+    markMessagesAsRead: (state, action: PayloadAction<{ conversationId: string; messageIds: string[]; userId: string }>) => {
+      const { conversationId, messageIds, userId } = action.payload;
+
+      // 1. Update the messages in the current feed
+      state.messages = state.messages.map(msg =>
+        messageIds.includes(msg._id) ? { ...msg, isRead: true, readAt: new Date().toISOString() } : msg
+      );
+
+      // 2. Reset the unread count for Esther in the sidebar
+      const convIndex = state.conversations.findIndex(c => c._id === conversationId);
+      if (convIndex !== -1) {
+        const unreadEntry = state.conversations[convIndex].unreadCounts.find(u => u.userId === userId);
+        if (unreadEntry) {
+          unreadEntry.count = 0;
+        }
+      }
+    },
+    deleteMessageLocal: (state, action: PayloadAction<{ messageId: string }>) => {
+      const { messageId } = action.payload;
+
+      // Update the message in the feed
+      state.messages = state.messages.map(msg =>
+        msg._id === messageId
+          ? { ...msg, content: "This message was deleted", isDeleted: true }
+          : msg
+      );
+
+      // Update lastMessage in the sidebar if it was the one deleted
+      const conversation = state.conversations.find(c => c.lastMessage?._id === messageId);
+      if (conversation && conversation.lastMessage) {
+        conversation.lastMessage.content = "This message was deleted";
+        conversation.lastMessage.isDeleted = true;
+      }
+    },
+    toggleArchiveLocal: (state, action: PayloadAction<{ conversationId: string; isArchived: boolean }>) => {
+      const { conversationId, isArchived } = action.payload;
+      const conversation = state.conversations.find(c => c._id === conversationId);
+      if (conversation) {
+        conversation.isArchived = isArchived;
+      }
+    }
   },
+
 });
 
-export const { setConversations, setActiveConversation, setMessages, addMessage } = chatSlice.actions;
+export const { setConversations,
+  setActiveConversation,
+  setMessages,
+  addMessage,
+  setTypingStatus,
+  markMessagesAsRead,
+  deleteMessageLocal,
+  toggleArchiveLocal } = chatSlice.actions;
+
 export default chatSlice.reducer;

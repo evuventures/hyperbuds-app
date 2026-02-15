@@ -1,11 +1,13 @@
 export interface User {
   _id: string;
   email: string;
-  name?: string;
-  username?: string;
+  username?: string; // Matches 'username' in User schema
+  fullName?: string; // Matches 'fullName' in User schema
+  bio?: string;      // Matches 'bio' in User schema
   avatar?: string;
+  role: 'creator' | 'admin'; // From backend enum
   status?: 'online' | 'offline' | 'away';
-  lastSeen?: string;
+  
 }
 
 export interface MessageAttachment {
@@ -21,7 +23,8 @@ export interface Message {
   sender: {
     _id: string;
     email: string;
-    username?: string; // Add if the backend populates sender username
+    username?: string;
+    fullName?: string; 
   };
   content: string;
   type: 'text' | 'image' | 'file' | 'collab_invite';
@@ -38,16 +41,19 @@ export interface Message {
 
 export interface Conversation {
   _id: string;
-  participants: User[];
-  type: 'direct';
-  lastMessage?: {
-    _id: string;
-    content: string;
-    createdAt: string;
-  };
-  lastActivity: string;
-  unreadCount: number;
+  participants: User[]; // Refers to User model
+  type: 'direct' | 'group'; // Backend supports both
+  title?: string; // For group chats
+  lastMessage?: Message; // Populated Message object
+  lastActivity: string; // Used for sorting
+  unreadCounts: Array<{ // Matches backend schema
+    userId: string;
+    count: number;
+  }>;
+  isArchived: boolean; // Matches backend default
+  metadata?: Record<string, unknown>; // For collaboration context
   createdAt: string;
+  updatedAt: string;
 }
 
 // Request Types
@@ -111,5 +117,7 @@ export interface SocketEvents {
   'typing:start': { conversationId: string; userId: string };
   'typing:stop': { conversationId: string; userId: string };
   'user:status': { userId: string; status: 'online' | 'offline' };
+  'message:read': { conversationId: string; messageIds: string[]; userId: string };
+  'message:deleted': { messageId: string; conversationId: string };
  
 }

@@ -1,5 +1,5 @@
 "use client"
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Send } from 'lucide-react';
 import { messagingAPI } from '@/lib/api/messaging.api';
 import { useDispatch } from 'react-redux';
@@ -14,18 +14,50 @@ export const MessageInput: React.FC<MessageInputProps> = ({ conversationId }) =>
   const [isSending, setIsSending] = useState(false);
   const dispatch = useDispatch();
 
+  // Refs to manage typing state without triggering re-renders
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isTypingRef = useRef(false);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setText(value);
+
+    // 1. Trigger "Start Typing" if this is the beginning of a typing session
+    if (!isTypingRef.current && value.trim().length > 0) {
+      isTypingRef.current = true;
+      messagingAPI.startTyping(conversationId); // Hits POST /conversations/:id/typing/start
+    }
+
+    // 2. Reset the "Stop Typing" timeout on every keystroke
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+
+    typingTimeoutRef.current = setTimeout(() => {
+      stopTypingIndicator();
+    }, 2000); // Stop indicator after 2 seconds of inactivity
+  };
+
+  const stopTypingIndicator = () => {
+    if (isTypingRef.current) {
+      messagingAPI.stopTyping(conversationId); // Hits POST /conversations/:id/typing/stop
+      isTypingRef.current = false;
+    }
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+  };
+
   const handleSend = async (e?: React.FormEvent) => {
     e?.preventDefault();
     if (!text.trim() || isSending) return;
+
+    // Immediately stop typing indicator when sending
+    stopTypingIndicator();
 
     setIsSending(true);
     try {
       const newMessage = await messagingAPI.sendMessage(conversationId, {
         content: text.trim(),
-        type: 'text'
+        type: 'text' // Validated by sendMessageSchema
       });
       
-      // Update Redux immediately so the UI is snappy
       dispatch(addMessage(newMessage));
       setText('');
     } catch (error) {
@@ -38,15 +70,15 @@ export const MessageInput: React.FC<MessageInputProps> = ({ conversationId }) =>
   return (
     <form 
       onSubmit={handleSend}
-      className="p-4 border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900"
+      className="p-4 bg-gray-900" // Themed to match ChatWindow
     >
-      <div className="flex items-center gap-2 bg-gray-50 dark:bg-gray-800 p-2 rounded-2xl border border-gray-200 dark:border-gray-700">
+      <div className="flex items-center gap-2 bg-gray-900 p-2 rounded-2xl border border-slate-800 focus-within:border-purple-500/50 transition-all">
         <input
           type="text"
           value={text}
-          onChange={(e) => setText(e.target.value)}
+          onChange={handleInputChange} // Now handles typing logic
           placeholder="Type a message..."
-          className="flex-1 bg-transparent border-none focus:ring-0 text-sm px-2 dark:text-white"
+          className="flex-1 bg-transparent border-none focus:ring-0 text-sm px-2 text-white placeholder:text-slate-500"
         />
         <button
           type="submit"
@@ -54,11 +86,11 @@ export const MessageInput: React.FC<MessageInputProps> = ({ conversationId }) =>
           className={`
             p-2 rounded-xl transition-all
             ${text.trim() 
-              ? 'bg-purple-600 text-white hover:bg-purple-700' 
-              : 'bg-gray-200 text-gray-400 dark:bg-gray-700'}
+              ? 'bg-purple-600 text-white hover:bg-purple-700 shadow-lg shadow-purple-500/20' 
+              : 'bg-slate-700 text-slate-500'}
           `}
         >
-          <Send size={18} className={isSending ? 'animate-pulse' : ''} />
+          <Send size={18} className={isSending ? 'animate-pulse' : ''}  />
         </button>
       </div>
     </form>

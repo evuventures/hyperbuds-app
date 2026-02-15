@@ -8,6 +8,7 @@ import { MessageBubble } from './MessageBubble';
 import { MessageInput } from './MessageInput';
 import { ChatHeader } from './ChatHeader';
 
+
 export const ChatWindow = () => {
   const dispatch = useDispatch();
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -43,6 +44,18 @@ export const ChatWindow = () => {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages]);
+
+  useEffect(() => {
+  if (activeConversationId && messages.length > 0) {
+    const unreadIds = messages
+      .filter(m => !m.isRead && m.sender._id !== currentUser?.id)
+      .map(m => m._id);
+
+    if (unreadIds.length > 0) {
+      messagingAPI.markAsRead(activeConversationId, unreadIds);
+    }
+  }
+}, [activeConversationId, messages, currentUser?.id]);
 
   // --- EMPTY STATE UI ---
   if (!activeConversationId) {
