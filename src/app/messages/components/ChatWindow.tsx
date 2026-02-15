@@ -2,33 +2,41 @@
 import React, { useEffect, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '@/store/store';
-import { setMessages } from '@/store/slices/chatSlice';
+import { setMessages, setActiveConversation } from '@/store/slices/chatSlice';
 import { messagingAPI } from '@/lib/api/messaging.api';
 import { MessageBubble } from './MessageBubble';
 import { MessageInput } from './MessageInput';
 import { ChatHeader } from './ChatHeader';
 
+interface ChatWindowProps {
+  conversationId?: string; 
+}
 
-export const ChatWindow = () => {
+export const ChatWindow: React.FC<ChatWindowProps> = ({ conversationId }) => {
   const dispatch = useDispatch();
   const scrollRef = useRef<HTMLDivElement>(null);
   
   // 1. Pull messaging state from Redux
-  const { activeConversationId, messages, conversations } = useSelector(
+  const { messages, conversations } = useSelector(
     (state: RootState) => state.chat
   );
   
-  // 2. Identify Esther (the logged-in user) to filter herself out of the header
   const { user: currentUser } = useSelector((state: RootState) => state.auth);
 
-  // 3. Effect: Fetch messages whenever the active conversation changes
+  // 2. Determine the EFFECTIVE ID (Prop takes priority over global state)
+  // This ensures the window updates immediately when the URL changes
+  const activeId = conversationId; 
+
+  // 3. Effect: Sync Redux and Fetch messages
   useEffect(() => {
-    if (!activeConversationId) return;
+    if (!activeId) return;
+
+    // Set global active ID so sidebar and other components stay in sync
+    dispatch(setActiveConversation(activeId));
 
     const fetchMessages = async () => {
       try {
-        // Uses GET /messaging/conversations/:id/messages from your backend
-        const data = await messagingAPI.getMessages(activeConversationId);
+        const data = await messagingAPI.getMessages(activeId);
         dispatch(setMessages(data.messages));
       } catch (error) {
         console.error("Failed to load messages:", error);
@@ -36,29 +44,30 @@ export const ChatWindow = () => {
     };
 
     fetchMessages();
-  }, [activeConversationId, dispatch]);
+  }, [activeId, dispatch]);
 
-  // 4. Effect: Automatic scroll to bottom when new messages arrive or are loaded
+  // 4. Effect: Automatic scroll
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages]);
 
+  // 5. Effect: Mark as read logic using activeId
   useEffect(() => {
-  if (activeConversationId && messages.length > 0) {
-    const unreadIds = messages
-      .filter(m => !m.isRead && m.sender._id !== currentUser?.id)
-      .map(m => m._id);
+    if (activeId && messages.length > 0) {
+      const unreadIds = messages
+        .filter(m => !m.isRead && m.sender._id !== currentUser?.id)
+        .map(m => m._id);
 
-    if (unreadIds.length > 0) {
-      messagingAPI.markAsRead(activeConversationId, unreadIds);
+      if (unreadIds.length > 0) {
+        messagingAPI.markAsRead(activeId, unreadIds);
+      }
     }
-  }
-}, [activeConversationId, messages, currentUser?.id]);
+  }, [activeId, messages, currentUser?.id]);
 
   // --- EMPTY STATE UI ---
-  if (!activeConversationId) {
+  if (!activeId) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center bg-[#0F172A] text-slate-400">
         <div className="flex flex-col items-center max-w-sm text-center">
@@ -84,24 +93,16 @@ export const ChatWindow = () => {
   }
 
   // --- ACTIVE CHAT LOGIC ---
+  const activeChat = conversations.find(c => c._id === activeId);
 
-  // Find the conversation object to get participant details
-  const activeChat = conversations.find(c => c._id === activeConversationId);
-
-  // FIX: Identify the Recipient (the person who is NOT Esther/Current User)
-  // This ensures the header shows "Esther" or "@creaster" instead of your own details
   const recipient = activeChat?.participants.find(
     (p) => p._id !== currentUser?.id
   ) || activeChat?.participants[0];
 
   return (
     <div className="flex flex-col h-full bg-[#0F172A] relative border-l border-slate-800/50">
-      {/* Top Bar: Pass the specific recipient to the header 
-         We pass the full participant object to handle names and online status
-      */}
       <ChatHeader recipient={recipient} />
 
-      {/* Message Feed */}
       <div 
         ref={scrollRef}
         className="flex-1 overflow-y-auto p-6 space-y-6 scroll-smooth 
@@ -111,17 +112,14 @@ export const ChatWindow = () => {
           <MessageBubble 
             key={msg._id} 
             message={msg} 
-            // isMe logic correctly determines alignment (Right for you, Left for them)
             isMe={msg.sender._id === currentUser?.id} 
           />
         ))}
         <div className="h-2" />
       </div>
 
-      {/* Input Bar */}
       <div className="p-4 bg-[#0F172A]">
-        {/* Pass ID for sendMessage controller: POST /conversations/:id/messages */}
-        <MessageInput conversationId={activeConversationId} />
+        <MessageInput conversationId={activeId} />
       </div>
     </div>
   );

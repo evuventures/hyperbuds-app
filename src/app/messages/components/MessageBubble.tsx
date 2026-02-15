@@ -34,13 +34,13 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isMe }) =
   return (
     <div className={`flex ${isMe ? 'justify-end' : 'justify-start'} mb-2 group relative`}>
       <div className={`max-w-[70%] flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>
-        
+
         <div className="flex items-center gap-2 max-w-full">
           {/* Action Area: Inline Confirm Toggle */}
           {isMe && !message.isDeleted && (
             <div className="flex items-center h-full">
               {!showConfirm ? (
-                <button 
+                <button
                   onClick={() => setShowConfirm(true)}
                   className="opacity-0 group-hover:opacity-100 p-1.5 text-slate-500 hover:text-red-400 transition-all duration-200"
                   title="Delete for everyone"
@@ -49,14 +49,14 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isMe }) =
                 </button>
               ) : (
                 <div className="flex items-center gap-0.5 bg-slate-800 border border-slate-700 rounded-lg p-0.5 shadow-xl animate-in fade-in zoom-in duration-200 z-10">
-                  <button 
+                  <button
                     onClick={handleDelete}
                     disabled={isDeleting}
                     className="p-1 text-green-500 hover:bg-green-500/10 rounded transition-colors"
                   >
                     <Check size={14} className={isDeleting ? 'animate-pulse' : ''} />
                   </button>
-                  <button 
+                  <button
                     onClick={() => setShowConfirm(false)}
                     className="p-1 text-slate-400 hover:bg-slate-700 rounded transition-colors"
                   >
@@ -70,10 +70,10 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isMe }) =
           {/* Chat Bubble */}
           <div className={`
             px-4 py-2.5 rounded-2xl text-sm transition-all duration-200
-            ${message.isDeleted 
-              ? 'bg-slate-900/40 border border-slate-800/60 text-slate-500 italic flex items-center gap-2' 
-              : isMe 
-                ? 'bg-purple-600 text-white rounded-tr-none shadow-md shadow-purple-900/10' 
+            ${message.isDeleted
+              ? 'bg-slate-900/40 border border-slate-800/60 text-slate-500 italic flex items-center gap-2'
+              : isMe
+                ? 'bg-purple-600 text-white rounded-tr-none shadow-md shadow-purple-900/10'
                 : 'bg-slate-800 text-slate-100 rounded-tl-none border border-slate-700/50'}
           `}>
             {message.isDeleted ? (
@@ -91,15 +91,15 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isMe }) =
 
         {/* Footer: Time & Status */}
         <div className="flex items-center gap-1.5 mt-1 px-1">
-          <span className="text-[10px] text-slate-500 font-medium">
-            {format(new Date(message.createdAt), 'HH:mm')}
+          <span className="text-[10px] opacity-70 mt-1 block text-white">
+            {format(new Date(message.createdAt), 'h:mm a')}
           </span>
           {isMe && !message.isDeleted && (
-            <span 
+            <span
               className={`text-[10px] font-bold ${message.isRead ? 'text-purple-400' : 'text-slate-600'}`}
               title={message.isRead ? 'Read' : 'Delivered'}
             >
-              {message.isRead ? '✓✓' : '✓'} 
+              {message.isRead ? '✓✓' : '✓'}
             </span>
           )}
         </div>

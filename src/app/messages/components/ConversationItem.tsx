@@ -1,6 +1,7 @@
 "use client"
 import React, { useState } from 'react';
-import Image from 'next/image'; // Import Next.js Image component
+import Image from 'next/image';
+import Link from 'next/link';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/store/store';
 import { format, isToday } from 'date-fns';
@@ -9,21 +10,22 @@ import { Conversation } from '@/types/messaging.types';
 interface ConversationItemProps {
   conversation: Conversation;
   isActive: boolean;
-  onClick: () => void;
+  onClick?: () => void;
 }
 
 export const ConversationItem: React.FC<ConversationItemProps> = ({ 
   conversation, 
-  isActive, 
-  onClick 
+  isActive 
 }) => {
   const { user: currentUser } = useSelector((state: RootState) => state.auth);
-  const [imgError, setImgError] = useState(false); // State to handle broken image links
+  const [imgError, setImgError] = useState(false);
 
+  // Identify the other participant (the recipient)
   const otherUser = (conversation.participants ?? []).find(
     (p) => p._id !== currentUser?.id
   ) || conversation.participants?.[0]; 
 
+  // Calculate unread messages specifically for the logged-in user
   const myUnreadData = (conversation.unreadCounts ?? []).find(
     (u) => u.userId === currentUser?.id
   );
@@ -32,14 +34,16 @@ export const ConversationItem: React.FC<ConversationItemProps> = ({
   const formatLastActivity = (dateString: string) => {
     const date = new Date(dateString);
     if (isToday(date)) {
-      return format(date, 'HH:mm');
+      // 12-hour format with AM/PM
+      return format(date, 'h:mm a');
     }
     return format(date, 'dd/MM/yyyy');
   };
 
   return (
-    <div 
-      onClick={onClick}
+    <Link 
+      href={`/messages/${conversation._id}`}
+      prefetch={true}
       className={`group flex items-center gap-4 p-4 mx-2 mb-1 rounded-2xl cursor-pointer transition-all duration-200 ${
         isActive 
           ? 'bg-slate-800 shadow-lg' 
@@ -47,7 +51,6 @@ export const ConversationItem: React.FC<ConversationItemProps> = ({
       }`}
     >
       <div className="relative shrink-0">
-        {/* Profile Picture Container */}
         <div className="w-12 h-12 rounded-full overflow-hidden bg-linear-to-tr from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-sm shadow-md relative">
           {otherUser?.avatar && !imgError ? (
             <Image
@@ -56,16 +59,15 @@ export const ConversationItem: React.FC<ConversationItemProps> = ({
               fill
               sizes="48px"
               className="object-cover"
-              onError={() => setImgError(true)} // Switches to initials on error
+              onError={() => setImgError(true)}
             />
           ) : (
-            <span>
-              {otherUser?.fullName?.[0]?.toUpperCase() || otherUser?.username?.[0]?.toUpperCase() || 'H'}
+            <span className="capitalize">
+              {otherUser?.username?.[0] || otherUser?.email?.[0] || 'H'}
             </span>
           )}
         </div>
         
-        {/* Status Indicator */}
         {otherUser?.status === 'online' && (
           <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-slate-900 rounded-full z-10" />
         )}
@@ -77,7 +79,7 @@ export const ConversationItem: React.FC<ConversationItemProps> = ({
             {otherUser?.fullName || otherUser?.username || otherUser?.email.split('@')[0]}
           </h4>
           
-          <span className="text-[10px] text-slate-500 shrink-0 ml-2">
+          <span className={`text-[10px] shrink-0 ml-2 ${unreadCount > 0 ? 'text-purple-400 font-bold' : 'text-slate-500'}`}>
             {conversation.lastMessage 
               ? formatLastActivity(conversation.lastMessage.createdAt) 
               : ''}
@@ -85,17 +87,19 @@ export const ConversationItem: React.FC<ConversationItemProps> = ({
         </div>
         
         <div className="flex justify-between items-center">
-          <p className="text-xs text-slate-500 truncate mr-2 ">
-            {/* CHANGED: Updated default text here */}
-            {conversation.lastMessage?.content || "Start Collaborating"}
+          {/* Last message content: text-white and font-medium if unread */}
+          <p className={`text-xs truncate mr-2 ${unreadCount > 0 ? 'text-white font-medium' : 'text-slate-500'}`}>
+            {conversation.lastMessage?.content || "start collaborating"}
           </p>
+          
+          {/* Dynamic Unread Badge */}
           {unreadCount > 0 && (
-            <span className="bg-purple-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">
+            <span className="flex items-center justify-center min-w-5 h-5 px-1.5 bg-purple-600 text-white text-[10px] font-bold rounded-full shadow-lg">
               {unreadCount}
             </span>
           )}
         </div>
       </div>
-    </div>
+    </Link>
   );
 };

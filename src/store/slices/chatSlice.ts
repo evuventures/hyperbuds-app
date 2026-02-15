@@ -116,12 +116,26 @@ const chatSlice = createSlice({
     },
     toggleArchiveLocal: (state, action: PayloadAction<{ conversationId: string; isArchived: boolean }>) => {
       const { conversationId, isArchived } = action.payload;
-      const conversation = state.conversations.find(c => c._id === conversationId);
-      if (conversation) {
-        conversation.isArchived = isArchived;
+      // Use findIndex to ensure you're mutating the draft correctly in Immer
+      const index = state.conversations.findIndex(c => c._id === conversationId);
+      if (index !== -1) {
+        state.conversations[index].isArchived = isArchived;
       }
+    },
+    incrementUnreadCount: (state, action: PayloadAction<{ conversationId: string; userId: string }>) => {
+    const { conversationId, userId } = action.payload;
+    const conversation = state.conversations.find(c => c._id === conversationId);
+    if (conversation) {
+        if (!conversation.unreadCounts) conversation.unreadCounts = [];
+        const userCount = conversation.unreadCounts.find(u => u.userId === userId);
+        if (userCount) {
+            userCount.count += 1;
+        } else {
+            conversation.unreadCounts.push({ userId, count: 1 });
+        }
     }
-  },
+},
+  }
 
 });
 
@@ -132,6 +146,7 @@ export const { setConversations,
   setTypingStatus,
   markMessagesAsRead,
   deleteMessageLocal,
-  toggleArchiveLocal } = chatSlice.actions;
+  toggleArchiveLocal,
+incrementUnreadCount } = chatSlice.actions;
 
 export default chatSlice.reducer;
