@@ -2,7 +2,6 @@
 
 import React from "react";
 import {
-  Video,
   Zap,
   Plus,
 } from "lucide-react";
@@ -11,14 +10,6 @@ import Trending from "@/components/dashboard/Trending";
 import Recommendations from "@/components/dashboard/Recommendations";
 import Link from "next/link";
 // Mock data for quick stats
-const mockStats = {
-  totalCollaborations: 1247,
-  activeCreators: 567,
-  avgResponseTime: "2.3h",
-  successRate: "94%",
-  newMatches: 12,
-  pendingInvites: 5,
-};
 
 // Mock data for recent activity
 
@@ -30,7 +21,7 @@ const MainContent: React.FC = () => {
     <div className="p-4 pb-16 w-full min-h-full bg-linear-to-br from-gray-50 via-white transition-colors duration-200 to-purple-50/10 dark:from-gray-900 dark:via-gray-900 dark:to-purple-900/10 lg:p-6 lg:pb-34">
       <div className="mx-auto space-y-8 max-w-full">
         {/* Welcome Header */}
-        <div className="overflow-hidden relative p-8 text-white bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 rounded-3xl shadow-xl dark:from-purple-700 dark:via-blue-700 dark:to-indigo-700">
+        <div className="overflow-hidden relative p-8 text-white bg-linear-to-r from-purple-600 via-blue-600 to-indigo-600 rounded-3xl shadow-xl dark:from-purple-700 dark:via-blue-700 dark:to-indigo-700">
           <div className="absolute inset-0 bg-black/10 dark:bg-black/20"></div>
           <div className="relative z-10">
             <div className="flex flex-col gap-6 justify-between items-start lg:flex-row lg:items-center">
@@ -44,7 +35,7 @@ const MainContent: React.FC = () => {
                 <h1 className="mb-3 text-3xl font-bold leading-tight lg:text-4xl">
                   Ready to create something
                   <br />
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-pink-300 dark:from-yellow-400 dark:to-pink-400">
+                  <span className="text-transparent bg-clip-text bg-linear-to-r from-yellow-300 to-pink-300 dark:from-yellow-400 dark:to-pink-400">
                     amazing today?
                   </span>
                 </h1>
@@ -86,7 +77,7 @@ const MainContent: React.FC = () => {
         <Recommendations />
 
         {/* Call to Action */}
-        <div className="p-8 mt-8 text-center text-white bg-gradient-to-r from-purple-600 to-indigo-600 rounded-2xl shadow-lg dark:from-purple-700 dark:to-indigo-700">
+        <div className="p-8 mt-8 text-center text-white bg-linear-to-r from-purple-600 to-indigo-600 rounded-2xl shadow-lg dark:from-purple-700 dark:to-indigo-700">
           <h3 className="mb-4 text-2xl font-bold">
             Ready to Start Your Next Collaboration?
           </h3>

@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { Eye, EyeOff, User, Facebook, Chrome } from 'lucide-react';
-import { BASE_URL } from '@/config/baseUrl';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/hooks/auth/useAuth'; // ✅ Custom hook path
 import EmailVerificationModal from './EmailVerificationModal';
 
 const LoadingSpinner = () => (
@@ -28,28 +29,11 @@ const LoadingSpinner = () => (
   </svg>
 );
 
-const handleGoogleLogin = () => {
-  // Store redirect destination for after login
-  const currentPath = window.location.pathname;
-  sessionStorage.setItem("authRedirect", currentPath || "/dashboard");
-
-  // Get Google OAuth configuration from environment variables or use defaults
-  const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "265404811439-3a6feinek5pckg02bjg7mfrva4esuqh0.apps.googleusercontent.com";
-  
-  // Get redirect URI from environment or construct from current origin
-  const baseUrl = typeof window !== "undefined" ? window.location.origin : "http://localhost:3000";
-  const redirectUri = process.env.NEXT_PUBLIC_GOOGLE_REDIRECT_URI || `${baseUrl}/auth/google-callback`;
-  
-  const scope = "email profile";
-  const responseType = "code";
-
-  const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=${responseType}&scope=${scope}&access_type=offline&prompt=consent`;
-
-  window.location.href = googleAuthUrl;
-};
 
 
 export default function App() {
+  const router = useRouter();
+  const { register, initiateGoogleLogin } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -89,24 +73,18 @@ export default function App() {
     }
 
     try {
-      const response = await fetch(`${BASE_URL}/api/v1/auth/register`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
-
-      if (response.ok) {
-        setShowVerificationModal(true);
-      } else if (response.status === 409) {
+      // ✅ Using the hook's register method
+      await register({ email, password });
+      setShowVerificationModal(true);
+    } catch (err) {
+      // ✅ Type-safe error handling avoiding 'any'
+      const errorMessage = err instanceof Error ? err.message : 'Registration failed';
+      
+      if (errorMessage.includes('409') || errorMessage.toLowerCase().includes('already in use')) {
         setError('This email is already in use. Please use a different one.');
       } else {
-        const data = await response.json();
-        setError(data.message || 'An error occurred during registration.');
+        setError(errorMessage || 'An error occurred during registration.');
       }
-    } catch {
-      setError('A network error occurred. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -147,7 +125,7 @@ export default function App() {
                 <span className="text-sm font-medium text-gray-700">Facebook</span>
               </button>
               <button
-                onClick={handleGoogleLogin}
+                onClick={initiateGoogleLogin}
                 className="flex flex-1 gap-3 justify-center items-center h-12 rounded-xl border backdrop-blur-sm transition-colors duration-300 cursor-pointer bg-white/60 border-white/30 hover:bg-white/80">
                 <Chrome className="w-5 h-5 text-red-500" />
                 <span className="text-sm font-medium text-gray-700">Google</span>
@@ -216,7 +194,15 @@ export default function App() {
                 )}
               </button>
             </form>
-            <p className='mx-auto mt-4 text-base text-center'>Already have an account? <a href="/auth/signin" className='font-semibold text-blue-600 transition-colors duration-200 hover:text-blue-500'>signin</a></p>
+            <p className='mx-auto mt-6 text-sm text-center text-gray-500'>
+              Already have an account?{' '}
+              <button 
+                onClick={() => router.push('/auth/signin')} 
+                className=' font-semibold text-blue-600 transition-colors duration-200 cursor-pointer hover:text-blue-500'
+              >
+                Sign In
+              </button>
+            </p>
           </div>
         </div>
 

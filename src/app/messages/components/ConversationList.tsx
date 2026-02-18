@@ -1,64 +1,66 @@
 "use client"
 import React, { useState, useMemo } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { RootState } from '@/store/store';
-import { setActiveConversation } from '@/store/slices/chatSlice';
+import{useAppSelector } from '@/store/hooks';
 import { ConversationItem } from './ConversationItem';
-import { Search, Plus } from 'lucide-react';
+import { Search } from 'lucide-react';
 
 type FilterType = 'All' | 'Unread' | 'Archived';
 
 export const ConversationList = () => {
-  const dispatch = useDispatch();
-  const { conversations, activeConversationId } = useSelector((state: RootState) => state.chat);
-  const { user: currentUser } = useSelector((state: RootState) => state.auth);
-  
+ // const dispatch = useAppDispatch();
+  const { conversations, activeConversationId } = useAppSelector((state) => state.chat);
+  const { user: currentUser } = useAppSelector((state) => state.auth);
+  const currentUserId = currentUser?.id || currentUser?._id;
+
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<FilterType>('All');
 
-  // 1. Calculate counts for the tabs
+  // 1. Spontaneous Tab Counts
   const counts = useMemo(() => {
     const safeConversations = Array.isArray(conversations) ? conversations : [];
-    
     return {
       All: safeConversations.filter(c => !c.isArchived).length,
       Unread: safeConversations.filter(c => {
-        const userUnread = (c.unreadCounts ?? []).find(u => u.userId === currentUser?.id);
+        const userUnread = (c.unreadCounts ?? []).find(u => u.userId === currentUserId);
         return (userUnread?.count || 0) > 0 && !c.isArchived;
       }).length,
       Archived: safeConversations.filter(c => c.isArchived).length,
     };
-  }, [conversations, currentUser?.id]);
+  }, [conversations, currentUserId]);
 
-  // 2. Filtered list for display
+  // 2. Filtered & Spontaneously Sorted List
   const filteredConversations = useMemo(() => {
     const safeConversations = Array.isArray(conversations) ? conversations : [];
-    const uniqueList = Array.from(new Map(safeConversations.map(c => [c._id, c])).values());
+    
+    //  Sort by lastActivity so the top chat is the newest
+    const sortedList = [...safeConversations].sort((a, b) => {
+      const dateA = new Date(a.lastMessage?.createdAt || a.lastActivity).getTime();
+      const dateB = new Date(b.lastMessage?.createdAt || b.lastActivity).getTime();
+      return dateB - dateA;
+    });
 
-    return uniqueList.filter((chat) => {
-      const otherUser = chat.participants?.find(p => p._id !== currentUser?.id) || chat.participants?.[0];
-      const fullName = otherUser?.fullName?.toLowerCase() || "";
-      const username = otherUser?.username?.toLowerCase() || "";
+    return sortedList.filter((chat) => {
+      const otherUser = chat.participants?.find(p => p._id !== currentUserId && p.id !== currentUserId) || chat.participants?.[0];
       const query = searchQuery.toLowerCase();
-
-      const matchesSearch = fullName.includes(query) || username.includes(query);
-      const userUnreadData = (chat.unreadCounts ?? []).find(u => u.userId === currentUser?.id);
+      const matchesSearch = 
+        (otherUser?.username?.toLowerCase() || "").includes(query) || 
+        (otherUser?.fullName?.toLowerCase() || "").includes(query);
+      
+      const userUnreadData = (chat.unreadCounts ?? []).find(u => u.userId === currentUserId);
       const hasUnread = (userUnreadData?.count || 0) > 0;
 
       if (activeFilter === 'Archived') return matchesSearch && chat.isArchived;
       if (activeFilter === 'Unread') return matchesSearch && hasUnread && !chat.isArchived;
       return matchesSearch && !chat.isArchived;
     });
-  }, [conversations, searchQuery, activeFilter, currentUser?.id]);
+  }, [conversations, searchQuery, activeFilter, currentUserId]);
 
   return (
     <div className="flex flex-col h-full bg-[#0F172A] border-r border-slate-800/50">
       <div className="p-6 pb-2">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold text-white tracking-tight">Messages</h2>
-          <button className="p-2 bg-slate-800 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-all">
-            <Plus size={18} />
-          </button>
+          
         </div>
 
         <div className="relative mb-5">
@@ -72,16 +74,13 @@ export const ConversationList = () => {
           />
         </div>
 
-        {/* Filter Tabs with Dynamic Counts */}
         <div className="flex p-1 bg-[#1E293B] rounded-xl mb-6">
           {(['All', 'Unread', 'Archived'] as FilterType[]).map((tab) => (
             <button 
               key={tab}
               onClick={() => setActiveFilter(tab)}
               className={`flex-1 flex items-center justify-center gap-2 py-1.5 text-xs font-semibold rounded-lg transition-all ${
-                activeFilter === tab 
-                  ? 'bg-slate-700 text-white shadow-sm' 
-                  : 'text-slate-500 hover:text-slate-300'
+                activeFilter === tab ? 'bg-slate-700 text-white shadow-sm' : 'text-slate-500 hover:text-slate-300'
               }`}
             >
               <span>{tab}</span>
@@ -111,7 +110,6 @@ export const ConversationList = () => {
               key={chat._id} 
               conversation={chat} 
               isActive={activeConversationId === chat._id}
-              onClick={() => dispatch(setActiveConversation(chat._id))}
             />
           ))
         )}

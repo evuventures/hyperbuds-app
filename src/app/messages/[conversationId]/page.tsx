@@ -1,7 +1,7 @@
 "use client"
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
-import { useDispatch, useSelector } from 'react-redux';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { RootState } from '@/store/store';
 import DashboardLayout from '@/components/layout/Dashboard/Dashboard';
 import { ConversationList } from '../components/ConversationList';
@@ -10,18 +10,18 @@ import { setActiveConversation } from '@/store/slices/chatSlice';
 
 const ConversationPage = () => {
   const params = useParams();
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const conversationId = params.conversationId as string;
   const [isLoading, setIsLoading] = useState(true);
 
   // Access the conversation from Redux to check if it exists
-  useSelector((state: RootState) => state.chat);
+  useAppSelector((state: RootState) => state.chat);
 
   useEffect(() => {
     if (conversationId) {
       dispatch(setActiveConversation(conversationId));
       
-      // Simulate or handle initial loading state for the skeleton
+      
       const timer = setTimeout(() => setIsLoading(false), 500);
       return () => clearTimeout(timer);
     }
@@ -49,10 +49,6 @@ const ConversationPage = () => {
   );
 };
 
-/**
- * Expert Dashboard Skeleton
- * Mimics the ChatHeader and Message Feed structure
- */
 const ChatWindowSkeleton = () => (
   <div className="flex flex-col h-full animate-pulse">
     {/* Header Skeleton */}

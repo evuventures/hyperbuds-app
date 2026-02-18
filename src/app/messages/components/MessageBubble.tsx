@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { format } from 'date-fns';
 import { Trash2, Info, X, Check } from 'lucide-react';
-import { useDispatch } from 'react-redux';
+import { useAppDispatch } from '@/store/hooks';
 import { Message } from '@/types/messaging.types';
 import { messagingAPI } from '@/lib/api/messaging.api';
 import { deleteMessageLocal } from '@/store/slices/chatSlice';
@@ -13,14 +13,13 @@ interface MessageBubbleProps {
 }
 
 export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isMe }) => {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const [showConfirm, setShowConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleDelete = async () => {
     setIsDeleting(true);
     try {
-      // Hits DELETE /messaging/messages/:id to set isDeleted: true for everyone
       await messagingAPI.deleteMessage(message._id);
       dispatch(deleteMessageLocal({ messageId: message._id }));
     } catch (error) {
@@ -31,11 +30,17 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isMe }) =
     }
   };
 
-  return (
-    <div className={`flex ${isMe ? 'justify-end' : 'justify-start'} mb-2 group relative`}>
-      <div className={`max-w-[70%] flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>
+  // Helper to format the time, with a fallback for new messages
+  const formatTime = (dateString: string) => {
+    const date = new Date(dateString);
+    return format(date, 'h:mm a');
+  };
 
-        <div className="flex items-center gap-2 max-w-full">
+  return (
+    <div className={`flex w-full ${isMe ? 'justify-end' : 'justify-start'} mb-2 group relative`}>
+      <div className={`max-w-[80%] md:max-w-[70%] flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>
+        
+        <div className={`flex items-center gap-2 max-w-full ${isMe ? 'flex-row' : 'flex-row-reverse'}`}>
           {/* Action Area: Inline Confirm Toggle */}
           {isMe && !message.isDeleted && (
             <div className="flex items-center h-full">
@@ -90,9 +95,9 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isMe }) =
         </div>
 
         {/* Footer: Time & Status */}
-        <div className="flex items-center gap-1.5 mt-1 px-1">
-          <span className="text-[10px] opacity-70 mt-1 block text-white">
-            {format(new Date(message.createdAt), 'h:mm a')}
+        <div className={`flex items-center gap-1.5 mt-1 px-1 ${isMe ? 'flex-row' : 'flex-row-reverse'}`}>
+          <span className="text-[10px] opacity-70 block text-slate-400">
+            {formatTime(message.createdAt)}
           </span>
           {isMe && !message.isDeleted && (
             <span

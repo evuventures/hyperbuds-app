@@ -1,57 +1,23 @@
 'use client'
 
 import { useState } from 'react';
-// Import the eye icons from react-icons
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
-import { useRouter } from 'next/navigation'
-import { BASE_URL } from '@/config/baseUrl';
-
-const handleGoogleLogin = () => {
-  // Store redirect destination for after login
-  const currentPath = window.location.pathname;
-  sessionStorage.setItem("authRedirect", currentPath || "/dashboard");
-
-  // Get Google OAuth configuration from environment variables or use defaults
-  const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "265404811439-3a6feinek5pckg02bjg7mfrva4esuqh0.apps.googleusercontent.com";
-  
-  // Get redirect URI from environment or construct from current origin
-  const baseUrl = typeof window !== "undefined" ? window.location.origin : "http://localhost:3000";
-  const redirectUri = process.env.NEXT_PUBLIC_GOOGLE_REDIRECT_URI || `${baseUrl}/auth/google-callback`;
-  
-  const scope = "email profile";
-  const responseType = "code";
-
-  const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=${responseType}&scope=${scope}&access_type=offline&prompt=consent`;
-
-  window.location.href = googleAuthUrl;
-};
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/hooks/auth/useAuth'; 
 
 export default function LoginForm() {
-  const router = useRouter()
+  const router = useRouter();
+  const { login, initiateGoogleLogin } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  // State to manage password visibility
   const [showPassword, setShowPassword] = useState(false);
 
-  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setEmail(e.target.value);
-  };
-
-  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPassword(e.target.value);
-  };
-
-  // Function to toggle password visibility
-  const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword);
-  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
     setMessage('');
     setError('');
     setIsLoading(true);
@@ -63,61 +29,53 @@ export default function LoginForm() {
     }
 
     try {
-      const response = await fetch(`${BASE_URL}/api/v1/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: "include", // 🔑 so cookie is set
-        body: JSON.stringify({ email, password }),
-      });
+      //  Redux state and localStorage are handled inside useAuth.login
+      const data = await login(email, password);
 
-      const data = await response.json();
+      setMessage('Login successful! Redirecting...');
 
-      if (response.ok) {
-        setMessage('Login successful! Redirecting...');
+      // optional chaining for profile check
+      const profile = data.user?.profile;
+      const isProfileIncomplete = 
+        !profile?.username || 
+        profile.username === "" || 
+        !profile?.bio;
 
-        if (data.accessToken) {
-          localStorage.setItem('accessToken', data.accessToken);
-        }
-
-        // Check if user has completed profile/registration
-        if (data.user?.profile?.username === "") {
-          // Check various conditions that might indicate incomplete profile
-          const isProfileIncomplete = !data.username
-
-          if (isProfileIncomplete) {
-            // Route to registration/profile completion page
-            router.push('/profile/complete-profile');
-            return;
-          }
-        }
-
-        // If profile is complete, go to dashboard
-        router.push('/');
+      if (isProfileIncomplete) {
+        router.push('/profile/complete-profile');
       } else {
-        // Handle specific error cases
-        if (response.status === 404) {
-          setError('Account not found. Please register first.');
-          // Optionally auto-redirect to registration after a delay
-          setTimeout(() => {
-            router.push('/auth/register');
-          }, 2000);
-        } else if (data.code === 'PROFILE_INCOMPLETE') {
-          // Handle case where backend specifically indicates profile is incomplete
-          setMessage('Please complete your profile setup.');
-          router.push('/profile/complete-profile');
-        } else if (data.code === 'ACCOUNT_NOT_VERIFIED') {
-          // Handle unverified account
-          setError('Please verify your email address first.');
-          router.push('/auth/verify-email');
-        } else {
-          setError(data.message || 'Invalid email or password. Please try again.');
-        }
+        router.push('/');
       }
-    } catch {
-      setError('A network error occurred. Please try again.');
+    } catch (err) {
+     
+      const errorMessage = err instanceof Error ? err.message : 'Login failed';
+
+      if (errorMessage.includes('404')) {
+        setError('Account not found. Please register first.');
+        setTimeout(() => router.push('/auth/register'), 2000);
+      }
+       else if (errorMessage.includes('PROFILE_INCOMPLETE')) {
+        setMessage('Please complete your profile setup.');
+        router.push('/profile/complete-profile');
+      }
+       else {
+        setError(errorMessage || 'Invalid credentials. Please try again.');
+      }
     } finally {
       setIsLoading(false);
     }
+  };
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEmail(e.target.value);
+  };
+
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPassword(e.target.value);
+  };
+
+  // Function to toggle password visibility
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
   };
 
   // Function to handle "Sign up" link click
@@ -174,7 +132,7 @@ export default function LoginForm() {
                 <span className="text-sm font-medium text-gray-700">Facebook</span>
               </button>
               <button
-                onClick={handleGoogleLogin}
+                onClick={initiateGoogleLogin}
                 className="flex flex-1 gap-3 justify-center items-center h-12 rounded-xl border backdrop-blur-sm transition-colors duration-300 cursor-pointer bg-white/60 border-white/30 hover:bg-white/80">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 text-red-500 lucide lucide-chrome">
                   <circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="4" /><line x1="21.17" x2="12" y1="8" y2="8" /><line x1="3.95" x2="8.54" y1="6" y2="14" /><line x1="10.88" x2="15.46" y1="20" y2="12" />

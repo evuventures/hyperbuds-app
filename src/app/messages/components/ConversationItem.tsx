@@ -2,8 +2,7 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useSelector } from 'react-redux';
-import { RootState } from '@/store/store';
+import { useAppSelector } from '@/store/hooks'; 
 import { format, isToday } from 'date-fns';
 import { Conversation } from '@/types/messaging.types';
 
@@ -17,26 +16,26 @@ export const ConversationItem: React.FC<ConversationItemProps> = ({
   conversation, 
   isActive 
 }) => {
-  const { user: currentUser } = useSelector((state: RootState) => state.auth);
+  const { user: currentUser } = useAppSelector((state) => state.auth);
   const [imgError, setImgError] = useState(false);
 
-  // Identify the other participant (the recipient)
+  // Standardized ID logic
+  const currentUserId = currentUser?.id || currentUser?._id;
+
+  // Identify the other participant
   const otherUser = (conversation.participants ?? []).find(
-    (p) => p._id !== currentUser?.id
+    (p) => p._id !== currentUserId && p.id !== currentUserId
   ) || conversation.participants?.[0]; 
 
-  // Calculate unread messages specifically for the logged-in user
+  // Calculate unread count for the current user
   const myUnreadData = (conversation.unreadCounts ?? []).find(
-    (u) => u.userId === currentUser?.id
+    (u) => u.userId === currentUserId
   );
   const unreadCount = myUnreadData?.count || 0;
 
   const formatLastActivity = (dateString: string) => {
     const date = new Date(dateString);
-    if (isToday(date)) {
-      // 12-hour format with AM/PM
-      return format(date, 'h:mm a');
-    }
+    if (isToday(date)) return format(date, 'h:mm a');
     return format(date, 'dd/MM/yyyy');
   };
 
@@ -45,9 +44,7 @@ export const ConversationItem: React.FC<ConversationItemProps> = ({
       href={`/messages/${conversation._id}`}
       prefetch={true}
       className={`group flex items-center gap-4 p-4 mx-2 mb-1 rounded-2xl cursor-pointer transition-all duration-200 ${
-        isActive 
-          ? 'bg-slate-800 shadow-lg' 
-          : 'hover:bg-slate-800/50'
+        isActive ? 'bg-slate-800 shadow-lg' : 'hover:bg-slate-800/50'
       }`}
     >
       <div className="relative shrink-0">
@@ -62,7 +59,7 @@ export const ConversationItem: React.FC<ConversationItemProps> = ({
               onError={() => setImgError(true)}
             />
           ) : (
-            <span className="capitalize">
+            <span className="capitalize text-white">
               {otherUser?.username?.[0] || otherUser?.email?.[0] || 'H'}
             </span>
           )}
@@ -76,7 +73,7 @@ export const ConversationItem: React.FC<ConversationItemProps> = ({
       <div className="flex-1 min-w-0">
         <div className="flex justify-between items-baseline mb-1">
           <h4 className={`text-sm font-semibold truncate ${isActive ? 'text-white' : 'text-slate-200 group-hover:text-white'}`}>
-            {otherUser?.fullName || otherUser?.username || otherUser?.email.split('@')[0]}
+            {otherUser?.username || otherUser?.fullName || otherUser?.email?.split('@')[0]}
           </h4>
           
           <span className={`text-[10px] shrink-0 ml-2 ${unreadCount > 0 ? 'text-purple-400 font-bold' : 'text-slate-500'}`}>
@@ -87,14 +84,12 @@ export const ConversationItem: React.FC<ConversationItemProps> = ({
         </div>
         
         <div className="flex justify-between items-center">
-          {/* Last message content: text-white and font-medium if unread */}
           <p className={`text-xs truncate mr-2 ${unreadCount > 0 ? 'text-white font-medium' : 'text-slate-500'}`}>
             {conversation.lastMessage?.content || "start collaborating"}
           </p>
           
-          {/* Dynamic Unread Badge */}
           {unreadCount > 0 && (
-            <span className="flex items-center justify-center min-w-5 h-5 px-1.5 bg-purple-600 text-white text-[10px] font-bold rounded-full shadow-lg">
+            <span className="flex items-center justify-center min-w-5 h-5 px-1.5 bg-purple-600 text-white text-[10px] font-bold rounded-full shadow-lg animate-in zoom-in duration-300">
               {unreadCount}
             </span>
           )}

@@ -1,11 +1,12 @@
 export interface User {
+  id: string | undefined;
   _id: string;
   email: string;
-  username?: string; // Matches 'username' in User schema
-  fullName?: string; // Matches 'fullName' in User schema
-  bio?: string;      // Matches 'bio' in User schema
+  username?: string; 
+  fullName?: string; 
+  bio?: string;      
   avatar?: string;
-  role: 'creator' | 'admin'; // From backend enum
+  role: 'creator' | 'admin'; 
   status?: 'online' | 'offline' | 'away';
   
 }
@@ -33,25 +34,25 @@ export interface Message {
   readAt?: string;
   createdAt: string;
   updatedAt: string;
-  metadata?: Record<string, unknown>; // Matches Mongoose Mixed type
-  isDeleted?: boolean; // Matches your Mongoose schema
-  deletedAt?: string; // Matches your Mongoose schema
-  editedAt?: string;  // Matches your Mongoose schema
+  metadata?: Record<string, unknown>; 
+  isDeleted?: boolean; 
+  deletedAt?: string; 
+  editedAt?: string;  
 }
 
 export interface Conversation {
   _id: string;
-  participants: User[]; // Refers to User model
-  type: 'direct' | 'group'; // Backend supports both
-  title?: string; // For group chats
-  lastMessage?: Message; // Populated Message object
-  lastActivity: string; // Used for sorting
-  unreadCounts: Array<{ // Matches backend schema
+  participants: User[]; 
+  type: 'direct' | 'group'; 
+  title?: string; 
+  lastMessage?: Message; 
+  lastActivity: string; 
+  unreadCounts: Array<{ 
     userId: string;
     count: number;
   }>;
-  isArchived: boolean; // Matches backend default
-  metadata?: Record<string, unknown>; // For collaboration context
+  isArchived: boolean; 
+  metadata?: Record<string, unknown>; 
   createdAt: string;
   updatedAt: string;
 }
@@ -111,13 +112,26 @@ export interface SearchResponse {
   }>;
 }
 
-// Socket Events
+
 export interface SocketEvents {
-  'message:new': Message;
-  'typing:start': { conversationId: string; userId: string };
-  'typing:stop': { conversationId: string; userId: string };
-  'user:status': { userId: string; status: 'online' | 'offline' };
-  'message:read': { conversationId: string; messageIds: string[]; userId: string };
-  'message:deleted': { messageId: string; conversationId: string };
- 
+    'new-message': { 
+        conversationId: string; 
+        message: Message 
+    };
+    'typing': { 
+        conversationId: string; 
+        userId: string; 
+        isTyping: boolean 
+    };
+    'message-read': { 
+        conversationId: string; 
+        readBy: string; 
+        messageIds: string[] | 'all'; 
+        readAt: Date 
+    };
+    'message-deleted': { 
+        conversationId: string; 
+        messageId: string; 
+        deletedBy: string 
+    };
 }

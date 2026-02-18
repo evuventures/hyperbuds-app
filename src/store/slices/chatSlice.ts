@@ -23,7 +23,7 @@ const chatSlice = createSlice({
   initialState,
   reducers: {
     setConversations: (state, action: PayloadAction<Conversation[]>) => {
-      // Replaces the list entirely to prevent the "populate twice" issue
+      // Replaces the list entirely 
       state.conversations = action.payload;
     },
     setActiveConversation: (state, action: PayloadAction<string | null>) => {
@@ -35,23 +35,22 @@ const chatSlice = createSlice({
       state.messages = action.payload;
     },
     addMessage: (state, action: PayloadAction<Message>) => {
-      // 1. If the message belongs to the open chat, add it to the feed
+      // If the message belongs to the open chat, add it to the feed
       if (state.activeConversationId === action.payload.conversationId) {
         state.messages.push(action.payload);
       }
 
-      // 2. Update the conversation preview in the sidebar
+      //  Updates the conversation preview in the sidebar
       const convIndex = state.conversations.findIndex(c => c._id === action.payload.conversationId);
       if (convIndex !== -1) {
-        // FIX for error 2740: Assign the full message object as required by the schema
+       
         state.conversations[convIndex].lastMessage = action.payload;
         state.conversations[convIndex].lastActivity = action.payload.createdAt;
 
-        // 3. Update unread logic based on backend unreadCounts array
-        // FIX for error 2551: Increment the count within the user-specific array
+        //  Increment the count within the user-specific array
         if (state.activeConversationId !== action.payload.conversationId) {
           const unreadEntry = state.conversations[convIndex].unreadCounts.find(
-            u => u.userId !== action.payload.sender._id // Targeting the recipient's entry
+            u => u.userId !== action.payload.sender._id 
           );
 
           if (unreadEntry) {
@@ -83,12 +82,12 @@ const chatSlice = createSlice({
     markMessagesAsRead: (state, action: PayloadAction<{ conversationId: string; messageIds: string[]; userId: string }>) => {
       const { conversationId, messageIds, userId } = action.payload;
 
-      // 1. Update the messages in the current feed
+      // Update the messages in the current feed
       state.messages = state.messages.map(msg =>
         messageIds.includes(msg._id) ? { ...msg, isRead: true, readAt: new Date().toISOString() } : msg
       );
 
-      // 2. Reset the unread count for Esther in the sidebar
+      // Reset the unread count 
       const convIndex = state.conversations.findIndex(c => c._id === conversationId);
       if (convIndex !== -1) {
         const unreadEntry = state.conversations[convIndex].unreadCounts.find(u => u.userId === userId);
@@ -97,6 +96,7 @@ const chatSlice = createSlice({
         }
       }
     },
+
     deleteMessageLocal: (state, action: PayloadAction<{ messageId: string }>) => {
       const { messageId } = action.payload;
 
@@ -116,7 +116,7 @@ const chatSlice = createSlice({
     },
     toggleArchiveLocal: (state, action: PayloadAction<{ conversationId: string; isArchived: boolean }>) => {
       const { conversationId, isArchived } = action.payload;
-      // Use findIndex to ensure you're mutating the draft correctly in Immer
+      
       const index = state.conversations.findIndex(c => c._id === conversationId);
       if (index !== -1) {
         state.conversations[index].isArchived = isArchived;

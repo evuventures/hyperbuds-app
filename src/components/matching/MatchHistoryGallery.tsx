@@ -37,10 +37,10 @@ const MatchHistoryGallery: React.FC<MatchHistoryGalleryProps> = ({
 
   // Update the parameter from 'userId: string' to 'match: MatchSuggestion'
 const handleMessage = (match: MatchSuggestion) => {
-  // Pass the whole object up to the parent (the AI Matches page)
+  // Pass the whole object up to the parent 
   onMessage(match);
   
-  // For debugging, you can log a specific ID from the object
+  // log a specific ID from the object
   console.log("Opening chat with user ID:", match.targetUserId || match.userId);
 };
 
@@ -202,7 +202,7 @@ const handleMessage = (match: MatchSuggestion) => {
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {filteredMatches.map((match) => (
               <MatchCard
-                key={match._id}
+                key={match._id || match.id}
                 match={match}
                 onAction={() => { }} // Not used in gallery context
                 onCollaboration={() => { }} // Not used in gallery context

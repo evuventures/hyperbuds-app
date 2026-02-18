@@ -55,7 +55,7 @@ export default function EmailVerificationModal({ isOpen, onClose, email }: Email
                   >
                      <div className="relative overflow-hidden bg-white rounded-2xl shadow-2xl">
                         {/* Gradient Header Background */}
-                        <div className="absolute top-0 right-0 left-0 h-32 bg-gradient-to-br from-purple-500 to-blue-500 opacity-10" />
+                        <div className="absolute top-0 right-0 left-0 h-32 bg-linear-to-br from-purple-500 to-blue-500 opacity-10" />
 
                         {/* Close Button */}
                         <button
@@ -76,7 +76,7 @@ export default function EmailVerificationModal({ isOpen, onClose, email }: Email
                               className="flex justify-center mb-6"
                            >
                               <div className="relative">
-                                 <div className="flex justify-center items-center w-20 h-20 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full shadow-lg">
+                                 <div className="flex justify-center items-center w-20 h-20 bg-linear-to-br from-purple-500 to-blue-500 rounded-full shadow-lg">
                                     <Mail className="w-10 h-10 text-white" />
                                  </div>
                                  <motion.div
@@ -128,7 +128,7 @@ export default function EmailVerificationModal({ isOpen, onClose, email }: Email
                            >
                               <button
                                  onClick={handleGoToLogin}
-                                 className="flex justify-center items-center gap-2 w-full h-12 font-semibold text-white bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl shadow-lg transition-all duration-300 transform cursor-pointer hover:from-purple-700 hover:to-blue-700 hover:scale-[1.02] hover:shadow-xl hover:shadow-purple-500/25 active:scale-[0.98]"
+                                 className="flex justify-center items-center gap-2 w-full h-12 font-semibold text-white bg-linear-to-r from-purple-600 to-blue-600 rounded-xl shadow-lg transition-all duration-300 transform cursor-pointer hover:from-purple-700 hover:to-blue-700 hover:scale-[1.02] hover:shadow-xl hover:shadow-purple-500/25 active:scale-[0.98]"
                               >
                                  Go to Login
                               </button>

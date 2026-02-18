@@ -1,37 +1,37 @@
 "use client"
 import React, { useEffect, useRef } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { RootState } from '@/store/store';
+//  Use your standardized hooks
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { setMessages, setActiveConversation } from '@/store/slices/chatSlice';
 import { messagingAPI } from '@/lib/api/messaging.api';
 import { MessageBubble } from './MessageBubble';
 import { MessageInput } from './MessageInput';
 import { ChatHeader } from './ChatHeader';
+import { format, isToday, isYesterday } from 'date-fns';
 
 interface ChatWindowProps {
   conversationId?: string; 
 }
 
 export const ChatWindow: React.FC<ChatWindowProps> = ({ conversationId }) => {
-  const dispatch = useDispatch();
+  //  Switched to typed hooks
+  const dispatch = useAppDispatch();
   const scrollRef = useRef<HTMLDivElement>(null);
   
-  // 1. Pull messaging state from Redux
-  const { messages, conversations } = useSelector(
-    (state: RootState) => state.chat
-  );
-  
-  const { user: currentUser } = useSelector((state: RootState) => state.auth);
+  // Selector using typed state
+  const { messages, conversations } = useAppSelector((state) => state.chat);
+  const { user: currentUser } = useAppSelector((state) => state.auth);
 
-  // 2. Determine the EFFECTIVE ID (Prop takes priority over global state)
-  // This ensures the window updates immediately when the URL changes
   const activeId = conversationId; 
 
-  // 3. Effect: Sync Redux and Fetch messages
+  const formatDividerDate = (date: Date) => {
+    if (isToday(date)) return 'Today';
+    if (isYesterday(date)) return 'Yesterday';
+    return format(date, 'MMMM d, yyyy');
+  };
+
   useEffect(() => {
     if (!activeId) return;
-
-    // Set global active ID so sidebar and other components stay in sync
     dispatch(setActiveConversation(activeId));
 
     const fetchMessages = async () => {
@@ -42,31 +42,32 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ conversationId }) => {
         console.error("Failed to load messages:", error);
       }
     };
-
     fetchMessages();
   }, [activeId, dispatch]);
 
-  // 4. Effect: Automatic scroll
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages]);
 
-  // 5. Effect: Mark as read logic using activeId
+  // Stable Mark-as-Read Logic
   useEffect(() => {
-    if (activeId && messages.length > 0) {
+    // Determine the ID outside the dependency array to keep it stable
+    const currentUserId = currentUser?.id || currentUser?._id;
+
+    if (activeId && messages.length > 0 && currentUserId) {
       const unreadIds = messages
-        .filter(m => !m.isRead && m.sender._id !== currentUser?.id)
+        .filter(m => !m.isRead && m.sender._id !== currentUserId)
         .map(m => m._id);
 
       if (unreadIds.length > 0) {
         messagingAPI.markAsRead(activeId, unreadIds);
       }
     }
-  }, [activeId, messages, currentUser?.id]);
+    //  Dependency on currentUser (the object) is stable with useAppSelector
+  }, [activeId, messages, currentUser]);
 
-  // --- EMPTY STATE UI ---
   if (!activeId) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center bg-[#0F172A] text-slate-400">
@@ -81,9 +82,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ conversationId }) => {
               <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-white rotate-45 rounded-sm" />
             </div>
           </div>
-          <h3 className="text-xl font-bold text-white mb-2 tracking-tight">
-            No conversation selected
-          </h3>
+          <h3 className="text-xl font-bold text-white mb-2 tracking-tight">No conversation selected</h3>
           <p className="text-sm text-slate-500 leading-relaxed px-6">
             Choose a conversation from the sidebar to start chatting with your fellow Hyperbuds
           </p>
@@ -92,11 +91,11 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ conversationId }) => {
     );
   }
 
-  // --- ACTIVE CHAT LOGIC ---
   const activeChat = conversations.find(c => c._id === activeId);
-
+  const currentUserId = currentUser?.id || currentUser?._id;
+  
   const recipient = activeChat?.participants.find(
-    (p) => p._id !== currentUser?.id
+    (p) => p._id !== currentUserId
   ) || activeChat?.participants[0];
 
   return (
@@ -108,13 +107,30 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ conversationId }) => {
         className="flex-1 overflow-y-auto p-6 space-y-6 scroll-smooth 
                    scrollbar-thin scrollbar-thumb-slate-800 scrollbar-track-transparent"
       >
-        {messages.map((msg) => (
-          <MessageBubble 
-            key={msg._id} 
-            message={msg} 
-            isMe={msg.sender._id === currentUser?.id} 
-          />
-        ))}
+        {messages.map((msg, index) => {
+          const currentDate = new Date(msg.createdAt);
+          const prevDate = index > 0 ? new Date(messages[index - 1].createdAt) : null;
+          
+          const isNewDay = !prevDate || 
+            currentDate.toDateString() !== prevDate.toDateString();
+
+          return (
+            <React.Fragment key={msg._id}>
+              {isNewDay && (
+                <div className="flex justify-center my-8">
+                  <span className="px-4 py-1.5 rounded-full bg-slate-800/40 border border-slate-700/50 text-[11px] font-semibold text-slate-400 uppercase tracking-widest">
+                    {formatDividerDate(currentDate)}
+                  </span>
+                </div>
+              )}
+
+              <MessageBubble 
+                message={msg} 
+                isMe={msg.sender._id === currentUserId} 
+              />
+            </React.Fragment>
+          );
+        })}
         <div className="h-2" />
       </div>
 

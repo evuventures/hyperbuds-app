@@ -1,45 +1,54 @@
 // src/lib/api/auth.api.ts
 
-import { BASE_URL } from "@/config/baseUrl";
+import apiClient from "./client";
 
-export interface GoogleAuthRequest {
-  code: string;
+
+export interface User {
+  id?: string;
+  _id?: string;
+  name?: string;
+  username?: string;
+  displayName?: string;
+  email?: string;
+  avatar?: string;
+  profile?: {
+    username?: string;
+    bio?: string;
+    niche?: string[] | string;
+  };
+  // ✅ This index signature(authSlice)
+  [key: string]: unknown; 
 }
 
 export interface GoogleAuthResponse {
   accessToken: string;
-  user: {
-    id: string;
-    email: string;
-    name: string;
-    avatar?: string;
-  };
+  user: User;
 }
 
-export interface AuthError {
-  message: string;
-  code?: string;
+export interface UserResponse {
+  email: string;
+  user: User;
+  profile: NonNullable<User['profile']>;
 }
 
 /**
  * Authenticate with Google OAuth authorization code
  */
 export async function googleAuth(code: string): Promise<GoogleAuthResponse> {
-  const response = await fetch(`${BASE_URL}/api/v1/auth/google`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ code }),
-  });
-
-  if (!response.ok) {
-    const errorData: AuthError = await response.json().catch(() => ({
-      message: "Google authentication failed",
-    }));
-    throw new Error(errorData.message || "Google authentication failed");
-  }
-
-  return response.json();
+  const response = await apiClient.post<GoogleAuthResponse>("/auth/google", { code });
+  return response.data;
 }
 
+/**
+ * Fetch current user and profile data
+ */
+export async function getCurrentUser(): Promise<UserResponse> {
+  const response = await apiClient.get<UserResponse>("/users/me");
+  
+  // Normalize the user ID here to fix the Chat Window alignment issue
+  if (response.data.user) {
+    response.data.user.id = response.data.user.id || response.data.user._id;
+  }
+  
+  return response.data;
+}

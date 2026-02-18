@@ -1,8 +1,8 @@
 "use client"
 import React, { useState, useRef, useEffect } from 'react';
-import Image from 'next/image'; // Added Next.js Image component
-import { useSelector, useDispatch } from 'react-redux';
-import { RootState } from '@/store/store';
+import Image from 'next/image';
+//  Switch to typed hooks
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { MoreVertical, Archive, ArchiveRestore, Search, X } from 'lucide-react';
 import { User } from '@/types/messaging.types';
 import { messagingAPI } from '@/lib/api/messaging.api';
@@ -24,20 +24,22 @@ interface SearchResultMessage {
 }
 
 export const ChatHeader: React.FC<ChatHeaderProps> = ({ recipient }) => {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const [showMenu, setShowMenu] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<SearchResultMessage[]>([]);
-  const [imgError, setImgError] = useState(false); // Added for fallback logic
+  const [imgError, setImgError] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  const { activeConversationId, typingUsers, conversations } = useSelector((state: RootState) => state.chat);
+  //  Pull state using typed selectors
+  const { activeConversationId, typingUsers, conversations } = useAppSelector((state) => state.chat);
   
   const activeChat = conversations.find(c => c._id === activeConversationId);
   const isArchived = activeChat?.isArchived || false;
 
-  const displayName = recipient?.fullName || recipient?.username || recipient?.email?.split('@')[0];
+  //  Priority Display Name: Username -> FullName -> Email Prefix
+  const displayName = recipient?.username || recipient?.fullName || recipient?.email?.split('@')[0];
 
   useEffect(() => {
     const performSearch = async () => {
@@ -78,19 +80,20 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({ recipient }) => {
       dispatch(toggleArchiveLocal({ conversationId: activeConversationId, isArchived: !isArchived }));
       setShowMenu(false);
     } catch (error) { 
-        console.error("Archive failed:", error); 
+      console.error("Archive failed:", error); 
     }
   };
 
-  const isTyping = activeConversationId && recipient?._id 
-    ? typingUsers[activeConversationId]?.includes(recipient._id) 
+  //  Normalized ID check for typing indicators
+  const recipientId = recipient?._id || recipient?.id;
+  const isTyping = activeConversationId && recipientId 
+    ? typingUsers[activeConversationId]?.includes(recipientId) 
     : false;
 
   return (
     <div className="flex flex-col border-b border-slate-800 bg-[#0F172A] z-20 relative">
       <div className="flex items-center justify-between px-4 py-3">
         <div className="flex items-center gap-3">
-          {/* Updated Avatar Logic with Next.js Image */}
           <div className="relative">
             <div className="w-10 h-10 rounded-full bg-linear-to-tr from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-sm shadow-lg overflow-hidden relative">
               {recipient?.avatar && !imgError ? (
@@ -103,7 +106,7 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({ recipient }) => {
                   onError={() => setImgError(true)}
                 />
               ) : (
-                <span>{displayName?.[0]?.toUpperCase() || 'H'}</span>
+                <span className="capitalize">{displayName?.[0] || 'H'}</span>
               )}
             </div>
             {recipient?.status === 'online' && (

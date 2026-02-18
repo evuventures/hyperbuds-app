@@ -1,7 +1,6 @@
 "use client"
 import { useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { RootState } from '@/store/store';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { messagingSocketService } from '@/lib/socket/messagingSocket';
 import {
     addMessage,
@@ -10,72 +9,78 @@ import {
     deleteMessageLocal,
     incrementUnreadCount
 } from '@/store/slices/chatSlice';
-import { Message } from '@/types/messaging.types';
+import { SocketEvents } from '@/types/messaging.types';
 
 export const useChatSocket = () => {
-    const dispatch = useDispatch();
-    const { token, user: currentUser } = useSelector((state: RootState) => state.auth);
-    const { activeConversationId } = useSelector((state: RootState) => state.chat);
+    const dispatch = useAppDispatch();
+    const { token, user: currentUser } = useAppSelector((state) => state.auth);
+    const { activeConversationId } = useAppSelector((state) => state.chat);
 
     useEffect(() => {
         if (!token) return;
 
         messagingSocketService.connect(token);
 
-        const handleNewMessage = (newMessage: Message) => {
-            console.log("🚀 Real-time message received:", newMessage);
 
-            // 1. Add the message to the feed
-            dispatch(addMessage(newMessage));
+        const handleNewMessage = (data: SocketEvents['new-message']) => {
+            //  Extract the actual message object
+            const { conversationId, message } = data;
 
-            // 2. Increment unread count IF:
-            const isFromMe = newMessage.sender._id === currentUser?.id;
-            const isInActiveChat = newMessage.conversationId === activeConversationId;
+            console.log(" Real-time message received:", message);
 
-            if (!isFromMe && !isInActiveChat && currentUser?.id) {
+            //  Add message to the current chat feed
+            dispatch(addMessage(message));
+
+            //  Logic for spontaneous sidebar updates & unread counts
+            const currentUserId = currentUser?.id || currentUser?._id;
+            const isFromMe = message.sender._id === currentUserId;
+            const isInActiveChat = conversationId === activeConversationId;
+
+            // increment the unread count ONLY if the message isn't from me
+              
+            if (!isFromMe && !isInActiveChat && currentUserId) {
                 dispatch(incrementUnreadCount({
-                    conversationId: newMessage.conversationId,
-                    userId: currentUser.id // TypeScript now knows this is a string
+                    conversationId: conversationId,
+                    userId: currentUserId
                 }));
             }
         };
 
-        const handleTypingStart = ({ conversationId, userId }: { conversationId: string; userId: string }) => {
-            dispatch(setTypingStatus({ conversationId, userId, isTyping: true }));
+        const handleTyping = (data: SocketEvents['typing']) => {
+            dispatch(setTypingStatus(data));
         };
 
-        const handleTypingStop = ({ conversationId, userId }: { conversationId: string; userId: string }) => {
-            dispatch(setTypingStatus({ conversationId, userId, isTyping: false }));
+        const handleMessagesRead = (data: SocketEvents['message-read']) => {
+            dispatch(markMessagesAsRead({
+                conversationId: data.conversationId,
+                messageIds: Array.isArray(data.messageIds) ? data.messageIds : [],
+                userId: data.readBy
+            }));
         };
 
-        const handleMessagesRead = ({ conversationId, messageIds, userId }: { conversationId: string, messageIds: string[], userId: string }) => {
-            dispatch(markMessagesAsRead({ conversationId, messageIds, userId }));
+        const handleMessageDeleted = (data: SocketEvents['message-deleted']) => {
+            dispatch(deleteMessageLocal({ messageId: data.messageId }));
         };
 
-        const handleMessageDeleted = ({ messageId }: { messageId: string }) => {
-            dispatch(deleteMessageLocal({ messageId }));
-        };
-
-        // Register listeners
-        messagingSocketService.on('message:new', handleNewMessage);
-        messagingSocketService.on('typing:start', handleTypingStart);
-        messagingSocketService.on('typing:stop', handleTypingStop);
-        messagingSocketService.on('message:read', handleMessagesRead);
-        messagingSocketService.on('message:deleted', handleMessageDeleted);
+        // Register Listeners
+        messagingSocketService.on('new-message', handleNewMessage);
+        messagingSocketService.on('typing', handleTyping);
+        messagingSocketService.on('message-read', handleMessagesRead);
+        messagingSocketService.on('message-deleted', handleMessageDeleted);
 
         return () => {
-            messagingSocketService.off('message:new', handleNewMessage);
-            messagingSocketService.off('typing:start', handleTypingStart);
-            messagingSocketService.off('typing:stop', handleTypingStop);
-            messagingSocketService.off('message:read', handleMessagesRead);
-            messagingSocketService.off('message:deleted', handleMessageDeleted);
+            messagingSocketService.off('new-message', handleNewMessage);
+            messagingSocketService.off('typing', handleTyping);
+            messagingSocketService.off('message-read', handleMessagesRead);
+            messagingSocketService.off('message-deleted', handleMessageDeleted);
         };
-    }, [dispatch, token, activeConversationId, currentUser?.id]); // Added activeConversationId to dependencies
+    }, [dispatch, token, currentUser, activeConversationId]);
 
-    // Handle Room Joining
+    // Room Management
     useEffect(() => {
         if (activeConversationId) {
             messagingSocketService.joinConversation(activeConversationId);
+
             return () => {
                 messagingSocketService.leaveConversation(activeConversationId);
             };

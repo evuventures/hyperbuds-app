@@ -1,7 +1,7 @@
 "use client"
 import React, { useEffect, useRef } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { useDispatch } from 'react-redux'
+import { useAppDispatch } from '@/store/hooks'
 import DashboardLayout from '@/components/layout/Dashboard/Dashboard';
 import {ConversationList} from './components/ConversationList';
 import { ChatWindow } from './components/ChatWindow';
@@ -11,7 +11,7 @@ import { setActiveConversation, setConversations } from '@/store/slices/chatSlic
 
 const MessagesPage = () => {
    useChatSocket(); 
-   const dispatch = useDispatch();
+   const dispatch = useAppDispatch();
    const searchParams = useSearchParams();
    const targetUserId = searchParams.get('userId');
    
@@ -25,17 +25,17 @@ const MessagesPage = () => {
 
       const initializeData = async () => {
          try {
-            // 1. Fetch the primary list of conversations (Page 1, Limit 20)
-            // This matches your backend controller's default query params
+            // Fetch the primary list of conversations (Page 1, Limit 20)
+         
             const listData = await messagingAPI.getConversations();
             dispatch(setConversations(listData.conversations));
 
             // 2. If we are redirected from a match, handle the "start conversation" flow
             if (targetUserId && targetUserId !== 'undefined') {
-               // This hits your backend POST route to get or create a chat
+               // Start a new conversation with the target user
                const conversation = await messagingAPI.startConversation(targetUserId);
                
-               // Set as active chat to open the ChatWindow for Esther
+               // Set as active chat to open the ChatWindow for userId
                dispatch(setActiveConversation(conversation._id));
                
                // Refresh the list once more to ensure the new match is at the very top
@@ -53,10 +53,7 @@ const MessagesPage = () => {
    return (
       <DashboardLayout>
          <div className="flex h-[calc(100vh-64px)] bg-[#0F172A] overflow-hidden">
-            {/* PRO TIP: Ensure your <ConversationList /> component 
-                DOES NOT have its own useEffect fetching conversations. 
-                It should just read them from Redux.
-            */}
+           
             <div className="hidden md:flex w-80 flex-col border-r border-slate-800/50">
                <ConversationList />
             </div>

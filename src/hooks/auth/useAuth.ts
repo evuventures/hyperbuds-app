@@ -18,6 +18,7 @@ interface User {
 
 export function useAuth() {
   const dispatch = useAppDispatch()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { user, loading, token } = useAppSelector((state: any) => state.auth)
 
   const login = useCallback(async (email: string, password: string) => {
@@ -132,6 +133,58 @@ export function useAuth() {
     return null
   }
 
+  // Inside your useAuth hook in useAuth.ts
+
+  const initiateGoogleLogin = () => {
+    // Store redirect destination
+    const currentPath = typeof window !== "undefined" ? window.location.pathname : "/dashboard";
+    sessionStorage.setItem("authRedirect", currentPath);
+
+    // Configuration
+    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "265404811439-3a6feinek5pckg02bjg7mfrva4esuqh0.apps.googleusercontent.com";
+    const baseUrl = typeof window !== "undefined" ? window.location.origin : "http://localhost:3000";
+    const redirectUri = process.env.NEXT_PUBLIC_GOOGLE_REDIRECT_URI || `${baseUrl}/auth/google-callback`;
+
+    const scope = "email profile";
+    const responseType = "code";
+
+    const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=${responseType}&scope=${scope}&access_type=offline&prompt=consent`;
+
+    window.location.href = googleAuthUrl;
+  };
+
+  const forgotPassword = useCallback(async (email: string) => {
+    dispatch(setLoading(true));
+    try {
+      const res = await fetch(`${BASE_URL}/api/v1/auth/forgot-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Failed to send reset link');
+      return data;
+    } finally {
+      dispatch(setLoading(false));
+    }
+  }, [dispatch]);
+
+  const resetPassword = useCallback(async (token: string, newPassword: string) => {
+  dispatch(setLoading(true));
+  try {
+    const res = await fetch(`${BASE_URL}/api/v1/auth/reset-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token, newPassword }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to reset password');
+    return data;
+  } finally {
+    dispatch(setLoading(false));
+  }
+}, [dispatch]);
+
   return {
     user: user as User | null,
     loading,
@@ -141,5 +194,8 @@ export function useAuth() {
     logout,
     register,
     refreshSession,
+    initiateGoogleLogin,
+    forgotPassword,
+    resetPassword,
   }
 }
