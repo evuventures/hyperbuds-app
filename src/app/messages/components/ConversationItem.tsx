@@ -27,11 +27,8 @@ export const ConversationItem: React.FC<ConversationItemProps> = ({
     (p) => p._id !== currentUserId && p.id !== currentUserId
   ) || conversation.participants?.[0];
 
-  // Calculate unread count for the current user
-  const myUnreadData = (conversation.unreadCounts ?? []).find(
-    (u) => u.userId === currentUserId
-  );
-  const unreadCount = myUnreadData?.count || 0;
+  // ✅ UPDATED: Use the flat number from the backend
+  const unreadCount = conversation.unreadCount || 0;
 
   const formatLastActivity = (dateString: string) => {
     const date = new Date(dateString);
@@ -39,15 +36,15 @@ export const ConversationItem: React.FC<ConversationItemProps> = ({
     return format(date, 'dd/MM/yyyy');
   };
 
-  // ✅ Extract last message info for cleaner logic
   const lastMsg = conversation.lastMessage;
 
   return (
     <Link
       href={`/messages/${conversation._id}`}
       prefetch={true}
-      className={`group flex items-center gap-4 p-4 mx-2 mb-1 rounded-2xl cursor-pointer transition-all duration-200 ${isActive ? 'bg-slate-800 shadow-lg' : 'hover:bg-slate-800/50'
-        }`}
+      className={`group flex items-center gap-4 p-4 mx-2 mb-1 rounded-2xl cursor-pointer transition-all duration-200 ${
+        isActive ? 'bg-slate-800 shadow-lg' : 'hover:bg-slate-800/50'
+      }`}
     >
       <div className="relative shrink-0">
         <div className="w-12 h-12 rounded-full overflow-hidden bg-linear-to-tr from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-sm shadow-md relative">
@@ -79,21 +76,16 @@ export const ConversationItem: React.FC<ConversationItemProps> = ({
           </h4>
 
           <span className={`text-[10px] shrink-0 ml-2 ${unreadCount > 0 ? 'text-purple-400 font-bold' : 'text-slate-500'}`}>
-            {lastMsg
-              ? formatLastActivity(lastMsg.createdAt)
-              : ''}
+            {lastMsg ? formatLastActivity(lastMsg.createdAt) : ''}
           </span>
         </div>
 
         <div className="flex justify-between items-center">
-          {/* ✅ UPDATED PREVIEW LOGIC: Handles deleted messages spontaneously */}
-          <p className={`text-xs truncate mr-2 ${unreadCount > 0
-              ? 'text-white font-medium'
-              : 'text-slate-500'
-            }`}>
+          <p className={`text-xs truncate mr-2 ${unreadCount > 0 ? 'text-white font-medium' : 'text-slate-500'}`}>
             {lastMsg?.content || "Start collaborating"}
           </p>
 
+          {/* NUMBER ICON: Spontaneously shows the new unreadCount property */}
           {unreadCount > 0 && (
             <span className="flex items-center justify-center min-w-5 h-5 px-1.5 bg-purple-600 text-white text-[10px] font-bold rounded-full shadow-lg animate-in zoom-in duration-300">
               {unreadCount}

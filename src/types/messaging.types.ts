@@ -41,6 +41,7 @@ export interface Message {
 }
 
 export interface Conversation {
+  
   _id: string;
   participants: User[]; 
   type: 'direct' | 'group'; 
@@ -51,6 +52,7 @@ export interface Conversation {
     userId: string;
     count: number;
   }>;
+  unreadCount: number;
   isArchived: boolean; 
   metadata?: Record<string, unknown>; 
   createdAt: string;

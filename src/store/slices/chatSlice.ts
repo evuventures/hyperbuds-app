@@ -34,28 +34,31 @@ const chatSlice = createSlice({
     setMessages: (state, action: PayloadAction<Message[]>) => {
       state.messages = action.payload;
     },
+    // Inside chatSlice.ts -> addMessage reducer
     addMessage: (state, action: PayloadAction<Message>) => {
-      // If the message belongs to the open chat, add it to the feed
-      if (state.activeConversationId === action.payload.conversationId) {
-        state.messages.push(action.payload);
+      const message = action.payload;
+
+      if (state.activeConversationId === message.conversationId) {
+        state.messages.push(message);
       }
 
-      //  Updates the conversation preview in the sidebar
-      const convIndex = state.conversations.findIndex(c => c._id === action.payload.conversationId);
+      const convIndex = state.conversations.findIndex(c => c._id === message.conversationId);
       if (convIndex !== -1) {
+        state.conversations[convIndex].lastMessage = message;
+        state.conversations[convIndex].lastActivity = message.createdAt;
 
-        state.conversations[convIndex].lastMessage = action.payload;
-        state.conversations[convIndex].lastActivity = action.payload.createdAt;
-
-        //  Increment the count within the user-specific array
-        if (state.activeConversationId !== action.payload.conversationId) {
+        //  FIX: Increment unread count for the person WHO IS NOT the sender
+        // On the receiver's end, we need to find their specific unread entry in the array
+        if (state.activeConversationId !== message.conversationId) {
+          // We search for the entry that doesn't belong to the sender
+          // This ensures the receiver sees the notification
           const unreadEntry = state.conversations[convIndex].unreadCounts.find(
-            u => u.userId !== action.payload.sender._id
+            u => u.userId !== message.sender._id
           );
 
           if (unreadEntry) {
             unreadEntry.count += 1;
-          }
+          } 
         }
       }
     },
