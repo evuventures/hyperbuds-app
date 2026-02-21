@@ -54,7 +54,7 @@ const MessagesPage = () => {
       <DashboardLayout>
          <div className="flex h-[calc(100vh-64px)] bg-[#0F172A] overflow-hidden">
            
-            <div className=" w-80 flex-col border-r border-slate-800/50">
+            <div className="w-full md:w-80 flex-col border-r border-slate-800/50">
                <ConversationList />
             </div>
 

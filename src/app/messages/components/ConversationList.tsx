@@ -1,15 +1,16 @@
 "use client"
 import React, { useState, useMemo } from 'react';
-import{useAppSelector } from '@/store/hooks';
+import { useAppSelector } from '@/store/hooks';
 import { ConversationItem } from './ConversationItem';
 import { Search } from 'lucide-react';
 
 type FilterType = 'All' | 'Unread' | 'Archived';
 
 export const ConversationList = () => {
- // const dispatch = useAppDispatch();
   const { conversations, activeConversationId } = useAppSelector((state) => state.chat);
   const { user: currentUser } = useAppSelector((state) => state.auth);
+  
+  // Standardized ID logic to match your auth refactor
   const currentUserId = currentUser?.id || currentUser?._id;
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -32,19 +33,22 @@ export const ConversationList = () => {
   const filteredConversations = useMemo(() => {
     const safeConversations = Array.isArray(conversations) ? conversations : [];
     
-    //  Sort by lastActivity so the top chat is the newest
+    // ✅ Sort by the most recent timestamp available (message or activity)
     const sortedList = [...safeConversations].sort((a, b) => {
-      const dateA = new Date(a.lastMessage?.createdAt || a.lastActivity).getTime();
-      const dateB = new Date(b.lastMessage?.createdAt || b.lastActivity).getTime();
+      const dateA = new Date(a.lastMessage?.createdAt || a.lastActivity || a.updatedAt).getTime();
+      const dateB = new Date(b.lastMessage?.createdAt || b.lastActivity || b.updatedAt).getTime();
       return dateB - dateA;
     });
 
     return sortedList.filter((chat) => {
+      // ✅ Improved otherUser detection logic
       const otherUser = chat.participants?.find(p => p._id !== currentUserId && p.id !== currentUserId) || chat.participants?.[0];
       const query = searchQuery.toLowerCase();
+      
       const matchesSearch = 
         (otherUser?.username?.toLowerCase() || "").includes(query) || 
-        (otherUser?.fullName?.toLowerCase() || "").includes(query);
+        (otherUser?.fullName?.toLowerCase() || "").includes(query) ||
+        (otherUser?.email?.toLowerCase() || "").includes(query);
       
       const userUnreadData = (chat.unreadCounts ?? []).find(u => u.userId === currentUserId);
       const hasUnread = (userUnreadData?.count || 0) > 0;
@@ -53,6 +57,7 @@ export const ConversationList = () => {
       if (activeFilter === 'Unread') return matchesSearch && hasUnread && !chat.isArchived;
       return matchesSearch && !chat.isArchived;
     });
+    // ✅ Dependencies ensure this re-runs when ANY part of conversations changes
   }, [conversations, searchQuery, activeFilter, currentUserId]);
 
   return (
@@ -60,7 +65,6 @@ export const ConversationList = () => {
       <div className="p-6 pb-2">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold text-white tracking-tight">Messages</h2>
-          
         </div>
 
         <div className="relative mb-5">
@@ -74,6 +78,7 @@ export const ConversationList = () => {
           />
         </div>
 
+        {/* Tab Filters */}
         <div className="flex p-1 bg-[#1E293B] rounded-xl mb-6">
           {(['All', 'Unread', 'Archived'] as FilterType[]).map((tab) => (
             <button 

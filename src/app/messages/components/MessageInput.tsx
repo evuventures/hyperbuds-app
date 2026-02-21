@@ -73,8 +73,8 @@ export const MessageInput: React.FC<MessageInputProps> = ({ conversationId }) =>
   };
 
   return (
-    <form onSubmit={handleSend} className="p-4 bg-[#0F172A]">
-      <div className="flex items-center gap-2 bg-[#1E293B] p-2 rounded-2xl border border-slate-800 focus-within:border-purple-500/50 transition-all">
+    <form onSubmit={handleSend} className="p-2 bg-[#0F172A]">
+      <div className="flex items-center gap-2 bg-[#1E293B] p-2 rounded-2xl border border-slate-800  transition-all">
         <input
           type="text"
           value={text}
