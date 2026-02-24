@@ -9,7 +9,12 @@ import {
     deleteMessageLocal,
     incrementUnreadCount
 } from '@/store/slices/chatSlice';
-import { SocketEvents } from '@/types/messaging.types';
+import { SocketEvents, Message } from '@/types/messaging.types';
+
+interface NewMessagePayload {
+    conversationId: string;
+    message: Message; // Ensure Message is imported from your types
+}
 
 export const useChatSocket = () => {
     const dispatch = useAppDispatch();
@@ -22,29 +27,26 @@ export const useChatSocket = () => {
         messagingSocketService.connect(token);
 
 
-        const handleNewMessage = (data: SocketEvents['new-message']) => {
-            //  Extract the actual message object
-            const { conversationId, message } = data;
+     const handleNewMessage = (data: NewMessagePayload) => {
+    const { conversationId, message } = data;
+    const currentUserId = currentUser?.id || currentUser?._id;
 
-            console.log(" Real-time message received:", message);
+    // ✅ DISPATCH MESSAGE FIRST
+    dispatch(addMessage(message));
 
-            //  Add message to the current chat feed
-            dispatch(addMessage(message));
+    // ✅ ONLY INCREMENT IF: 
+    // 1. The message is NOT from me
+    // 2. I am NOT currently looking at this specific chat
+    const isFromMe = message.sender._id === currentUserId;
+    const isInActiveChat = conversationId === activeConversationId;
 
-            //  Logic for spontaneous sidebar updates & unread counts
-            const currentUserId = currentUser?.id || currentUser?._id;
-            const isFromMe = message.sender._id === currentUserId;
-            const isInActiveChat = conversationId === activeConversationId;
-
-            // increment the unread count ONLY if the message isn't from me
-              
-            if (!isFromMe && !isInActiveChat && currentUserId) {
-                dispatch(incrementUnreadCount({
-                    conversationId: conversationId,
-                    userId: currentUserId
-                }));
-            }
-        };
+    if (!isFromMe && !isInActiveChat && currentUserId) {
+        dispatch(incrementUnreadCount({
+            conversationId: conversationId,
+            userId: currentUserId
+        }));
+    }
+};
 
         const handleTyping = (data: SocketEvents['typing']) => {
             dispatch(setTypingStatus(data));
@@ -77,15 +79,24 @@ export const useChatSocket = () => {
     }, [dispatch, token, currentUser, activeConversationId]);
 
     // Room Management
-    useEffect(() => {
+  // Room Management
+useEffect(() => {
+    const currentUserId = currentUser?.id || currentUser?._id;
+    if (token && currentUserId) {
+        // ✅ Join a personal room to receive all messages sent to YOU
+        messagingSocketService.joinUserRoom(currentUserId); 
+        
         if (activeConversationId) {
             messagingSocketService.joinConversation(activeConversationId);
-
-            return () => {
-                messagingSocketService.leaveConversation(activeConversationId);
-            };
         }
-    }, [activeConversationId]);
 
+        return () => {
+            if (activeConversationId) {
+                messagingSocketService.leaveConversation(activeConversationId);
+            }
+            // Optional: only leave user room on logout
+        };
+    }
+}, [activeConversationId, currentUser, token]);
     return null;
 };

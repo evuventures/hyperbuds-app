@@ -35,33 +35,22 @@ const chatSlice = createSlice({
       state.messages = action.payload;
     },
     // Inside chatSlice.ts -> addMessage reducer
-    addMessage: (state, action: PayloadAction<Message>) => {
-      const message = action.payload;
+   addMessage: (state, action: PayloadAction<Message>) => {
+  const message = action.payload;
+  
+  // ✅ PREVENT DUPLICATES: Check if message ID already exists in the feed
+  const isDuplicate = state.messages.some(m => m._id === message._id);
+  
+  if (!isDuplicate && state.activeConversationId === message.conversationId) {
+    state.messages.push(message);
+  }
 
-      if (state.activeConversationId === message.conversationId) {
-        state.messages.push(message);
-      }
-
-      const convIndex = state.conversations.findIndex(c => c._id === message.conversationId);
-      if (convIndex !== -1) {
-        state.conversations[convIndex].lastMessage = message;
-        state.conversations[convIndex].lastActivity = message.createdAt;
-
-        //  FIX: Increment unread count for the person WHO IS NOT the sender
-        // On the receiver's end, we need to find their specific unread entry in the array
-        if (state.activeConversationId !== message.conversationId) {
-          // We search for the entry that doesn't belong to the sender
-          // This ensures the receiver sees the notification
-          const unreadEntry = state.conversations[convIndex].unreadCounts.find(
-            u => u.userId !== message.sender._id
-          );
-
-          if (unreadEntry) {
-            unreadEntry.count += 1;
-          } 
-        }
-      }
-    },
+  // Update sidebar preview logic...
+  const convIndex = state.conversations.findIndex(c => c._id === message.conversationId);
+  if (convIndex !== -1) {
+    state.conversations[convIndex].lastMessage = message;
+  }
+},
     setTypingStatus: (state, action: PayloadAction<{
       conversationId: string;
       userId: string;

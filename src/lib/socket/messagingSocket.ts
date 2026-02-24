@@ -44,7 +44,13 @@ class MessagingSocketService {
       console.log(` Incoming Socket Event: "${eventName}"`, data);
     });
   }
-
+  
+  joinUserRoom(userId: string) {
+    if (this.socket) {
+      this.socket.emit('join-user-room', { userId });
+      console.log(`Joined personal room: ${userId}`);
+    }
+  }
  
   joinConversation(conversationId: string) {
     if (this.socket?.connected) {
