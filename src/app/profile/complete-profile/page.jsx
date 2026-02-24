@@ -1,9 +1,9 @@
 "use client"
 
 import React from 'react';
-import { 
-  FaUserCircle, FaUserPlus, FaUserEdit, FaLink, 
-  FaArrowLeft, FaArrowRight, FaCheckCircle, FaSpinner 
+import {
+  FaUserCircle, FaUserPlus, FaUserEdit, FaLink,
+  FaArrowLeft, FaArrowRight, FaCheckCircle, FaSpinner
 } from 'react-icons/fa';
 import { useProfileForm } from '@/hooks/features/useProfile';
 
@@ -37,7 +37,8 @@ export default function MultiStepProfileForm() {
     nextStep,
     prevStep,
     handleSubmit,
-    canProceed
+    canProceed,
+    clearSelectedFile,
   } = useProfileForm();
 
   // Success Screen (Step 5)
@@ -83,32 +84,29 @@ export default function MultiStepProfileForm() {
 
       <div className="relative z-10 w-full max-w-2xl">
         <div className="p-8 rounded-3xl border shadow-2xl backdrop-blur-sm bg-white/80 md:p-12 border-white/50">
-          
+
           {/* Progress Bar */}
           <div className="mb-12">
             <div className="flex justify-between items-center mb-4">
               {STEPS.map((step, index) => (
                 <React.Fragment key={step.id}>
                   <div className="flex flex-col items-center">
-                    <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 ${
-                      currentStep >= step.id
-                        ? 'bg-linear-to-r from-purple-500 to-blue-500 text-white shadow-lg'
-                        : 'bg-gray-200 text-gray-500'
-                    }`}>
+                    <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 ${currentStep >= step.id
+                      ? 'bg-linear-to-r from-purple-500 to-blue-500 text-white shadow-lg'
+                      : 'bg-gray-200 text-gray-500'
+                      }`}>
                       <step.icon className="w-5 h-5" />
                     </div>
-                    <span className={`text-xs mt-2 font-medium ${
-                      currentStep >= step.id ? 'text-purple-600' : 'text-gray-500'
-                    }`}>
+                    <span className={`text-xs mt-2 font-medium ${currentStep >= step.id ? 'text-purple-600' : 'text-gray-500'
+                      }`}>
                       {step.title}
                     </span>
                   </div>
                   {index < STEPS.length - 1 && (
-                    <div className={`flex-1 h-1 mx-4 rounded-full transition-all duration-300 ${
-                      currentStep > step.id
-                        ? 'bg-linear-to-r from-purple-500 to-blue-500'
-                        : 'bg-gray-200'
-                    }`} />
+                    <div className={`flex-1 h-1 mx-4 rounded-full transition-all duration-300 ${currentStep > step.id
+                      ? 'bg-linear-to-r from-purple-500 to-blue-500'
+                      : 'bg-gray-200'
+                      }`} />
                   )}
                 </React.Fragment>
               ))}
@@ -130,10 +128,13 @@ export default function MultiStepProfileForm() {
           {/* Step Rendering */}
           <div className="mb-8 min-h-87.5">
             {currentStep === 1 && (
-              <Step1Avatar previewUrl={previewUrl} handleFileChange={handleFileChange} />
+              <Step1Avatar previewUrl={previewUrl}
+                handleFileChange={handleFileChange}
+                onClear={clearSelectedFile}
+                 />
             )}
             {currentStep === 2 && (
-              <Step2BasicInfo 
+              <Step2BasicInfo
                 username={formData.username}
                 displayName={formData.displayName}
                 isChecking={isCheckingUsername}
@@ -142,7 +143,7 @@ export default function MultiStepProfileForm() {
               />
             )}
             {currentStep === 3 && (
-              <Step3About 
+              <Step3About
                 bio={formData.bio}
                 selectedNiches={formData.niches}
                 location={formData.location}
@@ -151,7 +152,7 @@ export default function MultiStepProfileForm() {
               />
             )}
             {currentStep === 4 && (
-              <Step4Socials 
+              <Step4Socials
                 socialLinks={formData.socialLinks}
                 onUpdateSocials={updateSocials}
               />
