@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useState } from 'react';
+import Image from 'next/image';
 import {
   Search,
   Bell,
@@ -12,6 +13,8 @@ import {
   LogOut,
   CreditCard,
   Menu,
+  Trash2,
+  AlertTriangle,
 } from 'lucide-react';
 import { useTheme } from '@/context/Theme';
 import { useAuth } from '@/hooks/auth/useAuth';
@@ -20,6 +23,7 @@ import Link from 'next/link';
 import { NotificationDropdown } from './NotificationDropdown';
 import { useUnreadNotificationCount } from '@/hooks/features/useNotifications';
 import { useNotificationSocket } from '@/hooks/features/useNotificationSocket';
+import { FaSpinner } from 'react-icons/fa';
 
 interface HeaderProps {
   user: {
@@ -36,7 +40,10 @@ export const Header: React.FC<HeaderProps> = ({ user, onMenuClick }) => {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const { isDarkMode, toggleDarkMode } = useTheme();
-  const { logout } = useAuth();
+  const { logout, deleteAccount } = useAuth();
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isDeleted, setIsDeleted] = useState(false);
   const router = useRouter();
   const { unreadCount } = useUnreadNotificationCount();
   const notificationButtonRef = React.useRef<HTMLButtonElement>(null);
@@ -56,177 +63,250 @@ export const Header: React.FC<HeaderProps> = ({ user, onMenuClick }) => {
     }
   };
 
+  const handleDeleteAccount = async () => {
+    setIsDeleting(true);
+    try {
+      await deleteAccount();
+      setIsDeleted(true); // Trigger success state
+
+      // Brief delay so they can see the success message
+      setTimeout(() => {
+        setShowDeleteModal(false);
+        router.push('/auth/signin');
+      }, 2000);
+    } catch (error) {
+      console.error('Account deletion failed:', error);
+      alert("Failed to delete account. Please try again.");
+      setIsDeleting(false);
+    }
+  };
 
   return (
-    <header className="sticky top-0 z-50 border-b shadow-sm backdrop-blur-lg transition-colors duration-200 bg-white/95 dark:bg-gray-900/95 border-gray-200/50 dark:border-gray-700/50">
-      <div className="flex justify-between items-center px-3 py-3 sm:px-6 sm:py-4">
+    <>
+      <header className="sticky top-0 z-50 border-b shadow-sm backdrop-blur-lg transition-colors duration-200 bg-white/95 dark:bg-gray-900/95 border-gray-200/50 dark:border-gray-700/50">
+        <div className="flex justify-between items-center px-3 py-3 sm:px-6 sm:py-4">
 
-        {/* Left Section */}
-        <div className="flex gap-2 items-center sm:gap-6">
-          {/* Hamburger Menu Button - Mobile Only */}
-          <button
-            onClick={onMenuClick}
-            className="p-2 bg-gray-100 rounded-xl transition-colors lg:hidden dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700"
-            aria-label="Open menu"
-          >
-            <Menu className="w-4 h-4 text-gray-600 dark:text-gray-300 sm:w-5 sm:h-5" />
-          </button>
+          {/* Left Section */}
+          <div className="flex gap-2 items-center sm:gap-6">
+            {/* Hamburger Menu Button - Mobile Only */}
+            <button
+              onClick={onMenuClick}
+              className="p-2 bg-gray-100 rounded-xl transition-colors lg:hidden dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700"
+              aria-label="Open menu"
+            >
+              <Menu className="w-4 h-4 text-gray-600 dark:text-gray-300 sm:w-5 sm:h-5" />
+            </button>
 
-          {/* Logo */}
-          <div className="flex gap-2 items-center cursor-pointer sm:gap-3" onClick={() => window.location.href = '/'}>
-            <div className="flex gap-2 items-center" >
-              <div className="flex justify-center items-center w-7 h-7 bg-linear-to-r from-purple-600 to-pink-600 rounded-lg cursor-pointer sm:w-8 sm:h-8">
-                <span className="text-xs font-bold text-white cursor-pointer sm:text-sm">H</span>
+            {/* Logo */}
+            <div className="flex gap-2 items-center cursor-pointer sm:gap-3" onClick={() => window.location.href = '/'}>
+              <div className="flex gap-2 items-center" >
+                <div className="flex justify-center items-center w-7 h-7 bg-linear-to-r from-purple-600 to-pink-600 rounded-lg cursor-pointer sm:w-8 sm:h-8">
+                  <span className="text-xs font-bold text-white cursor-pointer sm:text-sm">H</span>
+                </div>
+                <h1 className="hidden text-xl font-bold text-transparent bg-clip-text bg-linear-to-r from-purple-600 to-blue-600 cursor-pointer min-[400px]:block sm:text-2xl">
+                  HyperBuds
+                </h1>
               </div>
-              <h1 className="hidden text-xl font-bold text-transparent bg-clip-text bg-linear-to-r from-purple-600 to-blue-600 cursor-pointer min-[400px]:block sm:text-2xl">
-                HyperBuds
-              </h1>
             </div>
           </div>
-        </div>
 
-        {/* Search Bar  */}
-        <div className="hidden relative md:block">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 w-4 h-4 text-gray-400 transform -translate-y-1/2 dark:text-gray-500" />
-            <input
-              type="text"
-              placeholder="Search creators, collaborations..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 pr-4 py-2.5 w-80 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 dark:focus:ring-purple-400 focus:bg-white dark:focus:bg-gray-700 transition-all duration-200 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
-            />
+          {/* Search Bar  */}
+          <div className="hidden relative md:block">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 w-4 h-4 text-gray-400 transform -translate-y-1/2 dark:text-gray-500" />
+              <input
+                type="text"
+                placeholder="Search creators, collaborations..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 pr-4 py-2.5 w-80 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 dark:focus:ring-purple-400 focus:bg-white dark:focus:bg-gray-700 transition-all duration-200 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
+              />
+            </div>
           </div>
-        </div>
 
-        {/* Right Section */}
-        <div className="flex gap-2 items-center sm:gap-4">
+          {/* Right Section */}
+          <div className="flex gap-2 items-center sm:gap-4">
 
-          {/* Dark Mode Toggle */}
-          <button
-            onClick={toggleDarkMode}
-            className="flex p-2 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 cursor-pointer dark:hover:bg-gray-700 transition-colors sm:p-2.5"
-            aria-label="Toggle dark mode"
-          >
-            {isDarkMode ? (
-              <Sun className="w-4 h-4 text-gray-600 dark:text-gray-300 sm:w-5 sm:h-5" />
-            ) : (
-              <Moon className="w-4 h-4 text-gray-600 dark:text-gray-300 sm:w-5 sm:h-5" />
-            )}
-          </button>
-
-          {/* Notifications */}
-          <div className="relative hidden min-[380px]:block">
+            {/* Dark Mode Toggle */}
             <button
-              ref={notificationButtonRef}
-              onClick={() => setShowNotifications(!showNotifications)}
-              className="relative p-2 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors cursor-pointer sm:p-2.5"
-              aria-label="Notifications"
+              onClick={toggleDarkMode}
+              className="flex p-2 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 cursor-pointer dark:hover:bg-gray-700 transition-colors sm:p-2.5"
+              aria-label="Toggle dark mode"
             >
-              <Bell className="w-4 h-4 text-gray-600 dark:text-gray-300 sm:w-5 sm:h-5" />
-              {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white dark:border-gray-900"></span>
+              {isDarkMode ? (
+                <Sun className="w-4 h-4 text-gray-600 dark:text-gray-300 sm:w-5 sm:h-5" />
+              ) : (
+                <Moon className="w-4 h-4 text-gray-600 dark:text-gray-300 sm:w-5 sm:h-5" />
               )}
             </button>
 
-            {/* Notifications Dropdown */}
-            <NotificationDropdown
-              isOpen={showNotifications}
-              onClose={() => setShowNotifications(false)}
-              anchorRef={notificationButtonRef}
-            />
-          </div>
+            {/* Notifications */}
+            <div className="relative hidden min-[380px]:block">
+              <button
+                ref={notificationButtonRef}
+                onClick={() => setShowNotifications(!showNotifications)}
+                className="relative p-2 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors cursor-pointer sm:p-2.5"
+                aria-label="Notifications"
+              >
+                <Bell className="w-4 h-4 text-gray-600 dark:text-gray-300 sm:w-5 sm:h-5" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white dark:border-gray-900"></span>
+                )}
+              </button>
 
-          {/* User Profile Dropdown */}
-          <div className="relative">
-            <button
-              onClick={() => setShowUserMenu(!showUserMenu)}
-              className="flex items-center gap-3 p-1.5 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
-            >
-              <div className="flex gap-2 items-center">
-                <div className="flex justify-center items-center w-8 h-8 bg-linear-to-r from-purple-500 to-pink-500 rounded-full">
-                  <span className="text-sm font-medium text-white">
-                    {/* {user.username?.[0]?.toUpperCase() || user.email[0].toUpperCase()} */}
-                    <img src={user?.avatar} alt="User-img" />
-                  </span>
-                </div>
-                <div className="hidden text-left lg:block">
-                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                    {user.displayName || user.username || 'User'}
-                  </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Premium Creator</p>
-                </div>
-                <ChevronDown className="hidden w-4 h-4 text-gray-400 dark:text-gray-500 lg:block" />
-              </div>
-            </button>
+              {/* Notifications Dropdown */}
+              <NotificationDropdown
+                isOpen={showNotifications}
+                onClose={() => setShowNotifications(false)}
+                anchorRef={notificationButtonRef}
+              />
+            </div>
 
-            {/* User Menu Dropdown */}
-            {showUserMenu && (
-              <div className="absolute right-0 z-50 py-2 mt-2 w-64 bg-white rounded-xl border border-gray-200 shadow-xl dark:bg-gray-800 dark:border-gray-700">
-                <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700">
-                  <div className="flex gap-3 items-center">
-                    <div className="flex justify-center items-center w-10 h-10 bg-linear-to-r from-purple-500 to-pink-500 rounded-full">
-                      <span className="font-medium text-white">
-                        {user.username?.[0]?.toUpperCase() || user.email[0].toUpperCase()}
-                      </span>
-                    </div>
-                    <div className='max-w-40'>
-                      <p className="font-medium text-gray-900 dark:text-gray-100">
-                        {user.displayName || user.username || 'User'}
-                      </p>
-                      <p className="text-sm text-gray-500 truncate dark:text-gray-400">
-                        {user.email}
-                      </p>
+            {/* User Profile Dropdown */}
+            <div className="relative">
+              <button
+                onClick={() => setShowUserMenu(!showUserMenu)}
+                className="flex items-center gap-3 p-1.5 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+              >
+                <div className="flex gap-2 items-center">
+                  <div className="flex justify-center items-center w-8 h-8 bg-linear-to-r from-purple-500 to-pink-500 rounded-full overflow-hidden">
+                    <span className="text-sm font-medium text-white">
+                      {/* {user.username?.[0]?.toUpperCase() || user.email[0].toUpperCase()} */}
+                      {user?.avatar ? (
+                        <Image src={user.avatar} alt="User avatar" width={32} height={32} className="w-full h-full object-cover" />
+                      ) : (
+                        user.username?.[0]?.toUpperCase() || user.email[0].toUpperCase()
+                      )}
+                    </span>
+                  </div>
+                  <div className="hidden text-left lg:block">
+                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                      {user.displayName || user.username || 'User'}
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Premium Creator</p>
+                  </div>
+                  <ChevronDown className="hidden w-4 h-4 text-gray-400 dark:text-gray-500 lg:block" />
+                </div>
+              </button>
+
+              {/* User Menu Dropdown */}
+              {showUserMenu && (
+                <div className="absolute right-0 z-50 py-2 mt-2 w-64 bg-white rounded-xl border border-gray-200 shadow-xl dark:bg-gray-800 dark:border-gray-700">
+                  <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700">
+                    <div className="flex gap-3 items-center">
+                      <div className="flex justify-center items-center w-10 h-10 bg-linear-to-r from-purple-500 to-pink-500 rounded-full">
+                        <span className="font-medium text-white">
+                          {user.username?.[0]?.toUpperCase() || user.email[0].toUpperCase()}
+                        </span>
+                      </div>
+                      <div className='max-w-40'>
+                        <p className="font-medium text-gray-900 dark:text-gray-100">
+                          {user.displayName || user.username || 'User'}
+                        </p>
+                        <p className="text-sm text-gray-500 truncate dark:text-gray-400">
+                          {user.email}
+                        </p>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                <div className="py-2">
-                  <Link href="/profile" className="flex gap-3 items-center px-4 py-2 w-full text-left transition-colors hover:bg-gray-50 dark:hover:bg-gray-700">
-                    <User className="w-4 h-4 text-gray-500 dark:text-gray-400" />
-                    <span className="text-sm text-gray-700 dark:text-gray-300">View Profile</span>
-                  </Link>
-                  <button className="flex gap-3 items-center px-4 py-2 w-full text-left transition-colors hover:bg-gray-50 dark:hover:bg-gray-700">
-                    <Settings className="w-4 h-4 text-gray-500 dark:text-gray-400" />
-                    <span className="text-sm text-gray-700 cursor-pointer dark:text-gray-300">Account Settings</span>
-                  </button>
-                  <button
-                    onClick={() => window.location.href = '/payments/subscription'}
-                    className="flex gap-3 items-center px-4 py-2 w-full text-left transition-colors hover:bg-gray-50 dark:hover:bg-gray-700"
-                  >
-                    <CreditCard className="w-4 h-4 text-gray-500 dark:text-gray-400" />
-                    <span className="text-sm text-gray-700 cursor-pointer dark:text-gray-300">Billing & Payments</span>
-                  </button>
-                </div>
+                  <div className="py-2">
+                    <Link href="/profile" className="flex gap-3 items-center px-4 py-2 w-full text-left transition-colors hover:bg-gray-50 dark:hover:bg-gray-700">
+                      <User className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+                      <span className="text-sm text-gray-700 dark:text-gray-300">View Profile</span>
+                    </Link>
+                    <button className="flex gap-3 items-center px-4 py-2 w-full text-left transition-colors hover:bg-gray-50 dark:hover:bg-gray-700">
+                      <Settings className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+                      <span className="text-sm text-gray-700 cursor-pointer dark:text-gray-300">Account Settings</span>
+                    </button>
+                    <button
+                      onClick={() => window.location.href = '/payments/subscription'}
+                      className="flex gap-3 items-center px-4 py-2 w-full text-left transition-colors hover:bg-gray-50 dark:hover:bg-gray-700"
+                    >
+                      <CreditCard className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+                      <span className="text-sm text-gray-700 cursor-pointer dark:text-gray-300">Billing & Payments</span>
+                    </button>
+                  </div>
 
-                <div className="py-2 border-t border-gray-100 dark:border-gray-700">
-                  <button
-                    onClick={handleLogout}
-                    className="flex gap-3 items-center px-4 py-2 w-full text-left text-red-600 transition-colors cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 dark:text-red-400"
-                  >
-                    <LogOut className="w-4 h-4" />
-                    <span className="text-sm">Sign Out</span>
-                  </button>
+                  <div className="py-2 border-t border-gray-100 dark:border-gray-700">
+                    <button
+                      onClick={() => {
+                        setShowUserMenu(false);
+                        setShowDeleteModal(true);
+                      }}
+                      className="flex gap-3 items-center px-4 py-2 w-full text-left text-sm text-gray-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4" /> Delete Account
+                    </button>
+                    <button
+                      onClick={handleLogout}
+                      className="flex gap-3 items-center px-4 py-2 w-full text-left text-sm text-red-600 hover:bg-gray-50 dark:hover:bg-gray-700"
+                    >
+                      <LogOut className="w-4 h-4" /> Sign Out
+                    </button>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
-      </div>
+      </header>
 
-      {/* Mobile Search Bar 
-      <div className="px-6 pb-4 md:hidden">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 w-4 h-4 text-gray-400 transform -translate-y-1/2 dark:text-gray-500" />
-          <input
-            type="text"
-            placeholder="Search..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 pr-4 py-2.5 w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 dark:focus:ring-purple-400 focus:bg-white dark:focus:bg-gray-700 transition-all duration-200 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
-          />
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="flex fixed inset-0 z-100 justify-center items-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="overflow-hidden w-full max-w-md bg-white rounded-2xl shadow-2xl dark:bg-gray-800 animate-in zoom-in-95">
+            <div className="p-8 text-center">
+              {!isDeleted ? (
+                <>
+                  <div className="flex justify-center mb-4">
+                    <div className="p-3 bg-red-100 rounded-full dark:bg-red-900/30">
+                      <AlertTriangle className="w-8 h-8 text-red-600" />
+                    </div>
+                  </div>
+                  <h3 className="mb-2 text-xl font-bold text-gray-900 dark:text-white">Delete Account?</h3>
+                  <p className="mb-6 text-gray-500 dark:text-gray-400">
+                    This is permanent. All your data and profile information will be removed from HyperBuds forever.
+                  </p>
+                  <div className="flex flex-col gap-3">
+                    <button
+                      onClick={handleDeleteAccount}
+                      disabled={isDeleting}
+                      className="flex justify-center items-center py-3 w-full font-semibold text-white bg-red-600 rounded-xl transition-colors hover:bg-red-700 disabled:opacity-50"
+                    >
+                      {isDeleting ? <FaSpinner className="mr-2 animate-spin" /> : "Yes, Delete My Account"}
+                    </button>
+                    <button
+                      onClick={() => setShowDeleteModal(false)}
+                      disabled={isDeleting}
+                      className="py-3 w-full font-semibold text-gray-700 bg-gray-100 rounded-xl transition-colors hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <div className="py-4 animate-in fade-in zoom-in duration-500">
+                  <div className="flex justify-center mb-4">
+                    <div className="p-3 bg-green-100 rounded-full dark:bg-green-900/30">
+                      <div className="flex justify-center items-center w-8 h-8 bg-green-500 rounded-full">
+                        <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                  <h3 className="mb-2 text-xl font-bold text-gray-900 dark:text-white">Account Deleted</h3>
+                  <p className="text-gray-500 dark:text-gray-400">
+                    Your account has been successfully removed. Redirecting you to sign in...
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
-      </div> */}
+      )}
 
       {/* Click outside to close dropdowns */}
       {(showUserMenu || showNotifications) && (
@@ -238,6 +318,6 @@ export const Header: React.FC<HeaderProps> = ({ user, onMenuClick }) => {
           }}
         />
       )}
-    </header>
+    </>
   );
 };

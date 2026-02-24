@@ -185,6 +185,36 @@ export function useAuth() {
   }
 }, [dispatch]);
 
+// hooks/auth/useAuth.ts
+
+const deleteAccount = useCallback(async () => {
+    dispatch(setLoading(true));
+    try {
+      const res = await fetch(`${BASE_URL}/api/v1/users/me`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`, // Manual token injection
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.message || 'Failed to delete account');
+      }
+
+      // If delete is successful (204 No Content usually has no body)
+      localStorage.removeItem('accessToken');
+      dispatch(clearAuth());
+      return true;
+    } catch (error) {
+      console.error('Delete account failed:', error);
+      throw error;
+    } finally {
+      dispatch(setLoading(false));
+    }
+  }, [dispatch, token]);
+
   return {
     user: user as User | null,
     loading,
@@ -197,5 +227,6 @@ export function useAuth() {
     initiateGoogleLogin,
     forgotPassword,
     resetPassword,
+    deleteAccount,
   }
 }
