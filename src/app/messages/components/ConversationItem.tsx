@@ -28,7 +28,9 @@ export const ConversationItem: React.FC<ConversationItemProps> = ({
   ) || conversation.participants?.[0];
 
   // ✅ UPDATED: Use the flat number from the backend
-  const unreadCount = conversation.unreadCount || 0;
+  const unreadCount = conversation.unreadCounts?.find(
+    u => u.userId === currentUserId
+  )?.count || 0;
 
   const formatLastActivity = (dateString: string) => {
     const date = new Date(dateString);
@@ -42,9 +44,8 @@ export const ConversationItem: React.FC<ConversationItemProps> = ({
     <Link
       href={`/messages/${conversation._id}`}
       prefetch={true}
-      className={`group flex items-center gap-4 p-4 mx-2 mb-1 rounded-2xl cursor-pointer transition-all duration-200 ${
-        isActive ? 'bg-slate-800 shadow-lg' : 'hover:bg-slate-800/50'
-      }`}
+      className={`group flex items-center gap-4 p-4 mx-2 mb-1 rounded-2xl cursor-pointer transition-all duration-200 ${isActive ? 'bg-slate-800 shadow-lg' : 'hover:bg-slate-800/50'
+        }`}
     >
       <div className="relative shrink-0">
         <div className="w-12 h-12 rounded-full overflow-hidden bg-linear-to-tr from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-sm shadow-md relative">

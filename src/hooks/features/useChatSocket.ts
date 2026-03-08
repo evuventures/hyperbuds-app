@@ -81,22 +81,31 @@ export const useChatSocket = () => {
     // Room Management
   // Room Management
 useEffect(() => {
-    const currentUserId = currentUser?.id || currentUser?._id;
-    if (token && currentUserId) {
-        // ✅ Join a personal room to receive all messages sent to YOU
-        messagingSocketService.joinUserRoom(currentUserId); 
-        
-        if (activeConversationId) {
-            messagingSocketService.joinConversation(activeConversationId);
-        }
+  const currentUserId = currentUser?.id || currentUser?._id;
+  if (!token || !currentUserId) return;
 
-        return () => {
-            if (activeConversationId) {
-                messagingSocketService.leaveConversation(activeConversationId);
-            }
-            // Optional: only leave user room on logout
-        };
+  const socket = messagingSocketService.connect(token);
+
+  // ✅ Wait for connection before joining rooms
+  const onConnect = () => {
+    messagingSocketService.joinUserRoom(currentUserId);
+    if (activeConversationId) {
+      messagingSocketService.joinConversation(activeConversationId);
     }
+  };
+
+  if (socket.connected) {
+    onConnect();
+  } else {
+    socket.once('connect', onConnect);
+  }
+
+  return () => {
+    socket.off('connect', onConnect);
+    if (activeConversationId) {
+      messagingSocketService.leaveConversation(activeConversationId);
+    }
+  };
 }, [activeConversationId, currentUser, token]);
     return null;
 };

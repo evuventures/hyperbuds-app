@@ -6,7 +6,7 @@ import { RootState } from '@/store/store';
 import DashboardLayout from '@/components/layout/Dashboard/Dashboard';
 import { ConversationList } from '../components/ConversationList';
 import { ChatWindow } from '../components/ChatWindow';
-import { setActiveConversation } from '@/store/slices/chatSlice';
+//import { setActiveConversation } from '@/store/slices/chatSlice';
 
 const ConversationPage = () => {
   const params = useParams();
@@ -19,7 +19,7 @@ const ConversationPage = () => {
 
   useEffect(() => {
     if (conversationId) {
-      dispatch(setActiveConversation(conversationId));
+      //dispatch(setActiveConversation(conversationId));
       
       
       const timer = setTimeout(() => setIsLoading(false), 500);

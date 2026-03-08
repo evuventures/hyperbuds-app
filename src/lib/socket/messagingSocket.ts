@@ -13,12 +13,12 @@ class MessagingSocketService {
     }
 
     this.socket = io(SOCKET_URL, {
-      auth: { token },
-      reconnectionAttempts: this.maxReconnectAttempts,
-      reconnectionDelay: 2000,
-      timeout: 20000,
-      //transports: ['polling', 'websocket'],
-    });
+  auth: { token },
+  reconnectionAttempts: this.maxReconnectAttempts,
+  reconnectionDelay: 2000,
+  timeout: 60000, // ← increase from 20000 to 60000
+  transports: ['polling', 'websocket'], // ← uncomment this line
+});
 
     this.setupDefaultListeners();
     return this.socket;
