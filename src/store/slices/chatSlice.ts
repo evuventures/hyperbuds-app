@@ -7,7 +7,6 @@ interface ChatState {
   messages: Message[];
   isLoading: boolean;
   typingUsers: Record<string, string[]>;
-
 }
 
 const initialState: ChatState = {
@@ -23,38 +22,49 @@ const chatSlice = createSlice({
   initialState,
   reducers: {
     setConversations: (state, action: PayloadAction<Conversation[]>) => {
-      // Replaces the list entirely 
       state.conversations = action.payload;
     },
+
     setActiveConversation: (state, action: PayloadAction<string | null>) => {
       state.activeConversationId = action.payload;
       // Clear messages when switching chats to avoid "ghosting"
       state.messages = [];
     },
-    setMessages: (state, action: PayloadAction<Message[]>) => {
-      state.messages = action.payload;
-    },
-    // Inside chatSlice.ts -> addMessage reducer
-   addMessage: (state, action: PayloadAction<Message>) => {
-  const message = action.payload;
-  
-  // ✅ PREVENT DUPLICATES: Check if message ID already exists in the feed
-  const isDuplicate = state.messages.some(m => m._id === message._id);
-  
-  if (!isDuplicate && state.activeConversationId === message.conversationId) {
-    state.messages.push(message);
-  }
 
-  // Update sidebar preview logic...
-  const convIndex = state.conversations.findIndex(c => c._id === message.conversationId);
-  if (convIndex !== -1) {
-    state.conversations[convIndex].lastMessage = message;
-  }
-},
+    setMessages: (state, action: PayloadAction<Message[]>) => {
+      // ✅ Merge instead of replace — preserves real-time socket messages
+      // that arrived before or during the API fetch.
+      const incoming = action.payload;
+      const existingIds = new Set(state.messages.map(m => m._id));
+      const newOnly = incoming.filter(m => !existingIds.has(m._id));
+      state.messages = [...state.messages, ...newOnly];
+    },
+
+    addMessage: (state, action: PayloadAction<Message>) => {
+      const message = action.payload;
+
+      // Prevent duplicates
+      const isDuplicate = state.messages.some(m => m._id === message._id);
+
+      // ✅ No activeConversationId check — always store if not duplicate.
+      // ChatWindow only renders messages for the active conversation anyway,
+      // so filtering at the store level was causing real-time messages to be lost
+      // whenever the component remounted and cleared the message list.
+      if (!isDuplicate) {
+        state.messages.push(message);
+      }
+
+      // Update sidebar preview
+      const convIndex = state.conversations.findIndex(c => c._id === message.conversationId);
+      if (convIndex !== -1) {
+        state.conversations[convIndex].lastMessage = message;
+      }
+    },
+
     setTypingStatus: (state, action: PayloadAction<{
       conversationId: string;
       userId: string;
-      isTyping: boolean
+      isTyping: boolean;
     }>) => {
       const { conversationId, userId, isTyping } = action.payload;
 
@@ -71,57 +81,54 @@ const chatSlice = createSlice({
           .filter(id => id !== userId);
       }
     },
+
     markMessagesAsRead: (state, action: PayloadAction<{ conversationId: string; messageIds: string[]; userId: string }>) => {
       const { conversationId, messageIds, userId } = action.payload;
 
-      // Update the messages in the current feed
+      // Update messages in the current feed
       state.messages = state.messages.map(msg =>
-        messageIds.includes(msg._id) ? { ...msg, isRead: true, readAt: new Date().toISOString() } : msg
+        messageIds.includes(msg._id)
+          ? { ...msg, isRead: true, readAt: new Date().toISOString() }
+          : msg
       );
 
-      // Reset the unread count 
+      // Guard: conversation and unreadCounts may not exist yet
       const convIndex = state.conversations.findIndex(c => c._id === conversationId);
       if (convIndex !== -1) {
-        const unreadEntry = state.conversations[convIndex].unreadCounts.find(u => u.userId === userId);
+        const conv = state.conversations[convIndex];
+
+        if (!conv.unreadCounts) {
+          conv.unreadCounts = [];
+        }
+
+        const unreadEntry = conv.unreadCounts.find(u => u.userId === userId);
         if (unreadEntry) {
           unreadEntry.count = 0;
         }
       }
     },
 
-    // src/store/slices/chatSlice.ts
-
-    // src/store/slices/chatSlice.ts
-
-    // src/store/slices/chatSlice.ts
-
     deleteMessageLocal: (state, action: PayloadAction<{ messageId: string }>) => {
       const { messageId } = action.payload;
 
-      // 1. Mark the message as deleted in the main feed
+      // Mark message as deleted in the feed
       state.messages = state.messages.map(msg =>
         msg._id === messageId
           ? { ...msg, content: "This message was deleted", isDeleted: true }
           : msg
       );
 
-      // 2. Find the conversation that owns this message
+      // Update sidebar preview if the deleted message was the last one
       const conversation = state.conversations.find(c => c.lastMessage?._id === messageId);
-
       if (conversation) {
-        // Look through the messages we have in state to find the NEW last message
-        // We filter out the one we just deleted and any others marked as deleted
         const remainingMessages = state.messages.filter(m => m._id !== messageId && !m.isDeleted);
 
-        if (remainingMessages.length > 0) {
-          // ✅ SET THE SIDEBAR TO THE PREVIOUS MESSAGE
-          conversation.lastMessage = remainingMessages[remainingMessages.length - 1];
-        } else {
-          // If no messages are left, clear the preview
-          conversation.lastMessage = undefined;
-        }
+        conversation.lastMessage = remainingMessages.length > 0
+          ? remainingMessages[remainingMessages.length - 1]
+          : undefined;
       }
     },
+
     toggleArchiveLocal: (state, action: PayloadAction<{ conversationId: string; isArchived: boolean }>) => {
       const { conversationId, isArchived } = action.payload;
 
@@ -130,11 +137,17 @@ const chatSlice = createSlice({
         state.conversations[index].isArchived = isArchived;
       }
     },
+
     incrementUnreadCount: (state, action: PayloadAction<{ conversationId: string; userId: string }>) => {
       const { conversationId, userId } = action.payload;
       const conversation = state.conversations.find(c => c._id === conversationId);
+
       if (conversation) {
-        if (!conversation.unreadCounts) conversation.unreadCounts = [];
+        // Guard: unreadCounts may not exist on older conversation objects
+        if (!conversation.unreadCounts) {
+          conversation.unreadCounts = [];
+        }
+
         const userCount = conversation.unreadCounts.find(u => u.userId === userId);
         if (userCount) {
           userCount.count += 1;
@@ -143,11 +156,11 @@ const chatSlice = createSlice({
         }
       }
     },
-  }
-
+  },
 });
 
-export const { setConversations,
+export const {
+  setConversations,
   setActiveConversation,
   setMessages,
   addMessage,
@@ -155,6 +168,7 @@ export const { setConversations,
   markMessagesAsRead,
   deleteMessageLocal,
   toggleArchiveLocal,
-  incrementUnreadCount } = chatSlice.actions;
+  incrementUnreadCount,
+} = chatSlice.actions;
 
 export default chatSlice.reducer;

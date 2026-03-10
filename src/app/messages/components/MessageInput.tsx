@@ -4,6 +4,7 @@ import { Send } from 'lucide-react';
 import { messagingAPI } from '@/lib/api/messaging.api';
 import { useAppDispatch } from '@/store/hooks';
 import { addMessage } from '@/store/slices/chatSlice';
+import { Message } from '@/types/messaging.types';
 
 interface MessageInputProps {
   conversationId: string;
@@ -14,7 +15,6 @@ export const MessageInput: React.FC<MessageInputProps> = ({ conversationId }) =>
   const [isSending, setIsSending] = useState(false);
   const dispatch = useAppDispatch();
 
-  // Refs to manage typing state without triggering re-renders
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isTypingRef = useRef(false);
 
@@ -22,23 +22,21 @@ export const MessageInput: React.FC<MessageInputProps> = ({ conversationId }) =>
     const value = e.target.value;
     setText(value);
 
-    // Trigger "Start Typing" via API
     if (!isTypingRef.current && value.trim().length > 0) {
       isTypingRef.current = true;
-      messagingAPI.startTyping(conversationId); 
+      messagingAPI.startTyping(conversationId);
     }
 
-    //  Reset the "Stop Typing" timeout
     if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
 
     typingTimeoutRef.current = setTimeout(() => {
       stopTypingIndicator();
-    }, 2000); 
+    }, 2000);
   };
 
   const stopTypingIndicator = () => {
     if (isTypingRef.current) {
-      messagingAPI.stopTyping(conversationId); 
+      messagingAPI.stopTyping(conversationId);
       isTypingRef.current = false;
     }
     if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
@@ -48,19 +46,18 @@ export const MessageInput: React.FC<MessageInputProps> = ({ conversationId }) =>
     e?.preventDefault();
     if (!text.trim() || isSending) return;
 
-    // Immediately stop typing indicator when sending
     stopTypingIndicator();
     setIsSending(true);
 
     try {
-      // Call API to save message
-      
-      const newMessage = await messagingAPI.sendMessage(conversationId, {
+      const response = await messagingAPI.sendMessage(conversationId, {
         content: text.trim(),
         type: 'text'
       });
-      
-     
+
+      // Handle both { message: {...} } and direct message object shapes
+      const newMessage: Message = (response as unknown as { message: Message })?.message ?? response;
+
       if (newMessage) {
         dispatch(addMessage(newMessage));
         setText('');
@@ -74,7 +71,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({ conversationId }) =>
 
   return (
     <form onSubmit={handleSend} className="p-2 bg-[#0F172A]">
-      <div className="flex items-center gap-2 bg-[#1E293B] p-2 rounded-2xl border border-slate-800  transition-all">
+      <div className="flex items-center gap-2 bg-[#1E293B] p-2 rounded-2xl border border-slate-800 transition-all">
         <input
           type="text"
           value={text}
@@ -87,8 +84,8 @@ export const MessageInput: React.FC<MessageInputProps> = ({ conversationId }) =>
           disabled={!text.trim() || isSending}
           className={`
             p-2 rounded-xl transition-all
-            ${text.trim() 
-              ? 'bg-purple-600 text-white hover:bg-purple-700 shadow-lg shadow-purple-500/20' 
+            ${text.trim()
+              ? 'bg-purple-600 text-white hover:bg-purple-700 shadow-lg shadow-purple-500/20'
               : 'bg-slate-700 text-slate-500'}
           `}
         >

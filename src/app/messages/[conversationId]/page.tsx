@@ -1,12 +1,11 @@
 "use client"
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
-import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { RootState } from '@/store/store';
+import { useAppDispatch } from '@/store/hooks';
 import DashboardLayout from '@/components/layout/Dashboard/Dashboard';
 import { ConversationList } from '../components/ConversationList';
 import { ChatWindow } from '../components/ChatWindow';
-//import { setActiveConversation } from '@/store/slices/chatSlice';
+import { setActiveConversation } from '@/store/slices/chatSlice';
 
 const ConversationPage = () => {
   const params = useParams();
@@ -14,14 +13,11 @@ const ConversationPage = () => {
   const conversationId = params.conversationId as string;
   const [isLoading, setIsLoading] = useState(true);
 
-  // Access the conversation from Redux to check if it exists
-  useAppSelector((state: RootState) => state.chat);
-
   useEffect(() => {
     if (conversationId) {
-      //dispatch(setActiveConversation(conversationId));
-      
-      
+      // ✅ Set active conversation so isInActiveChat works correctly in socket handler
+      dispatch(setActiveConversation(conversationId));
+
       const timer = setTimeout(() => setIsLoading(false), 500);
       return () => clearTimeout(timer);
     }
@@ -30,13 +26,9 @@ const ConversationPage = () => {
   return (
     <DashboardLayout>
       <div className="flex h-[calc(100vh-64px)] bg-[#0F172A] overflow-hidden">
-        
-        {/* SIDEBAR: Always shown on desktop (md:flex), hidden on mobile when in a chat */}
         <div className="hidden md:flex w-80 flex-col border-r border-slate-800/50">
           <ConversationList />
         </div>
-
-        {/* CHAT AREA: Full width on mobile, fills remaining space on desktop */}
         <div className="flex-1 flex flex-col min-w-0 bg-[#0F172A]">
           {isLoading ? (
             <ChatWindowSkeleton />
@@ -51,7 +43,6 @@ const ConversationPage = () => {
 
 const ChatWindowSkeleton = () => (
   <div className="flex flex-col h-full animate-pulse">
-    {/* Header Skeleton */}
     <div className="px-4 py-3 border-b border-slate-800 flex items-center justify-between">
       <div className="flex items-center gap-3">
         <div className="w-10 h-10 rounded-full bg-slate-800" />
@@ -65,8 +56,6 @@ const ChatWindowSkeleton = () => (
         <div className="w-5 h-5 bg-slate-800 rounded" />
       </div>
     </div>
-
-    {/* Message Feed Skeleton */}
     <div className="flex-1 p-6 space-y-6">
       <div className="flex justify-start">
         <div className="h-10 w-2/3 bg-slate-800 rounded-2xl rounded-tl-none" />
@@ -78,8 +67,6 @@ const ChatWindowSkeleton = () => (
         <div className="h-10 w-3/4 bg-slate-800 rounded-2xl rounded-tl-none" />
       </div>
     </div>
-
-    {/* Input Skeleton */}
     <div className="p-4">
       <div className="h-12 w-full bg-slate-800 rounded-xl" />
     </div>

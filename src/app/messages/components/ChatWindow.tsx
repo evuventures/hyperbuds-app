@@ -1,8 +1,7 @@
 "use client"
 import React, { useEffect, useRef } from 'react';
-//  Use your standardized hooks
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { setMessages, setActiveConversation } from '@/store/slices/chatSlice';
+import { setMessages, setActiveConversation, markMessagesAsRead } from '@/store/slices/chatSlice';
 import { messagingAPI } from '@/lib/api/messaging.api';
 import { MessageBubble } from './MessageBubble';
 import { MessageInput } from './MessageInput';
@@ -10,54 +9,68 @@ import { ChatHeader } from './ChatHeader';
 import { format, isToday, isYesterday } from 'date-fns';
 
 interface ChatWindowProps {
-  conversationId?: string; 
+  conversationId?: string;
 }
 
 export const ChatWindow: React.FC<ChatWindowProps> = ({ conversationId }) => {
-  //  Switched to typed hooks
   const dispatch = useAppDispatch();
   const scrollRef = useRef<HTMLDivElement>(null);
-  
-  // Selector using typed state
+
   const { messages, conversations } = useAppSelector((state) => state.chat);
   const { user: currentUser } = useAppSelector((state) => state.auth);
 
-  const activeId = conversationId; 
+  const activeId = conversationId;
 
   const formatDividerDate = (date: Date) => {
     if (isToday(date)) return 'Today';
     if (isYesterday(date)) return 'Yesterday';
     return format(date, 'MMMM d, yyyy');
   };
+// In ChatWindow.tsx, update the first useEffect:
+useEffect(() => {
+  if (!activeId) return;
+  dispatch(setActiveConversation(activeId));
 
-  useEffect(() => {
-    if (!activeId) return;
-    dispatch(setActiveConversation(activeId));
+  // ✅ Clear unread count when opening the conversation
+  const currentUserId = currentUser?.id || currentUser?._id;
+  if (currentUserId) {
+    dispatch(markMessagesAsRead({ 
+      conversationId: activeId, 
+      messageIds: [], 
+      userId: currentUserId 
+    }));
+  }
 
-    const fetchMessages = async () => {
-      try {
-        const data = await messagingAPI.getMessages(activeId);
-        dispatch(setMessages(data.messages));
-      } catch (error) {
-        console.error("Failed to load messages:", error);
-      }
-    };
-    fetchMessages();
-  }, [activeId, dispatch]);
+  const fetchMessages = async () => {
+    try {
+      const data = await messagingAPI.getMessages(activeId);
+      dispatch(setMessages(data.messages));
+    } catch (error) {
+      console.error("Failed to load messages:", error);
+    }
+  };
+  fetchMessages();
+}, [activeId, dispatch, currentUser]);
+
+  // ✅ Filter to only show messages for the active conversation
+  const activeMessages = messages.filter(m => m.conversationId === activeId);
+
+  // ✅ Sort by createdAt to ensure correct order after merging
+  const sortedMessages = [...activeMessages].sort(
+    (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+  );
 
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [messages]);
+  }, [sortedMessages]);
 
-  // Stable Mark-as-Read Logic
   useEffect(() => {
-    // Determine the ID outside the dependency array to keep it stable
     const currentUserId = currentUser?.id || currentUser?._id;
 
-    if (activeId && messages.length > 0 && currentUserId) {
-      const unreadIds = messages
+    if (activeId && sortedMessages.length > 0 && currentUserId) {
+      const unreadIds = sortedMessages
         .filter(m => !m.isRead && m.sender._id !== currentUserId)
         .map(m => m._id);
 
@@ -65,8 +78,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ conversationId }) => {
         messagingAPI.markAsRead(activeId, unreadIds);
       }
     }
-    //  Dependency on currentUser (the object) is stable with useAppSelector
-  }, [activeId, messages, currentUser]);
+  }, [activeId, sortedMessages, currentUser]);
 
   if (!activeId) {
     return (
@@ -93,7 +105,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ conversationId }) => {
 
   const activeChat = conversations.find(c => c._id === activeId);
   const currentUserId = currentUser?.id || currentUser?._id;
-  
+
   const recipient = activeChat?.participants.find(
     (p) => p._id !== currentUserId
   ) || activeChat?.participants[0];
@@ -102,16 +114,16 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ conversationId }) => {
     <div className="flex flex-col h-full bg-[#0F172A] relative border-l border-slate-800/50">
       <ChatHeader recipient={recipient} />
 
-      <div 
+      <div
         ref={scrollRef}
         className="flex-1 overflow-y-auto p-6 space-y-6 scroll-smooth 
                    scrollbar-thin scrollbar-thumb-slate-800 scrollbar-track-transparent"
       >
-        {messages.map((msg, index) => {
+        {sortedMessages.map((msg, index) => {
           const currentDate = new Date(msg.createdAt);
-          const prevDate = index > 0 ? new Date(messages[index - 1].createdAt) : null;
-          
-          const isNewDay = !prevDate || 
+          const prevDate = index > 0 ? new Date(sortedMessages[index - 1].createdAt) : null;
+
+          const isNewDay = !prevDate ||
             currentDate.toDateString() !== prevDate.toDateString();
 
           return (
@@ -124,9 +136,9 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ conversationId }) => {
                 </div>
               )}
 
-              <MessageBubble 
-                message={msg} 
-                isMe={msg.sender._id === currentUserId} 
+              <MessageBubble
+                message={msg}
+                isMe={msg.sender._id === currentUserId}
               />
             </React.Fragment>
           );

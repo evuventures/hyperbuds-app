@@ -4,6 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useAppSelector } from '@/store/hooks';
 import { format, isToday } from 'date-fns';
+import { Check, CheckCheck } from 'lucide-react';
 import { Conversation } from '@/types/messaging.types';
 
 interface ConversationItemProps {
@@ -19,15 +20,12 @@ export const ConversationItem: React.FC<ConversationItemProps> = ({
   const { user: currentUser } = useAppSelector((state) => state.auth);
   const [imgError, setImgError] = useState(false);
 
-  // Standardized ID logic
   const currentUserId = currentUser?.id || currentUser?._id;
 
-  // Identify the other participant
   const otherUser = (conversation.participants ?? []).find(
     (p) => p._id !== currentUserId && p.id !== currentUserId
   ) || conversation.participants?.[0];
 
-  // ✅ UPDATED: Use the flat number from the backend
   const unreadCount = conversation.unreadCounts?.find(
     u => u.userId === currentUserId
   )?.count || 0;
@@ -40,12 +38,16 @@ export const ConversationItem: React.FC<ConversationItemProps> = ({
 
   const lastMsg = conversation.lastMessage;
 
+  // ✅ Determine if the last message was sent by the current user
+  const isSentByMe = lastMsg?.sender?._id === currentUserId;
+
   return (
     <Link
       href={`/messages/${conversation._id}`}
       prefetch={true}
-      className={`group flex items-center gap-4 p-4 mx-2 mb-1 rounded-2xl cursor-pointer transition-all duration-200 ${isActive ? 'bg-slate-800 shadow-lg' : 'hover:bg-slate-800/50'
-        }`}
+      className={`group flex items-center gap-4 p-4 mx-2 mb-1 rounded-2xl cursor-pointer transition-all duration-200 ${
+        isActive ? 'bg-slate-800 shadow-lg' : 'hover:bg-slate-800/50'
+      }`}
     >
       <div className="relative shrink-0">
         <div className="w-12 h-12 rounded-full overflow-hidden bg-linear-to-tr from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-sm shadow-md relative">
@@ -82,11 +84,18 @@ export const ConversationItem: React.FC<ConversationItemProps> = ({
         </div>
 
         <div className="flex justify-between items-center">
-          <p className={`text-xs truncate mr-2 ${unreadCount > 0 ? 'text-white font-medium' : 'text-slate-500'}`}>
-            {lastMsg?.content || "Start collaborating"}
-          </p>
+          <div className="flex items-center gap-1 min-w-0 mr-2">
+            {/* ✅ Show tick for sent messages, nothing for received */}
+            {isSentByMe && lastMsg && !lastMsg.isDeleted && (
+              lastMsg.isRead
+                ? <CheckCheck size={13} className="shrink-0 text-purple-400" />
+                : <Check size={13} className="shrink-0 text-slate-500" />
+            )}
+            <p className={`text-xs truncate ${unreadCount > 0 ? 'text-white font-medium' : 'text-slate-500'}`}>
+              {lastMsg?.isDeleted ? 'Message deleted' : lastMsg?.content || "Start collaborating"}
+            </p>
+          </div>
 
-          {/* NUMBER ICON: Spontaneously shows the new unreadCount property */}
           {unreadCount > 0 && (
             <span className="flex items-center justify-center min-w-5 h-5 px-1.5 bg-purple-600 text-white text-[10px] font-bold rounded-full shadow-lg animate-in zoom-in duration-300">
               {unreadCount}

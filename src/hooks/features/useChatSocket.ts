@@ -1,5 +1,5 @@
 "use client"
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { messagingSocketService } from '@/lib/socket/messagingSocket';
 import {
@@ -13,7 +13,7 @@ import { SocketEvents, Message } from '@/types/messaging.types';
 
 interface NewMessagePayload {
     conversationId: string;
-    message: Message; // Ensure Message is imported from your types
+    message: Message;
 }
 
 export const useChatSocket = () => {
@@ -21,32 +21,63 @@ export const useChatSocket = () => {
     const { token, user: currentUser } = useAppSelector((state) => state.auth);
     const { activeConversationId } = useAppSelector((state) => state.chat);
 
+    const activeConversationRef = useRef(activeConversationId);
+    const currentUserRef = useRef(currentUser);
+
     useEffect(() => {
-        if (!token) return;
+        activeConversationRef.current = activeConversationId;
+    }, [activeConversationId]);
 
-        messagingSocketService.connect(token);
+    useEffect(() => {
+        currentUserRef.current = currentUser;
+    }, [currentUser]);
 
+    // ─── SINGLE EFFECT: connect, join rooms, register handlers ────────────────
+    // Combining into one effect guarantees the socket exists before we attach
+    // handlers — the previous split caused a race where getSocket() returned
+    // null because the handler effect ran before connect() finished.
+    useEffect(() => {
+        const currentUserId = currentUser?.id || currentUser?._id;
+        if (!token || !currentUserId) return;
 
-     const handleNewMessage = (data: NewMessagePayload) => {
-    const { conversationId, message } = data;
-    const currentUserId = currentUser?.id || currentUser?._id;
+        // 1. Connect (safe — returns existing socket if already connected)
+        const socket = messagingSocketService.connect(token);
 
-    // ✅ DISPATCH MESSAGE FIRST
-    dispatch(addMessage(message));
+        // 2. Join rooms once connected
+        const onConnect = () => {
+            messagingSocketService.joinUserRoom(currentUserId);
+            if (activeConversationRef.current) {
+                messagingSocketService.joinConversation(activeConversationRef.current);
+            }
+        };
 
-    // ✅ ONLY INCREMENT IF: 
-    // 1. The message is NOT from me
-    // 2. I am NOT currently looking at this specific chat
-    const isFromMe = message.sender._id === currentUserId;
-    const isInActiveChat = conversationId === activeConversationId;
+        if (socket.connected) {
+            onConnect();
+        } else {
+            socket.once('connect', onConnect);
+        }
 
-    if (!isFromMe && !isInActiveChat && currentUserId) {
-        dispatch(incrementUnreadCount({
-            conversationId: conversationId,
-            userId: currentUserId
-        }));
-    }
-};
+        // 3. Register event handlers on the same socket instance
+        const handleNewMessage = (data: NewMessagePayload) => {
+          
+            const { conversationId, message } = data;
+            const currentUserId = currentUserRef.current?.id || currentUserRef.current?._id;
+            const activeId = activeConversationRef.current;
+               console.log('📬 handleNewMessage fired:', message.content);
+  console.log('📬 currentUserId:', currentUserId);
+  console.log('📬 isFromMe:', message.sender._id === currentUserId);
+  console.log('📬 isInActiveChat:', conversationId === activeId);
+  console.log('📬 will increment:', !( message.sender._id === currentUserId) && !(conversationId === activeId) && !!currentUserId);
+
+            dispatch(addMessage(message));
+
+            const isFromMe = message.sender._id === currentUserId;
+            const isInActiveChat = conversationId === activeId;
+
+            if (!isFromMe && !isInActiveChat && currentUserId) {
+                dispatch(incrementUnreadCount({ conversationId, userId: currentUserId }));
+            }
+        };
 
         const handleTyping = (data: SocketEvents['typing']) => {
             dispatch(setTypingStatus(data));
@@ -64,48 +95,45 @@ export const useChatSocket = () => {
             dispatch(deleteMessageLocal({ messageId: data.messageId }));
         };
 
-        // Register Listeners
-        messagingSocketService.on('new-message', handleNewMessage);
-        messagingSocketService.on('typing', handleTyping);
-        messagingSocketService.on('message-read', handleMessagesRead);
-        messagingSocketService.on('message-deleted', handleMessageDeleted);
+        socket.on('new-message', handleNewMessage);
+        socket.on('typing', handleTyping);
+        socket.on('message-read', handleMessagesRead);
+        socket.on('message-deleted', handleMessageDeleted);
 
         return () => {
-            messagingSocketService.off('new-message', handleNewMessage);
-            messagingSocketService.off('typing', handleTyping);
-            messagingSocketService.off('message-read', handleMessagesRead);
-            messagingSocketService.off('message-deleted', handleMessageDeleted);
+            socket.off('connect', onConnect);
+            socket.off('new-message', handleNewMessage);
+            socket.off('typing', handleTyping);
+            socket.off('message-read', handleMessagesRead);
+            socket.off('message-deleted', handleMessageDeleted);
+
+            if (activeConversationRef.current) {
+                messagingSocketService.leaveConversation(activeConversationRef.current);
+            }
         };
-    }, [dispatch, token, currentUser, activeConversationId]);
 
-    // Room Management
-  // Room Management
-useEffect(() => {
-  const currentUserId = currentUser?.id || currentUser?._id;
-  if (!token || !currentUserId) return;
+    // Only re-runs when token or user changes — NOT on activeConversationId
+    // because we read that from the ref inside the handler
+    }, [token, currentUser, dispatch]);
 
-  const socket = messagingSocketService.connect(token);
+    // ─── ROOM SWITCHING ───────────────────────────────────────────────────────
+    // Separate effect just for joining/leaving rooms when conversation changes.
+    // Does NOT re-register handlers.
+    useEffect(() => {
+        const currentUserId = currentUser?.id || currentUser?._id;
+        if (!token || !currentUserId || !activeConversationId) return;
 
-  // ✅ Wait for connection before joining rooms
-  const onConnect = () => {
-    messagingSocketService.joinUserRoom(currentUserId);
-    if (activeConversationId) {
-      messagingSocketService.joinConversation(activeConversationId);
-    }
-  };
+        const socket = messagingSocketService.getSocket();
+        if (!socket) return;
 
-  if (socket.connected) {
-    onConnect();
-  } else {
-    socket.once('connect', onConnect);
-  }
+        if (socket.connected) {
+            messagingSocketService.joinConversation(activeConversationId);
+        }
 
-  return () => {
-    socket.off('connect', onConnect);
-    if (activeConversationId) {
-      messagingSocketService.leaveConversation(activeConversationId);
-    }
-  };
-}, [activeConversationId, currentUser, token]);
+        return () => {
+            messagingSocketService.leaveConversation(activeConversationId);
+        };
+    }, [activeConversationId, currentUser, token]);
+
     return null;
 };
