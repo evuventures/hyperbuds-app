@@ -48,13 +48,19 @@ const MessagesPage = () => {
 
    return (
       <DashboardLayout>
-         <div className="flex h-[calc(100vh-64px)] bg-[#0F172A] overflow-hidden">
-            <div className="w-full md:w-80 flex-col border-r border-slate-800/50">
+         
+         <div className="flex h-[calc(100vh-64px)] bg-white dark:bg-slate-900 overflow-hidden transition-colors duration-300">
+            
+            
+            <div className="w-full md:w-80 flex flex-col border-r border-gray-100 dark:border-slate-800/50">
                <ConversationList />
             </div>
-            <div className="hidden flex-1 md:flex flex-col min-w-0 bg-[#0F172A]">
+
+            
+            <div className="hidden flex-1 md:flex flex-col min-w-0 bg-white dark:bg-slate-900">
                <ChatWindow />
             </div>
+            
          </div>
       </DashboardLayout>
    )

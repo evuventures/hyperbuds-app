@@ -41,31 +41,30 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isMe }) =
         
         <div className={`flex items-center gap-2 max-w-full ${isMe ? 'flex-row' : 'flex-row-reverse'}`}>
           
-          {/* Action Area: Now handles mobile "Tap to show" logic */}
+          {/* Action Area */}
           {isMe && !message.isDeleted && (
             <div className="flex items-center h-full">
               {!showConfirm ? (
                 <button
                   onClick={() => setShowConfirm(true)}
-                  // ✅ Mobile fix: Visible on hover OR if user taps bubble (handled by state)
-                  className="opacity-0 group-hover:opacity-100 p-1.5 text-gray-500 hover:text-red-400 transition-all duration-200"
+                  className="opacity-0 group-hover:opacity-100 p-1.5 text-slate-400 hover:text-red-500 transition-all duration-200"
                 >
                   <Trash2 size={16} />
                 </button>
               ) : (
-                // ✅ Modern Delete Confirmation Pop-up
-                <div className="flex items-center gap-1 bg-gray-800 border border-gray-600 rounded-xl p-1 shadow-2xl animate-in fade-in zoom-in duration-200 z-20">
+                /* Delete Confirmation Pop-up - Now Theme Aware */
+                <div className="flex items-center gap-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-xl p-1 shadow-xl animate-in fade-in zoom-in duration-200 z-20">
                   <button
                     onClick={handleDelete}
                     disabled={isDeleting}
-                    className="flex items-center gap-1 px-2 py-1 text-[11px] font-bold text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                    className="flex items-center gap-1 px-2 py-1 text-[11px] font-bold text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"
                   >
                     <Check size={12} /> {isDeleting ? '...' : 'Delete'}
                   </button>
-                  <div className="w-px h-3 bg-gray-600 mx-1" />
+                  <div className="w-px h-3 bg-slate-200 dark:bg-slate-600 mx-1" />
                   <button
                     onClick={() => setShowConfirm(false)}
-                    className="p-1 text-gray-400 hover:bg-gray-700 rounded-lg"
+                    className="p-1 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg"
                   >
                     <X size={14} />
                   </button>
@@ -76,15 +75,14 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isMe }) =
 
           {/* Chat Bubble */}
           <div 
-            // ✅ Mobile trigger: Tapping the bubble shows the delete button
             onClick={() => isMe && !message.isDeleted && setShowConfirm(true)}
             className={`
               px-4 py-2.5 rounded-2xl text-sm transition-all duration-200 cursor-pointer active:scale-[0.98]
               ${message.isDeleted
-                ? 'bg-gray-900/40 border border-gray-800 text-gray-500 italic flex items-center gap-2'
+                ? 'bg-slate-100 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 text-slate-400 italic flex items-center gap-2'
                 : isMe
-                  ? 'bg-purple-600 text-white rounded-tr-none shadow-md shadow-purple-900/10'
-                  : 'bg-gray-700 text-gray-100 rounded-tl-none border border-gray-600/50'}
+                  ? 'bg-purple-600 text-white rounded-tr-none shadow-sm dark:shadow-purple-900/10'
+                  : 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-tl-none border border-slate-200 dark:border-slate-700/50'}
             `}
           >
             {message.isDeleted ? (
@@ -102,11 +100,11 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isMe }) =
 
         {/* Footer */}
         <div className={`flex items-center gap-1.5 mt-1 px-1 ${isMe ? 'flex-row' : 'flex-row-reverse'}`}>
-          <span className="text-[10px] text-gray-400">
+          <span className="text-[10px] text-slate-400 dark:text-slate-500">
             {formatTime(message.createdAt)}
           </span>
           {isMe && !message.isDeleted && (
-            <span className={`text-[10px] font-bold ${message.isRead ? 'text-purple-400' : 'text-gray-600'}`}>
+            <span className={`text-[10px] font-bold ${message.isRead ? 'text-purple-500 dark:text-purple-400' : 'text-slate-300 dark:text-slate-600'}`}>
               {message.isRead ? '✓✓' : '✓'}
             </span>
           )}

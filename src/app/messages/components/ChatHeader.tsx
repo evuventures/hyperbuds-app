@@ -1,7 +1,6 @@
 "use client"
 import React, { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
-//  Switch to typed hooks
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { MoreVertical, Archive, ArchiveRestore, Search, X } from 'lucide-react';
 import { User } from '@/types/messaging.types';
@@ -9,7 +8,7 @@ import { messagingAPI } from '@/lib/api/messaging.api';
 import { toggleArchiveLocal } from '@/store/slices/chatSlice';
 
 interface ChatHeaderProps {
-  recipient?: User; 
+  recipient?: User;
 }
 
 interface SearchResultMessage {
@@ -32,13 +31,10 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({ recipient }) => {
   const [imgError, setImgError] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  //  Pull state using typed selectors
   const { activeConversationId, typingUsers, conversations } = useAppSelector((state) => state.chat);
-  
   const activeChat = conversations.find(c => c._id === activeConversationId);
   const isArchived = activeChat?.isArchived || false;
 
-  //  Priority Display Name: Username -> FullName -> Email Prefix
   const displayName = recipient?.username || recipient?.fullName || recipient?.email?.split('@')[0];
 
   useEffect(() => {
@@ -79,23 +75,22 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({ recipient }) => {
       await messagingAPI.toggleArchive(activeConversationId);
       dispatch(toggleArchiveLocal({ conversationId: activeConversationId, isArchived: !isArchived }));
       setShowMenu(false);
-    } catch (error) { 
-      console.error("Archive failed:", error); 
+    } catch (error) {
+      console.error("Archive failed:", error);
     }
   };
 
-  //  Normalized ID check for typing indicators
   const recipientId = recipient?._id || recipient?.id;
-  const isTyping = activeConversationId && recipientId 
-    ? typingUsers[activeConversationId]?.includes(recipientId) 
+  const isTyping = activeConversationId && recipientId
+    ? typingUsers[activeConversationId]?.includes(recipientId)
     : false;
 
   return (
-    <div className="flex flex-col border-b border-slate-800 bg-[#0F172A] z-20 relative">
+    <div className="flex flex-col border-b border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900 z-20 relative">
       <div className="flex items-center justify-between px-4 py-3">
         <div className="flex items-center gap-3">
           <div className="relative">
-            <div className="w-10 h-10 rounded-full bg-linear-to-tr from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-sm shadow-lg overflow-hidden relative">
+            <div className="w-10 h-10 rounded-full bg-linear-to-tr from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-sm shadow-sm overflow-hidden relative">
               {recipient?.avatar && !imgError ? (
                 <Image
                   src={recipient.avatar}
@@ -110,20 +105,20 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({ recipient }) => {
               )}
             </div>
             {recipient?.status === 'online' && (
-              <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-slate-900 rounded-full shadow-sm z-10" />
+              <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-white dark:border-slate-900 rounded-full shadow-sm z-10" />
             )}
           </div>
 
           {!isSearching && (
             <div className="animate-in fade-in slide-in-from-left-2 duration-300">
-              <h3 className="text-sm font-bold text-white leading-none">
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white leading-none">
                 {displayName || "Hyperbud Creator"}
               </h3>
               <p className="text-[10px] mt-1">
                 {isTyping ? (
-                  <span className="text-purple-400 font-medium italic animate-pulse">typing...</span>
+                  <span className="text-purple-500 dark:text-purple-400 font-medium italic animate-pulse">typing...</span>
                 ) : (
-                  <span className="text-slate-500">
+                  <span className="text-slate-500 dark:text-slate-400">
                     {recipient?.status === 'online' ? 'Active now' : 'Away'}
                   </span>
                 )}
@@ -132,46 +127,46 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({ recipient }) => {
           )}
         </div>
 
-        <div className="flex items-center gap-4 text-slate-500">
+        <div className="flex items-center gap-4 text-slate-500 dark:text-slate-400">
           {isSearching ? (
-            <div className="flex items-center bg-slate-800 rounded-lg px-3 py-1.5 animate-in zoom-in duration-200 ring-1 ring-slate-700">
-              <Search size={14} className="mr-2 text-slate-400" />
-              <input 
+            <div className="flex items-center bg-slate-100 dark:bg-slate-800 rounded-lg px-3 py-1.5 animate-in zoom-in duration-200 ring-1 ring-slate-200 dark:ring-slate-700">
+              <Search size={14} className="mr-2 text-slate-500 dark:text-slate-400" />
+              <input
                 autoFocus
-                className="bg-transparent text-xs text-white outline-none w-40 md:w-64"
+                className="bg-transparent text-xs text-slate-900 dark:text-white outline-none w-40 md:w-64 placeholder:text-slate-400"
                 placeholder="Search in conversation..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
-              <button onClick={() => { setIsSearching(false); setSearchQuery(''); }} className="hover:text-white ml-2">
+              <button onClick={() => { setIsSearching(false); setSearchQuery(''); }} className="hover:text-slate-900 dark:hover:text-white ml-2">
                 <X size={14} />
               </button>
             </div>
           ) : (
             <>
-              <button 
-                onClick={() => setIsSearching(true)} 
-                className="hover:text-white transition-colors p-1.5 rounded-lg hover:bg-slate-800" 
+              <button
+                onClick={() => setIsSearching(true)}
+                className="hover:text-slate-900 dark:hover:text-white transition-colors p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
                 title="Search messages"
               >
                 <Search size={18} />
               </button>
-              
+
               <div className="relative" ref={menuRef}>
-                <button 
-                  onClick={() => setShowMenu(!showMenu)} 
-                  className={`p-1.5 rounded-lg transition-colors ${showMenu ? 'text-white bg-slate-800' : 'hover:text-white hover:bg-slate-800'}`}
+                <button
+                  onClick={() => setShowMenu(!showMenu)}
+                  className={`p-1.5 rounded-lg transition-colors ${showMenu ? 'text-slate-900 bg-slate-100 dark:text-white dark:bg-slate-800' : 'hover:text-slate-900 hover:bg-slate-100 dark:hover:text-white dark:hover:bg-slate-800'}`}
                 >
                   <MoreVertical size={18} />
                 </button>
                 {showMenu && (
-                  <div className="absolute right-0 mt-2 w-48 bg-[#1E293B] border border-slate-700 rounded-xl shadow-2xl py-1 z-50 animate-in fade-in zoom-in duration-150">
-                    <button 
-                      onClick={handleArchiveToggle} 
-                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-slate-200 hover:bg-slate-700/50 transition-colors rounded-lg"
+                  <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl py-1 z-50 animate-in fade-in zoom-in duration-150">
+                    <button
+                      onClick={handleArchiveToggle}
+                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
                     >
                       {isArchived ? (
-                        <><ArchiveRestore size={16} className="text-purple-400" /> Unarchive</>
+                        <><ArchiveRestore size={16} className="text-purple-500" /> Unarchive</>
                       ) : (
                         <><Archive size={16} /> Archive</>
                       )}
@@ -184,19 +179,20 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({ recipient }) => {
         </div>
       </div>
 
+      {/* Search Results Dropdown */}
       {isSearching && searchQuery.length >= 2 && (
-        <div className="absolute top-full left-0 w-full bg-[#1E293B] border-b border-slate-800 max-h-60 overflow-y-auto z-50 shadow-2xl border-t">
+        <div className="absolute top-full left-0 w-full bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 max-h-60 overflow-y-auto z-50 shadow-2xl border-t dark:border-t-slate-800">
           {searchResults.length > 0 ? (
             searchResults.map(result => (
-              <div key={result._id} className="p-3 hover:bg-slate-800 cursor-pointer border-b border-slate-800/50 transition-colors group">
-                <p className="text-[10px] text-slate-500 mb-1 group-hover:text-slate-400">
+              <div key={result._id} className="p-3 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer border-b border-slate-100 dark:border-slate-800/50 transition-colors group">
+                <p className="text-[10px] text-slate-400 mb-1 group-hover:text-slate-500">
                   {new Date(result.createdAt).toLocaleDateString()}
                 </p>
-                <p className="text-sm text-white line-clamp-1">{result.content}</p>
+                <p className="text-sm text-slate-800 dark:text-slate-200 line-clamp-1">{result.content}</p>
               </div>
             ))
           ) : (
-            <div className="p-4 text-center text-slate-500 text-xs italic">
+            <div className="p-4 text-center text-slate-500 dark:text-slate-400 text-xs italic">
               No messages found matching &quot;{searchQuery}&quot;
             </div>
           )}
