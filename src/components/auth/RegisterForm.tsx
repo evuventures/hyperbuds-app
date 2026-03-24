@@ -29,8 +29,6 @@ const LoadingSpinner = () => (
   </svg>
 );
 
-
-
 export default function App() {
   const router = useRouter();
   const { register, initiateGoogleLogin } = useAuth();
@@ -79,7 +77,7 @@ export default function App() {
     } catch (err) {
       // ✅ Type-safe error handling avoiding 'any'
       const errorMessage = err instanceof Error ? err.message : 'Registration failed';
-      
+ 
       if (errorMessage.includes('409') || errorMessage.toLowerCase().includes('already in use')) {
         setError('This email is already in use. Please use a different one.');
       } else {

@@ -7,6 +7,7 @@ export default function VerifyEmail() {
   const [status, setStatus] = useState("Verifying your email...");
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [htmlBody, setHtmlBody] = useState("");
 
   useEffect(() => {
     const token = searchParams.get("token");
@@ -19,7 +20,7 @@ export default function VerifyEmail() {
     const verify = async () => {
       try {
         const res = await fetch(
-          `${BASE_URL}/api/v1/auth/verify-email?token=${token}`,
+          `${BASE_URL}/api/v1/auth/verify-email?token=${token}`, 
           {
             method: "GET",
           }
@@ -31,12 +32,15 @@ export default function VerifyEmail() {
         }
 
         // ✅ Correct way to parse response
-        const data = await res.json();
+        const data = await res.text();
 
-        setStatus(`✅ ${data.message} Redirecting to login...`);
+        setHtmlBody(data);
+
+        setStatus(`✅ Email verified successfully. Redirecting to login...`);
         setTimeout(() => router.push("/auth/signin"), 2000);
       } catch (error: unknown) {
         setStatus(`❌ Email verification failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        console.log(error)
       }
     };
 
@@ -44,8 +48,9 @@ export default function VerifyEmail() {
   }, [router, searchParams]);
 
   return (
-    <div className="flex justify-center items-center h-screen">
+    <div className="flex flex-col justify-center items-center h-screen">
       <h2 className="text-lg font-semibold">{status}</h2>
+      <div dangerouslySetInnerHTML={{ __html: htmlBody }} />
     </div>
   );
 }
