@@ -1,246 +1,111 @@
 "use client";
 
 import React, { useState } from "react";
-import { Heart } from "lucide-react";
+import { Sparkles } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import MatchCard from "./MatchCard";
-import ProfileModal from "./ProfileModal";
-import type { MatchSuggestion, CreatorProfile } from "@/types/matching.types";
+import type { MatchSuggestion } from "@/types/matching.types";
 
 interface MatchHistoryGalleryProps {
   historyMatches: MatchSuggestion[];
   onMessage: (match: MatchSuggestion) => void;
-  onViewProfile?: (userId: string) => void;
-  likedMatches?: Set<string>;
+  onViewProfile?: (match: MatchSuggestion) => void;
 }
+
+const getProfileAge = (profile?: MatchSuggestion["targetUser"]): number | undefined => {
+  const rawAge = (profile as { age?: unknown } | undefined)?.age;
+  return typeof rawAge === "number" && Number.isFinite(rawAge) && rawAge > 0
+    ? Math.floor(rawAge)
+    : undefined;
+};
 
 const MatchHistoryGallery: React.FC<MatchHistoryGalleryProps> = ({
   historyMatches,
   onMessage,
   onViewProfile,
-  likedMatches = new Set()
 }) => {
-  const [selectedProfile, setSelectedProfile] = useState<CreatorProfile | null>(null);
-  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
-  const [filter, setFilter] = useState<'all' | 'liked' | 'mutual'>('all');
+  const [showAllMatches, setShowAllMatches] = useState(false);
 
-  const handleViewProfileInternal = (userId: string) => {
-    if (onViewProfile) {
-      onViewProfile(userId);
-    } else {
-      const match = historyMatches.find(m => m.targetUser?.userId === userId);
-      if (match?.targetUser) {
-        setSelectedProfile(match.targetUser);
-        setIsProfileModalOpen(true);
-      }
-    }
-  };
+  const featuredMatches = historyMatches.slice(0, 2);
+  const remainingMatches = historyMatches.slice(2);
+  const visibleSidebarMatches = showAllMatches ? remainingMatches : remainingMatches.slice(0, 4);
 
-  // Update the parameter from 'userId: string' to 'match: MatchSuggestion'
-const handleMessage = (match: MatchSuggestion) => {
-  // Pass the whole object up to the parent 
-  onMessage(match);
-  
-  // log a specific ID from the object
-  console.log("Opening chat with user ID:", match.targetUserId || match.userId);
-};
-
-  // Filter matches based on selected filter
-  const filteredMatches = historyMatches.filter(match => {
-    if (filter === 'liked') return match.status === 'liked';
-    if (filter === 'mutual') return match.status === 'mutual';
-    return true; // 'all'
-  });
-
-  // Calculate stats
-  const stats = {
-    total: historyMatches.length,
-    liked: historyMatches.filter(m => m.status === 'liked').length,
-    mutual: historyMatches.filter(m => m.status === 'mutual').length,
-  };
-
-  // Stats data for mapping
-  const statsData = [
-    {
-      key: 'total',
-      value: stats.total,
-      label: 'Total',
-      icon: '👥',
-      gradient: 'from-blue-500/20 to-cyan-500/20',
-      textGradient: 'from-blue-600 to-cyan-600 dark:from-blue-400 dark:to-cyan-400',
-      shadow: 'hover:shadow-blue-500/20 dark:hover:shadow-blue-500/10'
-    },
-    {
-      key: 'liked',
-      value: stats.liked,
-      label: 'Liked',
-      icon: '❤️',
-      gradient: 'from-green-500/20 to-emerald-500/20',
-      textGradient: 'from-green-600 to-emerald-600 dark:from-green-400 dark:to-emerald-400',
-      shadow: 'hover:shadow-green-500/20 dark:hover:shadow-green-500/10'
-    },
-    {
-      key: 'mutual',
-      value: stats.mutual,
-      label: 'Mutual',
-      icon: '🤝',
-      gradient: 'from-purple-500/20 to-pink-500/20',
-      textGradient: 'from-purple-600 to-pink-600 dark:from-purple-400 dark:to-pink-400',
-      shadow: 'hover:shadow-purple-500/20 dark:hover:shadow-purple-500/10'
-    }
-  ];
+  if (!historyMatches.length) {
+    return (
+      <div className="py-16 text-center">
+        <Sparkles className="mx-auto mb-4 h-12 w-12 text-fuchsia-300" />
+        <h3 className="text-xl font-semibold text-white">No matches available</h3>
+        <p className="mt-3 text-sm text-slate-400">
+          We&apos;ll show your strongest creator matches here as soon as they&apos;re ready.
+        </p>
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-6">
-      {/* Stats Cards (Left) and Filter Tabs (Right) */}
-      <div className="flex flex-col gap-4 justify-between items-center lg:flex-row lg:gap-0">
-        {/* Left Side - Enhanced Stats Cards */}
-        <div className="flex flex-wrap gap-2 justify-center sm:gap-3 lg:justify-start">
-          {statsData.map((stat, index) => (
-            <div
-              key={stat.key}
-              className="relative cursor-pointer group"
-              style={{ animationDelay: `${index * 100}ms` }}
-            >
-              {/* Animated gradient background */}
-              <div className={`absolute inset-0 bg-linear-to-r rounded-2xl opacity-0 blur-xl transition-all duration-500 ${stat.gradient} group-hover:opacity-30 dark:group-hover:opacity-60 group-hover:blur-lg`}></div>
-
-              {/* Glowing border effect */}
-              <div className={`absolute inset-0 rounded-2xl bg-linear-to-r ${stat.gradient} opacity-0 transition-opacity duration-300 group-hover:opacity-10 dark:group-hover:opacity-20`}
-                style={{ padding: '1px' }}>
-                <div className="w-full h-full bg-white rounded-2xl dark:bg-slate-900"></div>
-              </div>
-
-              {/* Main card */}
-              <div className={`relative p-4 rounded-2xl border backdrop-blur-xl transition-all duration-500 bg-white/90 dark:bg-slate-800/90 border-gray-200/60 dark:border-white/20 hover:scale-110 hover:shadow-2xl hover:shadow-purple-500/15 dark:hover:shadow-purple-500/15 hover:-translate-y-1 ${stat.shadow}`}>
-                <div className="text-center">
-                  {/* Number with enhanced gradient */}
-                  <div className={`text-2xl font-black bg-clip-text text-transparent bg-linear-to-r mb-1 transition-all duration-300 group-hover:scale-110 ${stat.textGradient}`}>
-                    {stat.value}
-                  </div>
-
-                  {/* Label with subtle animation */}
-                  <div className="text-xs font-semibold tracking-wider text-gray-500 uppercase transition-colors duration-300 dark:text-gray-300 group-hover:text-gray-700 dark:group-hover:text-gray-100">
-                    {stat.label}
-                  </div>
-                </div>
-
-                {/* Subtle inner glow */}
-                <div className={`absolute inset-0 rounded-2xl bg-linear-to-r ${stat.gradient} opacity-0 transition-opacity duration-500 group-hover:opacity-3 dark:group-hover:opacity-5`}></div>
-              </div>
-
-              {/* Floating particles effect */}
-              <div className="overflow-hidden absolute inset-0 rounded-2xl pointer-events-none">
-                <div className="absolute w-1 h-1 bg-gray-600 rounded-full opacity-0 transition-all duration-1000 dark:bg-white group-hover:opacity-80 dark:group-hover:opacity-100"
-                  style={{
-                    top: '20%',
-                    left: '20%',
-                    animationDelay: '0ms',
-                    animation: 'float 3s ease-in-out infinite'
-                  }}></div>
-                <div className="absolute w-1 h-1 bg-gray-600 rounded-full opacity-0 transition-all duration-1000 dark:bg-white group-hover:opacity-80 dark:group-hover:opacity-100"
-                  style={{
-                    top: '60%',
-                    right: '20%',
-                    animationDelay: '1s',
-                    animation: 'float 3s ease-in-out infinite'
-                  }}></div>
-                <div className="absolute w-1 h-1 bg-gray-700 rounded-full opacity-0 transition-all duration-1000 dark:bg-white group-hover:opacity-80 dark:group-hover:opacity-100"
-                  style={{
-                    bottom: '20%',
-                    left: '60%',
-                    animationDelay: '2s',
-                    animation: 'float 3s ease-in-out infinite'
-                  }}></div>
-                <div className="absolute w-1 h-1 bg-gray-800 rounded-full opacity-0 transition-all duration-1000 dark:bg-white group-hover:opacity-80 dark:group-hover:opacity-100"
-                  style={{
-                    bottom: '60%',
-                    right: '60%',
-                    animationDelay: '1.5s',
-                    animation: 'float 3s ease-in-out infinite'
-                  }}></div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Right Side - Filter Tabs */}
-        <div className="inline-flex relative rounded-2xl border shadow-lg backdrop-blur-sm bg-white/80 dark:bg-slate-800/50 border-gray-200/50 dark:border-white/10 px-1 sm:px-1.5">
-          {/* Animated background for active tab */}
-          <div
-            className="absolute top-1.5 bottom-1.5 rounded-xl bg-linear-to-r from-purple-500 to-pink-500 transition-all duration-300 ease-out shadow-lg"
-            style={{
-              width: 'calc(33.333% - 0.5rem)',
-              left: `calc(${(['all', 'liked', 'mutual'].indexOf(filter) * 33.333)}% + 0.25rem)`,
-            }}
+    <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
+      <div className="space-y-6">
+        {featuredMatches.map((match, index) => (
+          <MatchCard
+            key={match._id || match.id || `${match.targetUserId}-${index}`}
+            match={match}
+            rank={index}
+            onMessage={onMessage}
+            onViewProfile={onViewProfile}
           />
+        ))}
+      </div>
 
-          {[
-            { key: 'all', label: 'All Matches', icon: '👥' },
-            { key: 'liked', label: 'Liked', icon: '❤️' },
-            { key: 'mutual', label: 'Mutual', icon: '🤝' }
-          ].map((tab) => (
+      {remainingMatches.length > 0 && (
+        <aside className="h-fit rounded-[28px] border border-white/10 bg-[#1a1227]/88 p-5 shadow-[0_24px_70px_-36px_rgba(192,38,211,0.65)] backdrop-blur">
+          <div className="mb-5 flex items-start justify-between gap-3">
+            <div>
+              <h2 className="text-2xl font-bold text-white">More Matches</h2>
+              <p className="mt-1 text-sm text-slate-400">Keep exploring your next best fits.</p>
+            </div>
             <button
-              key={tab.key}
-              onClick={() => setFilter(tab.key as 'all' | 'liked' | 'mutual')}
-              className={`relative z-10 flex-1 px-4 sm:px-6 py-2 sm:py-3 rounded-xl text-xs sm:text-sm font-medium flex items-center justify-center transition-all duration-300 cursor-pointer min-w-0 ${filter === tab.key
-                ? 'text-white'
-                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-                }`}
+              type="button"
+              onClick={() => setShowAllMatches((current) => !current)}
+              className="shrink-0 text-sm font-semibold text-fuchsia-300 transition-colors hover:text-white"
             >
-              <span className="flex gap-1 justify-center items-center sm:gap-2">
-                <span className="text-sm sm:text-base">{tab.icon}</span>
-                <span className="hidden whitespace-nowrap xs:inline">{tab.label}</span>
-              </span>
+              {showAllMatches ? "Show Less" : "See All"}
             </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Simple Match Cards Grid */}
-      <div>
-        {filteredMatches.length > 0 ? (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {filteredMatches.map((match) => (
-              <MatchCard
-                key={match._id || match.id}
-                match={match}
-                onAction={() => { }} // Not used in gallery context
-                onCollaboration={() => { }} // Not used in gallery context
-                onMessage={handleMessage}
-                onViewProfile={handleViewProfileInternal}
-                isLiked={match.targetUser ? likedMatches.has(match.targetUser.userId) : false}
-                isSidebarContext={true}
-              />
-            ))}
           </div>
-        ) : (
-          <div className="py-12 text-center">
-            <Heart className="mx-auto mb-4 w-12 h-12 text-gray-500 dark:text-gray-400" />
-            <h3 className="mb-2 text-lg font-semibold text-gray-900 dark:text-white">
-              {filter === 'all' ? 'No matches yet' : `No ${filter} matches`}
-            </h3>
-            <p className="mx-auto max-w-md text-gray-600 dark:text-gray-400">
-              {filter === 'all'
-                ? 'Start exploring to find amazing creators and build meaningful connections!'
-                : `You haven't ${filter} any profiles yet. Keep exploring to find your perfect matches!`
-              }
-            </p>
-          </div>
-        )}
-      </div>
 
-      {/* Profile Modal for View Profile */}
-      <ProfileModal
-        profile={selectedProfile}
-        isOpen={isProfileModalOpen}
-        onClose={() => {
-          setIsProfileModalOpen(false);
-          setSelectedProfile(null);
-        }}
-        onAction={() => { }} // Not used in gallery context
-        onCollaboration={() => { }} // Not used in gallery context
-        isLiked={selectedProfile ? likedMatches.has(selectedProfile.userId) : false}
-      />
+          <div className="space-y-3">
+            {visibleSidebarMatches.map((match, index) => {
+              const profile = match.targetUser;
+              const displayName = profile?.displayName || profile?.username || "Unknown Creator";
+              const age = getProfileAge(profile);
+
+              return (
+                <button
+                  type="button"
+                  onClick={() => onViewProfile?.(match)}
+                  key={match._id || match.id || `${match.targetUserId}-${index + 2}`}
+                  className="flex w-full cursor-pointer items-center gap-3 rounded-2xl border border-white/6 bg-[#120d1d]/75 p-3 text-left transition-colors hover:border-fuchsia-400/25 hover:bg-[#181127]"
+                >
+                  <Avatar className="h-14 w-14 border border-fuchsia-500/20">
+                    <AvatarImage src={profile?.avatar} alt={displayName} className="object-cover" />
+                    <AvatarFallback className="bg-gradient-to-br from-fuchsia-500 to-pink-500 text-sm font-bold text-white">
+                      {displayName.charAt(0).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-base font-semibold text-white">
+                      {age ? `${displayName}, ${age}` : displayName}
+                    </p>
+                    <p className="mt-1 text-sm font-semibold text-transparent bg-gradient-to-r from-fuchsia-400 to-pink-400 bg-clip-text">
+                      {match.compatibilityScore}% Match
+                    </p>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </aside>
+      )}
     </div>
   );
 };

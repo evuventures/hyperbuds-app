@@ -1,224 +1,150 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { Card, CardContent } from "@/components/ui/card";
+import { MapPin, MessageCircle, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Heart, X, Eye, Star, Zap, MessageCircle } from "lucide-react";
 import type { MatchSuggestion } from "@/types/matching.types";
 
 interface MatchCardProps {
-   match: MatchSuggestion;
-   onAction: (matchId: string, action: "like" | "unlike" | "pass" | "view") => void;
-   onCollaboration: (matchId: string) => void;
-   onMessage?: (match: MatchSuggestion) => void;
-   onViewProfile?: (matchId: string) => void;
-   isLiked?: boolean;
-   isSidebarContext?: boolean;
+  match: MatchSuggestion;
+  rank: number;
+  onMessage?: (match: MatchSuggestion) => void;
+  onViewProfile?: (match: MatchSuggestion) => void;
 }
 
+const BADGE_LABELS = ["ULTIMATE MATCH", "TOP COMPATIBILITY"] as const;
+
+const getProfileAge = (profile?: MatchSuggestion["targetUser"]): number | undefined => {
+  const rawAge = (profile as { age?: unknown } | undefined)?.age;
+  return typeof rawAge === "number" && Number.isFinite(rawAge) && rawAge > 0
+    ? Math.floor(rawAge)
+    : undefined;
+};
+
 const MatchCard: React.FC<MatchCardProps> = ({
-   match,
-   onAction,
-   onCollaboration,
-   onMessage,
-   onViewProfile,
-   isLiked = false,
-   isSidebarContext = false
+  match,
+  rank,
+  onMessage,
+  onViewProfile,
 }) => {
-   const profile = match.targetUser;
+  const [hasImageError, setHasImageError] = useState(false);
+  const profile = match.targetUser;
 
-   if (!profile) {
-      return null;
-   }
+  if (!profile) {
+    return null;
+  }
 
-   const handleLikeToggle = () => {
-      onAction(profile.userId, isLiked ? "unlike" : "like");
-   };
+  const locationLabel = [profile.location?.city, profile.location?.state, profile.location?.country]
+    .filter(Boolean)
+    .join(", ");
 
+  const age = getProfileAge(profile);
+  const badgeLabel = BADGE_LABELS[rank];
+  const bioText = profile.bio?.trim() || "Bio not available yet.";
 
-   const getCompatibilityColor = (score: number) => {
-      if (score >= 90) return "text-white bg-green-600 border-green-500 shadow-lg";
-      if (score >= 80) return "text-white bg-yellow-600 border-yellow-500 shadow-lg";
-      if (score >= 70) return "text-white bg-orange-600 border-orange-500 shadow-lg";
-      return "text-white bg-red-600 border-red-500 shadow-lg";
-   };
+  return (
+    <motion.article
+      whileHover={{ y: -4 }}
+      transition={{ duration: 0.25, ease: "easeOut" }}
+      className="w-full"
+    >
+      <div className="overflow-hidden rounded-[30px] border border-white/10 bg-[#101827]/95 shadow-[0_24px_70px_-34px_rgba(192,38,211,0.65)]">
+        <div className="grid min-h-[420px] lg:grid-cols-[320px_minmax(0,1fr)]">
+          <div className="relative min-h-[320px] overflow-hidden bg-gradient-to-br from-[#5d304c] via-[#cb9c73] to-[#1c1632]">
+            {profile.avatar && !hasImageError ? (
+              // We use a direct img here because some remote avatar URLs fail through Next image optimization.
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={profile.avatar}
+                alt={profile.displayName}
+                onError={() => setHasImageError(true)}
+                className="absolute inset-0 h-full w-full object-cover"
+              />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-fuchsia-600/35 to-pink-500/25">
+                <span className="text-7xl font-black text-white/90">
+                  {profile.displayName.charAt(0).toUpperCase()}
+                </span>
+              </div>
+            )}
 
-   const getRizzScoreColor = (score: number) => {
-      if (score >= 85) return "text-white bg-purple-600 border-purple-500 shadow-lg";
-      if (score >= 75) return "text-white bg-blue-600 border-blue-500 shadow-lg";
-      if (score >= 65) return "text-white bg-green-600 border-green-500 shadow-lg";
-      return "text-white bg-gray-600 border-gray-500 shadow-lg";
-   };
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0d111f]/95 via-[#0d111f]/25 to-transparent" />
 
-   return (
-      <motion.div
-         whileHover={{ y: -4 }}
-         transition={{ duration: 0.3, ease: "easeOut" }}
-         className="w-full h-full"
-      >
-         <Card className="overflow-hidden h-full border border-gray-200 shadow-sm backdrop-blur-sm transition-all duration-300 group bg-white/80 dark:bg-slate-800/80 dark:border-slate-700 hover:shadow-xl hover:shadow-purple-500/10 dark:hover:shadow-purple-500/20 hover:border-purple-300 dark:hover:border-purple-500/50">
-            {/* Simplified Card Content */}
-            <CardContent className="flex flex-col p-4 h-full sm:p-5">
-               {/* Enhanced Avatar and Basic Info */}
-               <div className="flex items-center mb-4 space-x-3 sm:space-x-4">
-                  <motion.div
-                     whileHover={{ scale: 1.08 }}
-                     whileTap={{ scale: 0.95 }}
-                     transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                     className="relative shrink-0"
-                  >
-                     {/* Glowing Ring Effect */}
-                     <div className="absolute inset-0 bg-linear-to-r from-purple-500 to-pink-500 rounded-full opacity-0 blur-md transition-opacity duration-300 group-hover:opacity-30" />
+            {badgeLabel && (
+              <div className="absolute left-5 top-5 rounded-full bg-gradient-to-r from-fuchsia-500 to-pink-500 px-4 py-1.5 text-[11px] font-black tracking-[0.28em] text-white shadow-[0_14px_32px_-12px_rgba(217,70,239,0.9)]">
+                {badgeLabel}
+              </div>
+            )}
 
-                     {/* Avatar with Enhanced Styling */}
-                     <Avatar className="relative w-14 h-14 border-2 ring-2 ring-transparent shadow-md transition-all duration-300 sm:w-16 sm:h-16 group-hover:ring-purple-500/30 border-white/50 dark:border-slate-600 shadow-purple-500/10">
-                        <AvatarImage
-                           src={profile.avatar}
-                           alt={profile.displayName}
-                           className="object-cover"
-                        />
-                        <AvatarFallback className="text-base font-bold text-white bg-linear-to-br from-purple-500 to-pink-500 sm:text-lg">
-                           {profile.displayName?.charAt(0) || "U"}
-                        </AvatarFallback>
-                     </Avatar>
-                  </motion.div>
+            <div className="absolute inset-x-0 bottom-0 p-5 sm:p-6">
+              <h3 className="text-3xl font-black tracking-tight text-white sm:text-4xl">
+                {age ? `${profile.displayName}, ${age}` : profile.displayName}
+              </h3>
 
-                  <div className="flex-1 min-w-0">
-                     <h3 className="text-base font-bold text-gray-900 truncate transition-colors duration-200 sm:text-lg dark:text-white">
-                        {profile.displayName}
-                     </h3>
-                     <p className="text-xs text-gray-500 sm:text-sm dark:text-gray-400">@{profile.username || 'user'}</p>
+              {locationLabel && (
+                <div className="mt-2 flex items-center gap-2 text-sm font-medium text-slate-200">
+                  <MapPin className="h-4 w-4 shrink-0 text-fuchsia-300" />
+                  <span className="truncate">{locationLabel}</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="flex flex-col justify-between gap-6 p-6 sm:p-7">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div className="flex flex-wrap gap-3">
+                <div className="min-w-[118px] rounded-2xl border border-fuchsia-500/15 bg-[#171127] px-5 py-4">
+                  <div className="text-4xl font-black text-transparent bg-gradient-to-r from-fuchsia-400 to-pink-500 bg-clip-text">
+                    {match.compatibilityScore}%
                   </div>
-               </div>
-
-               {/* Enhanced Score Badges */}
-               <div className="flex flex-wrap gap-2 mb-4">
-                  <div className={`font-semibold text-xs sm:text-sm px-3 py-1.5 border backdrop-blur-sm rounded-lg flex items-center justify-center ${getRizzScoreColor(profile.rizzScore || 0)} transition-transform duration-200 hover:scale-105`}>
-                     <Star className="inline mr-1.5 w-3 h-3 sm:w-3.5 sm:h-3.5" />
-                     Rizz: {profile.rizzScore || "—"}
+                  <div className="mt-1 text-xs font-semibold tracking-[0.28em] text-slate-400">
+                    MATCH
                   </div>
+                </div>
 
-                  <div className={`font-bold text-xs sm:text-sm px-3 py-1.5 border backdrop-blur-sm rounded-lg ${getCompatibilityColor(match.compatibilityScore)} transition-transform duration-200 hover:scale-105`}>
-                     {match.compatibilityScore}% Match
+                <div className="min-w-[102px] rounded-2xl border border-fuchsia-500/10 bg-[#18132a] px-5 py-4">
+                  <div className="text-3xl font-black text-white">
+                    {profile.rizzScore ?? "—"}
                   </div>
-               </div>
-
-               {/* Enhanced Niches */}
-               {profile.niche && profile.niche.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mb-4">
-                     {profile.niche.slice(0, 3).map((tag) => (
-                        <Badge
-                           key={tag}
-                           variant="outline"
-                           className="text-xs sm:text-sm px-2.5 py-1 bg-linear-to-r transition-all duration-200 from-purple-50 to-pink-50 dark:from-purple-500/10 dark:to-pink-500/10 border-purple-200 dark:border-purple-500/30 text-purple-700 dark:text-purple-300 hover:from-purple-100 hover:to-pink-100 dark:hover:from-purple-500/20 dark:hover:to-pink-500/20 hover:border-purple-300 dark:hover:border-purple-400/50 hover:scale-105 cursor-default"
-                        >
-                           #{tag}
-                        </Badge>
-                     ))}
-                     {profile.niche.length > 3 && (
-                        <Badge
-                           variant="outline"
-                           className="text-xs sm:text-sm px-2.5 py-1 text-gray-600 bg-linear-to-r from-gray-50 to-gray-100 border-gray-200 transition-all duration-200 dark:from-gray-700/30 dark:to-gray-600/30 dark:border-gray-600/30 dark:text-gray-300 hover:from-gray-100 hover:to-gray-200 dark:hover:from-gray-600/40 dark:hover:to-gray-500/40 hover:border-gray-300 dark:hover:border-gray-500/50 hover:scale-105 cursor-default"
-                        >
-                           +{profile.niche.length - 3}
-                        </Badge>
-                     )}
+                  <div className="mt-1 text-xs font-semibold tracking-[0.28em] text-fuchsia-300">
+                    RIZZ
                   </div>
-               )}
+                </div>
+              </div>
 
-               {/* Spacer to push buttons to bottom */}
-               <div className="flex-1" />
+              <div className="flex flex-wrap gap-3">
+                <Button
+                  type="button"
+                  onClick={() => onMessage?.(match)}
+                  className="h-12 cursor-pointer rounded-full border border-fuchsia-400/25 bg-white/5 px-5 text-sm font-semibold text-white hover:bg-white/10"
+                >
+                  <MessageCircle className="mr-2 h-4 w-4" />
+                  Message
+                </Button>
 
-               {/* Action Buttons */}
-               {isSidebarContext ? (
-                  /* Sidebar Context - History Cards */
-                  <div className="flex gap-1.5 sm:gap-2 pt-3 border-t border-gray-100 dark:border-slate-700">
-                     {/* Liked Icon (if liked) */}
-                     {isLiked && (
-                        <div className="flex shrink-0 justify-center items-center w-8 h-8 rounded-lg border transition-all duration-200 sm:w-9 sm:h-9 bg-green-500/20 border-green-400/30 hover:scale-110">
-                           <Heart className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-green-400 fill-current" />
-                        </div>
-                     )}
+                <Button
+                  type="button"
+                  onClick={() => onViewProfile?.(match)}
+                  className="h-12 cursor-pointer rounded-full bg-gradient-to-r from-fuchsia-500 to-pink-500 px-5 text-sm font-semibold text-white shadow-[0_14px_32px_-14px_rgba(217,70,239,0.9)] hover:from-fuchsia-400 hover:to-pink-500"
+                >
+                  <UserRound className="mr-2 h-4 w-4" />
+                  View Profile
+                </Button>
+              </div>
+            </div>
 
-                     {/* Message Button */}
-                     <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => onMessage?.(match)}
-                        className="flex-1 h-8 text-xs font-semibold text-blue-600 bg-linear-to-r from-blue-50 to-cyan-50 rounded-lg border border-blue-200 shadow-sm transition-all duration-200 cursor-pointer sm:h-9 sm:text-sm dark:text-blue-400 dark:from-blue-500/20 dark:to-cyan-500/20 dark:border-blue-500/40 hover:from-blue-100 hover:to-cyan-100 dark:hover:from-blue-500/30 dark:hover:to-cyan-500/30 hover:border-blue-300 dark:hover:border-blue-400/60 hover:text-blue-700 dark:hover:text-blue-300 hover:shadow-md hover:shadow-blue-500/20 hover:scale-105"
-                     >
-                        <MessageCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-1" />
-                        <span className="hidden sm:inline">Message</span>
-                     </Button>
-
-                     {/* View Profile Button */}
-                     <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => onViewProfile?.(profile.userId)}
-                        className="flex-1 h-8 text-xs font-semibold text-purple-600 bg-linear-to-r from-purple-50 to-pink-50 rounded-lg border border-purple-200 shadow-sm transition-all duration-200 cursor-pointer sm:h-9 sm:text-sm dark:text-purple-400 dark:from-purple-500/20 dark:to-pink-500/20 dark:border-purple-500/40 hover:from-purple-100 hover:to-pink-100 dark:hover:from-purple-500/30 dark:hover:to-pink-500/30 hover:border-purple-300 dark:hover:border-purple-400/60 hover:text-purple-700 dark:hover:text-purple-300 hover:shadow-md hover:shadow-purple-500/20 hover:scale-105"
-                     >
-                        <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-1" />
-                        <span className="hidden sm:inline">View</span>
-                     </Button>
-                  </div>
-               ) : (
-                  /* Main Page Context - Matching Cards */
-                  <>
-                     <div className="grid grid-cols-3 gap-1.5 sm:gap-2 py-3 border-t border-gray-100 dark:border-slate-700">
-                        <Button
-                           variant="outline"
-                           size="sm"
-                           onClick={() => onAction(profile.userId, "pass")}
-                           className="h-9 text-xs font-semibold text-red-600 bg-linear-to-r from-red-50 to-rose-50 rounded-lg border border-red-200 shadow-sm transition-all duration-200 cursor-pointer sm:h-10 sm:text-sm dark:text-red-400 dark:from-red-500/20 dark:to-rose-500/20 dark:border-red-500/40 hover:from-red-100 hover:to-rose-100 dark:hover:from-red-500/30 dark:hover:to-rose-500/30 hover:border-red-300 dark:hover:border-red-400/60 hover:text-red-700 dark:hover:text-red-300 hover:shadow-md hover:shadow-red-500/20 hover:scale-105"
-                        >
-                           <X className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-1" />
-                           <span className="hidden sm:inline">Pass</span>
-                        </Button>
-
-                        <Button
-                           variant="outline"
-                           size="sm"
-                           onClick={() => onAction(profile.userId, "view")}
-                           className="h-9 text-xs font-semibold text-blue-600 bg-linear-to-r from-blue-50 to-cyan-50 rounded-lg border border-blue-200 shadow-sm transition-all duration-200 cursor-pointer sm:h-10 sm:text-sm dark:text-blue-400 dark:from-blue-500/20 dark:to-cyan-500/20 dark:border-blue-500/40 hover:from-blue-100 hover:to-cyan-100 dark:hover:from-blue-500/30 dark:hover:to-cyan-500/30 hover:border-blue-300 dark:hover:border-blue-400/60 hover:text-blue-700 dark:hover:text-blue-300 hover:shadow-md hover:shadow-blue-500/20 hover:scale-105"
-                        >
-                           <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-1" />
-                           <span className="hidden sm:inline">View</span>
-                        </Button>
-
-                        <Button
-                           variant="outline"
-                           size="sm"
-                           onClick={handleLikeToggle}
-                           className={`h-9 sm:h-10 text-xs sm:text-sm rounded-lg border cursor-pointer transition-all duration-200 font-semibold shadow-sm hover:shadow-md hover:scale-105 ${isLiked
-                              ? "text-white bg-green-500 border-green-400 dark:bg-green-600 dark:border-green-500 hover:bg-green-600 dark:hover:bg-green-700 hover:text-white hover:shadow-green-500/30"
-                              : "text-green-600 bg-linear-to-r from-green-50 to-emerald-50 border-green-200 dark:text-green-400 dark:from-green-500/20 dark:to-emerald-500/20 dark:border-green-500/40 hover:from-green-100 hover:to-emerald-100 dark:hover:from-green-500/30 dark:hover:to-emerald-500/30 hover:border-green-300 dark:hover:border-green-400/60 hover:text-green-700 dark:hover:text-green-300 hover:shadow-green-500/20"
-                              }`}
-                        >
-                           <Heart className={`w-3.5 h-3.5 sm:w-4 sm:h-4 inline ${isLiked ? "fill-current sm:mr-1" : "sm:mr-1"}`} />
-                           <span className="hidden sm:inline">{isLiked ? "Liked" : "Like"}</span>
-                        </Button>
-                     </div>
-
-                     {/* Collaboration Button */}
-                     <div className="mt-2">
-                        <Button
-                           onClick={() => onCollaboration(profile.userId)}
-                           className="w-full h-10 sm:h-11 text-sm sm:text-base font-bold text-white bg-linear-to-r from-purple-500 to-pink-500 rounded-lg border-0 shadow-md transition-all duration-200 cursor-pointer hover:from-purple-600 hover:to-pink-600 hover:text-white hover:shadow-lg hover:shadow-purple-500/40 hover:scale-[1.02]"
-                        >
-                           <Zap className="mr-1.5 sm:mr-2 w-4 h-4 sm:w-5 sm:h-5" />
-                           Start Collab
-                        </Button>
-                     </div>
-                  </>
-               )}
-            </CardContent>
-         </Card>
-      </motion.div >
-   );
+            <div className="space-y-3">
+              <p className="text-xs font-semibold uppercase tracking-[0.35em] text-slate-500">
+                @{profile.username || "user"}
+              </p>
+              <p className="max-w-3xl text-base leading-8 text-slate-300">{bioText}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </motion.article>
+  );
 };
 
 export default MatchCard;

@@ -1,17 +1,131 @@
 "use client";
-import React, { useState, useEffect } from "react";
+
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import DashboardLayout from "@/components/layout/Dashboard/Dashboard";
+import { ArrowLeft, Loader2, RefreshCw, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, RefreshCw, Loader2, Heart } from "lucide-react";
 import MatchHistoryGallery from "@/components/matching/MatchHistoryGallery";
 import { useMatching } from "@/hooks/features/useMatching";
-import type { MatchSuggestion } from "@/types/matching.types";
+import { profileApi, type ProfileByUsernameResponse } from "@/lib/api/profile.api";
+import type { CreatorProfile, MatchSuggestion } from "@/types/matching.types";
+
+const DEFAULT_PROFILE_STATS = {
+  totalFollowers: 0,
+  avgEngagement: 0,
+  platformBreakdown: {},
+};
+
+type AIMatchesDisplayProfile = CreatorProfile & {
+  age?: number;
+};
+
+const getMatchUserId = (match: MatchSuggestion) =>
+  match.targetUser?.userId ||
+  (match.targetUser as { id?: string } | undefined)?.id ||
+  match.targetUserId ||
+  match.userId;
+
+const getMatchUsername = (match: MatchSuggestion) => match.targetUser?.username?.trim() || "";
+
+const parseAgeValue = (value: unknown): number | undefined => {
+  if (typeof value === "number" && Number.isFinite(value) && value > 0) {
+    return Math.floor(value);
+  }
+
+  if (typeof value === "string") {
+    const numericAge = Number.parseInt(value, 10);
+    if (Number.isFinite(numericAge) && numericAge > 0) {
+      return numericAge;
+    }
+
+    const parsedDate = new Date(value);
+    if (!Number.isNaN(parsedDate.getTime())) {
+      const ageFromDate = new Date().getFullYear() - parsedDate.getFullYear();
+      return ageFromDate > 0 ? ageFromDate : undefined;
+    }
+  }
+
+  return undefined;
+};
+
+const extractProfileAge = (profile?: Record<string, unknown>): number | undefined => {
+  if (!profile) {
+    return undefined;
+  }
+
+  return (
+    parseAgeValue(profile.age) ||
+    parseAgeValue(profile.birthDate) ||
+    parseAgeValue(profile.dateOfBirth) ||
+    parseAgeValue(profile.dob)
+  );
+};
+
+const getPublicProfileForMatch = async (
+  match: MatchSuggestion
+): Promise<ProfileByUsernameResponse | undefined> => {
+  const username = getMatchUsername(match);
+
+  if (username) {
+    try {
+      return await profileApi.getProfileByUsername(username);
+    } catch (error) {
+      console.warn(`Failed to fetch profile for @${username}:`, error);
+    }
+  }
+
+  return undefined;
+};
+
+const buildDisplayProfile = (
+  match: MatchSuggestion,
+  publicProfile?: ProfileByUsernameResponse
+): AIMatchesDisplayProfile => {
+  const existingProfile = match.targetUser;
+  const userId = getMatchUserId(match);
+  const username = publicProfile?.username || existingProfile?.username || "";
+  const displayName =
+    publicProfile?.displayName || existingProfile?.displayName || username || userId || "Unknown Creator";
+  const stats = existingProfile?.stats;
+  const age =
+    extractProfileAge(publicProfile as Record<string, unknown> | undefined) ||
+    extractProfileAge(existingProfile as Record<string, unknown> | undefined);
+
+  return {
+    userId,
+    username,
+    displayName,
+    avatar: publicProfile?.avatar || existingProfile?.avatar,
+    bio: publicProfile?.bio ?? existingProfile?.bio,
+    niche: publicProfile?.niche || existingProfile?.niche || [],
+    location: publicProfile?.location || existingProfile?.location,
+    stats: {
+      totalFollowers: stats?.totalFollowers ?? DEFAULT_PROFILE_STATS.totalFollowers,
+      avgEngagement: stats?.avgEngagement ?? DEFAULT_PROFILE_STATS.avgEngagement,
+      platformBreakdown: stats?.platformBreakdown ?? {},
+    },
+    socialLinks: publicProfile?.socialLinks || existingProfile?.socialLinks,
+    rizzScore: publicProfile?.profileRizzScore ?? existingProfile?.rizzScore,
+    isPublic: existingProfile?.isPublic ?? true,
+    isActive: existingProfile?.isActive ?? true,
+    ...(age ? { age } : {}),
+  };
+};
+
+const enrichMatchWithProfile = async (match: MatchSuggestion): Promise<MatchSuggestion> => {
+  const profileData = await getPublicProfileForMatch(match);
+
+  return {
+    ...match,
+    targetUser: buildDisplayProfile(match, profileData),
+  };
+};
 
 const AIMatchesPage: React.FC = () => {
   const router = useRouter();
-  const [likedMatches, setLikedMatches] = useState<Set<string>>(new Set());
+  const [displayMatches, setDisplayMatches] = useState<MatchSuggestion[]>([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isEnriching, setIsEnriching] = useState(false);
 
   const {
     suggestions: matches = [],
@@ -21,28 +135,80 @@ const AIMatchesPage: React.FC = () => {
   } = useMatching();
 
   useEffect(() => {
-    if (matches.length) {
-      const likedIds = matches
-        .filter((m: MatchSuggestion) => m.status === "liked" || m.status === "mutual")
-        .map((m: MatchSuggestion) => m.targetUserId || m.targetUser?.userId)
-        .filter((id): id is string => Boolean(id));
-      setLikedMatches(new Set(likedIds));
-    }
+    let isCancelled = false;
+
+    const syncMatches = async () => {
+      if (!matches.length) {
+        setDisplayMatches((currentMatches) => (currentMatches.length ? [] : currentMatches));
+        setIsEnriching(false);
+        return;
+      }
+
+      setIsEnriching(true);
+
+      const enrichedMatches = await Promise.all(matches.map(enrichMatchWithProfile));
+
+      if (!isCancelled) {
+        setDisplayMatches(enrichedMatches);
+        setIsEnriching(false);
+      }
+    };
+
+    syncMatches();
+
+    return () => {
+      isCancelled = true;
+    };
   }, [matches]);
 
- const handleMessage = (match: MatchSuggestion) => {
-  const userId = match.targetUser?.userId || 
-                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (match.targetUser as any)?.id ||  match.targetUserId;
+  const handleMessage = (match: MatchSuggestion) => {
+    const userId = getMatchUserId(match);
 
-  if (userId && userId !== 'undefined') {
-    router.push(`/messages?userId=${userId}`);
-  } else {
-    console.error("User ID not found. targetUser content:", match.targetUser);
-  }
-};
+    if (userId && userId !== "undefined") {
+      router.push(`/messages?userId=${userId}`);
+      return;
+    }
 
-  const handleViewProfile = (userId: string) => router.push(`/profile/user-profile/${userId}`);
+    console.error("User ID not found. Match payload:", match);
+  };
+
+  const resolveAndNavigateToProfile = async (match: MatchSuggestion) => {
+    const username = match.targetUser?.username?.trim();
+
+    if (username) {
+      const cleanUsername = username.startsWith("@") ? username.slice(1) : username;
+      router.push(`/profile/@${cleanUsername}`);
+      return;
+    }
+
+    const userId = getMatchUserId(match);
+
+    if (!userId) {
+      console.error("Unable to resolve profile navigation target. Match payload:", match);
+      return;
+    }
+
+    try {
+      const profileData = await profileApi.getPublicProfileByIdentifier(userId);
+      const resolvedUsername = profileData.username?.trim();
+
+      if (resolvedUsername) {
+        const cleanUsername = resolvedUsername.startsWith("@")
+          ? resolvedUsername.slice(1)
+          : resolvedUsername;
+        router.push(`/profile/@${cleanUsername}`);
+        return;
+      }
+    } catch (error) {
+      console.warn(`Failed to resolve profile route for user ${userId}:`, error);
+    }
+
+    console.error("Unable to navigate to public profile because username could not be resolved.", match);
+  };
+
+  const handleViewProfile = (match: MatchSuggestion) => {
+    void resolveAndNavigateToProfile(match);
+  };
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
@@ -51,101 +217,98 @@ const AIMatchesPage: React.FC = () => {
   };
 
   const errorMessage = error instanceof Error ? error.message : String(error);
+  const isPageLoading = isLoading || (matches.length > 0 && isEnriching && displayMatches.length === 0);
 
   return (
-    <DashboardLayout>
-      <div className="min-h-full bg-gray-50 dark:bg-slate-900">
-        <div className="p-4 pb-16 lg:p-6 lg:pb-34">
-          <div className="mx-auto max-w-6xl">
-            <div className="flex gap-2 justify-between items-center mb-6 sm:mb-8">
+    <div className="min-h-full bg-[#140b1f] text-white">
+      <div className="relative overflow-hidden p-4 pb-16 lg:p-6 lg:pb-34">
+        <div className="pointer-events-none absolute inset-0">
+          <div className="absolute inset-x-0 top-0 h-80 bg-[radial-gradient(circle_at_top,_rgba(217,70,239,0.18),_transparent_60%)]" />
+          <div className="absolute right-0 top-32 h-72 w-72 rounded-full bg-fuchsia-500/8 blur-3xl" />
+          <div className="absolute left-0 top-56 h-80 w-80 rounded-full bg-pink-500/6 blur-3xl" />
+        </div>
+
+        <div className="relative mx-auto max-w-7xl">
+          <div className="mb-8 flex items-center justify-between gap-3">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => router.back()}
+              className="border-white/10 bg-white/5 text-white hover:bg-white/10 hover:text-white"
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back
+            </Button>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+              className="border-fuchsia-400/20 bg-white/5 text-fuchsia-100 hover:bg-fuchsia-500/10 hover:text-white"
+            >
+              <RefreshCw className={`mr-2 h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
+              Refresh
+            </Button>
+          </div>
+
+          <div className="mb-8 max-w-3xl">
+            <div className="mb-4 flex items-center gap-3">
+              <div className="rounded-2xl bg-gradient-to-br from-fuchsia-500 to-pink-500 p-3 shadow-[0_12px_35px_-10px_rgba(217,70,239,0.8)]">
+                <Sparkles className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.35em] text-fuchsia-300/80">
+                  HyperBuds AI
+                </p>
+                <h1 className="text-4xl font-black tracking-tight text-white sm:text-5xl">
+                  Top AI Matches
+                </h1>
+              </div>
+            </div>
+            <p className="text-base leading-7 text-slate-300 sm:text-lg">
+              Our neural engine found these souls for you.
+            </p>
+          </div>
+
+          {isPageLoading ? (
+            <div className="flex min-h-[360px] flex-col items-center justify-center rounded-[32px] border border-white/10 bg-[#1a1227]/80 p-8 text-center shadow-[0_24px_80px_-36px_rgba(192,38,211,0.6)] backdrop-blur">
+              <Loader2 className="mb-4 h-14 w-14 animate-spin text-fuchsia-400" />
+              <p className="text-lg font-semibold text-white">Loading your top matches...</p>
+              <p className="mt-2 text-sm text-slate-400">Gathering compatibility signals and bios.</p>
+            </div>
+          ) : error ? (
+            <div className="rounded-[32px] border border-red-500/20 bg-[#1a1227]/85 p-8 shadow-[0_24px_80px_-36px_rgba(239,68,68,0.45)] backdrop-blur">
+              <p className="text-lg font-semibold text-red-300">Failed to load AI matches</p>
+              <p className="mt-2 text-sm text-red-200/80">{errorMessage}</p>
               <Button
-                variant="outline"
-                size="sm"
-                onClick={() => router.back()}
-                className="text-xs text-gray-900 bg-gray-100 border-gray-300 cursor-pointer sm:text-sm dark:text-white dark:bg-white/10 dark:border-white/20 hover:bg-gray-200 dark:hover:bg-white/20"
-              >
-                <ArrowLeft className="mr-1.5 w-3.5 h-3.5 sm:mr-2 sm:w-4 sm:h-4" />
-                <span className="hidden sm:inline">Back</span>
-                <span className="sm:hidden">Back</span>
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
                 onClick={handleRefresh}
-                disabled={isRefreshing}
-                className="text-xs text-gray-900 bg-gray-100 border-gray-300 cursor-pointer sm:text-sm dark:text-white dark:bg-white/10 dark:border-white/20 hover:bg-gray-200 dark:hover:bg-white/20"
+                variant="outline"
+                className="mt-5 border-red-400/20 bg-red-500/10 text-red-100 hover:bg-red-500/20 hover:text-white"
               >
-                <RefreshCw className={`w-3.5 h-3.5 mr-1.5 sm:w-4 sm:h-4 sm:mr-2 ${isRefreshing ? "animate-spin" : ""}`} />
-                <span className="hidden sm:inline">Refresh</span>
-                <span className="sm:hidden">Refresh</span>
+                Try Again
               </Button>
             </div>
-
-            <div className="mb-5 text-center sm:mb-6">
-              <div className="flex justify-center items-center mb-2 sm:mb-3">
-                <div className="shrink-0 p-2 mr-2 bg-linear-to-br from-purple-500 to-pink-500 rounded-xl shadow-md sm:p-2.5 sm:mr-3 sm:rounded-2xl">
-                  <Heart className="w-6 h-6 text-white sm:w-7 sm:h-7 lg:w-8 lg:h-8" />
-                </div>
-                <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl lg:text-4xl dark:text-white">AI Matches</h1>
+          ) : displayMatches.length === 0 ? (
+            <div className="flex min-h-[360px] flex-col items-center justify-center rounded-[32px] border border-white/10 bg-[#1a1227]/80 p-8 text-center shadow-[0_24px_80px_-36px_rgba(192,38,211,0.6)] backdrop-blur">
+              <div className="mb-4 rounded-full bg-gradient-to-br from-fuchsia-500/20 to-pink-500/20 p-5">
+                <Sparkles className="h-12 w-12 text-fuchsia-300" />
               </div>
-              <p className="px-4 text-sm text-gray-600 sm:text-base lg:text-lg dark:text-gray-400">
-                {isLoading
-                  ? "Loading matches..."
-                  : matches.length === 0
-                  ? "No matches found yet. Try refreshing your suggestions."
-                  : `${matches.length} matches found for you`}
+              <h2 className="text-2xl font-bold text-white">No Matches Yet</h2>
+              <p className="mt-3 max-w-md text-sm leading-7 text-slate-400 sm:text-base">
+                Refresh your suggestions and we&apos;ll pull in more creators that fit your style.
               </p>
             </div>
-
-            <div className="p-5 rounded-xl border-2 shadow-xl backdrop-blur-sm sm:p-6 sm:rounded-2xl lg:p-8 border-purple-200/50 bg-white/90 dark:bg-slate-800/90 dark:border-purple-500/30">
-              {isLoading ? (
-                <div className="flex flex-col justify-center items-center py-12 sm:py-16">
-                  <Loader2 className="mb-4 w-12 h-12 text-purple-600 animate-spin sm:w-16 sm:h-16 dark:text-purple-400" />
-                  <p className="text-base font-medium text-gray-600 sm:text-lg dark:text-gray-400">Loading your matches...</p>
-                  <p className="mt-2 text-xs text-gray-500 sm:text-sm dark:text-gray-500">Checking compatibility insights</p>
-                </div>
-              ) : error ? (
-                <div className="flex flex-col justify-center items-center py-12 sm:py-16">
-                  <div className="p-5 mb-4 bg-red-50 rounded-xl sm:p-6 dark:bg-red-900/20">
-                    <p className="text-base font-semibold text-red-600 sm:text-lg dark:text-red-400">
-                      Failed to load AI matches
-                    </p>
-                    <p className="mt-1 text-xs text-red-500 sm:text-sm dark:text-red-400">
-                      {errorMessage}
-                    </p>
-                  </div>
-                  <Button onClick={handleRefresh} variant="outline" className="text-xs text-purple-600 border-purple-500 sm:text-sm hover:bg-purple-50">
-                    Try Again
-                  </Button>
-                </div>
-              ) : matches.length === 0 ? (
-                <div className="flex flex-col justify-center items-center py-12 sm:py-16">
-                  <div className="p-5 mb-4 bg-linear-to-br from-purple-100 to-pink-100 rounded-full sm:p-6 dark:from-purple-900/30 dark:to-pink-900/30">
-                    <Heart className="w-12 h-12 text-pink-500 sm:w-16 sm:h-16 dark:text-pink-400" />
-                  </div>
-                  <h3 className="mb-2 text-xl font-bold text-gray-900 sm:text-2xl dark:text-white">
-                    No Matches Yet
-                  </h3>
-                  <p className="px-4 mb-6 max-w-md text-sm text-center text-gray-600 sm:text-base dark:text-gray-400">
-                    Refresh your suggestions or fine-tune your preferences to find collaborators faster.
-                  </p>
-                  <Button onClick={handleRefresh} className="text-xs sm:text-sm bg-linear-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600">
-                    Refresh Suggestions
-                  </Button>
-                </div>
-              ) : (
-                <MatchHistoryGallery
-                  historyMatches={matches}
-                  likedMatches={likedMatches}
-                  onMessage={handleMessage}
-                  onViewProfile={handleViewProfile}
-                />
-              )}
-            </div>
-          </div>
+          ) : (
+            <MatchHistoryGallery
+              historyMatches={displayMatches}
+              onMessage={handleMessage}
+              onViewProfile={handleViewProfile}
+            />
+          )}
         </div>
       </div>
-    </DashboardLayout>
+    </div>
   );
 };
 
