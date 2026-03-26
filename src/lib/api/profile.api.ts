@@ -174,7 +174,7 @@ export const profileApi = {
       // Endpoint expects: /update/profile/@username
       const response = await apiClient.get(`/update/profile/@${encodeURIComponent(cleanUsername)}`);
       return response.data;
-    } catch (error: unknown) {
+    } catch (error: unknown) { 
       if (error && typeof error === 'object' && 'response' in error) {
         const axiosError = error as { response?: { status?: number } };
         if (axiosError.response?.status === 400) {
