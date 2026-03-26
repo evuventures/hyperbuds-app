@@ -7,6 +7,7 @@ interface Step2Props {
   isChecking: boolean;
   isAvailable: boolean | null;
   onUpdateField: (field: 'username' | 'displayName', value: string) => void;
+  suggestions: string[] | null;
 }
 
 const Step2BasicInfo: React.FC<Step2Props> = ({
@@ -15,8 +16,9 @@ const Step2BasicInfo: React.FC<Step2Props> = ({
   isChecking,
   isAvailable,
   onUpdateField,
+  suggestions,
 }) => {
-  
+
   const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     // Sanitize input: lowercase, alphanumeric and underscores only
     const value = e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '');
@@ -62,11 +64,37 @@ const Step2BasicInfo: React.FC<Step2Props> = ({
             </div>
           </div>
           <p className={`mt-1 text-xs ${isAvailable === false ? 'text-red-500' : 'text-gray-500'}`}>
-            {isAvailable === false 
-              ? 'Username is already taken' 
+            {isAvailable === false
+              ? 'Username is already taken'
               : '3-30 characters, letters, numbers, and underscores only'}
           </p>
         </div>
+
+        {suggestions && suggestions.length > 0 && (
+          <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-xl">
+            <p className="text-sm text-yellow-700">Here are some available username suggestions:</p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {suggestions.map((suggestion, index) => {
+                const isSelected = suggestion === username;
+                return (
+                  <button
+                    key={index}
+                    type="button"
+                    onClick={() => onUpdateField('username', suggestion)}
+                    className={
+                      `px-3 py-1 rounded-lg border capitalize transition-colors text-sm font-medium ` +
+                      (isSelected
+                        ? 'bg-purple-600 text-white border-purple-500 shadow'
+                        : 'bg-white text-purple-700 border-purple-300 hover:bg-blue-50 hover:border-purple-500')
+                    }
+                  >
+                    {suggestion}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Display Name Input */}
         <div>
