@@ -33,9 +33,9 @@ const MatchHistoryGallery: React.FC<MatchHistoryGalleryProps> = ({
   if (!historyMatches.length) {
     return (
       <div className="py-16 text-center">
-        <Sparkles className="mx-auto mb-4 h-12 w-12 text-fuchsia-300" />
-        <h3 className="text-xl font-semibold text-white">No matches available</h3>
-        <p className="mt-3 text-sm text-slate-400">
+        <Sparkles className="mx-auto mb-4 h-12 w-12 text-fuchsia-400 dark:text-fuchsia-300" />
+        <h3 className="text-xl font-semibold text-slate-900 dark:text-white">No matches available</h3>
+        <p className="mt-3 text-sm text-slate-500 dark:text-slate-400">
           We&apos;ll show your strongest creator matches here as soon as they&apos;re ready.
         </p>
       </div>
@@ -57,16 +57,16 @@ const MatchHistoryGallery: React.FC<MatchHistoryGalleryProps> = ({
       </div>
 
       {remainingMatches.length > 0 && (
-        <aside className="h-fit rounded-[28px] border border-white/10 bg-[#1a1227]/88 p-5 shadow-[0_24px_70px_-36px_rgba(192,38,211,0.65)] backdrop-blur">
+        <aside className="h-fit rounded-[28px] border border-fuchsia-200/70 bg-white/85 p-5 shadow-[0_20px_60px_-30px_rgba(168,85,247,0.35)] backdrop-blur dark:border-white/10 dark:bg-[#1a1227]/88 dark:shadow-[0_24px_70px_-36px_rgba(192,38,211,0.65)]">
           <div className="mb-5 flex items-start justify-between gap-3">
             <div>
-              <h2 className="text-2xl font-bold text-white">More Matches</h2>
-              <p className="mt-1 text-sm text-slate-400">Keep exploring your next best fits.</p>
+              <h2 className="text-2xl font-bold text-slate-900 dark:text-white">More Matches</h2>
+              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Keep exploring your next best fits.</p>
             </div>
             <button
               type="button"
               onClick={() => setShowAllMatches((current) => !current)}
-              className="shrink-0 text-sm font-semibold text-fuchsia-300 transition-colors hover:text-white"
+              className="shrink-0 text-sm font-semibold text-fuchsia-600 transition-colors hover:text-fuchsia-700 dark:text-fuchsia-300 dark:hover:text-white"
             >
               {showAllMatches ? "Show Less" : "See All"}
             </button>
@@ -83,20 +83,20 @@ const MatchHistoryGallery: React.FC<MatchHistoryGalleryProps> = ({
                   type="button"
                   onClick={() => onViewProfile?.(match)}
                   key={match._id || match.id || `${match.targetUserId}-${index + 2}`}
-                  className="flex w-full cursor-pointer items-center gap-3 rounded-2xl border border-white/6 bg-[#120d1d]/75 p-3 text-left transition-colors hover:border-fuchsia-400/25 hover:bg-[#181127]"
+                  className="flex w-full cursor-pointer items-center gap-3 rounded-2xl border border-fuchsia-200/60 bg-white/95 p-3 text-left transition-colors hover:border-fuchsia-300/80 hover:bg-fuchsia-50 dark:border-white/6 dark:bg-[#120d1d]/75 dark:hover:border-fuchsia-400/25 dark:hover:bg-[#181127]"
                 >
                   <Avatar className="h-14 w-14 border border-fuchsia-500/20">
                     <AvatarImage src={profile?.avatar} alt={displayName} className="object-cover" />
-                    <AvatarFallback className="bg-gradient-to-br from-fuchsia-500 to-pink-500 text-sm font-bold text-white">
+                    <AvatarFallback className="bg-linear-to-br from-fuchsia-500 to-pink-500 text-sm font-bold text-white">
                       {displayName.charAt(0).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
 
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-base font-semibold text-white">
+                    <p className="truncate text-base font-semibold text-slate-900 dark:text-white">
                       {age ? `${displayName}, ${age}` : displayName}
                     </p>
-                    <p className="mt-1 text-sm font-semibold text-transparent bg-gradient-to-r from-fuchsia-400 to-pink-400 bg-clip-text">
+                    <p className="mt-1 text-sm font-semibold text-transparent bg-linear-to-r from-fuchsia-400 to-pink-400 bg-clip-text">
                       {match.compatibilityScore}% Match
                     </p>
                   </div>

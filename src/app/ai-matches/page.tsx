@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Loader2, RefreshCw, Sparkles } from "lucide-react";
+import DashboardLayout from "@/components/layout/Dashboard/Dashboard";
 import { Button } from "@/components/ui/button";
 import MatchHistoryGallery from "@/components/matching/MatchHistoryGallery";
 import { useMatching } from "@/hooks/features/useMatching";
@@ -219,96 +220,109 @@ const AIMatchesPage: React.FC = () => {
   const errorMessage = error instanceof Error ? error.message : String(error);
   const isPageLoading = isLoading || (matches.length > 0 && isEnriching && displayMatches.length === 0);
 
-  return (
-    <div className="min-h-full bg-[#140b1f] text-white">
-      <div className="relative overflow-hidden p-4 pb-16 lg:p-6 lg:pb-34">
-        <div className="pointer-events-none absolute inset-0">
-          <div className="absolute inset-x-0 top-0 h-80 bg-[radial-gradient(circle_at_top,_rgba(217,70,239,0.18),_transparent_60%)]" />
-          <div className="absolute right-0 top-32 h-72 w-72 rounded-full bg-fuchsia-500/8 blur-3xl" />
-          <div className="absolute left-0 top-56 h-80 w-80 rounded-full bg-pink-500/6 blur-3xl" />
+  let content: React.ReactNode;
+  if (isPageLoading) {
+    content = (
+      <div className="flex min-h-[360px] flex-col items-center justify-center rounded-[32px] border border-fuchsia-200/70 bg-white/85 p-8 text-center shadow-[0_20px_70px_-30px_rgba(168,85,247,0.35)] backdrop-blur dark:border-white/10 dark:bg-[#1a1227]/80 dark:shadow-[0_24px_80px_-36px_rgba(192,38,211,0.6)]">
+        <Loader2 className="mb-4 h-14 w-14 animate-spin text-fuchsia-400" />
+        <p className="text-lg font-semibold text-slate-900 dark:text-white">Loading your top matches...</p>
+        <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">Gathering compatibility signals and bios.</p>
+      </div>
+    );
+  } else if (error) {
+    content = (
+      <div className="rounded-[32px] border border-red-300/60 bg-white/90 p-8 shadow-[0_24px_80px_-36px_rgba(239,68,68,0.28)] backdrop-blur dark:border-red-500/20 dark:bg-[#1a1227]/85 dark:shadow-[0_24px_80px_-36px_rgba(239,68,68,0.45)]">
+        <p className="text-lg font-semibold text-red-600 dark:text-red-300">Failed to load AI matches</p>
+        <p className="mt-2 text-sm text-red-500/90 dark:text-red-200/80">{errorMessage}</p>
+        <Button
+          onClick={handleRefresh}
+          variant="outline"
+          className="mt-5 border-red-300/60 bg-red-50 text-red-700 hover:bg-red-100 hover:text-red-800 dark:border-red-400/20 dark:bg-red-500/10 dark:text-red-100 dark:hover:bg-red-500/20 dark:hover:text-white"
+        >
+          Try Again
+        </Button>
+      </div>
+    );
+  } else if (displayMatches.length === 0) {
+    content = (
+      <div className="flex min-h-[360px] flex-col items-center justify-center rounded-[32px] border border-fuchsia-200/70 bg-white/85 p-8 text-center shadow-[0_20px_70px_-30px_rgba(168,85,247,0.35)] backdrop-blur dark:border-white/10 dark:bg-[#1a1227]/80 dark:shadow-[0_24px_80px_-36px_rgba(192,38,211,0.6)]">
+        <div className="mb-4 rounded-full bg-linear-to-br from-fuchsia-500/20 to-pink-500/20 p-5">
+          <Sparkles className="h-12 w-12 text-fuchsia-300" />
         </div>
+        <h2 className="text-2xl font-bold text-slate-900 dark:text-white">No Matches Yet</h2>
+        <p className="mt-3 max-w-md text-sm leading-7 text-slate-600 sm:text-base dark:text-slate-400">
+          Refresh your suggestions and we&apos;ll pull in more creators that fit your style.
+        </p>
+      </div>
+    );
+  } else {
+    content = (
+      <MatchHistoryGallery
+        historyMatches={displayMatches}
+        onMessage={handleMessage}
+        onViewProfile={handleViewProfile}
+      />
+    );
+  }
 
-        <div className="relative mx-auto max-w-7xl">
-          <div className="mb-8 flex items-center justify-between gap-3">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => router.back()}
-              className="border-white/10 bg-white/5 text-white hover:bg-white/10 hover:text-white"
-            >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back
-            </Button>
-
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleRefresh}
-              disabled={isRefreshing}
-              className="border-fuchsia-400/20 bg-white/5 text-fuchsia-100 hover:bg-fuchsia-500/10 hover:text-white"
-            >
-              <RefreshCw className={`mr-2 h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
-              Refresh
-            </Button>
+  return (
+    <DashboardLayout>
+      <div className="min-h-full bg-linear-to-br from-[#f8f5ff] via-white to-[#fdf7ff] text-slate-900 dark:from-[#140b1f] dark:via-[#120a1d] dark:to-[#0f0818] dark:text-white">
+        <div className="relative overflow-hidden p-4 pb-16 lg:p-6 lg:pb-34">
+          <div className="pointer-events-none absolute inset-0">
+            <div className="absolute inset-x-0 top-0 h-80 bg-[radial-gradient(circle_at_top,rgba(217,70,239,0.18),transparent_60%)]" />
+            <div className="absolute right-0 top-32 h-72 w-72 rounded-full bg-fuchsia-500/8 blur-3xl" />
+            <div className="absolute left-0 top-56 h-80 w-80 rounded-full bg-pink-500/6 blur-3xl" />
           </div>
 
-          <div className="mb-8 max-w-3xl">
-            <div className="mb-4 flex items-center gap-3">
-              <div className="rounded-2xl bg-gradient-to-br from-fuchsia-500 to-pink-500 p-3 shadow-[0_12px_35px_-10px_rgba(217,70,239,0.8)]">
-                <Sparkles className="h-6 w-6 text-white" />
-              </div>
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.35em] text-fuchsia-300/80">
-                  HyperBuds AI
-                </p>
-                <h1 className="text-4xl font-black tracking-tight text-white sm:text-5xl">
-                  Top AI Matches
-                </h1>
-              </div>
-            </div>
-            <p className="text-base leading-7 text-slate-300 sm:text-lg">
-              Our neural engine found these souls for you.
-            </p>
-          </div>
-
-          {isPageLoading ? (
-            <div className="flex min-h-[360px] flex-col items-center justify-center rounded-[32px] border border-white/10 bg-[#1a1227]/80 p-8 text-center shadow-[0_24px_80px_-36px_rgba(192,38,211,0.6)] backdrop-blur">
-              <Loader2 className="mb-4 h-14 w-14 animate-spin text-fuchsia-400" />
-              <p className="text-lg font-semibold text-white">Loading your top matches...</p>
-              <p className="mt-2 text-sm text-slate-400">Gathering compatibility signals and bios.</p>
-            </div>
-          ) : error ? (
-            <div className="rounded-[32px] border border-red-500/20 bg-[#1a1227]/85 p-8 shadow-[0_24px_80px_-36px_rgba(239,68,68,0.45)] backdrop-blur">
-              <p className="text-lg font-semibold text-red-300">Failed to load AI matches</p>
-              <p className="mt-2 text-sm text-red-200/80">{errorMessage}</p>
-              <Button
-                onClick={handleRefresh}
+          <div className="relative mx-auto max-w-7xl">
+            <div className="mb-8 flex items-center justify-between gap-3">
+            <Button
                 variant="outline"
-                className="mt-5 border-red-400/20 bg-red-500/10 text-red-100 hover:bg-red-500/20 hover:text-white"
+                size="sm"
+                onClick={() => router.back()}
+              className="border-fuchsia-200 bg-white/80 text-slate-700 hover:bg-fuchsia-50 hover:text-slate-900 dark:border-white/10 dark:bg-white/5 dark:text-white dark:hover:bg-white/10 dark:hover:text-white"
               >
-                Try Again
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back
+              </Button>
+
+            <Button
+                variant="outline"
+                size="sm"
+                onClick={handleRefresh}
+                disabled={isRefreshing}
+              className="border-fuchsia-300/50 bg-white/80 text-fuchsia-700 hover:bg-fuchsia-50 hover:text-fuchsia-800 dark:border-fuchsia-400/20 dark:bg-white/5 dark:text-fuchsia-100 dark:hover:bg-fuchsia-500/10 dark:hover:text-white"
+              >
+                <RefreshCw className={`mr-2 h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
+                Refresh
               </Button>
             </div>
-          ) : displayMatches.length === 0 ? (
-            <div className="flex min-h-[360px] flex-col items-center justify-center rounded-[32px] border border-white/10 bg-[#1a1227]/80 p-8 text-center shadow-[0_24px_80px_-36px_rgba(192,38,211,0.6)] backdrop-blur">
-              <div className="mb-4 rounded-full bg-gradient-to-br from-fuchsia-500/20 to-pink-500/20 p-5">
-                <Sparkles className="h-12 w-12 text-fuchsia-300" />
+
+            <div className="mb-8 max-w-3xl">
+              <div className="mb-4 flex items-center gap-3">
+                <div className="rounded-2xl bg-linear-to-br from-fuchsia-500 to-pink-500 p-3 shadow-[0_12px_35px_-10px_rgba(217,70,239,0.8)]">
+                  <Sparkles className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.35em] text-fuchsia-500 dark:text-fuchsia-300/80">
+                    HyperBuds AI
+                  </p>
+                  <h1 className="text-4xl font-black tracking-tight text-slate-900 sm:text-5xl dark:text-white">
+                    Top AI Matches
+                  </h1>
+                </div>
               </div>
-              <h2 className="text-2xl font-bold text-white">No Matches Yet</h2>
-              <p className="mt-3 max-w-md text-sm leading-7 text-slate-400 sm:text-base">
-                Refresh your suggestions and we&apos;ll pull in more creators that fit your style.
+              <p className="text-base leading-7 text-slate-600 sm:text-lg dark:text-slate-300">
+                Our neural engine found these souls for you.
               </p>
             </div>
-          ) : (
-            <MatchHistoryGallery
-              historyMatches={displayMatches}
-              onMessage={handleMessage}
-              onViewProfile={handleViewProfile}
-            />
-          )}
+
+            {content}
+          </div>
         </div>
       </div>
-    </div>
+    </DashboardLayout>
   );
 };
 
