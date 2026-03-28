@@ -30,7 +30,7 @@ const RecommendationSkeleton: React.FC = () => (
     {[1, 2, 3].map((i) => (
       <div key={i} className="flex rounded-2xl overflow-hidden bg-gray-100 dark:bg-gray-800 animate-pulse">
         {/* avatar placeholder */}
-        <div className="w-28 sm:w-36 md:w-44 shrink-0 bg-gray-200 dark:bg-gray-700 min-h-[160px]" />
+        <div className="w-28 sm:w-36 md:w-44 shrink-0 bg-gray-200 dark:bg-gray-700 min-h-40" />
         <div className="flex-1 p-4 space-y-3">
           <div className="flex gap-2 flex-wrap">
             <div className="h-10 w-16 rounded-xl bg-gray-200 dark:bg-gray-700" />
@@ -67,7 +67,7 @@ const RecommendationCard: React.FC<{ rec: Recommendation; rank: number }> = ({ r
     <div className="group relative flex flex-col sm:flex-row rounded-2xl overflow-hidden bg-white dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700/50 hover:border-purple-300 dark:hover:border-purple-600 hover:shadow-xl dark:hover:shadow-purple-900/20 transition-all duration-300">
 
       {/* ── Avatar ── */}
-      <div className="relative w-full sm:w-36 md:w-44 shrink-0 bg-linear-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 overflow-hidden min-h-[160px] sm:min-h-0">
+      <div className="relative w-full sm:w-36 md:w-44 shrink-0 bg-linear-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 overflow-hidden min-h-40 sm:min-h-0">
         {user.avatar ? (
           /* eslint-disable-next-line @next/next/no-img-element */
           <img
@@ -109,7 +109,7 @@ const RecommendationCard: React.FC<{ rec: Recommendation; rank: number }> = ({ r
           </div>
 
           {/* Rizz */}
-          <div className="px-2.5 py-1 rounded-lg bg-gray-900 dark:bg-black border border-gray-700 text-center min-w-[40px] shrink-0">
+          <div className="px-2.5 py-1 rounded-lg bg-gray-900 dark:bg-black border border-gray-700 text-center min-w-10 shrink-0">
             <div className="text-base font-black text-orange-400 leading-none">
               {rizzDisplay > 0 ? rizzDisplay : "–"}
             </div>
