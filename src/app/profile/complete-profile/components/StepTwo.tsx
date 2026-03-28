@@ -19,6 +19,11 @@ const Step2BasicInfo: React.FC<Step2Props> = ({
   suggestions,
 }) => {
 
+  console.log("Username:", username);
+  console.log("Is Checking:", isChecking);
+  console.log("Is Available:", isAvailable);
+  console.log("Suggestions:", suggestions);
+
   const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     // Sanitize input: lowercase, alphanumeric and underscores only
     const value = e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '');

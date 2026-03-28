@@ -131,7 +131,6 @@ export default function EditProfilePage() {
   const [socialLinks, setSocialLinks] = useState<SocialLinks>({});
   const [platformCredentials, setPlatformCredentials] = useState<PlatformCredentials>({});
   const [avatar, setAvatar] = useState<string | null>(null);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -367,7 +366,6 @@ export default function EditProfilePage() {
         reader.readAsDataURL(file);
       });
       setMessage("Uploading image...");
-      console.log("Base64 avatar URL generated:", avatarUrl);
 
       // Step 2: Send URL to backend to save in profile
       setMessage("Saving to profile...");

@@ -17,7 +17,6 @@ export default function ProfilePage() {
     try {
       setIsLoading(true);
       const data = await apiFetch("/api/v1/profiles/me");
-      console.log("API Response:", data);
 
       // Add profileUrl for copy functionality
       if (data && data.profile) {

@@ -187,12 +187,19 @@ export const useProfileForm = () => {
       setIsCheckingUsername(true);
       try {
         const res = await apiClient.get(`/profiles/@${formData.username}/public`);
-        if (res.data?.suggestions) {
-          setSuggestions(res.data.suggestions);
+
+        if (!res.data.profile) {
+          setIsUsernameAvailable(true);
+          
         }else {          
-          setSuggestions(null);
+          if (res.data.suggestions && Array.isArray(res.data.suggestions)) {
+            setSuggestions(res.data.suggestions);
+          } else {
+            setSuggestions(null);
+          }
+          setIsUsernameAvailable(false);
         }
-        setIsUsernameAvailable(false);
+
       } catch (err) {
         const apiErr = err as ApiError;
         setSuggestions(null);
