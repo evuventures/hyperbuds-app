@@ -344,7 +344,6 @@ export default function EditProfilePage() {
   };
 
   const handleAvatarUpload = async (file: File) => {
-    console.log("File selected:", file.name, file.type, file.size);
     setMessage("");
     setError("");
 
