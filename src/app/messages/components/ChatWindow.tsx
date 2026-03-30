@@ -16,10 +16,11 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ conversationId }) => {
   const dispatch = useAppDispatch();
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  const { messages, conversations } = useAppSelector((state) => state.chat);
+  const { messages, conversations, activeConversationId } = useAppSelector((state) => state.chat);
   const { user: currentUser } = useAppSelector((state) => state.auth);
 
-  const activeId = conversationId;
+  // `/messages` sets active chat via Redux only; `/messages/[conversationId]` passes the id prop.
+  const activeId = conversationId ?? activeConversationId;
 
   const formatDividerDate = (date: Date) => {
     if (isToday(date)) return 'Today';

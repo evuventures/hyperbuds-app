@@ -20,10 +20,11 @@ type AIMatchesDisplayProfile = CreatorProfile & {
   age?: number;
 };
 
+/** Messaging / profile target: the other user in the suggestion (prefer API `targetUserId`). */
 const getMatchUserId = (match: MatchSuggestion) =>
+  match.targetUserId ||
   match.targetUser?.userId ||
   (match.targetUser as { id?: string } | undefined)?.id ||
-  match.targetUserId ||
   match.userId;
 
 const getMatchUsername = (match: MatchSuggestion) => match.targetUser?.username?.trim() || "";
@@ -166,7 +167,7 @@ const AIMatchesPage: React.FC = () => {
     const userId = getMatchUserId(match);
 
     if (userId && userId !== "undefined") {
-      router.push(`/messages?userId=${userId}`);
+      router.push(`/messages?userId=${encodeURIComponent(userId)}`);
       return;
     }
 
