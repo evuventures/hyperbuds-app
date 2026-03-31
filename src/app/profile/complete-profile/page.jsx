@@ -24,7 +24,7 @@ export default function MultiStepProfileForm() {
   const {
     currentStep,
     formData,
-    isLoading,
+    isLoading, 
     error,
     message,
     isCheckingUsername,
@@ -39,6 +39,7 @@ export default function MultiStepProfileForm() {
     handleSubmit,
     canProceed,
     clearSelectedFile,
+    suggestions,
   } = useProfileForm();
 
   // Success Screen (Step 5)
@@ -140,6 +141,7 @@ export default function MultiStepProfileForm() {
                 isChecking={isCheckingUsername}
                 isAvailable={isUsernameAvailable}
                 onUpdateField={updateField}
+                suggestions={suggestions}
               />
             )}
             {currentStep === 3 && (

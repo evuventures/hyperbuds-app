@@ -70,15 +70,19 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({ recipient }) => {
   }, [showMenu]);
 
   const handleArchiveToggle = async () => {
-    if (!activeConversationId) return;
-    try {
-      await messagingAPI.toggleArchive(activeConversationId);
-      dispatch(toggleArchiveLocal({ conversationId: activeConversationId, isArchived: !isArchived }));
-      setShowMenu(false);
-    } catch (error) {
-      console.error("Archive failed:", error);
+  if (!activeConversationId) return;
+  try {
+    if (isArchived) {
+      await messagingAPI.toggleUnArchive(activeConversationId); 
+    } else {
+      await messagingAPI.toggleArchive(activeConversationId);   
     }
-  };
+    dispatch(toggleArchiveLocal({ conversationId: activeConversationId, isArchived: !isArchived }));
+    setShowMenu(false);
+  } catch (error) {
+    console.error("Archive toggle failed:", error);
+  }
+};
 
   const recipientId = recipient?._id || recipient?.id;
   const isTyping = activeConversationId && recipientId

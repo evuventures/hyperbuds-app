@@ -342,20 +342,29 @@ export default function EditProfilePage() {
     console.log("Avatar clicked - opening file picker");
     fileInputRef.current?.click();
   };
+
   const handleAvatarUpload = async (file: File) => {
-    console.log("File selected:", file.name, file.type, file.size);
     setMessage("");
     setError("");
 
+
     try {
-      // Import UploadThing utility
-      const { uploadAvatar } = await import("@/lib/utils/uploadthing");
       const { profileApi } = await import("@/lib/api/profile.api");
 
-      // Step 1: Upload to UploadThing to get CDN URL
+      // Step 1: Convert file to base64 data URL
+      const avatarUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          if (typeof reader.result === "string") {
+            resolve(reader.result);
+          } else {
+            reject(new Error("Failed to read file as base64 string"));
+          }
+        };
+        reader.onerror = () => reject(reader.error);
+        reader.readAsDataURL(file);
+      });
       setMessage("Uploading image...");
-      const avatarUrl = await uploadAvatar(file);
-      console.log("UploadThing URL received:", avatarUrl);
 
       // Step 2: Send URL to backend to save in profile
       setMessage("Saving to profile...");
@@ -463,7 +472,7 @@ export default function EditProfilePage() {
 
       // Step 1: Update profile (without niches)
       const response = await fetch(`${BASE_URL}/api/v1/profiles/me`, {
-        method: "PUT",
+        method: "PUT", 
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
