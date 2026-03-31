@@ -1,5 +1,5 @@
 "use client"
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { useAppDispatch } from '@/store/hooks'
 import DashboardLayout from '@/components/layout/Dashboard/Dashboard';
@@ -15,27 +15,31 @@ const MessagesPage = () => {
    const searchParams = useSearchParams();
    const targetUserId = searchParams.get('userId');
 
-   const hasInitialized = useRef(false);
-
-   // ✅ Clear active conversation when landing on /messages with no chat open
+   // Clear selection only when there is no deep-linked user (avoid wiping state before `userId` flow runs).
    useEffect(() => {
-      dispatch(setActiveConversation(null));
-   }, [dispatch]);
+      if (!targetUserId) {
+         dispatch(setActiveConversation(null));
+      }
+   }, [dispatch, targetUserId]);
 
+   // Re-run when `userId` query changes (e.g. from AI matches) — do not use a one-shot ref
+   // or navigation to a different user will keep the previous conversation.
    useEffect(() => {
-      if (hasInitialized.current) return;
-      hasInitialized.current = true;
+      let cancelled = false;
 
       const initializeData = async () => {
          try {
             const listData = await messagingAPI.getConversations();
+            if (cancelled) return;
             dispatch(setConversations(listData.conversations));
 
             if (targetUserId && targetUserId !== 'undefined') {
                const conversation = await messagingAPI.startConversation(targetUserId);
+               if (cancelled) return;
                dispatch(setActiveConversation(conversation._id));
 
                const updatedListData = await messagingAPI.getConversations();
+               if (cancelled) return;
                dispatch(setConversations(updatedListData.conversations));
             }
          } catch (error) {
@@ -43,7 +47,10 @@ const MessagesPage = () => {
          }
       };
 
-      initializeData();
+      void initializeData();
+      return () => {
+         cancelled = true;
+      };
    }, [targetUserId, dispatch]);
 
    return (
