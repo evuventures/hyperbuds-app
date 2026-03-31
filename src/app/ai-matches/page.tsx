@@ -224,7 +224,7 @@ const AIMatchesPage: React.FC = () => {
   let content: React.ReactNode;
   if (isPageLoading) {
     content = (
-      <div className="flex min-h-[360px] flex-col items-center justify-center rounded-[32px] border border-fuchsia-200/70 bg-white/85 p-8 text-center shadow-[0_20px_70px_-30px_rgba(168,85,247,0.35)] backdrop-blur dark:border-white/10 dark:bg-[#1a1227]/80 dark:shadow-[0_24px_80px_-36px_rgba(192,38,211,0.6)]">
+      <div className="flex min-h-90 flex-col items-center justify-center rounded-4xl border border-fuchsia-200/70 bg-white/85 p-8 text-center shadow-[0_20px_70px_-30px_rgba(168,85,247,0.35)] backdrop-blur dark:border-white/10 dark:bg-[#1a1227]/80 dark:shadow-[0_24px_80px_-36px_rgba(192,38,211,0.6)]">
         <Loader2 className="mb-4 h-14 w-14 animate-spin text-fuchsia-400" />
         <p className="text-lg font-semibold text-slate-900 dark:text-white">Loading your top matches...</p>
         <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">Gathering compatibility signals and bios.</p>
@@ -232,7 +232,7 @@ const AIMatchesPage: React.FC = () => {
     );
   } else if (error) {
     content = (
-      <div className="rounded-[32px] border border-red-300/60 bg-white/90 p-8 shadow-[0_24px_80px_-36px_rgba(239,68,68,0.28)] backdrop-blur dark:border-red-500/20 dark:bg-[#1a1227]/85 dark:shadow-[0_24px_80px_-36px_rgba(239,68,68,0.45)]">
+      <div className="rounded-4xl border border-red-300/60 bg-white/90 p-8 shadow-[0_24px_80px_-36px_rgba(239,68,68,0.28)] backdrop-blur dark:border-red-500/20 dark:bg-[#1a1227]/85 dark:shadow-[0_24px_80px_-36px_rgba(239,68,68,0.45)]">
         <p className="text-lg font-semibold text-red-600 dark:text-red-300">Failed to load AI matches</p>
         <p className="mt-2 text-sm text-red-500/90 dark:text-red-200/80">{errorMessage}</p>
         <Button
@@ -246,7 +246,7 @@ const AIMatchesPage: React.FC = () => {
     );
   } else if (displayMatches.length === 0) {
     content = (
-      <div className="flex min-h-[360px] flex-col items-center justify-center rounded-[32px] border border-fuchsia-200/70 bg-white/85 p-8 text-center shadow-[0_20px_70px_-30px_rgba(168,85,247,0.35)] backdrop-blur dark:border-white/10 dark:bg-[#1a1227]/80 dark:shadow-[0_24px_80px_-36px_rgba(192,38,211,0.6)]">
+      <div className="flex min-h-90 flex-col items-center justify-center rounded-4xl border border-fuchsia-200/70 bg-white/85 p-8 text-center shadow-[0_20px_70px_-30px_rgba(168,85,247,0.35)] backdrop-blur dark:border-white/10 dark:bg-[#1a1227]/80 dark:shadow-[0_24px_80px_-36px_rgba(192,38,211,0.6)]">
         <div className="mb-4 rounded-full bg-linear-to-br from-fuchsia-500/20 to-pink-500/20 p-5">
           <Sparkles className="h-12 w-12 text-fuchsia-300" />
         </div>
@@ -268,12 +268,12 @@ const AIMatchesPage: React.FC = () => {
 
   return (
     <DashboardLayout>
-      <div className="min-h-full bg-linear-to-br from-[#f8f5ff] via-white to-[#fdf7ff] text-slate-900 dark:from-[#140b1f] dark:via-[#120a1d] dark:to-[#0f0818] dark:text-white">
+      <div className="min-h-full bg-white dark:bg-slate-900 dark:text-white">
         <div className="relative overflow-hidden p-4 pb-16 lg:p-6 lg:pb-34">
           <div className="pointer-events-none absolute inset-0">
-            <div className="absolute inset-x-0 top-0 h-80 bg-[radial-gradient(circle_at_top,rgba(217,70,239,0.18),transparent_60%)]" />
-            <div className="absolute right-0 top-32 h-72 w-72 rounded-full bg-fuchsia-500/8 blur-3xl" />
-            <div className="absolute left-0 top-56 h-80 w-80 rounded-full bg-pink-500/6 blur-3xl" />
+            <div className="absolute inset-x-0 top-0 h-80 " />
+            <div className="absolute right-0 top-32 h-72 w-72 rounded-full " />
+            <div className="absolute left-0 top-56 h-80 w-80 rounded-full " />
           </div>
 
           <div className="relative mx-auto max-w-7xl">
@@ -315,7 +315,7 @@ const AIMatchesPage: React.FC = () => {
                 </div>
               </div>
               <p className="text-base leading-7 text-slate-600 sm:text-lg dark:text-slate-300">
-                Our neural engine found these souls for you.
+                Our neural engine found these matches for you.
               </p>
             </div>
 
