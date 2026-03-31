@@ -50,8 +50,8 @@ const MatchCard: React.FC<MatchCardProps> = ({
       className="w-full"
     >
       <div className="overflow-hidden rounded-[30px] border border-fuchsia-200/60 bg-white/90 shadow-[0_20px_60px_-30px_rgba(168,85,247,0.35)] dark:border-white/10 dark:bg-[#101827]/95 dark:shadow-[0_24px_70px_-34px_rgba(192,38,211,0.65)]">
-        <div className="grid min-h-[420px] lg:grid-cols-[320px_minmax(0,1fr)]">
-          <div className="relative min-h-[320px] overflow-hidden bg-linear-to-br from-[#5d304c] via-[#cb9c73] to-[#1c1632]">
+        <div className="grid min-h-105 lg:grid-cols-[320px_minmax(0,1fr)]">
+          <div className="relative min-h-80 overflow-hidden bg-linear-to-br from-[#5d304c] via-[#cb9c73] to-[#1c1632]">
             {profile.avatar && !hasImageError ? (
               // We use a direct img here because some remote avatar URLs fail through Next image optimization.
               // eslint-disable-next-line @next/next/no-img-element
@@ -94,7 +94,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
           <div className="flex flex-col justify-between gap-6 p-6 sm:p-7">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div className="flex flex-wrap gap-3">
-                <div className="min-w-[118px] rounded-2xl border border-fuchsia-300/40 bg-fuchsia-50/80 px-5 py-4 dark:border-fuchsia-500/15 dark:bg-[#171127]">
+                <div className="min-w-29.5 rounded-2xl border border-fuchsia-300/40 bg-fuchsia-50/80 px-5 py-4 dark:border-fuchsia-500/15 dark:bg-[#171127]">
                   <div className="text-4xl font-black text-transparent bg-linear-to-r from-fuchsia-400 to-pink-500 bg-clip-text">
                     {match.compatibilityScore}%
                   </div>
@@ -103,7 +103,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
                   </div>
                 </div>
 
-                <div className="min-w-[102px] rounded-2xl border border-fuchsia-300/35 bg-fuchsia-50/70 px-5 py-4 dark:border-fuchsia-500/10 dark:bg-[#18132a]">
+                <div className="min-w-25.5 rounded-2xl border border-fuchsia-300/35 bg-fuchsia-50/70 px-5 py-4 dark:border-fuchsia-500/10 dark:bg-[#18132a]">
                   <div className="text-3xl font-black text-slate-900 dark:text-white">
                     {profile.rizzScore ?? "—"}
                   </div>
