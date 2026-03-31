@@ -49,9 +49,9 @@ const RecommendationSkeleton: React.FC = () => (
 
 // ─── Rank config ──────────────────────────────────────────────────────────────
 const RANK_CONFIG = [
-  { label: "Ultimate Match",    gradient: "from-purple-600 to-violet-700"  },
-  { label: "Top Compatibility", gradient: "from-violet-600 to-indigo-700"  },
-  { label: "Great Fit",         gradient: "from-indigo-600 to-purple-700"  },
+  { label: "Ultimate Match", gradient: "from-purple-600 to-violet-700" },
+  { label: "Top Compatibility", gradient: "from-violet-600 to-indigo-700" },
+  { label: "Great Fit", gradient: "from-indigo-600 to-purple-700" },
 ];
 
 // ─── Single Card ──────────────────────────────────────────────────────────────
@@ -154,7 +154,7 @@ const RecommendationCard: React.FC<{ rec: Recommendation; rank: number }> = ({ r
         {/* Profile link */}
         <div className="flex justify-end mt-auto pt-1">
           <Link
-            href={`/profile/${user.id}`}
+            href={`/profile/@${user.username?.startsWith("@") ? user.username.slice(1) : user.username}`}
             className="flex items-center gap-1.5 text-xs font-semibold text-gray-400 dark:text-gray-500 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
           >
             <User className="w-3.5 h-3.5" />
