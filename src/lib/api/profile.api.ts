@@ -30,6 +30,10 @@ export interface ProfileByUsernameResponse {
   displayName?: string;
   bio?: string;
   avatar?: string;
+  age?: number;
+  birthDate?: string;
+  dateOfBirth?: string;
+  dob?: string;
   niche?: string[];
   location?: {
     city?: string;
@@ -165,7 +169,6 @@ export const profileApi = {
     try {
       // Decode username just in case it's still URL encoded (e.g. %40 for @)
       const decodedUsername = decodeURIComponent(username.trim());
-      console.log('Fetching profile for:', { original: username, decoded: decodedUsername });
 
       const cleanUsername = decodedUsername.startsWith('@')
         ? decodedUsername.slice(1)
@@ -187,7 +190,43 @@ export const profileApi = {
           throw new Error('Server error while fetching profile');
         }
       }
-      console.error('Error fetching profile by username:', error);
+      throw error instanceof Error ? error : new Error('Failed to fetch profile');
+    }
+  },
+
+  /**
+   * Get public profile by generic identifier.
+   * This is used as a safe fallback when AI match payloads only contain a user id.
+   * Endpoint: GET /api/v1/profiles/:identifier/public
+   */
+  getPublicProfileByIdentifier: async (
+    identifier: string
+  ): Promise<ProfileByUsernameResponse> => {
+    if (!identifier || identifier.trim() === '') {
+      throw new Error('Profile identifier is required');
+    }
+
+    try {
+      const decodedIdentifier = decodeURIComponent(identifier.trim());
+      const cleanIdentifier = decodedIdentifier.startsWith('@')
+        ? decodedIdentifier.slice(1)
+        : decodedIdentifier;
+
+      const response = await apiClient.get(`/profiles/${encodeURIComponent(cleanIdentifier)}/public`);
+      return response.data;
+    } catch (error: unknown) {
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as { response?: { status?: number } };
+        if (axiosError.response?.status === 400) {
+          throw new Error('Profile identifier is invalid');
+        }
+        if (axiosError.response?.status === 404) {
+          throw new Error('Profile not found');
+        }
+        if (axiosError.response?.status === 500) {
+          throw new Error('Server error while fetching profile');
+        }
+      }
       throw error instanceof Error ? error : new Error('Failed to fetch profile');
     }
   },
