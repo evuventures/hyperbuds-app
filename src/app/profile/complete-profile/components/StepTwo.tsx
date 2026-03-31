@@ -19,11 +19,6 @@ const Step2BasicInfo: React.FC<Step2Props> = ({
   suggestions,
 }) => {
 
-  console.log("Username:", username);
-  console.log("Is Checking:", isChecking);
-  console.log("Is Available:", isAvailable);
-  console.log("Suggestions:", suggestions);
-
   const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     // Sanitize input: lowercase, alphanumeric and underscores only
     const value = e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '');
@@ -70,7 +65,7 @@ const Step2BasicInfo: React.FC<Step2Props> = ({
           </div>
           <p className={`mt-1 text-xs ${isAvailable === false ? 'text-red-500' : 'text-gray-500'}`}>
             {isAvailable === false
-              ? 'Username is already taken'
+              ? 'Username not available. Please choose another one.'
               : '3-30 characters, letters, numbers, and underscores only'}
           </p>
         </div>
