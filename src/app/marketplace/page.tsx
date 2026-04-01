@@ -101,14 +101,16 @@ export default function MarketplaceDashboard() {
           </div>
 
           {/* ADVANCED FILTER REGISTRY */}
-          <div className="max-w-6xl mx-auto mb-16 space-y-6">
-            <div className="flex flex-wrap items-center justify-center gap-4">
+          <div className="max-w-6xl mx-auto mb-16">
+
+            {/* Mobile: horizontal scroll row | Desktop: wrap */}
+            <div className="flex items-center gap-3 overflow-x-auto pb-2 sm:flex-wrap sm:justify-center sm:overflow-visible scrollbar-hide">
 
               {/* Category Dropdown */}
-              <div className="relative group">
+              <div className="relative group shrink-0">
                 <select
                   onChange={(e) => setCategory(e.target.value || undefined)}
-                  className="appearance-none text-gray-500 pl-10 pr-10 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-500 rounded-xl text-sm cursor-pointer outline-none hover:border-purple-500 transition-all"
+                  className="appearance-none text-gray-500 pl-8 pr-8 py-2.5 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-500 rounded-xl text-sm cursor-pointer outline-none hover:border-purple-500 transition-all"
                 >
                   <option value="">All Categories</option>
                   <option value="Design">Design</option>
@@ -117,63 +119,63 @@ export default function MarketplaceDashboard() {
                   <option value="Audio">Audio</option>
                   <option value="Writing">Writing</option>
                 </select>
-                <Filter className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" size={14} />
-                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400" size={14} />
+                <Filter className="absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-400" size={13} />
+                <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400" size={13} />
               </div>
 
               {/* Location Filter */}
-              <div className="relative">
-                <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
+              <div className="relative shrink-0">
+                <MapPin className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" size={13} />
                 <input
                   type="text"
-                  placeholder="location"
-                  className="pl-10 pr-4 py-3 text-gray-500 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-500 rounded-xl text-sm outline-none w-40 hover:border-purple-500 transition-all"
+                  placeholder="Location"
+                  className="pl-8 pr-3 py-2.5 text-gray-500 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-500 rounded-xl text-sm outline-none w-32 hover:border-purple-500 transition-all"
                   onChange={(e) => setLocation(e.target.value || undefined)}
                 />
               </div>
 
               {/* Price Range */}
-              <div className="flex items-center gap-2 px-4 py-2 bg-zinc-50 dark:bg-gray-900/50 rounded-2xl border border-gray-100 dark:border-gray-800">
-                <DollarSign size={14} className="text-zinc-400" />
+              <div className="flex items-center gap-1.5 px-3 py-2.5 bg-zinc-50 dark:bg-gray-900/50 rounded-xl border border-gray-100 dark:border-gray-800 shrink-0">
+                <DollarSign size={13} className="text-zinc-400" />
                 <input
                   type="number"
                   placeholder="min"
-                  className="w-16 bg-transparent outline-none text-sm"
+                  className="w-12 bg-transparent outline-none text-sm text-gray-500"
                   onChange={(e) => setMinPrice(e.target.value ? Number(e.target.value) : undefined)}
                 />
-                <span className="text-zinc-300">—</span>
+                <span className="text-zinc-300 text-xs">—</span>
                 <input
                   type="number"
                   placeholder="max"
-                  className="w-16 bg-transparent outline-none text-sm"
+                  className="w-12 bg-transparent outline-none text-sm text-gray-500"
                   onChange={(e) => setMaxPrice(e.target.value ? Number(e.target.value) : undefined)}
                 />
               </div>
 
               {/* Sort Order Dropdown */}
-              <div className="relative group">
+              <div className="relative group shrink-0">
                 <select
                   onChange={(e) => setSort(e.target.value)}
-                  className="appearance-none text-gray-500  pl-10 pr-10 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-500 rounded-xl text-sm cursor-pointer outline-none hover:border-purple-500 transition-all"
+                  className="appearance-none text-gray-500 pl-8 pr-8 py-2.5 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-500 rounded-xl text-sm cursor-pointer outline-none hover:border-purple-500 transition-all"
                 >
-                  <option value="recent">Newest First</option>
-                  <option value="price_low">Price: Low to High</option>
-                  <option value="price_high">Price: High to Low</option>
+                  <option value="recent">Newest</option>
+                  <option value="price_low">Price ↑</option>
+                  <option value="price_high">Price ↓</option>
                   <option value="rating">Top Rated</option>
                 </select>
-                <ArrowUpDown className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
-                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
+                <ArrowUpDown className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" size={13} />
+                <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400" size={13} />
               </div>
 
               {/* Featured Toggle */}
               <button
                 onClick={() => setFeatured(featured ? undefined : true)}
-                className={`flex items-center gap-2 px-6 py-3 rounded-xl border text-sm transition-all ${featured
+                className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl border text-sm transition-all shrink-0 ${featured
                     ? "bg-linear-to-r from-purple-500 to-blue-500 text-white border-transparent shadow-lg shadow-purple-500/20"
                     : "bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 text-gray-400 hover:text-purple-500"
                   }`}
               >
-                <Sparkles size={14} /> Featured
+                <Sparkles size={13} /> Featured
               </button>
 
             </div>

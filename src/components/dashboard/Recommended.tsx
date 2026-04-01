@@ -164,7 +164,7 @@ const Recommended: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col gap-4 justify-between items-start sm:items-center">
         <div className="flex gap-3 items-center">
-          <div className="p-2 bg-gradient-to-r from-purple-500 to-indigo-500 rounded-xl">
+          <div className="p-2 bg-linear-to-r from-purple-500 to-indigo-500 rounded-xl">
             <Star className="w-5 h-5 text-white" />
           </div>
           <div>
@@ -207,12 +207,12 @@ const Recommended: React.FC = () => {
             1024: { slidesPerView: 1, spaceBetween: 24 },
             1280: { slidesPerView: 1, spaceBetween: 32 },
           }}
-          className="!pb-12"
+          className="pb-12!"
         >
           {cards.map((card) => (
             <SwiperSlide key={card.id}>
               <div className="bg-card text-foreground rounded-3xl shadow-sm border border-border overflow-hidden hover:shadow-xl transition-all duration-500 transform 
-              hover:scale-[1.02] h-[680px] group m-5">
+              hover:scale-[1.02] h-170 group m-5">
                 {/* Image Container */}
                 <div className="overflow-hidden relative">
                   <Image
@@ -224,7 +224,7 @@ const Recommended: React.FC = () => {
                   />
 
                   {/* Overlay Elements */}
-                  <div className="absolute inset-0 bg-gradient-to-t via-transparent to-transparent opacity-0 transition-opacity duration-300 from-black/50 group-hover:opacity-100"></div>
+                  <div className="absolute inset-0 bg-linear-to-t via-transparent to-transparent opacity-0 transition-opacity duration-300 from-black/50 group-hover:opacity-100"></div>
 
                   {/* Status Indicators */}
                   <div className="flex absolute top-4 left-4 gap-2 items-center">
@@ -341,7 +341,7 @@ const Recommended: React.FC = () => {
                   </div>
                   {/* Action Buttons */}
                   <div className="flex gap-3 pt-2">
-                    <button className="flex-1 px-4 py-3 font-semibold text-white bg-gradient-to-r from-purple-600 to-indigo-600 rounded-xl shadow-lg transition-all duration-200 transform hover:from-purple-700 hover:to-indigo-700 hover:scale-105">
+                    <button className="flex-1 px-4 py-3 font-semibold text-white bg-linear-to-r from-purple-600 to-indigo-600 rounded-xl shadow-lg transition-all duration-200 transform hover:from-purple-700 hover:to-indigo-700 hover:scale-105">
                       View Profile
                     </button>
                     <button className="flex flex-1 gap-2 justify-center items-center px-4 py-3 font-semibold text-white bg-gray-900 rounded-xl transition-all duration-200 transform dark:bg-gray-700 hover:bg-gray-800 dark:hover:bg-gray-600 hover:scale-105">

@@ -4,7 +4,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Heart, Users, ShoppingBag, MessageCircle, Currency, User2,
+  Heart, Users, ShoppingBag, MessageCircle, User2,
   Menu, House, LogOut
 } from 'lucide-react';
 import { useAuth } from '@/hooks/auth/useAuth';
@@ -119,7 +119,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ user, activeTab, collapsed, on
 
   const businessItems: MenuItem[] = [
     { id: 'marketplace', icon: ShoppingBag, label: 'Marketplace', count: notifications.marketplace, path: '/marketplace' },
-    { id: 'Subscription', icon: Currency, label: 'Subscription', path: '/payments/subscription' }, // Changed path for consistency
+   // { id: 'Subscription', icon: Currency, label: 'Subscription', path: '/payments/subscription' }, // Changed path for consistency
     // { id: 'bookings', icon: Users, label: 'Bookings', path: '/bookings' },
     // { id: 'earnings', icon: Currency, label: 'Earnings', path: '/earnings' }
   ];

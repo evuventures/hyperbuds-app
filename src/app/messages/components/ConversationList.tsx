@@ -10,13 +10,11 @@ export const ConversationList = () => {
   const { conversations, activeConversationId } = useAppSelector((state) => state.chat);
   const { user: currentUser } = useAppSelector((state) => state.auth);
   
-  // Standardized ID logic to match your auth refactor
   const currentUserId = currentUser?.id || currentUser?._id;
 
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<FilterType>('All');
 
-  // 1. Spontaneous Tab Counts
   const counts = useMemo(() => {
     const safeConversations = Array.isArray(conversations) ? conversations : [];
     return {
@@ -29,11 +27,9 @@ export const ConversationList = () => {
     };
   }, [conversations, currentUserId]);
 
-  // 2. Filtered & Spontaneously Sorted List
   const filteredConversations = useMemo(() => {
     const safeConversations = Array.isArray(conversations) ? conversations : [];
     
-    // ✅ Sort by the most recent timestamp available (message or activity)
     const sortedList = [...safeConversations].sort((a, b) => {
       const dateA = new Date(a.lastMessage?.createdAt || a.lastActivity || a.updatedAt).getTime();
       const dateB = new Date(b.lastMessage?.createdAt || b.lastActivity || b.updatedAt).getTime();
@@ -41,7 +37,6 @@ export const ConversationList = () => {
     });
 
     return sortedList.filter((chat) => {
-      // ✅ Improved otherUser detection logic
       const otherUser = chat.participants?.find(p => p._id !== currentUserId && p.id !== currentUserId) || chat.participants?.[0];
       const query = searchQuery.toLowerCase();
       
@@ -57,41 +52,45 @@ export const ConversationList = () => {
       if (activeFilter === 'Unread') return matchesSearch && hasUnread && !chat.isArchived;
       return matchesSearch && !chat.isArchived;
     });
-    // ✅ Dependencies ensure this re-runs when ANY part of conversations changes
   }, [conversations, searchQuery, activeFilter, currentUserId]);
 
   return (
-    <div className="flex flex-col h-full bg-[#0F172A] border-r border-slate-800/50">
+    <div className="flex flex-col h-full bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800/50 transition-colors duration-300">
       <div className="p-6 pb-2">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-white tracking-tight">Messages</h2>
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">Messages</h2>
         </div>
 
+        {/* Search Input - Added subtle ring/border for Light Mode */}
         <div className="relative mb-5">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" size={16} />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" size={16} />
           <input 
             type="text" 
             placeholder="Search creators..." 
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-[#1E293B] border-none rounded-xl py-2.5 pl-11 pr-12 text-sm text-slate-200 placeholder:text-slate-500 focus:ring-1 focus:ring-purple-500/50 transition-all outline-none"
+            className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-transparent rounded-xl py-2.5 pl-11 pr-12 text-sm text-slate-900 dark:text-slate-200 placeholder:text-slate-500 focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500/50 transition-all outline-none"
           />
         </div>
 
-        {/* Tab Filters */}
-        <div className="flex p-1 bg-[#1E293B] rounded-xl mb-6">
+        {/* Tab Filters - Responsive colors */}
+        <div className="flex p-1 bg-slate-100 dark:bg-slate-800/50 rounded-xl mb-6">
           {(['All', 'Unread', 'Archived'] as FilterType[]).map((tab) => (
             <button 
               key={tab}
               onClick={() => setActiveFilter(tab)}
               className={`flex-1 flex items-center justify-center gap-2 py-1.5 text-xs font-semibold rounded-lg transition-all ${
-                activeFilter === tab ? 'bg-slate-700 text-white shadow-sm' : 'text-slate-500 hover:text-slate-300'
+                activeFilter === tab 
+                  ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' 
+                  : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
               }`}
             >
               <span>{tab}</span>
               {counts[tab] > 0 && (
-                <span className={`px-1.5 py-0.5 rounded-md text-[10px] ${
-                  activeFilter === tab ? 'bg-purple-600 text-white' : 'bg-slate-800 text-slate-400'
+                <span className={`px-1.5 py-0.5 rounded-md text-[10px] transition-colors ${
+                  activeFilter === tab 
+                    ? 'bg-purple-600 text-white' 
+                    : 'bg-slate-200 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
                 }`}>
                   {counts[tab]}
                 </span>
@@ -103,9 +102,9 @@ export const ConversationList = () => {
 
       <div className="flex-1 overflow-y-auto px-2 pb-4 scrollbar-hide">
         {filteredConversations.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full px-10 text-center opacity-30">
-            <Search size={32} className="text-slate-400 mb-4" />
-            <p className="text-sm font-bold text-white">
+          <div className="flex flex-col items-center justify-center h-full px-10 text-center opacity-40">
+            <Search size={32} className="text-slate-300 dark:text-slate-600 mb-4" />
+            <p className="text-sm font-bold text-slate-900 dark:text-white">
               {activeFilter === 'Archived' ? 'No archived chats' : 'No messages found'}
             </p>
           </div>

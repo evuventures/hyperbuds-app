@@ -47,6 +47,13 @@ async startConversation(participantId: string): Promise<Conversation> {
     await apiClient.delete(`/messaging/conversations/${id}/archive`);
   }
 
+  async toggleUnArchive(id: string): Promise<void> {
+    // Hits DELETE /messaging/conversations/:id/archive
+    await apiClient.post(`/messaging/conversations/${id}/archive`);
+  }
+
+
+
   // --- Messages ---
   async getMessages(conversationId: string, page = 1, limit = 50): Promise<MessagesResponse> {
     const response = await apiClient.get(`/messaging/conversations/${conversationId}/messages`, {

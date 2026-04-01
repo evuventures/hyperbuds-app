@@ -24,6 +24,8 @@ type SuggestionsData = {
   };
 };
 
+const EMPTY_MATCHES: MatchSuggestion[] = [];
+
 // Query Keys
 const MATCHING_KEYS = {
   suggestions: ['matching', 'suggestions'] as const,
@@ -393,7 +395,7 @@ export const useMatching = () => {
 
   return {
     // Data
-    suggestions: suggestions.data?.matches || [],
+    suggestions: suggestions.data?.matches ?? EMPTY_MATCHES,
     isLoading: suggestions.isLoading,
     error: suggestions.error,
     pagination: suggestions.data?.pagination,

@@ -25,11 +25,11 @@ const ConversationPage = () => {
 
   return (
     <DashboardLayout>
-      <div className="flex h-[calc(100vh-64px)] bg-[#0F172A] overflow-hidden">
-        <div className="hidden md:flex w-80 flex-col border-r border-slate-800/50">
+      <div className="flex h-[calc(100vh-64px)]  bg-white dark:bg-slate-900 overflow-hidden">
+        <div className="hidden md:flex w-80 flex-col border-r border-gray-100 dark:border-slate-800/50">
           <ConversationList />
         </div>
-        <div className="flex-1 flex flex-col min-w-0 bg-[#0F172A]">
+        <div className="flex-1 flex flex-col min-w-0  bg-white dark:bg-slate-900">
           {isLoading ? (
             <ChatWindowSkeleton />
           ) : (

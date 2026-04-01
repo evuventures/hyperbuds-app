@@ -37,8 +37,6 @@ export const ConversationItem: React.FC<ConversationItemProps> = ({
   };
 
   const lastMsg = conversation.lastMessage;
-
-  // ✅ Determine if the last message was sent by the current user
   const isSentByMe = lastMsg?.sender?._id === currentUserId;
 
   return (
@@ -46,7 +44,9 @@ export const ConversationItem: React.FC<ConversationItemProps> = ({
       href={`/messages/${conversation._id}`}
       prefetch={true}
       className={`group flex items-center gap-4 p-4 mx-2 mb-1 rounded-2xl cursor-pointer transition-all duration-200 ${
-        isActive ? 'bg-slate-800 shadow-lg' : 'hover:bg-slate-800/50'
+        isActive 
+          ? 'bg-slate-200 dark:bg-slate-800 shadow-sm dark:shadow-lg' 
+          : 'hover:bg-slate-100 dark:hover:bg-slate-800/50'
       }`}
     >
       <div className="relative shrink-0">
@@ -68,36 +68,45 @@ export const ConversationItem: React.FC<ConversationItemProps> = ({
         </div>
 
         {otherUser?.status === 'online' && (
-          <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-slate-900 rounded-full z-10" />
+          <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-white dark:border-slate-900 rounded-full z-10" />
         )}
       </div>
 
       <div className="flex-1 min-w-0">
         <div className="flex justify-between items-baseline mb-1">
-          <h4 className={`text-sm font-semibold truncate ${isActive ? 'text-white' : 'text-slate-200 group-hover:text-white'}`}>
+          <h4 className={`text-sm font-semibold truncate ${
+            isActive 
+              ? 'text-slate-900 dark:text-white' 
+              : 'text-slate-800 dark:text-slate-200 group-hover:text-black dark:group-hover:text-white'
+          }`}>
             {otherUser?.username || otherUser?.fullName || otherUser?.email?.split('@')[0]}
           </h4>
 
-          <span className={`text-[10px] shrink-0 ml-2 ${unreadCount > 0 ? 'text-purple-400 font-bold' : 'text-slate-500'}`}>
+          <span className={`text-[10px] shrink-0 ml-2 ${
+            unreadCount > 0 ? 'text-purple-600 dark:text-purple-400 font-bold' : 'text-slate-500'
+          }`}>
             {lastMsg ? formatLastActivity(lastMsg.createdAt) : ''}
           </span>
         </div>
 
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-1 min-w-0 mr-2">
-            {/* ✅ Show tick for sent messages, nothing for received */}
             {isSentByMe && lastMsg && !lastMsg.isDeleted && (
               lastMsg.isRead
-                ? <CheckCheck size={13} className="shrink-0 text-purple-400" />
-                : <Check size={13} className="shrink-0 text-slate-500" />
+                ? <CheckCheck size={13} className="shrink-0 text-purple-500 dark:text-purple-400" />
+                : <Check size={13} className="shrink-0 text-slate-400 dark:text-slate-500" />
             )}
-            <p className={`text-xs truncate ${unreadCount > 0 ? 'text-white font-medium' : 'text-slate-500'}`}>
+            <p className={`text-xs truncate ${
+              unreadCount > 0 
+                ? 'text-slate-900 dark:text-white font-semibold' 
+                : 'text-slate-600 dark:text-slate-500'
+            }`}>
               {lastMsg?.isDeleted ? 'Message deleted' : lastMsg?.content || "Start collaborating"}
             </p>
           </div>
 
           {unreadCount > 0 && (
-            <span className="flex items-center justify-center min-w-5 h-5 px-1.5 bg-purple-600 text-white text-[10px] font-bold rounded-full shadow-lg animate-in zoom-in duration-300">
+            <span className="flex items-center justify-center min-w-5 h-5 px-1.5 bg-purple-600 text-white text-[10px] font-bold rounded-full shadow-md animate-in zoom-in duration-300">
               {unreadCount}
             </span>
           )}
