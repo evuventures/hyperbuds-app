@@ -51,9 +51,9 @@ export function PlatformUsernameInput({
    );
 
    const handleBlur = () => {
-      if (validateOnBlur && value.trim()) {
+      // if (validateOnBlur && value.trim()) {
          setShouldValidate(true);
-      }
+      // }
    };
 
    const handleChange = (newValue: string) => {
@@ -139,7 +139,7 @@ export function PlatformUsernameInput({
          </div>
 
          {/* Status message */}
-         <AnimatePresence mode="wait">
+         {/* <AnimatePresence mode="wait">
             {shouldValidate && getStatusMessage() && (
                <motion.div
                   initial={{ opacity: 0, y: -5 }}
@@ -157,10 +157,10 @@ export function PlatformUsernameInput({
                   <span>{getStatusMessage()}</span>
                </motion.div>
             )}
-         </AnimatePresence>
+         </AnimatePresence> */}
 
          {/* Clean Preview Card */}
-         <AnimatePresence>
+         {/* <AnimatePresence>
             {showPreview && data && (
                <motion.div
                   initial={{ opacity: 0, y: -10 }}
@@ -203,7 +203,7 @@ export function PlatformUsernameInput({
                   </div>
                </motion.div>
             )}
-         </AnimatePresence>
+         </AnimatePresence> */}
       </div>
    );
 }

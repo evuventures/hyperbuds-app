@@ -1,5 +1,5 @@
 "use client"
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useCallback } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { setMessages, setActiveConversation, markMessagesAsRead } from '@/store/slices/chatSlice';
 import { messagingAPI } from '@/lib/api/messaging.api';
@@ -16,7 +16,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ conversationId }) => {
   const dispatch = useAppDispatch();
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  const { messages, conversations } = useAppSelector((state) => state.chat);
+  const { messages, conversations, latestIncomingMessage } = useAppSelector((state) => state.chat);
   const { user: currentUser } = useAppSelector((state) => state.auth);
 
   const activeId = conversationId;
@@ -26,7 +26,18 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ conversationId }) => {
     if (isYesterday(date)) return 'Yesterday';
     return format(date, 'MMMM d, yyyy');
   };
-// In ChatWindow.tsx, update the first useEffect:
+  
+const fetchMessages = useCallback(async () => {
+  if (!activeId) return;
+
+  try {
+    const data = await messagingAPI.getMessages(activeId);
+    dispatch(setMessages(data.messages));
+  } catch (error) {
+    console.error('Failed to load messages:', error);
+  }
+}, [activeId, dispatch]);
+
 useEffect(() => {
   if (!activeId) return;
   dispatch(setActiveConversation(activeId));
@@ -41,16 +52,16 @@ useEffect(() => {
     }));
   }
 
-  const fetchMessages = async () => {
-    try {
-      const data = await messagingAPI.getMessages(activeId);
-      dispatch(setMessages(data.messages));
-    } catch (error) {
-      console.error("Failed to load messages:", error);
-    }
-  };
   fetchMessages();
-}, [activeId, dispatch, currentUser]);
+}, [activeId, dispatch, currentUser, fetchMessages]);
+
+useEffect(() => {
+  if (!activeId || !latestIncomingMessage) return;
+
+  if (latestIncomingMessage.conversationId === activeId) {
+    fetchMessages();
+  }
+}, [activeId, latestIncomingMessage, fetchMessages]);
 
   // ✅ Filter to only show messages for the active conversation
   const activeMessages = messages.filter(m => m.conversationId === activeId);
