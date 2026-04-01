@@ -19,6 +19,7 @@ export type ProfileFormData = {
     city: string;
     state: string;
     country: string;
+    coordinates: [lng: number, lat: number];
   };
   socialLinks: Record<string, string>;
   niches: string[];
@@ -40,7 +41,7 @@ export const useProfileForm = () => {
     username: "",
     displayName: "",
     bio: "",
-    location: { city: "", state: "", country: "" },
+    location: { city: "", state: "", country: "", coordinates: [0, 0] },
     socialLinks: {},
     niches: [],
     avatarUrl: null,
@@ -111,6 +112,22 @@ export const useProfileForm = () => {
     setError("");
     setMessage("");
 
+    window.navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setFormData((prev) => ({
+          ...prev,
+          location: {
+            ...prev.location,
+            coordinates: [position.coords.longitude || 0, position.coords.latitude || 0],
+          },
+        }));
+      },
+      (err) => {
+        console.warn("Geolocation error:", err);
+      },
+      { timeout: 10000 }
+    );
+
     try {
       let finalAvatarUrl = formData.avatarUrl;
 
@@ -132,6 +149,7 @@ export const useProfileForm = () => {
           city: formData.location.city.trim(),
           state: formData.location.state.trim(),
           country: formData.location.country.trim(),
+          coordinates: formData.location.coordinates,
         },
         avatar: finalAvatarUrl, // Send base64 for immediate preview on next page, backend can choose to ignore if using uploadthing URL
       };

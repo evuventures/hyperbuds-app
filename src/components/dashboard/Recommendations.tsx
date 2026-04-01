@@ -67,13 +67,14 @@ const RecommendationCard: React.FC<{ rec: Recommendation; rank: number }> = ({ r
     <div className="group relative flex flex-col sm:flex-row rounded-2xl overflow-hidden bg-white dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700/50 hover:border-purple-300 dark:hover:border-purple-600 hover:shadow-xl dark:hover:shadow-purple-900/20 transition-all duration-300">
 
       {/* ── Avatar ── */}
-      <div className="relative w-full sm:w-36 md:w-44 shrink-0 bg-linear-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 overflow-hidden min-h-40 sm:min-h-0">
+      {/* ── Avatar ── */}
+<div className="relative w-full sm:w-36 md:w-44 h-48  shrink-0 bg-linear-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 overflow-hidden">
         {user.avatar ? (
           /* eslint-disable-next-line @next/next/no-img-element */
           <img
             src={user.avatar}
             alt={displayName}
-            className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500"
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center py-8 sm:py-0">

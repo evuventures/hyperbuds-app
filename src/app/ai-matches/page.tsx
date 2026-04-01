@@ -232,7 +232,7 @@ const AIMatchesPage: React.FC = () => {
     );
   } else if (error) {
     content = (
-      <div className="rounded-4xl border border-red-300/60 bg-white/90 p-8 shadow-sm backdrop-blur dark:border-red-500/20 dark:bg-[#1a1227]/85 dark:shadow-none">
+      <div className="rounded-4xl border border-red-300/60 bg-white/90 p-8 shadow-[0_24px_80px_-36px_rgba(239,68,68,0.28)] backdrop-blur dark:border-red-500/20 dark:bg-[#1a1227]/85 dark:shadow-[0_24px_80px_-36px_rgba(239,68,68,0.45)]">
         <p className="text-lg font-semibold text-red-600 dark:text-red-300">Failed to load AI matches</p>
         <p className="mt-2 text-sm text-red-500/90 dark:text-red-200/80">{errorMessage}</p>
         <Button
