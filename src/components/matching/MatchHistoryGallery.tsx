@@ -58,7 +58,7 @@ const MatchHistoryGallery: React.FC<MatchHistoryGalleryProps> = ({
       </div>
 
       {remainingMatches.length > 0 && (
-        <aside className="h-fit rounded-[28px] border border-fuchsia-200/70 bg-white/85 p-5 shadow-[0_20px_60px_-30px_rgba(168,85,247,0.35)] backdrop-blur dark:border-white/10 dark:bg-[#1a1227]/88 dark:shadow-[0_24px_70px_-36px_rgba(192,38,211,0.65)]">
+        <aside className="h-fit rounded-[28px] border border-fuchsia-200/70 bg-white/85 p-5 shadow-sm backdrop-blur dark:border-white/10 dark:bg-[#1a1227]/88 dark:shadow-none">
           <div className="mb-5 flex items-start justify-between gap-3">
             <div>
               <h2 className="text-2xl font-bold text-slate-900 dark:text-white">More Matches</h2>

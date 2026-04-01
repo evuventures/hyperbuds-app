@@ -224,7 +224,7 @@ const AIMatchesPage: React.FC = () => {
   let content: React.ReactNode;
   if (isPageLoading) {
     content = (
-      <div className="flex min-h-90 flex-col items-center justify-center rounded-4xl border border-fuchsia-200/70 bg-white/85 p-8 text-center shadow-[0_20px_70px_-30px_rgba(168,85,247,0.35)] backdrop-blur dark:border-white/10 dark:bg-[#1a1227]/80 dark:shadow-[0_24px_80px_-36px_rgba(192,38,211,0.6)]">
+      <div className="flex min-h-90 flex-col items-center justify-center rounded-4xl border border-fuchsia-200/70 bg-white/85 p-8 text-center shadow-sm backdrop-blur dark:border-white/10 dark:bg-[#1a1227]/80 dark:shadow-none">
         <Loader2 className="mb-4 h-14 w-14 animate-spin text-fuchsia-400" />
         <p className="text-lg font-semibold text-slate-900 dark:text-white">Loading your top matches...</p>
         <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">Gathering compatibility signals and bios.</p>
@@ -232,7 +232,7 @@ const AIMatchesPage: React.FC = () => {
     );
   } else if (error) {
     content = (
-      <div className="rounded-4xl border border-red-300/60 bg-white/90 p-8 shadow-[0_24px_80px_-36px_rgba(239,68,68,0.28)] backdrop-blur dark:border-red-500/20 dark:bg-[#1a1227]/85 dark:shadow-[0_24px_80px_-36px_rgba(239,68,68,0.45)]">
+      <div className="rounded-4xl border border-red-300/60 bg-white/90 p-8 shadow-sm backdrop-blur dark:border-red-500/20 dark:bg-[#1a1227]/85 dark:shadow-none">
         <p className="text-lg font-semibold text-red-600 dark:text-red-300">Failed to load AI matches</p>
         <p className="mt-2 text-sm text-red-500/90 dark:text-red-200/80">{errorMessage}</p>
         <Button
@@ -246,7 +246,7 @@ const AIMatchesPage: React.FC = () => {
     );
   } else if (displayMatches.length === 0) {
     content = (
-      <div className="flex min-h-90 flex-col items-center justify-center rounded-4xl border border-fuchsia-200/70 bg-white/85 p-8 text-center shadow-[0_20px_70px_-30px_rgba(168,85,247,0.35)] backdrop-blur dark:border-white/10 dark:bg-[#1a1227]/80 dark:shadow-[0_24px_80px_-36px_rgba(192,38,211,0.6)]">
+      <div className="flex min-h-90 flex-col items-center justify-center rounded-4xl border border-fuchsia-200/70 bg-white/85 p-8 text-center shadow-sm backdrop-blur dark:border-white/10 dark:bg-[#1a1227]/80 dark:shadow-none">
         <div className="mb-4 rounded-full bg-linear-to-br from-fuchsia-500/20 to-pink-500/20 p-5">
           <Sparkles className="h-12 w-12 text-fuchsia-300" />
         </div>

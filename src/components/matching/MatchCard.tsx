@@ -49,7 +49,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
       transition={{ duration: 0.25, ease: "easeOut" }}
       className="w-full"
     >
-      <div className="overflow-hidden rounded-[30px] border border-fuchsia-200/60 bg-white/90 shadow-[0_20px_60px_-30px_rgba(168,85,247,0.35)] dark:border-white/10 dark:bg-[#101827]/95 dark:shadow-[0_24px_70px_-34px_rgba(192,38,211,0.65)]">
+      <div className="overflow-hidden rounded-[30px] border border-fuchsia-200/60 bg-white/90 shadow-sm dark:border-white/10 dark:bg-[#101827]/95 dark:shadow-none">
         <div className="grid min-h-105 lg:grid-cols-[320px_minmax(0,1fr)]">
           <div className="relative min-h-80 overflow-hidden bg-linear-to-br from-[#5d304c] via-[#cb9c73] to-[#1c1632]">
             {profile.avatar && !hasImageError ? (
