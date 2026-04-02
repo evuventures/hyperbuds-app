@@ -7,6 +7,11 @@ interface ChatState {
   messages: Message[];
   isLoading: boolean;
   typingUsers: Record<string, string[]>;
+  latestIncomingMessage: {
+    conversationId: string;
+    messageId: string;
+    createdAt: string;
+  } | null;
 }
 
 const initialState: ChatState = {
@@ -15,6 +20,7 @@ const initialState: ChatState = {
   messages: [],
   isLoading: false,
   typingUsers: {},
+  latestIncomingMessage: null,
 };
 
 const chatSlice = createSlice({
@@ -59,6 +65,17 @@ const chatSlice = createSlice({
       if (convIndex !== -1) {
         state.conversations[convIndex].lastMessage = message;
       }
+    },
+
+    setLatestIncomingMessage: (
+      state,
+      action: PayloadAction<{
+        conversationId: string;
+        messageId: string;
+        createdAt: string;
+      } | null>
+    ) => {
+      state.latestIncomingMessage = action.payload;
     },
 
     setTypingStatus: (state, action: PayloadAction<{
@@ -164,6 +181,7 @@ export const {
   setActiveConversation,
   setMessages,
   addMessage,
+  setLatestIncomingMessage,
   setTypingStatus,
   markMessagesAsRead,
   deleteMessageLocal,

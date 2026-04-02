@@ -77,6 +77,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     const initAuthAndFetch = async () => {
       // Hydrate Redux Token from LocalStorage for apiClient
       const savedToken = localStorage.getItem('accessToken');
+
+      if (!savedToken && !token) {
+        router.push("/auth/signin");
+        return;
+      }
       if (savedToken && !token) {
         dispatch(setToken(savedToken));
       }
