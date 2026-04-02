@@ -12,6 +12,7 @@ const baseURL = API_BASE_URL;
 // ✅ 2. Create Axios instance
 export const apiClient = axios.create({
   baseURL,
+  timeout: 15000,
   headers: {
     "Content-Type": "application/json",
   },
@@ -64,6 +65,7 @@ apiClient.interceptors.response.use(
     const normalizedError = {
       message: responseData?.message || error.message || "Unexpected error occurred",
       status,
+      code: error.code,
       data: error.response?.data,
     };
 

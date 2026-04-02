@@ -4,6 +4,7 @@ import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { messagingSocketService } from '@/lib/socket/messagingSocket';
 import {
     addMessage,
+    setLatestIncomingMessage,
     setTypingStatus,
     markMessagesAsRead,
     deleteMessageLocal,
@@ -72,6 +73,14 @@ export const useChatSocket = () => {
             dispatch(addMessage(message));
 
             const isFromMe = message.sender._id === currentUserId;
+            if (!isFromMe) {
+                dispatch(setLatestIncomingMessage({
+                    conversationId,
+                    messageId: message._id,
+                    createdAt: message.createdAt,
+                }));
+            }
+
             const isInActiveChat = conversationId === activeId;
 
             if (!isFromMe && !isInActiveChat && currentUserId) {
