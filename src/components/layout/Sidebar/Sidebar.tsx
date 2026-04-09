@@ -1,5 +1,5 @@
 "use client"
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -8,7 +8,7 @@ import {
   Menu, House, LogOut
 } from 'lucide-react';
 import { useAuth } from '@/hooks/auth/useAuth';
-
+import Image from 'next/image';
 
 interface SidebarProps {
   user: {
@@ -58,6 +58,129 @@ const mockData = {
   }
 };
 
+interface UserProfile {
+  stats: {
+    followers: number;
+    engagementRate: number;
+    activityLevel: number;
+  };
+  preferences: {
+    engagementRange: {
+      min: number;
+      max: number;
+    };
+    minRizzScore: number;
+    preferredNiches: string[];
+    collabType: string[];
+    locationPreference: string;
+  };
+  subscription: {
+    tier: string;
+    cancelAtPeriodEnd: boolean;
+  };
+  paymentPreferences: {
+    currency: string;
+    autoPayoutEnabled: boolean;
+    autoPayoutThreshold: number;
+    payoutSchedule: string;
+  };
+  earnings: {
+    totalEarned: number;
+    availableBalance: number;
+    pendingPayouts: number;
+  };
+  accountStatus: {
+    payoutsEnabled: boolean;
+    paymentMethodsEnabled: boolean;
+    accountRestricted: boolean;
+  };
+  notificationPreferences: {
+    paymentReceived: boolean;
+    payoutProcessed: boolean;
+    subscriptionChanges: boolean;
+    paymentFailed: boolean;
+  };
+  _id: string;
+  email: string;
+  isVerified: boolean;
+  role: string;
+  niche: string[];
+  rizzScore: number;
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
+  subscriptionStatus: string;
+  formattedEarnings: {
+    totalEarned: string;
+    availableBalance: string;
+    pendingPayouts: string;
+  };
+  id: string;
+  profile: {
+    stats: {
+      platformBreakdown: {
+        tiktok: {
+          followers: number;
+          engagement: number;
+        };
+        instagram: {
+          followers: number;
+          engagement: number;
+        };
+        youtube: {
+          followers: number;
+          engagement: number;
+        };
+        twitch: {
+          followers: number;
+          engagement: number;
+        };
+      };
+      totalFollowers: number;
+      avgEngagement: number;
+    };
+    preferences: {
+      audienceSize: {
+        min: number;
+        max: number;
+      };
+      budget: {
+        min: number;
+        max: number;
+      };
+      collaborationTypes: string[];
+      niches: string[];
+      minRizzScore: number;
+      maxDistance: number;
+      locations: string[];
+    };
+    _id: string;
+    userId: string;
+    username: string;
+    displayName: string;
+    bio: string;
+    avatar: string;
+    niche: string[];
+    rizzScore: number;
+    isPublic: boolean;
+    isActive: boolean;
+    location: {
+      type: string;
+      coordinates: [number, number];
+      country: string;
+      city: string;
+      state: string;
+    };
+    lastSeen: string;
+    createdAt: string;
+    updatedAt: string;
+    __v: number;
+    profileUrl: string;
+    id: string;
+  };
+}
+
+
 export const Sidebar: React.FC<SidebarProps> = ({ user, activeTab, collapsed, onTabChange, onToggleCollapse, className }) => {
   // ❌ REMOVED: console.log('Sidebar rendered with collapsed:', collapsed);
   // ❌ REMOVED: console.log('isCollapsed:', isCollapsed);
@@ -66,8 +189,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ user, activeTab, collapsed, on
   const isCollapsed = collapsed;
   const pathname = usePathname();
   const router = useRouter();
-  const { logout } = useAuth();
+  const { logout, user: authenticatedUser } = useAuth();
   const [notifications] = useState(mockData.notifications);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
 
   // Logout handler
   const handleLogout = async () => {
@@ -119,7 +243,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ user, activeTab, collapsed, on
 
   const businessItems: MenuItem[] = [
     { id: 'marketplace', icon: ShoppingBag, label: 'Marketplace', count: notifications.marketplace, path: '/marketplace' },
-   // { id: 'Subscription', icon: Currency, label: 'Subscription', path: '/payments/subscription' }, // Changed path for consistency
+    // { id: 'Subscription', icon: Currency, label: 'Subscription', path: '/payments/subscription' }, // Changed path for consistency
     // { id: 'bookings', icon: Users, label: 'Bookings', path: '/bookings' },
     // { id: 'earnings', icon: Currency, label: 'Earnings', path: '/earnings' }
   ];
@@ -153,6 +277,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ user, activeTab, collapsed, on
     </div>
   );
 
+  useEffect(() => {
+    if (authenticatedUser) {
+      setProfile(authenticatedUser as UserProfile);
+    }
+  }, [authenticatedUser])
 
   return (
     <>
@@ -302,19 +431,25 @@ export const Sidebar: React.FC<SidebarProps> = ({ user, activeTab, collapsed, on
         </div >
 
         {/* Footer */}
-        <div className={`mt-auto ${isCollapsed ? 'p-2' : 'p-4'} border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800`}>
+        <div className={`mt-auto ${isCollapsed ? 'p-2' : 'p-4 pb-8'} border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800`}>
           {!isCollapsed ? (
             <>
               <div className='flex flex-col gap-3'>
                 <div className="flex gap-2 items-center">
-                  <div className="flex justify-center items-center w-10 h-10 bg-linear-to-r from-purple-500 to-pink-500 rounded-full avatar">
-                    <span className="text-sm font-medium text-white">
-                      {user.username?.[0]?.toUpperCase() || user.email[0].toUpperCase()}
-                    </span>
-                  </div>
+                  {profile?.profile?.avatar ? (
+                    <div className="flex justify-center items-center w-10 h-10 bg-linear-to-r from-purple-500 to-pink-500 rounded-full avatar overflow-hidden">
+                      <Image src={profile.profile.avatar} alt="User avatar" width={40} height={40} className="w-full h-full object-cover" />
+                    </div>
+                  ) : (
+                    <div className="flex justify-center items-center w-10 h-10 bg-linear-to-r from-purple-500 to-pink-500 rounded-full avatar">
+                      <span className="text-sm font-medium text-white">
+                        {profile?.profile?.username?.[0]?.toUpperCase() || profile?.email[0].toUpperCase()}
+                      </span>
+                    </div>
+                  )}
                   <div className='max-w-37.5'>
-                    <div className="mb-1 text-xs font-medium text-gray-900 truncate dark:text-gray-100">
-                      {user.username || user.email}
+                    <div className="mb-1 text-xs font-medium text-gray-900 truncate dark:text-gray-100 capitalize" >
+                      {profile?.profile?.username || profile?.email}
                     </div>
                     <div className="text-xs text-gray-500 dark:text-gray-400">
                       {mockData.creator.niche.join(', ')}
@@ -336,11 +471,17 @@ export const Sidebar: React.FC<SidebarProps> = ({ user, activeTab, collapsed, on
             </>
           ) : (
             <div className="flex flex-col gap-2 items-center">
-              <div className="flex justify-center items-center w-10 h-10 bg-linear-to-r from-purple-500 to-pink-500 rounded-full avatar">
-                <span className="text-xs font-medium text-white">
-                  {user.username?.[0]?.toUpperCase() || user.email[0].toUpperCase()}
-                </span>
-              </div>
+              {profile?.profile?.avatar ? (
+                <div className="flex justify-center items-center w-10 h-10 bg-linear-to-r from-purple-500 to-pink-500 rounded-full avatar overflow-hidden">
+                  <Image src={profile.profile.avatar} alt="User avatar" width={40} height={40} className="w-full h-full object-cover" />
+                </div>
+              ) : (
+                <div className="flex justify-center items-center w-10 h-10 bg-linear-to-r from-purple-500 to-pink-500 rounded-full avatar">
+                  <span className="text-xs font-medium text-white">
+                    {profile?.profile?.username?.[0]?.toUpperCase() || profile?.email[0].toUpperCase()}
+                  </span>
+                </div>
+              )}
 
               {/* Logout Button - Collapsed */}
               <motion.button

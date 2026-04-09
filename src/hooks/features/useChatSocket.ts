@@ -90,6 +90,15 @@ export const useChatSocket = () => {
 
         const handleTyping = (data: SocketEvents['typing']) => {
             dispatch(setTypingStatus(data));
+
+            const currentUserId = currentUserRef.current?.id || currentUserRef.current?._id;
+            if (data.userId !== currentUserId) {
+                dispatch(setLatestIncomingMessage({
+                    conversationId: data.conversationId,
+                    messageId: `typing-${data.userId}-${Date.now()}`,
+                    createdAt: new Date().toISOString(),
+                }));
+            }
         };
 
         const handleMessagesRead = (data: SocketEvents['message-read']) => {
