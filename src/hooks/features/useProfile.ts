@@ -26,6 +26,102 @@ export type ProfileFormData = {
   avatarUrl: string | null;
 };
 
+// Define supported platforms as a union type
+type Platform =
+  | "twitter"
+  | "instagram"
+  | "facebook"
+  | "linkedin"
+  | "tiktok"
+  | "youtube"
+  | "snapchat"
+  | "reddit"
+  | "pinterest"
+  | "twitch";
+
+// Input object: keys are platforms, values are usernames or links
+type SocialHandles = Partial<Record<Platform, string>>;
+
+// Output object: keys are platforms, values are canonical URLs
+type NormalizedSocialLinks = Partial<Record<Platform, string>>;
+
+// Canonical formats for supported platforms
+const canonicalFormats: Record<Platform, string> = {
+  twitter: "https://twitter.com/{username}",
+  instagram: "https://instagram.com/{username}",
+  facebook: "https://facebook.com/{username}",
+  linkedin: "https://linkedin.com/in/{username}",
+  tiktok: "https://www.tiktok.com/@{username}",
+  youtube: "https://www.youtube.com/{username}",
+  snapchat: "https://www.snapchat.com/add/{username}",
+  reddit: "https://www.reddit.com/user/{username}",
+  pinterest: "https://www.pinterest.com/{username}",
+  twitch: "https://www.twitch.tv/{username}"
+};
+
+// Regex patterns to detect and extract usernames/IDs
+const patterns: Partial<Record<Platform, RegExp>> = {
+  twitter: /(?:https?:\/\/)?(?:www\.)?(?:mobile\.)?twitter\.com\/([A-Za-z0-9_]+)/i,
+  instagram: /(?:https?:\/\/)?(?:www\.)?instagram\.com\/([A-Za-z0-9_.]+)/i,
+  facebook: /(?:https?:\/\/)?(?:www\.)?facebook\.com\/([A-Za-z0-9.]+)/i,
+  linkedin: /(?:https?:\/\/)?(?:www\.)?linkedin\.com\/in\/([A-Za-z0-9-]+)/i,
+  tiktok: /(?:https?:\/\/)?(?:www\.)?tiktok\.com\/@([A-Za-z0-9_.]+)/i,
+  youtube: /(?:https?:\/\/)?(?:www\.)?youtube\.com\/(channel\/[A-Za-z0-9_-]+|c\/[A-Za-z0-9_-]+|user\/[A-Za-z0-9_-]+)/i,
+  snapchat: /(?:https?:\/\/)?(?:www\.)?snapchat\.com\/add\/([A-Za-z0-9_.]+)/i,
+  reddit: /(?:https?:\/\/)?(?:www\.)?reddit\.com\/user\/([A-Za-z0-9_-]+)/i,
+  pinterest: /(?:https?:\/\/)?(?:www\.)?pinterest\.com\/([A-Za-z0-9_-]+)/i,
+  twitch: /(?:https?:\/\/)?(?:www\.)?twitch\.tv\/([A-Za-z0-9_]+)/i
+};
+
+function normalizeSocialLink(
+  input: string,
+  platformHint: Platform | null = null
+): string | null {
+  if (!input) return null;
+
+  input = input.trim().replace(/\/+$/, "");
+
+  for (const [platform, regex] of Object.entries(patterns)) {
+    const match = input.match(regex!);
+    if (match) {
+      const username = match[1];
+      return canonicalFormats[platform as Platform].replace("{username}", username);
+    }
+  }
+
+  if (input.startsWith("@") || input.startsWith("#")) {
+    const username = input.slice(1);
+    if (platformHint) {
+      return canonicalFormats[platformHint].replace("{username}", username);
+    }
+    return canonicalFormats.twitter.replace("{username}", username);
+  }
+
+  if (/^[A-Za-z0-9_.-]+$/.test(input)) {
+    if (platformHint) {
+      return canonicalFormats[platformHint].replace("{username}", input);
+    }
+    return canonicalFormats.twitter.replace("{username}", input);
+  }
+
+  return null;
+}
+
+function normalizeSocialObject(handles: SocialHandles): NormalizedSocialLinks {
+  const result: NormalizedSocialLinks = {};
+
+  for (const [platform, username] of Object.entries(handles)) {
+    const normalized = normalizeSocialLink(username!, platform as Platform);
+    if (normalized) {
+      result[platform as Platform] = normalized;
+    }
+  }
+
+  return result;
+}
+
+
+
 export const useProfileForm = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
@@ -144,7 +240,7 @@ export const useProfileForm = () => {
         displayName: formData.displayName.trim(),
         bio: formData.bio.trim(),
         niche: formData.niches,
-        socialLinks: formData.socialLinks,
+        socialLinks: normalizeSocialObject(formData.socialLinks),
         location: {
           city: formData.location.city.trim(),
           state: formData.location.state.trim(),
