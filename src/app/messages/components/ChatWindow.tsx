@@ -1,5 +1,5 @@
 "use client"
-import React, { useEffect, useRef, useCallback } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { setMessages, setActiveConversation, markMessagesAsRead } from '@/store/slices/chatSlice';
 import { messagingAPI } from '@/lib/api/messaging.api';
@@ -16,10 +16,9 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ conversationId }) => {
   const dispatch = useAppDispatch();
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  const { messages, conversations, latestIncomingMessage, activeConversationId } = useAppSelector((state) => state.chat);
+  const { messages, conversations, activeConversationId } = useAppSelector((state) => state.chat);
   const { user: currentUser } = useAppSelector((state) => state.auth);
 
-  // `/messages` sets active chat via Redux only; `/messages/[conversationId]` passes the id prop.
   const activeId = conversationId ?? activeConversationId;
 
   const formatDividerDate = (date: Date) => {
@@ -34,10 +33,10 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ conversationId }) => {
 
     const currentUserId = currentUser?.id || currentUser?._id;
     if (currentUserId) {
-      dispatch(markMessagesAsRead({ 
-        conversationId: activeId, 
-        messageIds: [], 
-        userId: currentUserId 
+      dispatch(markMessagesAsRead({
+        conversationId: activeId,
+        messageIds: [],
+        userId: currentUserId
       }));
     }
 
@@ -53,7 +52,6 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ conversationId }) => {
   }, [activeId, dispatch, currentUser]);
 
   const activeMessages = messages.filter(m => m.conversationId === activeId);
-
   const sortedMessages = [...activeMessages].sort(
     (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
   );
@@ -66,12 +64,10 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ conversationId }) => {
 
   useEffect(() => {
     const currentUserId = currentUser?.id || currentUser?._id;
-
     if (activeId && sortedMessages.length > 0 && currentUserId) {
       const unreadIds = sortedMessages
         .filter(m => !m.isRead && m.sender._id !== currentUserId)
         .map(m => m._id);
-
       if (unreadIds.length > 0) {
         messagingAPI.markAsRead(activeId, unreadIds);
       }
@@ -83,7 +79,6 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ conversationId }) => {
       <div className="flex-1 flex flex-col items-center justify-center bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-400">
         <div className="flex flex-col items-center max-w-sm text-center">
           <div className="relative mb-6">
-            {/* Empty State Illustration Adjusted for Light/Dark */}
             <div className="bg-slate-50 dark:bg-slate-800 rounded-2xl p-5 shadow-xl dark:shadow-2xl transform transition-transform hover:scale-105 border border-slate-200 dark:border-slate-700">
               <div className="flex gap-1.5">
                 <div className="w-2 h-2 bg-slate-400 dark:bg-slate-500 rounded-full animate-bounce" />
@@ -104,26 +99,27 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ conversationId }) => {
 
   const activeChat = conversations.find(c => c._id === activeId);
   const currentUserId = currentUser?.id || currentUser?._id;
-
-  const recipient = activeChat?.participants.find(
-    (p) => p._id !== currentUserId
-  ) || activeChat?.participants[0];
+  const recipient = activeChat?.participants.find(p => p._id !== currentUserId) || activeChat?.participants[0];
 
   return (
-    <div className="flex flex-col h-full bg-white dark:bg-slate-900 relative border-l border-slate-200 dark:border-slate-800/50">
-      <ChatHeader recipient={recipient} />
+    // ✅ h-[100dvh] shrinks when mobile keyboard opens, keeping input visible
+    <div className="flex flex-col h-dvh bg-white dark:bg-slate-900 relative border-l border-slate-200 dark:border-slate-800/50">
+      
+      {/* Header — fixed height, never shrinks */}
+      <div className="shrink-0">
+        <ChatHeader recipient={recipient} />
+      </div>
 
+      {/* Messages — takes all remaining space and scrolls internally */}
       <div
         ref={scrollRef}
-        className="flex-1 overflow-y-auto p-6 space-y-6 scroll-smooth 
+        className="flex-1 overflow-y-auto p-6 space-y-6 scroll-smooth
                    scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-800 scrollbar-track-transparent"
       >
         {sortedMessages.map((msg, index) => {
           const currentDate = new Date(msg.createdAt);
           const prevDate = index > 0 ? new Date(sortedMessages[index - 1].createdAt) : null;
-
-          const isNewDay = !prevDate ||
-            currentDate.toDateString() !== prevDate.toDateString();
+          const isNewDay = !prevDate || currentDate.toDateString() !== prevDate.toDateString();
 
           return (
             <React.Fragment key={msg._id}>
@@ -134,18 +130,15 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ conversationId }) => {
                   </span>
                 </div>
               )}
-
-              <MessageBubble
-                message={msg}
-                isMe={msg.sender._id === currentUserId}
-              />
+              <MessageBubble message={msg} isMe={msg.sender._id === currentUserId} />
             </React.Fragment>
           );
         })}
         <div className="h-2" />
       </div>
 
-      <div className="p-4 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-transparent">
+      {/* Input — pinned to bottom, never squished */}
+      <div className="shrink-0 border-t border-slate-100 dark:border-transparent">
         <MessageInput conversationId={activeId} />
       </div>
     </div>

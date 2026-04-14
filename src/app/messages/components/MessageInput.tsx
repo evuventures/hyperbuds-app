@@ -14,9 +14,17 @@ export const MessageInput: React.FC<MessageInputProps> = ({ conversationId }) =>
   const [text, setText] = useState('');
   const [isSending, setIsSending] = useState(false);
   const dispatch = useAppDispatch();
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isTypingRef = useRef(false);
+
+  const handleFocus = () => {
+    // Wait for keyboard to fully open, then scroll input into view
+    setTimeout(() => {
+      inputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    }, 300);
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -72,9 +80,11 @@ export const MessageInput: React.FC<MessageInputProps> = ({ conversationId }) =>
     <form onSubmit={handleSend} className="p-2 bg-white dark:bg-slate-900 transition-colors duration-300">
       <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800 p-2 rounded-2xl border border-slate-200 dark:border-slate-700 transition-all focus-within:border-purple-500/50 focus-within:ring-1 focus-within:ring-purple-500/20">
         <input
+          ref={inputRef}
           type="text"
           value={text}
           onChange={handleInputChange}
+          onFocus={handleFocus}
           placeholder="Type a message..."
           className="flex-1 bg-transparent border-none focus:ring-0 text-sm px-2 text-slate-900 dark:text-white placeholder:text-slate-500"
         />
@@ -88,9 +98,9 @@ export const MessageInput: React.FC<MessageInputProps> = ({ conversationId }) =>
               : 'bg-slate-200 dark:bg-slate-700 text-slate-400 dark:text-slate-500'}
           `}
         >
-          <Send 
-            size={18} 
-            className={`${isSending ? 'animate-pulse' : ''} ${text.trim() ? 'fill-current' : ''}`} 
+          <Send
+            size={18}
+            className={`${isSending ? 'animate-pulse' : ''} ${text.trim() ? 'fill-current' : ''}`}
           />
         </button>
       </div>
