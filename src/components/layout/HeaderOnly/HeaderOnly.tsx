@@ -8,15 +8,147 @@ import { useSidebar } from '@/context/SidebarContext';
 import { BASE_URL } from '../../../config/baseUrl';
 import { ThemeProvider } from '@/context/Theme';
 import { getAccessToken } from '@/store/authSelectors';
+import { useAuth } from '@/hooks/auth/useAuth';
+import Image from 'next/image';
 
 interface HeaderOnlyLayoutProps {
    children: React.ReactNode;
+}
+
+interface UserProfile {
+   stats: {
+      followers: number;
+      engagementRate: number;
+      activityLevel: number;
+   };
+   preferences: {
+      engagementRange: {
+         min: number;
+         max: number;
+      };
+      minRizzScore: number;
+      preferredNiches: string[];
+      collabType: string[];
+      locationPreference: string;
+   };
+   subscription: {
+      tier: string;
+      cancelAtPeriodEnd: boolean;
+   };
+   paymentPreferences: {
+      currency: string;
+      autoPayoutEnabled: boolean;
+      autoPayoutThreshold: number;
+      payoutSchedule: string;
+   };
+   earnings: {
+      totalEarned: number;
+      availableBalance: number;
+      pendingPayouts: number;
+   };
+   accountStatus: {
+      payoutsEnabled: boolean;
+      paymentMethodsEnabled: boolean;
+      accountRestricted: boolean;
+   };
+   notificationPreferences: {
+      paymentReceived: boolean;
+      payoutProcessed: boolean;
+      subscriptionChanges: boolean;
+      paymentFailed: boolean;
+   };
+   _id: string;
+   email: string;
+   isVerified: boolean;
+   role: string;
+   niche: string[];
+   rizzScore: number;
+   createdAt: string;
+   updatedAt: string;
+   __v: number;
+   subscriptionStatus: string;
+   formattedEarnings: {
+      totalEarned: string;
+      availableBalance: string;
+      pendingPayouts: string;
+   };
+   id: string;
+   profile: {
+      stats: {
+         platformBreakdown: {
+            tiktok: {
+               followers: number;
+               engagement: number;
+            };
+            instagram: {
+               followers: number;
+               engagement: number;
+            };
+            youtube: {
+               followers: number;
+               engagement: number;
+            };
+            twitch: {
+               followers: number;
+               engagement: number;
+            };
+         };
+         totalFollowers: number;
+         avgEngagement: number;
+      };
+      preferences: {
+         audienceSize: {
+            min: number;
+            max: number;
+         };
+         budget: {
+            min: number;
+            max: number;
+         };
+         collaborationTypes: string[];
+         niches: string[];
+         minRizzScore: number;
+         maxDistance: number;
+         locations: string[];
+      };
+      _id: string;
+      userId: string;
+      username: string;
+      displayName: string;
+      bio: string;
+      avatar: string;
+      niche: string[];
+      rizzScore: number;
+      isPublic: boolean;
+      isActive: boolean;
+      location: {
+         type: string;
+         coordinates: [number, number];
+         country: string;
+         city: string;
+         state: string;
+      };
+      lastSeen: string;
+      createdAt: string;
+      updatedAt: string;
+      __v: number;
+      profileUrl: string;
+      id: string;
+   };
 }
 
 export default function HeaderOnlyLayout({ children }: HeaderOnlyLayoutProps) {
    const router = useRouter();
    const [user, setUser] = useState<{ id: string; name: string; email: string; avatar?: string } | null>(null);
    const [loading, setLoading] = useState(true);
+   const [profile, setProfile] = useState<UserProfile | null>(null);
+   const { user: authenticatedUser } = useAuth();
+
+   useEffect(() => {
+      if (authenticatedUser) {
+         setProfile(authenticatedUser as UserProfile);
+      }
+   }, [authenticatedUser])
 
    // Use global sidebar context for skeleton
    const { sidebarCollapsed, isInitialized: sidebarInitialized } = useSidebar();
@@ -72,7 +204,11 @@ export default function HeaderOnlyLayout({ children }: HeaderOnlyLayoutProps) {
                   <div className="flex gap-2 items-center">
                      <div className="flex justify-center items-center w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full">
                         <span className="text-sm font-medium text-white">
-                           {user.name?.[0]?.toUpperCase() || user.email[0].toUpperCase()}
+                           {profile?.profile?.avatar ? (
+                              <Image src={profile?.profile?.avatar} alt="User avatar" width={32} height={32} className="w-full h-full object-cover" />
+                           ) : (
+                              profile?.profile?.username?.[0]?.toUpperCase() || profile?.email[0].toUpperCase()
+                           )}
                         </span>
                      </div>
                   </div>

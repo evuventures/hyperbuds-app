@@ -35,7 +35,7 @@ export interface UserResponse {
  * Authenticate with Google OAuth authorization code
  */
 export async function googleAuth(code: string): Promise<GoogleAuthResponse> {
-  const response = await apiClient.post<GoogleAuthResponse>("/auth/google", { code });
+  const response = await apiClient.get<GoogleAuthResponse>("/auth/google?code=" + code);
   return response.data;
 }
 
