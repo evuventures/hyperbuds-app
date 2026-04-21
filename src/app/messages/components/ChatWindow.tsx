@@ -1,5 +1,5 @@
 "use client"
-import React, { useEffect, useRef, useCallback } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { setMessages, setActiveConversation, markMessagesAsRead } from '@/store/slices/chatSlice';
 import { messagingAPI } from '@/lib/api/messaging.api';
@@ -16,7 +16,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ conversationId }) => {
   const dispatch = useAppDispatch();
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  const { messages, conversations, latestIncomingMessage, activeConversationId } = useAppSelector((state) => state.chat);
+  const { messages, conversations, activeConversationId } = useAppSelector((state) => state.chat);
   const { user: currentUser } = useAppSelector((state) => state.auth);
 
   // `/messages` sets active chat via Redux only; `/messages/[conversationId]` passes the id prop.
