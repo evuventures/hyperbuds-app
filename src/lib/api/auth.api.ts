@@ -35,7 +35,7 @@ export interface UserResponse {
  * Authenticate with Google OAuth authorization code
  */
 export async function googleAuth(code: string): Promise<GoogleAuthResponse> {
-  const response = await apiClient.post<GoogleAuthResponse>("/auth/google", { code });
+  const response = await apiClient.get<GoogleAuthResponse>(`/auth/google?code=${code}`);
   return response.data;
 }
 
@@ -43,7 +43,7 @@ export async function googleAuth(code: string): Promise<GoogleAuthResponse> {
  * Fetch current user and profile data
  */
 export async function getCurrentUser(): Promise<UserResponse> {
-  const response = await apiClient.get<UserResponse>("/users/me");
+  const response = await apiClient.get<UserResponse>(`/users/me`);
   
   // Normalize the user ID here to fix the Chat Window alignment issue
   if (response.data.user) {

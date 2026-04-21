@@ -29,12 +29,12 @@ export function useAuth() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
-      credentials: 'include',
+      credentials: 'include', 
     })
 
     const data = await res.json()
     if (!res.ok) {
-      dispatch(setLoading(false))
+      dispatch(setLoading(false)) 
       throw new Error(data.message || 'Login failed')
     }
 
@@ -71,12 +71,13 @@ export function useAuth() {
 
     try {
       const data = await googleAuth(code)
+      console.log("Google Login Data: ", data) // Debug log
       if (data.accessToken) {
         localStorage.setItem('accessToken', data.accessToken)
         dispatch(setToken(data.accessToken))
       }
 
-      if (data.user) {
+      if (data.user) { 
         dispatch(setUser(data.user))
       } else if (data.accessToken) {
         try {
@@ -141,10 +142,10 @@ export function useAuth() {
     sessionStorage.setItem("authRedirect", currentPath);
 
     // Configuration
-    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "265404811439-3a6feinek5pckg02bjg7mfrva4esuqh0.apps.googleusercontent.com";
+    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
     const baseUrl = typeof window !== "undefined" ? window.location.origin : "http://localhost:3000";
     const redirectUri = process.env.NEXT_PUBLIC_GOOGLE_REDIRECT_URI || `${baseUrl}/auth/google-callback`;
-
+    console.log("Initiating Google Login - Client ID:", clientId, "Redirect URI:", redirectUri); // Debug log
     const scope = "email profile";
     const responseType = "code";
 
