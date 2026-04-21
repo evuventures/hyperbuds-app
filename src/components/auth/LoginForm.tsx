@@ -36,6 +36,7 @@ export default function LoginForm() {
 
       // optional chaining for profile check
       const profile = data.user?.profile;
+
       const isProfileIncomplete = 
         !profile?.username || 
         profile.username === "" || 
