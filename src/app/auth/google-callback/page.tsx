@@ -42,12 +42,12 @@ export default function GoogleCallbackPage() {
         // ✅ This calls the backend AND updates Redux + LocalStorage
         const data = await googleLogin(code);
 
-        console.log("Google Login Response Data: ", data); // Debug log
+        // console.log("Google Login Response Data: ", data); // Debug log
 
         setStatus("✅ Login successful! Checking profile...");
 
         // Determine where to send the user
-        const redirectPath = sessionStorage.getItem("authRedirect") || "/";
+        const redirectPath = "/";
         
         // Check profile completeness from the returned data
         const profile = data.user?.profile;
