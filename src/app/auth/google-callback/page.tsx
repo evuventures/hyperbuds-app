@@ -20,6 +20,8 @@ export default function GoogleCallbackPage() {
       const code = searchParams.get("code");
       const error = searchParams.get("error");
 
+      console.log("Google Callback Params - Code:", code, "Error:", error); // Debug log
+
       if (error) {
         setStatus(`❌ Google authentication failed: ${error}`);
         setTimeout(() => router.push("/auth/signin?error=google_auth_failed"), 2000);
@@ -40,10 +42,12 @@ export default function GoogleCallbackPage() {
         // ✅ This calls the backend AND updates Redux + LocalStorage
         const data = await googleLogin(code);
 
+        // console.log("Google Login Response Data: ", data); // Debug log
+
         setStatus("✅ Login successful! Checking profile...");
 
         // Determine where to send the user
-        const redirectPath = sessionStorage.getItem("authRedirect") || "/";
+        const redirectPath = "/";
         
         // Check profile completeness from the returned data
         const profile = data.user?.profile;
@@ -64,7 +68,12 @@ export default function GoogleCallbackPage() {
           setTimeout(() => router.push(redirectPath), 1000);
         }
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : "Authentication failed";
+        const typedError = err as { message?: string; data?: { message?: string } };
+        const errorMessage =
+          (err instanceof Error && err.message) ||
+          typedError?.message ||
+          typedError?.data?.message ||
+          "Authentication failed";
         setStatus(`❌ ${errorMessage}`);
         setTimeout(() => router.push("/auth/signin?error=auth_failed"), 2000);
       }
