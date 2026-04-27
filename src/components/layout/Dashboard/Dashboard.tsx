@@ -257,7 +257,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       } catch (err) {
         // apiClient Interceptor automatically handles 401 redirects to /auth/signin
-        console.error("Dashboard init failed:", err);
+        console.error("Dashboard init failed:", err, typeof err, JSON.stringify(err));
       } finally {
         setLoading(false);
       }
