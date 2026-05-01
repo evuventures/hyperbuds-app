@@ -116,12 +116,12 @@ export default function App() {
             )}
 
             <div className="flex gap-3 mb-8">
-              <button className="flex flex-1 gap-3 justify-center items-center h-12 rounded-xl border backdrop-blur-sm transition-colors duration-300 bg-white/60 border-white/30 hover:bg-white/80">
+             {/* <button className="flex flex-1 gap-3 justify-center items-center h-12 rounded-xl border backdrop-blur-sm transition-colors duration-300 bg-white/60 border-white/30 hover:bg-white/80">
                 <div className="flex justify-center items-center w-5 h-5 bg-blue-600 rounded">
                   <Facebook className="w-3 h-3 text-white" />
                 </div>
                 <span className="text-sm font-medium text-gray-700">Facebook</span>
-              </button>
+              </button> */}
               <button
                 onClick={initiateGoogleLogin}
                 className="flex flex-1 gap-3 justify-center items-center h-12 rounded-xl border backdrop-blur-sm transition-colors duration-300 cursor-pointer bg-white/60 border-white/30 hover:bg-white/80">
