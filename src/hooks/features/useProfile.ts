@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import apiClient from "@/lib/api/client";
+import Compressor from 'compressorjs';
 
 interface ApiError {
   message: string;
@@ -188,20 +189,32 @@ export const useProfileForm = () => {
 
   // Utility to convert selected file to base64
   const getSelectedFileBase64 = useCallback((): Promise<string | null> => {
-    return new Promise((resolve, reject) => {
-      if (!selectedFile) return resolve(null);
-      const reader = new FileReader();
-      reader.onload = () => {
-        if (typeof reader.result === "string") {
-          resolve(reader.result);
-        } else {
-          resolve(null);
-        }
-      };
-      reader.onerror = () => reject(reader.error);
-      reader.readAsDataURL(selectedFile);
+  return new Promise((resolve, reject) => {
+    if (!selectedFile) return resolve(null);
+
+    // Compress the file first
+    new Compressor(selectedFile, {
+      quality: 0.6, // adjust between 0 and 1
+      success(compressedResult) {
+        const reader = new FileReader();
+        reader.onload = () => {
+          if (typeof reader.result === "string") {
+            resolve(reader.result);
+          } else {
+            resolve(null);
+          }
+        };
+        reader.onerror = () => reject(reader.error);
+
+        // Convert compressed Blob/File to base64
+        reader.readAsDataURL(compressedResult);
+      },
+      error(err) {
+        reject(err);
+      },
     });
-  }, [selectedFile]);
+  });
+}, [selectedFile]);
 
   const handleSubmit = async () => {
     setIsLoading(true);
