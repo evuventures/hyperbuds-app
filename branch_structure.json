@@ -1,0 +1,33 @@
+{
+  "default_branch": "main",
+  "branches": [
+    "copilot/fix-user-validation-error",
+    "debug",
+    "dev",
+    "feature-khaled",
+    "founders",
+    "joseph-branch",
+    "main",
+    "origin"
+  ],
+  "parent": {
+    "copilot/fix-user-validation-error": "main",
+    "debug": "main",
+    "dev": "main",
+    "feature-khaled": "main",
+    "founders": "main",
+    "joseph-branch": "main",
+    "main": null,
+    "origin": "main"
+  },
+  "order": [
+    "main",
+    "copilot/fix-user-validation-error",
+    "debug",
+    "dev",
+    "feature-khaled",
+    "founders",
+    "joseph-branch",
+    "origin"
+  ]
+}
