@@ -14,14 +14,14 @@ const LoaderAnimation: React.FC<LoaderAnimationProps> = ({ onComplete }) => {
     const [progress, setProgress] = useState(0);
     const [currentStage, setCurrentStage] = useState(0);
 
-    // Enhanced animation timer with progress tracking
+    // Responsive animation timer with progress tracking
     useEffect(() => {
-        const totalDuration = 12000; // Increased to 12 seconds for better UX
+        const totalDuration = 1600; // Optimized snappy duration
         const textStages = [
-            { text: "Analyzing Profile...", duration: 3000 },
-            { text: "Calculating Compatibility...", duration: 3000 },
-            { text: "Generating Insights...", duration: 3000 },
-            { text: "Finalizing Results...", duration: 3000 },
+            { text: "Analyzing Profile...", duration: 400 },
+            { text: "Calculating Compatibility...", duration: 400 },
+            { text: "Generating Insights...", duration: 400 },
+            { text: "Finalizing Results...", duration: 400 },
         ];
 
         let stageIndex = 0;
@@ -29,7 +29,7 @@ const LoaderAnimation: React.FC<LoaderAnimationProps> = ({ onComplete }) => {
         const updateProgress = () => {
             setProgress(prev => {
                 if (prev >= 100) return 100;
-                return prev + (100 / (totalDuration / 100));
+                return prev + (100 / (totalDuration / 50));
             });
         };
 
@@ -41,7 +41,7 @@ const LoaderAnimation: React.FC<LoaderAnimationProps> = ({ onComplete }) => {
         };
 
         // Start progress animation
-        const progressInterval = setInterval(updateProgress, 100);
+        const progressInterval = setInterval(updateProgress, 50);
 
         // Start first stage
         startStage(0);
@@ -54,7 +54,7 @@ const LoaderAnimation: React.FC<LoaderAnimationProps> = ({ onComplete }) => {
             } else {
                 clearInterval(stageInterval);
             }
-        }, 3000);
+        }, 400);
 
         // Main completion timer
         const mainTimer = setTimeout(() => {
@@ -68,7 +68,7 @@ const LoaderAnimation: React.FC<LoaderAnimationProps> = ({ onComplete }) => {
                 if (onComplete) {
                     onComplete();
                 }
-            }, 2500);
+            }, 300);
         }, totalDuration);
 
         return () => {

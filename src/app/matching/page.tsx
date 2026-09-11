@@ -119,44 +119,62 @@ export default function MatchmakerPage() {
             // Transform API response to MatchSuggestion format
             const transformedMatches: MatchSuggestion[] = await Promise.all(
               suggestionsData.suggestions.map(async (suggestion) => {
-                // Fetch full profile for each suggestion
                 let targetProfile: CreatorProfile | undefined;
-                try {
-                  const profileData = await profileApi.getProfileByUsername(suggestion.username);
+                if (suggestion.avatar || suggestion.displayName || suggestion.bio) {
                   targetProfile = {
                     userId: suggestion.userId,
                     username: suggestion.username,
-                    displayName: profileData.displayName || suggestion.username,
-                    avatar: profileData.avatar,
-                    bio: profileData.bio,
-                    niche: profileData.niche || [],
-                    location: profileData.location,
-                    stats: {
-                      totalFollowers: 0,
-                      avgEngagement: 0,
-                      platformBreakdown: {}
-                    },
-                    socialLinks: profileData.socialLinks,
-                    rizzScore: profileData.profileRizzScore,
-                    isPublic: true,
-                    isActive: true
-                  };
-                } catch (err) {
-                  console.warn(`Failed to fetch profile for ${suggestion.username}:`, err);
-                  // Create minimal profile from suggestion data
-                  targetProfile = {
-                    userId: suggestion.userId,
-                    username: suggestion.username,
-                    displayName: suggestion.username,
+                    displayName: suggestion.displayName || suggestion.username,
+                    avatar: suggestion.avatar,
+                    bio: suggestion.bio,
                     niche: suggestion.sharedNiches || [],
+                    location: suggestion.location as any,
                     stats: {
-                      totalFollowers: 0,
-                      avgEngagement: 0,
-                      platformBreakdown: {}
+                      totalFollowers: suggestion.stats?.totalFollowers || 0,
+                      avgEngagement: suggestion.stats?.avgEngagement || 0,
+                      platformBreakdown: (suggestion.stats?.platformBreakdown as any) || {}
                     },
+                    rizzScore: suggestion.rizzScore,
                     isPublic: true,
                     isActive: true
                   };
+                } else {
+                  try {
+                    const profileData = await profileApi.getProfileByUsername(suggestion.username);
+                    targetProfile = {
+                      userId: suggestion.userId,
+                      username: suggestion.username,
+                      displayName: profileData.displayName || suggestion.username,
+                      avatar: profileData.avatar,
+                      bio: profileData.bio,
+                      niche: profileData.niche || [],
+                      location: profileData.location,
+                      stats: {
+                        totalFollowers: 0,
+                        avgEngagement: 0,
+                        platformBreakdown: {}
+                      },
+                      socialLinks: profileData.socialLinks,
+                      rizzScore: profileData.profileRizzScore,
+                      isPublic: true,
+                      isActive: true
+                    };
+                  } catch (err) {
+                    console.warn(`Failed to fetch profile for ${suggestion.username}:`, err);
+                    targetProfile = {
+                      userId: suggestion.userId,
+                      username: suggestion.username,
+                      displayName: suggestion.username,
+                      niche: suggestion.sharedNiches || [],
+                      stats: {
+                        totalFollowers: 0,
+                        avgEngagement: 0,
+                        platformBreakdown: {}
+                      },
+                      isPublic: true,
+                      isActive: true
+                    };
+                  }
                 }
 
                 return {
@@ -306,44 +324,66 @@ export default function MatchmakerPage() {
       // Transform API response to MatchSuggestion format
       const transformedMatches: MatchSuggestion[] = await Promise.all(
         suggestionsData.suggestions.map(async (suggestion) => {
-          // Fetch full profile for each suggestion
           let targetProfile: CreatorProfile | undefined;
-          try {
-            const profileData = await profileApi.getProfileByUsername(suggestion.username);
+
+          // If the backend returned enriched profile data, avoid N+1 network requests
+          if (suggestion.avatar || suggestion.displayName || suggestion.bio || suggestion.stats) {
             targetProfile = {
               userId: suggestion.userId,
               username: suggestion.username,
-              displayName: profileData.displayName || suggestion.username,
-              avatar: profileData.avatar,
-              bio: profileData.bio,
-              niche: profileData.niche || [],
-              location: profileData.location,
+              displayName: suggestion.displayName || suggestion.username,
+              avatar: suggestion.avatar,
+              bio: suggestion.bio,
+              niche: suggestion.niche || suggestion.sharedNiches || [],
+              location: suggestion.location as any,
               stats: {
-                totalFollowers: 0,
-                avgEngagement: 0,
-                platformBreakdown: {}
+                totalFollowers: suggestion.stats?.totalFollowers || 0,
+                avgEngagement: suggestion.stats?.avgEngagement || 0,
+                platformBreakdown: (suggestion.stats?.platformBreakdown as any) || {}
               },
-              socialLinks: profileData.socialLinks,
-              rizzScore: profileData.profileRizzScore,
+              socialLinks: suggestion.socialLinks,
+              rizzScore: suggestion.rizzScore,
               isPublic: true,
               isActive: true
             };
-          } catch (err) {
-            console.warn(`Failed to fetch profile for ${suggestion.username}:`, err);
-            // Create minimal profile from suggestion data
-            targetProfile = {
-              userId: suggestion.userId,
-              username: suggestion.username,
-              displayName: suggestion.username,
-              niche: suggestion.sharedNiches || [],
-              stats: {
-                totalFollowers: 0,
-                avgEngagement: 0,
-                platformBreakdown: {}
-              },
-              isPublic: true,
-              isActive: true
-            };
+          } else {
+            try {
+              const profileData = await profileApi.getProfileByUsername(suggestion.username);
+              targetProfile = {
+                userId: suggestion.userId,
+                username: suggestion.username,
+                displayName: profileData.displayName || suggestion.username,
+                avatar: profileData.avatar,
+                bio: profileData.bio,
+                niche: profileData.niche || [],
+                location: profileData.location,
+                stats: {
+                  totalFollowers: 0,
+                  avgEngagement: 0,
+                  platformBreakdown: {}
+                },
+                socialLinks: profileData.socialLinks,
+                rizzScore: profileData.profileRizzScore,
+                isPublic: true,
+                isActive: true
+              };
+            } catch (err) {
+              console.warn(`Failed to fetch profile for ${suggestion.username}:`, err);
+              // Create minimal profile from suggestion data
+              targetProfile = {
+                userId: suggestion.userId,
+                username: suggestion.username,
+                displayName: suggestion.username,
+                niche: suggestion.sharedNiches || [],
+                stats: {
+                  totalFollowers: 0,
+                  avgEngagement: 0,
+                  platformBreakdown: {}
+                },
+                isPublic: true,
+                isActive: true
+              };
+            }
           }
 
           return {
