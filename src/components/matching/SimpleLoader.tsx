@@ -14,12 +14,12 @@ const SimpleLoader: React.FC<SimpleLoaderProps> = ({ onComplete }) => {
    const [currentStage, setCurrentStage] = useState(0);
 
    useEffect(() => {
-      const totalDuration = 8000; // 8 seconds for better UX
+      const totalDuration = 1600; // Optimized snappy duration
       const textStages = [
-         { text: "Analyzing Profile...", duration: 2000 },
-         { text: "Calculating Scores...", duration: 2000 },
-         { text: "Generating Insights...", duration: 2000 },
-         { text: "Finalizing Results...", duration: 2000 },
+         { text: "Analyzing Profile...", duration: 400 },
+         { text: "Calculating Scores...", duration: 400 },
+         { text: "Generating Insights...", duration: 400 },
+         { text: "Finalizing Results...", duration: 400 },
       ];
 
       let stageIndex = 0;
@@ -27,11 +27,11 @@ const SimpleLoader: React.FC<SimpleLoaderProps> = ({ onComplete }) => {
       const updateProgress = () => {
          setProgress(prev => {
             if (prev >= 100) return 100;
-            return prev + (100 / (totalDuration / 100));
+            return prev + (100 / (totalDuration / 50));
          });
       };
 
-      const progressInterval = setInterval(updateProgress, 100);
+      const progressInterval = setInterval(updateProgress, 50);
 
       const startStage = (index: number) => {
          if (index < textStages.length) {
@@ -52,7 +52,7 @@ const SimpleLoader: React.FC<SimpleLoaderProps> = ({ onComplete }) => {
          } else {
             clearInterval(stageInterval);
          }
-      }, 2000);
+      }, 400);
 
       // Main completion timer
       const mainTimer = setTimeout(() => {
@@ -66,7 +66,7 @@ const SimpleLoader: React.FC<SimpleLoaderProps> = ({ onComplete }) => {
             if (onComplete) {
                onComplete();
             }
-         }, 2000);
+         }, 300);
       }, totalDuration);
 
       return () => {

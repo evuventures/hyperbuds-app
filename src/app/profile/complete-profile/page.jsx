@@ -11,13 +11,11 @@ import { useProfileForm } from '@/hooks/features/useProfile';
 import Step1Avatar from './components/StepOne';
 import Step2BasicInfo from './components/StepTwo';
 import Step3About from './components/StepThree';
-import Step4Socials from './components/StepFour';
 
 const STEPS = [
   { id: 1, title: 'Profile Picture', icon: FaUserCircle },
   { id: 2, title: 'Basic Info', icon: FaUserPlus },
   { id: 3, title: 'About You', icon: FaUserEdit },
-  { id: 4, title: 'Social Links', icon: FaLink },
 ];
 
 export default function MultiStepProfileForm() {
@@ -42,8 +40,8 @@ export default function MultiStepProfileForm() {
     suggestions,
   } = useProfileForm();
 
-  // Success Screen (Step 5)
-  if (currentStep === 5) {
+  // Success Screen (Step 4)
+  if (currentStep === 4) {
     return (
       <div className="flex justify-center items-center p-4 min-h-screen bg-linear-to-br from-purple-50 via-white to-blue-50">
         <div className="w-full max-w-lg">
@@ -153,12 +151,6 @@ export default function MultiStepProfileForm() {
                 onUpdateLocation={updateLocation}
               />
             )}
-            {currentStep === 4 && (
-              <Step4Socials
-                socialLinks={formData.socialLinks}
-                onUpdateSocials={updateSocials}
-              />
-            )}
           </div>
 
           {/* Navigation Controls */}
@@ -173,10 +165,10 @@ export default function MultiStepProfileForm() {
             </button>
 
             <div className="flex space-x-2 sm:space-x-3">
-              {currentStep === 4 ? (
+              {currentStep === 3 ? (
                 <button
                   onClick={handleSubmit}
-                  disabled={isLoading}
+                  disabled={isLoading || !canProceed()}
                   className="flex gap-1 items-center px-4 py-2 text-sm font-semibold text-white bg-linear-to-r from-purple-500 to-blue-500 rounded-xl shadow-lg transition-all hover:scale-105 disabled:opacity-50"
                 >
                   {isLoading ? (

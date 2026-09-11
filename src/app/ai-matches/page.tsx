@@ -83,7 +83,7 @@ const buildDisplayProfile = (
   match: MatchSuggestion,
   publicProfile?: ProfileByUsernameResponse
 ): AIMatchesDisplayProfile => {
-  const existingProfile = match.targetUser;
+  const existingProfile = match.targetUser || (match as unknown as { targetProfile?: CreatorProfile })?.targetProfile;
   const userId = getMatchUserId(match);
   const username = publicProfile?.username || existingProfile?.username || "";
   const displayName =
@@ -115,6 +115,15 @@ const buildDisplayProfile = (
 };
 
 const enrichMatchWithProfile = async (match: MatchSuggestion): Promise<MatchSuggestion> => {
+  // If targetUser or targetProfile already contains profile details, avoid redundant network requests
+  const existingProfile = match.targetUser || (match as unknown as { targetProfile?: CreatorProfile })?.targetProfile;
+  if (existingProfile?.avatar && (existingProfile?.displayName || existingProfile?.username)) {
+    return {
+      ...match,
+      targetUser: buildDisplayProfile(match),
+    };
+  }
+
   const profileData = await getPublicProfileForMatch(match);
 
   return {

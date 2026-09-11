@@ -53,7 +53,6 @@ const MatchingInterface: React.FC<MatchingInterfaceProps> = ({
 
   const refreshMatches = async () => {
     setIsRefreshing(true);
-    await new Promise((r) => setTimeout(r, 1500));
     setIsRefreshing(false);
     setCurrentMatchIndex(0);
   };

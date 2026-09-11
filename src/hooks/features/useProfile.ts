@@ -264,7 +264,7 @@ export const useProfileForm = () => {
       };
 
       await apiClient.put("/profiles/me", payload);
-      setCurrentStep(5);
+      setCurrentStep(4);
     } catch (err) {
       const apiErr = err as ApiError;
       setError(apiErr.message || "An error occurred during submission");
