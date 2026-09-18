@@ -139,7 +139,7 @@ interface UserProfile {
 }
 
 // Mobile Header Buttons Component
-function MobileHeaderButtons({ user }: { user: User | null }) {
+function MobileHeaderButtons({ }: { user: User | null }) {
   const { isDarkMode, toggleDarkMode } = useTheme();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const { user: authenticatedUser } = useAuth();
