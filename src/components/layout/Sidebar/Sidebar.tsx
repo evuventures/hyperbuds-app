@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Heart, Users, ShoppingBag, MessageCircle, User2,
-  Menu, House, LogOut
+  Menu, House, LogOut, Star
 } from 'lucide-react';
 import { useAuth } from '@/hooks/auth/useAuth';
 import Image from 'next/image';
@@ -181,7 +181,7 @@ interface UserProfile {
 }
 
 
-export const Sidebar: React.FC<SidebarProps> = ({ user, activeTab, collapsed, onTabChange, onToggleCollapse, className }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ activeTab, collapsed, onTabChange, onToggleCollapse, className }) => {
   // ❌ REMOVED: console.log('Sidebar rendered with collapsed:', collapsed);
   // ❌ REMOVED: console.log('isCollapsed:', isCollapsed);
 
@@ -215,6 +215,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ user, activeTab, collapsed, on
 
     // Business items
     if (pathname === '/marketplace' || pathname.startsWith('/marketplace/')) return 'marketplace';
+    if (pathname === '/founders-talent/onboarding' || pathname.startsWith('/founders-talent')) return 'founders-talent';
     if (pathname.startsWith('/payments/subscription') || pathname.startsWith('/payments/checkout')) return 'Subscription';
     if (pathname.startsWith('/payments/earnings')) return 'earnings';
 
@@ -243,6 +244,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ user, activeTab, collapsed, on
 
   const businessItems: MenuItem[] = [
     { id: 'marketplace', icon: ShoppingBag, label: 'Marketplace', count: notifications.marketplace, path: '/marketplace' },
+    { id: 'founders-talent', icon: Star, label: 'Founder/Talent', path: '/founders-talent/onboarding' },
     // { id: 'Subscription', icon: Currency, label: 'Subscription', path: '/payments/subscription' }, // Changed path for consistency
     // { id: 'bookings', icon: Users, label: 'Bookings', path: '/bookings' },
     // { id: 'earnings', icon: Currency, label: 'Earnings', path: '/earnings' }
@@ -253,7 +255,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ user, activeTab, collapsed, on
       id: 'messages', icon: MessageCircle, label: 'Messages', count: notifications.messages,
       path: '/messages'
     },
-    //  { id: 'invites', icon: MessageCircle, label: 'Invites', path: '/invites' },
+    //  { id: 'invites', icon: MessageCircle, label: 'Invites', path: '/invites' },
     // { id: 'networking', icon: Users, label: 'Network', path: '/networking' }
   ];
 
