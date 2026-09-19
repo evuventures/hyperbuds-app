@@ -4,6 +4,18 @@ import { getAccessToken } from '@/store/authSelectors';
 export interface MatchSuggestion {
   userId: string;
   username: string;
+  displayName?: string;
+  avatar?: string;
+  bio?: string;
+  niche?: string[];
+  location?: { city?: string; state?: string; country?: string };
+  stats?: {
+    totalFollowers?: number;
+    avgEngagement?: number;
+    platformBreakdown?: Record<string, { followers: number; engagement: number }>;
+  };
+  socialLinks?: Record<string, string>;
+  rizzScore?: number;
   matchingScore: number;
   sharedNiches: string[];
 }

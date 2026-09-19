@@ -3,6 +3,7 @@ import { X, Check, LucideAArrowDown } from 'lucide-react';
 import { FaSearch } from 'react-icons/fa';
 import { useNiches } from '@/hooks/features/useNiches';
 import { motion, AnimatePresence } from 'framer-motion';
+import LocationSelector from '@/components/profile/LocationSelector';
 
 interface Step3Props {
   bio: string;
@@ -167,20 +168,14 @@ const Step3About: React.FC<Step3Props> = ({
           </AnimatePresence>
         </div>
 
-        {/* Location Grid */}
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-          {(['city', 'state', 'country'] as const).map((key) => (
-            <div key={key}>
-              <label className="block mb-2 text-sm font-semibold text-gray-700 capitalize">{key}</label>
-              <input
-                type="text"
-                value={location[key]}
-                onChange={(e) => onUpdateLocation(key, e.target.value)}
-                className="px-4 py-3 w-full rounded-xl border-2 border-gray-200 transition-all focus:border-purple-500 focus:ring-2 focus:ring-purple-200 outline-none"
-                placeholder={key.charAt(0).toUpperCase() + key.slice(1)}
-              />
-            </div>
-          ))}
+        {/* Location Selection with countrycitystatejson */}
+        <div>
+          <LocationSelector
+            country={location.country}
+            state={location.state}
+            city={location.city}
+            onChange={(key, val) => onUpdateLocation(key, val)}
+          />
         </div>
       </div>
     </div>

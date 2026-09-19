@@ -13,6 +13,7 @@ import { useAppDispatch } from "@/store/hooks";
 import { getAccessToken } from "@/store/authSelectors";
 import { clearAuth } from "@/store/slices/authSlice";
 import { nicheApi } from "@/lib/api/niche.api";
+import LocationSelector from "@/components/profile/LocationSelector";
 
 // Define a type for a social media link
 interface SocialLinks {
@@ -1022,28 +1023,15 @@ export default function EditProfilePage() {
               </AnimatePresence>
             </motion.div>
 
-            {/* Location */}
-            <div className="grid grid-cols-1 gap-4 mb-6 md:grid-cols-3">
-              <input
-                type="text"
-                value={location.city}
-                onChange={(e) => setLocation({ ...location, city: e.target.value })}
-                placeholder="City"
-                className="px-4 py-3 text-gray-800 bg-white rounded-xl border-2 border-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 focus:border-purple-500 dark:focus:border-purple-600"
-              />
-              <input
-                type="text"
-                value={location.state}
-                onChange={(e) => setLocation({ ...location, state: e.target.value })}
-                placeholder="State"
-                className="px-4 py-3 text-gray-800 bg-white rounded-xl border-2 border-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 focus:border-purple-500 dark:focus:border-purple-600"
-              />
-              <input
-                type="text"
-                value={location.country}
-                onChange={(e) => setLocation({ ...location, country: e.target.value })}
-                placeholder="Country"
-                className="px-4 py-3 text-gray-800 bg-white rounded-xl border-2 border-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 focus:border-purple-500 dark:focus:border-purple-600"
+            {/* Location with countrycitystatejson */}
+            <div className="mb-6">
+              <LocationSelector
+                country={location.country}
+                state={location.state}
+                city={location.city}
+                onChange={(key, val) =>
+                  setLocation((prev) => ({ ...prev, [key]: val }))
+                }
               />
             </div>
 
