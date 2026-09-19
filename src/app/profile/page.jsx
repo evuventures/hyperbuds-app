@@ -101,8 +101,6 @@ export default function ProfilePage() {
               isLoading={isLoading}
               isOwnProfile={true}
             />
-
-
           </div>
         </div>
       </div>
