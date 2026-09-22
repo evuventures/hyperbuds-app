@@ -181,7 +181,7 @@ interface UserProfile {
 }
 
 
-export const Sidebar: React.FC<SidebarProps> = ({ user, activeTab, collapsed, onTabChange, onToggleCollapse, className }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ activeTab, collapsed, onTabChange, onToggleCollapse, className }) => {
   // ❌ REMOVED: console.log('Sidebar rendered with collapsed:', collapsed);
   // ❌ REMOVED: console.log('isCollapsed:', isCollapsed);
 

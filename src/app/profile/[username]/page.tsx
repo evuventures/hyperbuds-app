@@ -139,6 +139,22 @@ export default function ProfileByUsernamePage() {
     }
   };
 
+  const handleConnect = () => {
+    // TODO: wire up real connect API call once available.
+    // ProfileCard already toggles its own "Connected" state locally.
+  };
+
+  const handleMessage = () => {
+    const userId = profile.id || profile.username;
+
+    if (userId) {
+      router.push(`/messages?userId=${encodeURIComponent(userId)}`);
+      return;
+    }
+
+    console.error('User ID not found for profile:', profile);
+  };
+
   return (
     <DashboardLayout>
       <div className="container mx-auto px-4 py-8 pb-32 max-w-6xl">
@@ -152,8 +168,8 @@ export default function ProfileByUsernamePage() {
             isLoading={false}
             isOwnProfile={false}
             onEditProfile={() => { }}
-            onConnect={() => { }}
-            onMessage={() => { }}
+            onConnect={handleConnect}
+            onMessage={handleMessage}
           />
 
           {/* Additional profile information */}
@@ -175,7 +191,7 @@ export default function ProfileByUsernamePage() {
                   {profile.niche.map((niche) => (
                     <span
                       key={niche}
-                      className="px-3 py-1 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-full text-sm font-medium"
+                      className="px-3 py-1 bg-linear-to-r from-purple-500 to-blue-500 text-white rounded-full text-sm font-medium"
                     >
                       {niche}
                     </span>
@@ -205,12 +221,12 @@ export default function ProfileByUsernamePage() {
                   Rizz Score
                 </h3>
                 <div className="flex items-center gap-3">
-                  <div className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-blue-500">
+                  <div className="text-3xl font-bold text-transparent bg-clip-text bg-linear-to-r from-purple-500 to-blue-500">
                     {profile.profileRizzScore}
                   </div>
                   <div className="w-48 h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-gradient-to-r from-purple-500 to-blue-500 transition-all duration-500"
+                      className="h-full bg-linear-to-r from-purple-500 to-blue-500 transition-all duration-500"
                       style={{ width: `${profile.profileRizzScore}%` }}
                     />
                   </div>
@@ -223,4 +239,3 @@ export default function ProfileByUsernamePage() {
     </DashboardLayout>
   );
 }
-
