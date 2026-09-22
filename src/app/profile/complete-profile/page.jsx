@@ -40,6 +40,13 @@ export default function MultiStepProfileForm() {
     suggestions,
   } = useProfileForm();
 
+  const handleSkip = () => {
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('skipped_profile_completion', 'true');
+      window.location.href = '/';
+    }
+  };
+
   // Success Screen (Step 4)
   if (currentStep === 4) {
     return (
@@ -164,12 +171,21 @@ export default function MultiStepProfileForm() {
               <span className="hidden sm:inline">Back</span>
             </button>
 
-            <div className="flex space-x-2 sm:space-x-3">
+            <div className="flex items-center space-x-2 sm:space-x-3">
+              <button
+                type="button"
+                onClick={handleSkip}
+                disabled={isLoading}
+                className="px-3 py-2 text-sm font-semibold text-gray-500 rounded-xl transition-all hover:text-gray-800 hover:bg-gray-100 disabled:opacity-50 cursor-pointer"
+              >
+                Skip
+              </button>
+
               {currentStep === 3 ? (
                 <button
                   onClick={handleSubmit}
                   disabled={isLoading || !canProceed()}
-                  className="flex gap-1 items-center px-4 py-2 text-sm font-semibold text-white bg-linear-to-r from-purple-500 to-blue-500 rounded-xl shadow-lg transition-all hover:scale-105 disabled:opacity-50"
+                  className="flex gap-1 items-center px-4 py-2 text-sm font-semibold text-white bg-linear-to-r from-purple-500 to-blue-500 rounded-xl shadow-lg transition-all hover:scale-105 disabled:opacity-50 cursor-pointer"
                 >
                   {isLoading ? (
                     <FaSpinner className="w-3 h-3 animate-spin sm:w-4 sm:h-4" />
@@ -185,7 +201,7 @@ export default function MultiStepProfileForm() {
                 <button
                   onClick={nextStep}
                   disabled={!canProceed()}
-                  className="flex gap-1 items-center px-4 py-2 text-sm font-semibold text-white bg-linear-to-r from-purple-500 to-blue-500 rounded-xl shadow-lg transition-all hover:scale-105 disabled:opacity-50"
+                  className="flex gap-1 items-center px-4 py-2 text-sm font-semibold text-white bg-linear-to-r from-purple-500 to-blue-500 rounded-xl shadow-lg transition-all hover:scale-105 disabled:opacity-50 cursor-pointer"
                 >
                   Next
                   <FaArrowRight className="w-3 h-3 sm:w-4 sm:h-4" />

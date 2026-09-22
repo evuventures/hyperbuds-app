@@ -237,7 +237,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           !profile?.niche ||
           (Array.isArray(profile.niche) && profile.niche.length === 0);
 
-        if (isProfileIncomplete) {
+        const hasSkipped =
+          typeof window !== "undefined" &&
+          sessionStorage.getItem("skipped_profile_completion") === "true";
+
+        if (isProfileIncomplete && !hasSkipped) {
           router.push("/profile/complete-profile");
           return;
         }
