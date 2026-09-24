@@ -11,9 +11,9 @@ import { useAuth } from '@/hooks/auth/useAuth';
 import Image from 'next/image';
 
 interface SidebarProps {
-  user: {
+  user?: {
     username?: string;
-    email: string;
+    email?: string;
     displayName?: string;
     avatar?: string;
     rizzScore?: number;
@@ -181,7 +181,7 @@ interface UserProfile {
 }
 
 
-export const Sidebar: React.FC<SidebarProps> = ({ activeTab, collapsed, onTabChange, onToggleCollapse, className }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ user, activeTab, collapsed, onTabChange, onToggleCollapse, className }) => {
   // ❌ REMOVED: console.log('Sidebar rendered with collapsed:', collapsed);
   // ❌ REMOVED: console.log('isCollapsed:', isCollapsed);
 
@@ -192,6 +192,17 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, collapsed, onTabCha
   const { logout, user: authenticatedUser } = useAuth();
   const [notifications] = useState(mockData.notifications);
   const [profile, setProfile] = useState<UserProfile | null>(null);
+
+  useEffect(() => {
+    if (authenticatedUser) {
+      setProfile(authenticatedUser as UserProfile);
+    }
+  }, [authenticatedUser]);
+
+  const avatarUrl = profile?.profile?.avatar || (profile as unknown as { avatar?: string })?.avatar || (user as unknown as { avatar?: string })?.avatar;
+  const hasValidAvatar = Boolean(avatarUrl && typeof avatarUrl === 'string' && avatarUrl.trim() !== '');
+  const displayName = profile?.profile?.displayName || profile?.profile?.username || (profile as unknown as { displayName?: string })?.displayName || (profile as unknown as { username?: string })?.username || (user as unknown as { displayName?: string })?.displayName || (user as unknown as { username?: string })?.username || profile?.email || user?.email || 'User';
+  const initial = displayName?.[0]?.toUpperCase() || 'U';
 
   // Logout handler
   const handleLogout = async () => {
@@ -436,20 +447,20 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, collapsed, onTabCha
             <>
               <div className='flex flex-col gap-3'>
                 <div className="flex gap-2 items-center">
-                  {profile?.profile?.avatar ? (
+                  {hasValidAvatar ? (
                     <div className="flex justify-center items-center w-10 h-10 bg-linear-to-r from-purple-500 to-pink-500 rounded-full avatar overflow-hidden">
-                      <Image src={profile.profile.avatar} alt="User avatar" width={40} height={40} className="w-full h-full object-cover" />
+                      <Image src={avatarUrl as string} alt="User avatar" width={40} height={40} className="w-full h-full object-cover" />
                     </div>
                   ) : (
                     <div className="flex justify-center items-center w-10 h-10 bg-linear-to-r from-purple-500 to-pink-500 rounded-full avatar">
                       <span className="text-sm font-medium text-white">
-                        {profile?.profile?.username?.[0]?.toUpperCase() || profile?.email[0].toUpperCase()}
+                        {initial}
                       </span>
                     </div>
                   )}
                   <div className='max-w-37.5'>
                     <div className="mb-1 text-xs font-medium text-gray-900 truncate dark:text-gray-100 capitalize" >
-                      {profile?.profile?.username || profile?.email}
+                      {displayName}
                     </div>
                     <div className="text-xs text-gray-500 dark:text-gray-400">
                       {mockData.creator.niche.join(', ')}
@@ -471,14 +482,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, collapsed, onTabCha
             </>
           ) : (
             <div className="flex flex-col gap-2 items-center">
-              {profile?.profile?.avatar ? (
+              {hasValidAvatar ? (
                 <div className="flex justify-center items-center w-10 h-10 bg-linear-to-r from-purple-500 to-pink-500 rounded-full avatar overflow-hidden">
-                  <Image src={profile.profile.avatar} alt="User avatar" width={40} height={40} className="w-full h-full object-cover" />
+                  <Image src={avatarUrl as string} alt="User avatar" width={40} height={40} className="w-full h-full object-cover" />
                 </div>
               ) : (
                 <div className="flex justify-center items-center w-10 h-10 bg-linear-to-r from-purple-500 to-pink-500 rounded-full avatar">
                   <span className="text-xs font-medium text-white">
-                    {profile?.profile?.username?.[0]?.toUpperCase() || profile?.email[0].toUpperCase()}
+                    {initial}
                   </span>
                 </div>
               )}

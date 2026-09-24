@@ -5,10 +5,14 @@ import { Zap, Plus } from "lucide-react";
 import Trending from "@/components/dashboard/Trending";
 import Recommendations from "@/components/dashboard/Recommendations";
 import ActivityFeed from "@/components/dashboard/ActivityFeeds";
+import FinishSettingUp, { useProfileCompletion } from "@/components/dashboard/FinishSettingUp";
 import { DashboardDataProvider } from "@/context/DashboardDataContext";
 import Link from "next/link";
 
 const MainContent: React.FC = () => {
+  const { isComplete, isLoggedIn, totalCount } = useProfileCompletion();
+  const showSetup = isLoggedIn && !isComplete && totalCount > 0;
+
   return (
     
     <DashboardDataProvider>
@@ -49,9 +53,18 @@ const MainContent: React.FC = () => {
             <div className="absolute bottom-8 left-8 w-32 h-32 rounded-full blur-2xl bg-yellow-300/20 dark:bg-yellow-400/10" />
           </div>
 
-          {/* ── Trending ──────────────────────────────────────────────── */}
-          <div className="p-6 rounded-3xl bg-white dark:bg-gray-800/40 border border-gray-100 dark:border-gray-700/50 shadow-sm dark:shadow-none">
-            <Trending />
+          {/* ── Trending & Finish Setting Up ─────────────────────────── */}
+          <div className={`grid grid-cols-1 ${showSetup ? 'lg:grid-cols-12' : ''} gap-6 items-stretch`}>
+            <div className={showSetup ? 'lg:col-span-7' : 'w-full'}>
+              <div className="p-6 rounded-3xl bg-white dark:bg-gray-800/40 border border-gray-100 dark:border-gray-700/50 shadow-sm dark:shadow-none h-full">
+                <Trending />
+              </div>
+            </div>
+            {showSetup && (
+              <div className="lg:col-span-5">
+                <FinishSettingUp />
+              </div>
+            )}
           </div>
 
           {/* ── AI Recommendations ────────────────────────────────────── */}

@@ -12,7 +12,7 @@ const baseURL = API_BASE_URL;
 // ✅ 2. Create Axios instance
 export const apiClient = axios.create({
   baseURL,
-  timeout: 15000,
+  timeout: 60000,
   headers: {
     "Content-Type": "application/json",
   },
@@ -52,10 +52,10 @@ apiClient.interceptors.response.use(
       localStorage.removeItem("accessToken");
       store.dispatch(clearAuth());
 
-      // Redirect to login if we're in the browser
+      // Redirect to login if we're in the browser and not on root or auth pages
       if (typeof window !== "undefined") {
         const currentPath = window.location.pathname;
-        if (!currentPath.startsWith("/auth/")) {
+        if (currentPath !== "/" && !currentPath.startsWith("/auth/")) {
           window.location.href = "/auth/signin";
         }
       }
