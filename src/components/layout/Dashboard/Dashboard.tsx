@@ -1,10 +1,9 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { Header } from '@/components/layout/Header/Header';
 import { Sidebar } from '../Sidebar/Sidebar';
-import DashboardSkeleton from '@/components/ui/skeleton';
 import { Menu, X, Moon, Sun, Bell } from 'lucide-react';
 import { ThemeProvider, useTheme } from '@/context/Theme';
 import { useSidebar } from '@/context/SidebarContext';
@@ -151,6 +150,11 @@ function MobileHeaderButtons({ user }: { user: User | null }) {
   }, [authenticatedUser])
 
 
+  const avatarUrl = profile?.profile?.avatar || (profile as unknown as { avatar?: string })?.avatar || user?.avatar;
+  const hasValidAvatar = Boolean(avatarUrl && typeof avatarUrl === 'string' && avatarUrl.trim() !== '');
+  const displayName = profile?.profile?.displayName || profile?.profile?.username || (profile as unknown as { displayName?: string })?.displayName || (profile as unknown as { username?: string })?.username || user?.displayName || user?.username || profile?.email || user?.email || 'User';
+  const initial = displayName?.[0]?.toUpperCase() || 'U';
+
   return (
     <div className="flex gap-2 items-center">
       <button
@@ -174,10 +178,10 @@ function MobileHeaderButtons({ user }: { user: User | null }) {
 
       <div className="flex justify-center items-center w-8 h-8 bg-linear-to-r from-purple-500 to-pink-500 rounded-full overflow-hidden">
         <span className="text-sm font-medium text-white">
-          {profile?.profile?.avatar ? (
-            <Image src={profile?.profile?.avatar} alt="User avatar" width={32} height={32} className="w-full h-full object-cover" />
+          {hasValidAvatar ? (
+            <Image src={avatarUrl as string} alt="User avatar" width={32} height={32} className="w-full h-full object-cover" />
           ) : (
-            profile?.profile?.username?.[0]?.toUpperCase() || profile?.email[0].toUpperCase()
+            initial
           )}
         </span>
       </div>
@@ -188,10 +192,11 @@ function MobileHeaderButtons({ user }: { user: User | null }) {
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   //  Initialize Redux hooks
   const dispatch = useAppDispatch();
-  const { token } = useAppSelector((state) => state.auth);
+  const pathname = usePathname();
+  const { token, user: reduxUser } = useAppSelector((state) => state.auth);
 
   const router = useRouter();
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>((reduxUser as User) || null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isMounted, setIsMounted] = useState(false);
@@ -213,9 +218,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   useEffect(() => {
     const initAuthAndFetch = async () => {
       // Hydrate Redux Token from LocalStorage for apiClient
-      const savedToken = localStorage.getItem('accessToken');
+      const savedToken = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
 
       if (!savedToken && !token) {
+        if (pathname === '/') {
+          setLoading(false);
+          return;
+        }
         router.push("/auth/signin");
         return;
       }
@@ -237,17 +246,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           !profile?.niche ||
           (Array.isArray(profile.niche) && profile.niche.length === 0);
 
-        if (isProfileIncomplete) {
+        const hasSkipped =
+          typeof window !== "undefined" &&
+          sessionStorage.getItem("skipped_profile_completion") === "true";
+
+        if (isProfileIncomplete && !hasSkipped) {
           router.push("/profile/complete-profile");
           return;
         }
 
-
         //  ensure 'email' and 'id' are valid strings
         const userData: User = {
           ...data.user,
-          email: data.user.email || "",
-          id: data.user.id || data.user._id || "",
+          email: data.user?.email || "",
+          id: data.user?.id || data.user?._id || "",
           profile: data.profile,
         };
 
@@ -256,8 +268,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         dispatch(setUserAction(userData));
 
       } catch (err) {
-        // apiClient Interceptor automatically handles 401 redirects to /auth/signin
-        console.error("Dashboard init failed:", err, typeof err, JSON.stringify(err));
+        console.warn("Dashboard user fetch notice:", err);
       } finally {
         setLoading(false);
       }
@@ -266,16 +277,22 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     if (isMounted) {
       initAuthAndFetch();
     }
-  }, [isMounted, router, dispatch, token]);
+  }, [isMounted, router, dispatch, token, pathname]);
+
+  useEffect(() => {
+    if (!user && reduxUser) {
+      setUser(reduxUser as User);
+    }
+  }, [reduxUser, user]);
 
   if (!isMounted) return null;
 
-  if (loading || !user) {
-    if (!sidebarInitialized) {
-      return <DashboardSkeleton collapsed={false} />;
-    }
-    return <DashboardSkeleton collapsed={sidebarCollapsed} />;
+  const savedToken = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+  if (!savedToken && !token && pathname !== '/') {
+    return null;
   }
+
+  const safeUser = (user || {}) as User;
 
   return (
     <ThemeProvider>
@@ -303,7 +320,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <div className="hidden lg:block">
 
           <Header
-            user={user as { id: string; name: string; email: string; avatar?: string }}
+            user={safeUser as unknown as { id: string; name: string; email: string; avatar?: string }}
             onMenuClick={toggleSidebarOpen}
           />
         </div>
@@ -329,7 +346,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </div>
               <div className="overflow-hidden h-full">
                 <Sidebar
-                  user={user as { email: string;[key: string]: unknown }}
+                  user={safeUser as unknown as { email: string;[key: string]: unknown }}
                   activeTab={activeTab}
                   collapsed={false}
                   onTabChange={(tab) => {
@@ -340,7 +357,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   className="lg:hidden"
                 />
                 <Sidebar
-                  user={user as { email: string;[key: string]: unknown }}
+                  user={safeUser as unknown as { email: string;[key: string]: unknown }}
                   activeTab={activeTab}
                   collapsed={sidebarCollapsed}
                   onTabChange={(tab) => {

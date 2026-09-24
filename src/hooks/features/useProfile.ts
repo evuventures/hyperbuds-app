@@ -248,26 +248,58 @@ export const useProfileForm = () => {
 
       setMessage("Saving your profile...");
 
-      const payload = {
+      const payload: Record<string, unknown> = {
         username: formData.username.trim(),
         displayName: formData.displayName.trim(),
         bio: formData.bio.trim(),
         niche: formData.niches,
         socialLinks: normalizeSocialObject(formData.socialLinks),
-        location: {
-          city: formData.location.city.trim(),
-          state: formData.location.state.trim(),
-          country: formData.location.country.trim(),
-          coordinates: formData.location.coordinates,
-        },
-        avatar: finalAvatarUrl, // Send base64 for immediate preview on next page, backend can choose to ignore if using uploadthing URL
       };
 
+      if (finalAvatarUrl) {
+        payload.avatar = finalAvatarUrl;
+      }
+
+      // Build clean location object
+      const locationPayload: {
+        city?: string;
+        state?: string;
+        country?: string;
+        coordinates?: [number, number];
+      } = {};
+      if (formData.location.city?.trim()) locationPayload.city = formData.location.city.trim();
+      if (formData.location.state?.trim()) locationPayload.state = formData.location.state.trim();
+      if (formData.location.country?.trim()) locationPayload.country = formData.location.country.trim();
+      if (
+        Array.isArray(formData.location.coordinates) &&
+        formData.location.coordinates.length === 2 &&
+        typeof formData.location.coordinates[0] === 'number' &&
+        typeof formData.location.coordinates[1] === 'number'
+      ) {
+        locationPayload.coordinates = formData.location.coordinates;
+      }
+      if (Object.keys(locationPayload).length > 0) {
+        payload.location = locationPayload;
+      }
+
       await apiClient.put("/profiles/me", payload);
+      if (typeof window !== "undefined") {
+        sessionStorage.removeItem("skipped_profile_completion");
+      }
       setCurrentStep(4);
-    } catch (err) {
-      const apiErr = err as ApiError;
-      setError(apiErr.message || "An error occurred during submission");
+    } catch (err: unknown) {
+      const apiErr = err as {
+        message?: string;
+        data?: { message?: string; details?: Array<{ message?: string }> };
+      };
+      let errMsg = apiErr?.data?.message || apiErr?.message || "An error occurred during submission";
+      if (apiErr?.data?.details && Array.isArray(apiErr.data.details) && apiErr.data.details.length > 0) {
+        const details = apiErr.data.details.map((d) => d.message).filter(Boolean).join(", ");
+        if (details) {
+          errMsg = `${errMsg}: ${details}`;
+        }
+      }
+      setError(errMsg);
     } finally {
       setIsLoading(false);
     }

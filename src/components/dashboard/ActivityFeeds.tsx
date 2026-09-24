@@ -50,7 +50,7 @@ const ActivityRow: React.FC<{ item: ActivityItem }> = ({ item }) => {
     <div className="group flex items-start gap-4 px-4 py-4 hover:bg-gray-50 dark:hover:bg-gray-800/40 transition-colors duration-150">
       {/* Icon / Avatar */}
       <div className={`shrink-0 w-10 h-10 rounded-full ${cfg.bgLight} border border-gray-100 dark:border-gray-700/60 flex items-center justify-center ${cfg.textColor} mt-0.5 overflow-hidden`}>
-        {item.actor?.avatar ? (
+        {item.actor?.avatar && typeof item.actor.avatar === 'string' && item.actor.avatar.trim() !== '' ? (
           <div className="relative w-full h-full">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={item.actor.avatar} alt={actorName} className="w-full h-full rounded-full object-cover" />

@@ -214,6 +214,11 @@ export const Header: React.FC<HeaderProps> = ({ user, onMenuClick }) => {
     }
   };
 
+  const avatarUrl = profile?.profile?.avatar || (profile as unknown as { avatar?: string })?.avatar || user?.avatar;
+  const hasValidAvatar = Boolean(avatarUrl && typeof avatarUrl === 'string' && avatarUrl.trim() !== '');
+  const displayName = profile?.profile?.displayName || profile?.profile?.username || (profile as unknown as { displayName?: string })?.displayName || (profile as unknown as { username?: string })?.username || user?.displayName || user?.username || profile?.email || user?.email || 'User';
+  const initial = displayName?.[0]?.toUpperCase() || 'U';
+
   return (
     <>
       <header className="sticky top-0 z-50 border-b shadow-sm backdrop-blur-lg transition-colors duration-200 bg-white/95 dark:bg-gray-900/95 border-gray-200/50 dark:border-gray-700/50">
@@ -233,9 +238,7 @@ export const Header: React.FC<HeaderProps> = ({ user, onMenuClick }) => {
             {/* Logo */}
             <div className="flex gap-2 items-center cursor-pointer sm:gap-3" onClick={() => window.location.href = '/'}>
               <div className="flex gap-2 items-center" >
-                <div className="flex justify-center items-center w-7 h-7 bg-linear-to-r from-purple-600 to-pink-600 rounded-lg cursor-pointer sm:w-8 sm:h-8">
-                  <span className="text-xs font-bold text-white cursor-pointer sm:text-sm">H</span>
-                </div>
+                <Image src="/images/logo.png" alt="Hyperbuds Logo" width={100} height={100} className="w-8 h-8 object-contain aspect-square" />
                 <h1 className="hidden text-xl font-bold text-transparent bg-clip-text bg-linear-to-r from-purple-600 to-blue-600 cursor-pointer min-[400px]:block sm:text-2xl">
                   HyperBuds
                 </h1>
@@ -304,17 +307,16 @@ export const Header: React.FC<HeaderProps> = ({ user, onMenuClick }) => {
                 <div className="flex gap-2 items-center">
                   <div className="flex justify-center items-center w-8 h-8 bg-linear-to-r from-purple-500 to-pink-500 rounded-full overflow-hidden">
                     <span className="text-sm font-medium text-white">
-                      {/* {user.username?.[0]?.toUpperCase() || user.email[0].toUpperCase()} */}
-                      {profile?.profile?.avatar ? (
-                        <Image src={profile?.profile?.avatar} alt="User avatar" width={32} height={32} className="w-full h-full object-cover" />
+                      {hasValidAvatar ? (
+                        <Image src={avatarUrl as string} alt="User avatar" width={32} height={32} className="w-full h-full object-cover" />
                       ) : (
-                        profile?.profile?.username?.[0]?.toUpperCase() || profile?.email[0].toUpperCase()
+                        initial
                       )}
                     </span>
                   </div>
                   <div className="hidden text-left lg:block">
                     <p className="text-sm font-medium text-gray-900 dark:text-gray-100 capitalize">
-                      {(profile?.profile?.username || profile?.profile?.displayName || 'User')}
+                      {displayName}
                     </p>
                     <p className="text-xs text-gray-500 dark:text-gray-400">Premium Creator</p>
                   </div>
@@ -327,21 +329,21 @@ export const Header: React.FC<HeaderProps> = ({ user, onMenuClick }) => {
                 <div className="absolute right-0 z-50 py-2 mt-2 w-64 bg-white rounded-xl border border-gray-200 shadow-xl dark:bg-gray-800 dark:border-gray-700">
                   <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700">
                     <div className="flex gap-3 items-center">
-                      {profile?.profile?.avatar ? (
-                        <Image src={profile.profile.avatar} alt="User avatar" width={40} height={40} className="w-10 h-10 rounded-full object-cover" />
+                      {hasValidAvatar ? (
+                        <Image src={avatarUrl as string} alt="User avatar" width={40} height={40} className="w-10 h-10 rounded-full object-cover" />
                       ) : (
                         <div className="flex justify-center items-center w-10 h-10 bg-linear-to-r from-purple-500 to-pink-500 rounded-full">
                           <span className="font-medium text-white">
-                            {profile?.profile?.username?.[0]?.toUpperCase() || profile?.email[0].toUpperCase()}
+                            {initial}
                           </span>
                         </div>
                       )}
                       <div className='max-w-40'>
                         <p className="font-medium text-gray-900 dark:text-gray-100 capitalize">
-                          {profile?.profile?.displayName || profile?.profile?.username || 'User'}
+                          {displayName}
                         </p>
                         <p className="text-sm text-gray-500 truncate dark:text-gray-400">
-                          {profile?.email}
+                          {profile?.email || user?.email || ''}
                         </p>
                       </div>
                     </div>

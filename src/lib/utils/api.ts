@@ -19,10 +19,10 @@ function clearAuthAndRedirect() {
   localStorage.removeItem("accessToken");
   store.dispatch(clearAuth());
   
-  // Only redirect if we're in the browser and not already on auth pages
+  // Only redirect if we're in the browser and not on root or auth pages
   if (typeof window !== 'undefined') {
     const currentPath = window.location.pathname;
-    if (!currentPath.startsWith('/auth/')) {
+    if (currentPath !== '/' && !currentPath.startsWith('/auth/')) {
       window.location.href = '/auth/signin';
     }
   }

@@ -58,18 +58,17 @@ const RANK_CONFIG = [
 const RecommendationCard: React.FC<{ rec: Recommendation; rank: number }> = ({ rec, rank }) => {
   const router = useRouter();
   const { user, compatibilityScore, commonNiches } = rec;
-  const displayName = user.displayName || user.username;
+  const displayName = user?.displayName || user?.username || "Creator";
   const cfg = RANK_CONFIG[rank] ?? RANK_CONFIG[2];
-  const allNiches = commonNiches.length > 0 ? commonNiches : (user.niche ?? []);
-  const rizzDisplay = user.rizzScore ?? rec.matchingRizzScore ?? 0;
+  const allNiches = commonNiches.length > 0 ? commonNiches : (user?.niche ?? []);
+  const rizzDisplay = user?.rizzScore ?? rec.matchingRizzScore ?? 0;
 
   return (
     <div className="group relative flex flex-col sm:flex-row rounded-2xl overflow-hidden bg-white dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700/50 hover:border-purple-300 dark:hover:border-purple-600 hover:shadow-xl dark:hover:shadow-purple-900/20 transition-all duration-300">
 
       {/* ── Avatar ── */}
-      {/* ── Avatar ── */}
-<div className="relative w-full sm:w-36 md:w-44 h-48  shrink-0 bg-linear-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 overflow-hidden">
-        {user.avatar ? (
+      <div className="relative w-full sm:w-36 md:w-44 h-48 shrink-0 bg-linear-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 overflow-hidden">
+        {user?.avatar && typeof user.avatar === 'string' && user.avatar.trim() !== '' ? (
           /* eslint-disable-next-line @next/next/no-img-element */
           <img
             src={user.avatar}
@@ -79,7 +78,7 @@ const RecommendationCard: React.FC<{ rec: Recommendation; rank: number }> = ({ r
         ) : (
           <div className="w-full h-full flex items-center justify-center py-8 sm:py-0">
             <div className={`w-16 h-16 rounded-2xl bg-linear-to-br ${cfg.gradient} flex items-center justify-center text-white text-3xl font-black shadow-lg`}>
-              {displayName[0].toUpperCase()}
+              {displayName?.[0]?.toUpperCase() || "C"}
             </div>
           </div>
         )}

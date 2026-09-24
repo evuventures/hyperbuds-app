@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Header } from '@/components/layout/Header/Header';
-import DashboardSkeleton from '@/components/ui/skeleton';
 import { useSidebar } from '@/context/SidebarContext';
 import { BASE_URL } from '../../../config/baseUrl';
 import { ThemeProvider } from '@/context/Theme';
@@ -182,12 +181,13 @@ export default function HeaderOnlyLayout({ children }: HeaderOnlyLayoutProps) {
    }, [router]);
 
    if (loading || !user) {
-      // Wait for sidebar to be initialized before showing skeleton with correct state
-      if (!sidebarInitialized) {
-         return <DashboardSkeleton collapsed={false} />; // Default state while initializing
-      }
-      return <DashboardSkeleton collapsed={sidebarCollapsed} />;
+      return null;
    }
+
+   const avatarUrl = profile?.profile?.avatar || (profile as unknown as { avatar?: string })?.avatar || user?.avatar;
+   const hasValidAvatar = Boolean(avatarUrl && typeof avatarUrl === 'string' && avatarUrl.trim() !== '');
+   const displayName = profile?.profile?.displayName || profile?.profile?.username || (profile as unknown as { displayName?: string })?.displayName || (profile as unknown as { username?: string })?.username || user?.displayName || user?.username || profile?.email || user?.email || 'User';
+   const initial = displayName?.[0]?.toUpperCase() || 'U';
 
    return (
       <ThemeProvider>
@@ -204,10 +204,10 @@ export default function HeaderOnlyLayout({ children }: HeaderOnlyLayoutProps) {
                   <div className="flex gap-2 items-center">
                      <div className="flex justify-center items-center w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full">
                         <span className="text-sm font-medium text-white">
-                           {profile?.profile?.avatar ? (
-                              <Image src={profile?.profile?.avatar} alt="User avatar" width={32} height={32} className="w-full h-full object-cover" />
+                           {hasValidAvatar ? (
+                              <Image src={avatarUrl as string} alt="User avatar" width={32} height={32} className="w-full h-full object-cover" />
                            ) : (
-                              profile?.profile?.username?.[0]?.toUpperCase() || profile?.email[0].toUpperCase()
+                              initial
                            )}
                         </span>
                      </div>

@@ -4,7 +4,7 @@ import Image from "next/image";
 import { PlatformStats } from "@/components/collaboration/PlatformStats";
 import { useMultiplePlatformData, useCombinedPlatformMetrics } from "@/hooks/features/usePlatformData";
 import { useMatchSuggestions } from "@/hooks/features/useMatching";
-import {User, Mail, MoreHorizontal, Users, TrendingUp, Star, Target, Activity, Share2, Heart, MessageCircle,
+import {User, Mail, Pencil, Users, TrendingUp, Star, Target, Activity, Share2, Heart, MessageCircle,
 Copy, Check, ExternalLink, Verified, Sparkles, UserCheck, PartyPopper, Info, Database,} from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -38,9 +38,8 @@ export default function UserProfileHeader({
 }) {
   const router = useRouter();
   const [copied, setCopied] = useState(false);
-  const [isFollowing, setIsFollowing] = useState(false);
+  const [isConnected, setIsConnected] = useState(false);
   const [showFullBio, setShowFullBio] = useState(false);
-  const [open, setOpen] = useState(false);
 
   // Platform data fetching for stats
   const [platformCredentials, setPlatformCredentials] = useState({});
@@ -195,7 +194,7 @@ export default function UserProfileHeader({
   };
 
   const handleConnect = () => {
-    setIsFollowing(!isFollowing);
+    setIsConnected(!isConnected);
     onConnect?.(user.id);
   };
 
@@ -225,32 +224,20 @@ export default function UserProfileHeader({
               )}
             </button>
 
+            {/* Share button - removed for now
             <button className="p-3 text-gray-600 rounded-xl border shadow-md transition-all cursor-pointer hover:scale-105 bg-gray-100/80 dark:bg-gray-700/60 hover:bg-gray-200 dark:hover:bg-gray-600/80 dark:text-gray-300 border-gray-200/50 dark:border-gray-600/50">
               <Share2 size={18} />
             </button>
+            */}
 
             {isOwnProfile && (
-              <div className="relative">
-                {/* Trigger button */}
-                <button
-                  onClick={() => setOpen(!open)}
-                  className="p-3 text-gray-600 rounded-xl border shadow-md transition-all cursor-pointer hover:scale-105 bg-gray-100/80 dark:bg-gray-700/60 hover:bg-gray-200 dark:hover:bg-gray-600/80 dark:text-gray-300 border-gray-200/50 dark:border-gray-600/50"
-                >
-                  <MoreHorizontal size={18} />
-                </button>
-
-                {/* Dropdown menu */}
-                {open && (
-                  <div className="absolute right-0 z-50 mt-2 w-40 bg-white rounded-md ring-1 shadow-lg dark:bg-gray-800 ring-black/5">
-                    <Link
-                      href="/profile/edit"
-                      className="block px-4 py-2 text-sm text-gray-700 rounded-md cursor-pointer dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
-                    >
-                      Edit Profile
-                    </Link>
-                  </div>
-                )}
-              </div>
+              <Link
+                href="/profile/edit"
+                className="p-3 text-gray-600 rounded-xl border shadow-md transition-all cursor-pointer hover:scale-105 bg-gray-100/80 dark:bg-gray-700/60 hover:bg-gray-200 dark:hover:bg-gray-600/80 dark:text-gray-300 border-gray-200/50 dark:border-gray-600/50"
+                title="Edit Profile"
+              >
+                <Pencil size={18} />
+              </Link>
             )}
           </div>
 
@@ -364,32 +351,20 @@ export default function UserProfileHeader({
                 )}
               </button>
 
+              {/* Share button - removed for now
               <button className="p-3 text-gray-600 rounded-xl border shadow-md transition-all cursor-pointer hover:scale-105 bg-gray-100/80 dark:bg-gray-700/60 hover:bg-gray-200 dark:hover:bg-gray-600/80 dark:text-gray-300 border-gray-200/50 dark:border-gray-600/50">
                 <Share2 size={18} />
               </button>
+              */}
 
               {isOwnProfile && (
-                <div className="relative">
-                  {/* Trigger button */}
-                  <button
-                    onClick={() => setOpen(!open)}
-                    className="p-3 text-gray-600 rounded-xl border shadow-md transition-all cursor-pointer hover:scale-105 bg-gray-100/80 dark:bg-gray-700/60 hover:bg-gray-200 dark:hover:bg-gray-600/80 dark:text-gray-300 border-gray-200/50 dark:border-gray-600/50"
-                  >
-                    <MoreHorizontal size={18} />
-                  </button>
-
-                  {/* Dropdown menu */}
-                  {open && (
-                    <div className="absolute right-0 z-50 mt-2 w-40 bg-white rounded-md ring-1 shadow-lg dark:bg-gray-800 ring-black/5">
-                      <Link
-                        href="/profile/edit"
-                        className="block px-4 py-2 text-sm text-gray-700 rounded-md cursor-pointer dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
-                      >
-                        Edit Profile
-                      </Link>
-                    </div>
-                  )}
-                </div>
+                <Link
+                  href="/profile/edit"
+                  className="p-3 text-gray-600 rounded-xl border shadow-md transition-all cursor-pointer hover:scale-105 bg-gray-100/80 dark:bg-gray-700/60 hover:bg-gray-200 dark:hover:bg-gray-600/80 dark:text-gray-300 border-gray-200/50 dark:border-gray-600/50"
+                  title="Edit Profile"
+                >
+                  <Pencil size={18} />
+                </Link>
               )}
             </div>
 
@@ -429,18 +404,18 @@ export default function UserProfileHeader({
               </Link>
             </div>
           ) : (
-            <div className="grid grid-cols-1 gap-4 w-full md:grid-cols-3">
+            <div className="grid grid-cols-1 gap-4 w-full md:grid-cols-2">
               <button
                 onClick={handleConnect}
-                className={`px-8 py-4 rounded-xl font-semibold transition-all transform hover:scale-105 shadow-xl hover:shadow-2xl flex items-center gap-3 justify-center ${isFollowing
+                className={`px-8 py-4 rounded-xl font-semibold transition-all transform hover:scale-105 shadow-xl hover:shadow-2xl flex items-center gap-3 justify-center ${isConnected
                   ? "text-gray-700 bg-gray-200 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
                   : "text-white bg-linear-to-r from-blue-500 to-purple-500 dark:from-blue-600 dark:to-purple-600 hover:from-blue-600 hover:to-purple-600 dark:hover:from-blue-700 dark:hover:to-purple-700"
                   }`}
               >
-                {isFollowing ? (
+                {isConnected ? (
                   <>
                     <Check size={20} />
-                    Following
+                    Connected
                   </>
                 ) : (
                   <>
@@ -458,10 +433,12 @@ export default function UserProfileHeader({
                 Message
               </button>
 
+              {/* Email button - removed for now
               <button className="flex gap-3 justify-center items-center px-6 py-4 font-semibold text-gray-700 bg-white rounded-xl border-2 border-gray-200 shadow-lg transition-all hover:scale-105 dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500">
                 <Mail size={20} />
                 Email
               </button>
+              */}
             </div>
           )}
         </div>
