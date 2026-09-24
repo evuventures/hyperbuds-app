@@ -221,10 +221,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       const savedToken = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
 
       if (!savedToken && !token) {
-        if (pathname === '/') {
-          setLoading(false);
-          return;
-        }
         router.push("/auth/signin");
         return;
       }
