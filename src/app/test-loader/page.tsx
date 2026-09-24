@@ -19,7 +19,7 @@ export default function TestLoaderPage() {
    };
 
    return (
-      <div className="flex overflow-hidden relative flex-col justify-center items-center min-h-screen bg-gradient-to-br via-purple-900 from-slate-900 to-slate-900">
+      <div className="flex overflow-hidden relative flex-col justify-center items-center min-h-screen bg-linear-to-br via-purple-900 from-slate-900 to-slate-900">
          {/* Animated background elements */}
          <div className="overflow-hidden absolute inset-0">
             {/* Floating orbs */}
@@ -61,8 +61,8 @@ export default function TestLoaderPage() {
             />
 
             {/* Gradient overlays */}
-            <div className="absolute inset-0 bg-gradient-to-t via-transparent from-slate-900/50 to-slate-900/30" />
-            <div className="absolute inset-0 bg-gradient-to-r via-transparent from-purple-900/20 to-pink-900/20" />
+            <div className="absolute inset-0 bg-linear-to-t via-transparent from-slate-900/50 to-slate-900/30" />
+            <div className="absolute inset-0 bg-linear-to-r via-transparent from-purple-900/20 to-pink-900/20" />
          </div>
 
          {/* Control Panel */}
@@ -76,7 +76,7 @@ export default function TestLoaderPage() {
                <button
                   onClick={() => setLoaderType('complex')}
                   className={`px-6 py-3 rounded-xl font-semibold transition-all duration-300 ${loaderType === 'complex'
-                     ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg scale-105'
+                     ? 'bg-linear-to-r from-purple-500 to-pink-500 text-white shadow-lg scale-105'
                      : 'bg-white/10 text-white/70 hover:bg-white/20 hover:text-white'
                      }`}
                >
@@ -85,7 +85,7 @@ export default function TestLoaderPage() {
                <button
                   onClick={() => setLoaderType('simple')}
                   className={`px-6 py-3 rounded-xl font-semibold transition-all duration-300 ${loaderType === 'simple'
-                     ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg scale-105'
+                     ? 'bg-linear-to-r from-purple-500 to-pink-500 text-white shadow-lg scale-105'
                      : 'bg-white/10 text-white/70 hover:bg-white/20 hover:text-white'
                      }`}
                >
@@ -111,7 +111,7 @@ export default function TestLoaderPage() {
                >
                   <div className="p-8 rounded-3xl border shadow-2xl backdrop-blur-xl bg-white/5 border-white/10">
                      <motion.div
-                        className="flex justify-center items-center mx-auto mb-4 w-16 h-16 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full"
+                        className="flex justify-center items-center mx-auto mb-4 w-16 h-16 bg-linear-to-r from-green-400 to-emerald-500 rounded-full"
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
                         transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
@@ -134,7 +134,7 @@ export default function TestLoaderPage() {
 
                      <button
                         onClick={resetLoader}
-                        className="px-6 py-3 font-semibold text-white bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl shadow-lg transition-all duration-300 hover:scale-105"
+                        className="px-6 py-3 font-semibold text-white bg-linear-to-r from-purple-500 to-pink-500 rounded-xl shadow-lg transition-all duration-300 hover:scale-105"
                      >
                         Restart Animation
                      </button>
