@@ -1,9 +1,9 @@
 'use client'
 
 import { useState } from 'react';
-import { Eye, EyeOff, User, Facebook, Chrome } from 'lucide-react';
+import { Eye, EyeOff, User, Chrome } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/hooks/auth/useAuth'; // ✅ Custom hook path
+import { useAuth } from '@/hooks/auth/useAuth'; 
 import EmailVerificationModal from './EmailVerificationModal';
 
 const LoadingSpinner = () => (

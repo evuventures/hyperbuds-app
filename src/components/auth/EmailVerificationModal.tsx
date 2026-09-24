@@ -3,7 +3,6 @@
 import { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mail, CheckCircle, X } from 'lucide-react';
-import { useRouter } from 'next/navigation';
 
 interface EmailVerificationModalProps {
    isOpen: boolean;
@@ -12,7 +11,6 @@ interface EmailVerificationModalProps {
 }
 
 export default function EmailVerificationModal({ isOpen, onClose, email }: EmailVerificationModalProps) {
-   const router = useRouter();
 
    // Prevent body scroll when modal is open
    useEffect(() => {
@@ -26,10 +24,6 @@ export default function EmailVerificationModal({ isOpen, onClose, email }: Email
       };
    }, [isOpen]);
 
-   const handleGoToLogin = () => {
-      onClose();
-      router.push('/auth/signin');
-   };
 
    return (
       <AnimatePresence>
@@ -117,32 +111,13 @@ export default function EmailVerificationModal({ isOpen, onClose, email }: Email
                               </div>
                               <p className="text-sm text-center text-gray-600">
                                  Click the link in the email to verify your account and complete your registration.
+                                 Didn&apos;t receive the email? Check your spam folder or contact support.
                               </p>
                            </motion.div>
 
-                           {/* Actions */}
-                           <motion.div
-                              initial={{ opacity: 0, y: 10 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              transition={{ delay: 0.5 }}
-                           >
-                              <button
-                                 onClick={handleGoToLogin}
-                                 className="flex justify-center items-center gap-2 w-full h-12 font-semibold text-white bg-linear-to-r from-purple-600 to-blue-600 rounded-xl shadow-lg transition-all duration-300 transform cursor-pointer hover:from-purple-700 hover:to-blue-700 hover:scale-[1.02] hover:shadow-xl hover:shadow-purple-500/25 active:scale-[0.98]"
-                              >
-                                 Go to Login
-                              </button>
-                           </motion.div>
+                          
 
-                  {/* Helper Text */}
-                  <motion.p
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.6 }}
-                    className="mt-4 text-xs text-center text-gray-500"
-                  >
-                    Didn&apos;t receive the email? Check your spam folder or contact support.
-                  </motion.p>
+                  
                         </div>
                      </div>
                   </motion.div>
