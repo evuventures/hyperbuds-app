@@ -138,7 +138,11 @@ interface UserProfile {
 
 export default function HeaderOnlyLayout({ children }: HeaderOnlyLayoutProps) {
    const router = useRouter();
-   const [user, setUser] = useState<{ id: string; name: string; email: string; avatar?: string } | null>(null);
+   const [user, setUser] = useState<{
+      displayName: string | undefined;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      username: any; id: string; name: string; email: string; avatar?: string 
+} | null>(null);
    const [loading, setLoading] = useState(true);
    const [profile, setProfile] = useState<UserProfile | null>(null);
    const { user: authenticatedUser } = useAuth();
@@ -150,7 +154,7 @@ export default function HeaderOnlyLayout({ children }: HeaderOnlyLayoutProps) {
    }, [authenticatedUser])
 
    // Use global sidebar context for skeleton
-   const { sidebarCollapsed, isInitialized: sidebarInitialized } = useSidebar();
+   useSidebar();
 
    useEffect(() => {
       const fetchUser = async () => {
@@ -191,18 +195,18 @@ export default function HeaderOnlyLayout({ children }: HeaderOnlyLayoutProps) {
 
    return (
       <ThemeProvider>
-         <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 transition-colors duration-200 overflow-y-clip dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
+         <div className="min-h-screen bg-linear-to-br from-gray-50 via-white to-gray-100 transition-colors duration-200 overflow-y-clip dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
             {/* Mobile Header */}
             <div className="fixed top-0 right-0 left-0 z-50 border-b shadow-sm backdrop-blur-lg lg:hidden bg-white/95 dark:bg-gray-900/95 border-gray-200/50 dark:border-gray-700/50">
                <div className="flex justify-between items-center px-4 py-3">
                   <div className="flex gap-3 items-center">
-                     <h1 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-600">
+                     <h1 className="text-xl font-bold text-transparent bg-clip-text bg-linear-to-r from-purple-600 to-blue-600">
                         HyperBuds
                      </h1>
                   </div>
 
                   <div className="flex gap-2 items-center">
-                     <div className="flex justify-center items-center w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full">
+                     <div className="flex justify-center items-center w-8 h-8 bg-linear-to-r from-purple-500 to-pink-500 rounded-full">
                         <span className="text-sm font-medium text-white">
                            {hasValidAvatar ? (
                               <Image src={avatarUrl as string} alt="User avatar" width={32} height={32} className="w-full h-full object-cover" />

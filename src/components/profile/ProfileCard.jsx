@@ -27,6 +27,15 @@ const LoadingSkeleton = () => (
   </div>
 );
 
+// Social platform display info
+const PLATFORM_INFO = {
+  tiktok: { name: "TikTok", color: "from-black to-gray-800", icon: "🎵" },
+  instagram: { name: "Instagram", color: "from-pink-500 to-purple-600", icon: "📷" },
+  youtube: { name: "YouTube", color: "from-red-500 to-red-700", icon: "📺" },
+  twitch: { name: "Twitch", color: "from-purple-500 to-purple-700", icon: "🎮" },
+  twitter: { name: "Twitter", color: "from-blue-400 to-blue-600", icon: "🐦" },
+};
+
 // Enhanced User Profile Header Component
 export default function UserProfileHeader({
   userData,
@@ -158,19 +167,25 @@ export default function UserProfileHeader({
     router.push("/profile/rizz-score");
   };
 
-  
+
   if (isLoading || !userData || !userData.profile) {
     return <LoadingSkeleton />;
   }
 
   const user = userData.profile || userData;
 
+  // Only count social links that actually have a value (ignores "" / null entries)
+  const filledSocialLinks = Object.entries(user.socialLinks || {}).filter(
+    ([, url]) => typeof url === "string" && url.trim() !== ""
+  );
+  const hasSocialLinks = filledSocialLinks.length > 0;
+
   const formatLocation = (location) => {
     if (!location) return "Location not provided";
     return `${location.city}, ${location.state}, ${location.country}`;
   };
 
- 
+
 
   const formatShortDate = (dateString) => {
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -617,26 +632,19 @@ export default function UserProfileHeader({
         )
       }
 
-      {/* Social Media Links */}
-      {user.socialLinks && Object.keys(user.socialLinks).length > 0 && (
-        <div className="p-6 bg-white rounded-2xl border shadow-lg backdrop-blur-sm dark:bg-gray-800/50 border-gray-200/60 dark:border-gray-700/60">
-          <h3 className="flex gap-3 items-center mb-6 text-xl font-bold text-gray-900 dark:text-gray-100">
-            <div className="p-2 bg-linear-to-br from-purple-100 to-purple-100 rounded-lg dark:from-purple-500/20 dark:to-purple-500/20">
-              <Share2 size={24} className="text-purple-600 dark:text-purple-400" />
-            </div>
-            Social Media
-          </h3>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {Object.entries(user.socialLinks).map(([platform, url]) => {
-              const platformInfo = {
-                tiktok: { name: "TikTok", color: "from-black to-gray-800", icon: "🎵" },
-                instagram: { name: "Instagram", color: "from-pink-500 to-purple-600", icon: "📷" },
-                youtube: { name: "YouTube", color: "from-red-500 to-red-700", icon: "📺" },
-                twitch: { name: "Twitch", color: "from-purple-500 to-purple-700", icon: "🎮" },
-                twitter: { name: "Twitter", color: "from-blue-400 to-blue-600", icon: "🐦" },
-              };
+      {/* Social Media Links - always visible */}
+      <div className="p-6 bg-white rounded-2xl border shadow-lg backdrop-blur-sm dark:bg-gray-800/50 border-gray-200/60 dark:border-gray-700/60">
+        <h3 className="flex gap-3 items-center mb-6 text-xl font-bold text-gray-900 dark:text-gray-100">
+          <div className="p-2 bg-linear-to-br from-purple-100 to-purple-100 rounded-lg dark:from-purple-500/20 dark:to-purple-500/20">
+            <Share2 size={24} className="text-purple-600 dark:text-purple-400" />
+          </div>
+          Social Media
+        </h3>
 
-              const info = platformInfo[platform] || { name: platform, color: "from-gray-500 to-gray-700", icon: "🔗" };
+        {hasSocialLinks ? (
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {filledSocialLinks.map(([platform, url]) => {
+              const info = PLATFORM_INFO[platform] || { name: platform, color: "from-gray-500 to-gray-700", icon: "🔗" };
 
               return (
                 <a
@@ -644,13 +652,13 @@ export default function UserProfileHeader({
                   href={url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="group p-4 rounded-xl transition-all hover:scale-[1.02] bg-gray-50/80 dark:bg-gray-700/40 border border-gray-200 dark:border-gray-600/50 hover:border-gray-300 dark:hover:border-gray-500/70 hover:shadow-lg"
+                  className="group p-4 rounded-xl transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-[1.02] hover:-translate-y-0.5 bg-gray-50/80 dark:bg-gray-700/40 border border-gray-200 dark:border-gray-600/50 hover:border-gray-300 dark:hover:border-gray-500/70 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500/60"
                 >
                   <div className="flex gap-3 items-center">
-                    <div className={`p-3 rounded-xl bg-linear-to-br ${info.color} group-hover:scale-110 transition-transform`}>
+                    <div className={`p-3 rounded-xl bg-linear-to-br ${info.color} transition-transform duration-300 group-hover:scale-110`}>
                       <span className="text-lg text-white">{info.icon}</span>
                     </div>
-                    <div className="flex-1">
+                    <div className="flex-1 min-w-0">
                       <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">
                         {info.name}
                       </div>
@@ -658,16 +666,40 @@ export default function UserProfileHeader({
                         {url.replace('https://', '').replace('http://', '')}
                       </div>
                     </div>
-                    <ExternalLink size={16} className="text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300" />
+                    <ExternalLink size={16} className="text-gray-400 transition-all duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-gray-600 dark:group-hover:text-gray-300" />
                   </div>
                 </a>
               );
             })}
           </div>
-        </div>
-      )}
+        ) : (
+          <div className="flex flex-col gap-4 items-center px-6 py-10 text-center rounded-xl border-2 border-dashed transition-colors duration-300 border-gray-200 dark:border-gray-700 bg-gray-50/60 dark:bg-gray-700/20">
+            <div className="p-3 bg-linear-to-br from-purple-100 to-pink-100 rounded-2xl dark:from-purple-500/20 dark:to-pink-500/20">
+              <Share2 size={24} className="text-purple-500 dark:text-purple-400" />
+            </div>
+            <div className="space-y-1 max-w-md">
+              <p className="text-base font-semibold text-gray-900 dark:text-gray-100">
+                {isOwnProfile ? "No social accounts linked yet" : "No social accounts shared"}
+              </p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                {isOwnProfile
+                  ? "Add your TikTok, Instagram, YouTube, Twitch or X profiles to show your reach, improve your Rizz Score and get better matches."
+                  : `${user.displayName || user.username} hasn't added any social media links yet.`}
+              </p>
+            </div>
+            {isOwnProfile && (
+              <Link
+                href="/profile/edit"
+                className="group inline-flex gap-2 items-center px-5 py-2.5 text-sm font-semibold text-white bg-linear-to-r from-purple-500 to-pink-500 rounded-lg shadow-md transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-105 hover:shadow-lg hover:from-purple-600 hover:to-pink-600 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500/60 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-800"
+              >
+                <Pencil size={16} className="transition-transform duration-300 group-hover:-rotate-12" />
+                Add social links
+              </Link>
+            )}
+          </div>
+        )}
+      </div>
 
-    
     </div >
   );
 }
