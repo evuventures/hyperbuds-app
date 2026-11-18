@@ -1,11 +1,5 @@
-import PagePlaceholder from "@/components/ui/PagePlaceholder";
+import { redirect } from 'next/navigation';
 
-export default function EngagementAnalyticsPage() {
-  return (
-    <PagePlaceholder
-      title="Engagement Analytics"
-      description="Track interactions and content performance."
-      icon="zap"
-    />
-  );
+export default function AnalyticsEngagementRedirectPage() {
+  redirect('/analytics');
 }

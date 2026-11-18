@@ -1,14 +1,29 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Loader2, RefreshCw, Sparkles } from "lucide-react";
+import { ArrowLeft, Globe2, Loader2, RefreshCw, ShieldCheck, Sparkles } from "lucide-react";
 import DashboardLayout from "@/components/layout/Dashboard/Dashboard";
 import { Button } from "@/components/ui/button";
 import MatchHistoryGallery from "@/components/matching/MatchHistoryGallery";
 import { useMatching } from "@/hooks/features/useMatching";
 import { profileApi, type ProfileByUsernameResponse } from "@/lib/api/profile.api";
+import apiClient from "@/lib/api/client";
 import type { CreatorProfile, MatchSuggestion } from "@/types/matching.types";
+
+interface ExternalCreatorCard {
+  _id: string;
+  platform: string;
+  handle: string;
+  displayName: string;
+  niche?: string[];
+  followersEstimate?: number;
+  compatibilityScore?: number;
+  rizzEstimateV2?: number | null;
+  rizzTier?: string | null;
+  claimStatus: 'unclaimed' | 'pending_verification' | 'claimed';
+  sourceUrl?: string;
+}
 
 const DEFAULT_PROFILE_STATS = {
   totalFollowers: 0,
@@ -137,6 +152,29 @@ const AIMatchesPage: React.FC = () => {
   const [displayMatches, setDisplayMatches] = useState<MatchSuggestion[]>([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isEnriching, setIsEnriching] = useState(false);
+  const [activeTab, setActiveTab] = useState<'matches' | 'external'>('matches');
+  const [externalCreators, setExternalCreators] = useState<ExternalCreatorCard[]>([]);
+  const [provenance, setProvenance] = useState<string>('local_heuristic_fallback');
+  const [externalLoading, setExternalLoading] = useState(false);
+  const [claimProofById, setClaimProofById] = useState<Record<string, string>>({});
+  const [extBanner, setExtBanner] = useState<string | null>(null);
+
+  const loadExternalCreators = useCallback(async () => {
+    setExternalLoading(true);
+    try {
+      const res = await apiClient.get('/matching/external?limit=12');
+      setExternalCreators(Array.isArray(res.data?.creators) ? res.data.creators : []);
+      if (res.data?.provenance) setProvenance(res.data.provenance);
+    } catch {
+      setExternalCreators([]);
+    } finally {
+      setExternalLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadExternalCreators();
+  }, [loadExternalCreators]);
 
   const {
     suggestions: matches = [],
@@ -233,21 +271,27 @@ const AIMatchesPage: React.FC = () => {
   let content: React.ReactNode;
   if (isPageLoading) {
     content = (
-      <div className="flex min-h-90 flex-col items-center justify-center rounded-4xl border border-fuchsia-200/70 bg-white/85 p-8 text-center shadow-sm backdrop-blur dark:border-white/10 dark:bg-[#1a1227]/80 dark:shadow-none">
-        <Loader2 className="mb-4 h-14 w-14 animate-spin text-fuchsia-400" />
-        <p className="text-lg font-semibold text-slate-900 dark:text-white">Loading your top matches...</p>
-        <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">Gathering compatibility signals and bios.</p>
+      <div className="flex min-h-90 flex-col items-center justify-center rounded-3xl border border-white/10 bg-white/[0.04] p-8 text-center backdrop-blur-xl">
+        <Loader2 className="mb-4 h-12 w-12 animate-spin text-indigo-400" />
+        <p role="status" className="text-lg font-semibold text-white">
+          Loading your top matches...
+        </p>
+        <p className="mt-2 text-sm text-slate-400">
+          Gathering compatibility signals and bios.
+        </p>
       </div>
     );
   } else if (error) {
     content = (
-      <div className="rounded-4xl border border-red-300/60 bg-white/90 p-8 shadow-[0_24px_80px_-36px_rgba(239,68,68,0.28)] backdrop-blur dark:border-red-500/20 dark:bg-[#1a1227]/85 dark:shadow-[0_24px_80px_-36px_rgba(239,68,68,0.45)]">
-        <p className="text-lg font-semibold text-red-600 dark:text-red-300">Failed to load AI matches</p>
-        <p className="mt-2 text-sm text-red-500/90 dark:text-red-200/80">{errorMessage}</p>
+      <div className="rounded-3xl border border-rose-500/25 bg-[#1b121c]/80 p-8 shadow-[0_24px_80px_-36px_rgba(239,68,68,0.4)] backdrop-blur-xl">
+        <p role="alert" className="text-lg font-semibold text-rose-300">
+          Failed to load AI matches
+        </p>
+        <p className="mt-2 text-sm text-rose-200/80">{errorMessage}</p>
         <Button
           onClick={handleRefresh}
           variant="outline"
-          className="mt-5 border-red-300/60 bg-red-50 text-red-700 hover:bg-red-100 hover:text-red-800 dark:border-red-400/20 dark:bg-red-500/10 dark:text-red-100 dark:hover:bg-red-500/20 dark:hover:text-white"
+          className="mt-5 rounded-full border-rose-400/30 bg-rose-500/15 text-rose-100 hover:bg-rose-500/25 hover:text-white"
         >
           Try Again
         </Button>
@@ -255,12 +299,12 @@ const AIMatchesPage: React.FC = () => {
     );
   } else if (displayMatches.length === 0) {
     content = (
-      <div className="flex min-h-90 flex-col items-center justify-center rounded-4xl border border-fuchsia-200/70 bg-white/85 p-8 text-center shadow-sm backdrop-blur dark:border-white/10 dark:bg-[#1a1227]/80 dark:shadow-none">
-        <div className="mb-4 rounded-full bg-linear-to-br from-fuchsia-500/20 to-pink-500/20 p-5">
-          <Sparkles className="h-12 w-12 text-fuchsia-300" />
+      <div className="flex min-h-90 flex-col items-center justify-center rounded-3xl border border-white/10 bg-white/[0.04] p-8 text-center backdrop-blur-xl">
+        <div className="mb-4 rounded-full bg-linear-to-br from-blue-500/25 to-purple-500/25 p-5 ring-1 ring-white/10">
+          <Sparkles className="h-12 w-12 text-indigo-300" />
         </div>
-        <h2 className="text-2xl font-bold text-slate-900 dark:text-white">No Matches Yet</h2>
-        <p className="mt-3 max-w-md text-sm leading-7 text-slate-600 sm:text-base dark:text-slate-400">
+        <h2 className="text-2xl font-bold text-white">No Matches Yet</h2>
+        <p className="mt-3 max-w-md text-sm leading-7 text-slate-300/80 sm:text-base">
           Refresh your suggestions and we&apos;ll pull in more creators that fit your style.
         </p>
       </div>
@@ -277,58 +321,191 @@ const AIMatchesPage: React.FC = () => {
 
   return (
     <DashboardLayout>
-      <div className="min-h-full bg-white dark:bg-slate-900 dark:text-white">
-        <div className="relative overflow-hidden p-4 pb-16 lg:p-6 lg:pb-34">
-          <div className="pointer-events-none absolute inset-0">
-            <div className="absolute inset-x-0 top-0 h-80 " />
-            <div className="absolute right-0 top-32 h-72 w-72 rounded-full " />
-            <div className="absolute left-0 top-56 h-80 w-80 rounded-full " />
-          </div>
+      <div className="relative min-h-full overflow-hidden bg-[#121318] text-white">
+        {/* Ambient glowing electric-purple + cobalt-blue radial background */}
+        <div aria-hidden className="pointer-events-none fixed inset-0 overflow-hidden lg:absolute">
+          <div className="absolute -left-24 top-16 h-[420px] w-[420px] rounded-full bg-[#7c3aed]/20 blur-[145px]" />
+          <div className="absolute right-[-60px] top-[34%] h-[460px] w-[460px] rounded-full bg-[#2563eb]/25 blur-[155px]" />
+          <div className="absolute bottom-[-80px] left-[22%] h-[420px] w-[420px] rounded-full bg-[#4f46e5]/20 blur-[145px]" />
+        </div>
 
-          <div className="relative mx-auto max-w-7xl">
-            <div className="mb-8 flex items-center justify-between gap-3">
-            <Button
+        <div className="relative z-10 px-4 py-6 pb-20 sm:px-6 lg:px-10 lg:py-8">
+          <div className="mx-auto max-w-6xl">
+            <div className="mb-7 flex items-center justify-between gap-3">
+              <Button
                 variant="outline"
                 size="sm"
                 onClick={() => router.back()}
-              className="border-fuchsia-200 bg-white/80 text-slate-700 hover:bg-fuchsia-50 hover:text-slate-900 dark:border-white/10 dark:bg-white/5 dark:text-white dark:hover:bg-white/10 dark:hover:text-white"
+                className="rounded-full border-white/15 bg-white/[0.06] text-slate-200 backdrop-blur-md hover:bg-white/[0.14] hover:text-white"
               >
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Back
               </Button>
 
-            <Button
+              <Button
                 variant="outline"
                 size="sm"
                 onClick={handleRefresh}
                 disabled={isRefreshing}
-              className="border-fuchsia-300/50 bg-white/80 text-fuchsia-700 hover:bg-fuchsia-50 hover:text-fuchsia-800 dark:border-fuchsia-400/20 dark:bg-white/5 dark:text-fuchsia-100 dark:hover:bg-fuchsia-500/10 dark:hover:text-white"
+                className="rounded-full border-indigo-400/25 bg-indigo-500/15 text-indigo-200 backdrop-blur-md hover:bg-indigo-500/25 hover:text-white"
               >
-                <RefreshCw className={`mr-2 h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
+                <RefreshCw className={`mr-2 h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
                 Refresh
               </Button>
             </div>
 
-            <div className="mb-8 max-w-3xl">
-              <div className="mb-4 flex items-center gap-3">
-                <div className="rounded-2xl bg-linear-to-br from-fuchsia-500 to-pink-500 p-3 shadow-[0_12px_35px_-10px_rgba(217,70,239,0.8)]">
-                  <Sparkles className="h-6 w-6 text-white" />
-                </div>
-                <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.35em] text-fuchsia-500 dark:text-fuchsia-300/80">
-                    HyperBuds AI
-                  </p>
-                  <h1 className="text-4xl font-black tracking-tight text-slate-900 sm:text-5xl dark:text-white">
-                    Top AI Matches
-                  </h1>
+            {/* Two-column editorial header matching persona showcase */}
+            <div className="mb-8 grid grid-cols-1 items-end gap-6 lg:grid-cols-12">
+              <div className="lg:col-span-7">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-linear-to-r from-[#2563eb] to-[#7c3aed] px-3.5 py-1 text-xs font-semibold text-white shadow-md shadow-blue-600/25">
+                  Creator Discovery
+                </span>
+                <h1 className="mt-4 text-3xl font-bold leading-[1.08] tracking-tight sm:text-5xl">
+                  <span className="text-white">Find your </span>
+                  <span className="block text-[#8ea5ff]">next collaborator</span>
+                </h1>
+              </div>
+
+              <div className="lg:col-span-5 flex flex-col lg:items-end gap-3">
+                <p className="text-sm leading-relaxed text-slate-300/85 sm:text-base lg:text-right">
+                  Explore creators suggested from your profile, Empire Builder engine, and opt-in public claim index.
+                </p>
+                <div className="inline-flex rounded-full border border-white/15 bg-white/[0.05] p-1 text-xs">
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('matches')}
+                    className={`rounded-full px-3.5 py-1.5 font-medium transition ${
+                      activeTab === 'matches' ? 'bg-purple-600 text-white' : 'text-slate-300 hover:text-white'
+                    }`}
+                  >
+                    AI Matches
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('external')}
+                    className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 font-medium transition ${
+                      activeTab === 'external' ? 'bg-purple-600 text-white' : 'text-slate-300 hover:text-white'
+                    }`}
+                  >
+                    <Globe2 className="h-3.5 w-3.5" />
+                    External Claim Index
+                  </button>
                 </div>
               </div>
-              <p className="text-base leading-7 text-slate-600 sm:text-lg dark:text-slate-300">
-                Our neural engine found these matches for you.
-              </p>
             </div>
 
-            {content}
+            {activeTab === 'matches' ? (
+              content
+            ) : (
+              <div className="space-y-5">
+                <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/15 bg-white/[0.04] p-4 text-xs backdrop-blur-xl">
+                  <div className="flex items-center gap-2 text-slate-200">
+                    <ShieldCheck className="h-4 w-4 text-emerald-400" />
+                    <span>
+                      Engine provenance: <strong className="text-white">{provenance.replace(/_/g, ' ')}</strong> · Opt-in verification only (no automated unsolicited DMs).
+                    </span>
+                  </div>
+                  <Button
+                    size="sm"
+                    onClick={async () => {
+                      setExtBanner(null);
+                      try {
+                        const res = await apiClient.post('/matching/external/analyze', { limit: 12 });
+                        setExternalCreators(Array.isArray(res.data?.creators) ? res.data.creators : []);
+                        setExtBanner(`External creator discovery analyzed (${res.data?.creditsCharged ?? 5} credits).`);
+                      } catch (err) {
+                        setExtBanner(err instanceof Error ? err.message : 'Unable to analyze external creators.');
+                      }
+                    }}
+                    className="rounded-full bg-purple-600 text-white hover:bg-purple-700"
+                  >
+                    Analyze External Matches (5 cr)
+                  </Button>
+                </div>
+
+                {extBanner && (
+                  <div className="rounded-xl border border-indigo-400/30 bg-indigo-500/15 px-4 py-3 text-xs text-indigo-100">
+                    {extBanner}
+                  </div>
+                )}
+
+                {externalLoading ? (
+                  <div className="py-12 text-center text-sm text-slate-400">Loading external creator directory...</div>
+                ) : externalCreators.length === 0 ? (
+                  <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-8 text-center text-sm text-slate-300">
+                    No indexed external creators match your current filters yet.
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {externalCreators.map((ext) => (
+                      <div
+                        key={ext._id}
+                        className="rounded-2xl border border-white/15 bg-white/[0.05] p-5 backdrop-blur-xl space-y-3"
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div>
+                            <span className="rounded-full bg-purple-500/20 px-2 py-0.5 text-[10px] font-semibold uppercase text-purple-200">
+                              {ext.platform} · @{ext.handle}
+                            </span>
+                            <h3 className="mt-1.5 text-base font-semibold text-white">{ext.displayName}</h3>
+                          </div>
+                          <span className="rounded-full bg-emerald-500/20 px-2.5 py-0.5 text-xs font-bold text-emerald-300">
+                            {ext.compatibilityScore ?? 75}% fit
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-300">
+                          Status: <strong>{ext.claimStatus}</strong> · Est. followers:{' '}
+                          {(ext.followersEstimate ?? 0).toLocaleString()}
+                        </p>
+                        {ext.claimStatus === 'unclaimed' && (
+                          <div className="space-y-2 pt-2 border-t border-white/10">
+                            <input
+                              type="text"
+                              value={claimProofById[ext._id] || ''}
+                              onChange={(e) =>
+                                setClaimProofById((prev) => ({ ...prev, [ext._id]: e.target.value }))
+                              }
+                              placeholder="Enter bio verification code (e.g. HB-PROOF)"
+                              className="w-full rounded-lg border border-white/15 bg-black/30 px-2.5 py-1.5 text-xs text-white"
+                            />
+                            <div className="flex gap-2">
+                              <button
+                                type="button"
+                                onClick={async () => {
+                                  try {
+                                    await apiClient.post(`/profiles/claim/${ext._id}`, {
+                                      verificationMethod: 'bio_token',
+                                      verificationProof: claimProofById[ext._id] || '',
+                                    });
+                                    setExtBanner(`Claim verified for @${ext.handle}`);
+                                    await loadExternalCreators();
+                                  } catch (err) {
+                                    setExtBanner(err instanceof Error ? err.message : 'Claim verification failed.');
+                                  }
+                                }}
+                                className="flex-1 rounded-lg bg-purple-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-purple-700"
+                              >
+                                Verify & Claim
+                              </button>
+                              <button
+                                type="button"
+                                onClick={async () => {
+                                  await apiClient.post(`/matching/external/${ext._id}/block`);
+                                  setExternalCreators((prev) => prev.filter((item) => item._id !== ext._id));
+                                }}
+                                className="rounded-lg border border-white/15 px-3 py-1.5 text-xs text-slate-300 hover:bg-white/10"
+                              >
+                                Hide
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>

@@ -1,11 +1,5 @@
-import PagePlaceholder from "@/components/ui/PagePlaceholder";
+import { redirect } from 'next/navigation';
 
-export default function StreamingHistoryPage() {
-  return (
-    <PagePlaceholder
-      title="Stream History"
-      description="Review past streams and performance."
-      icon="trending"
-    />
-  );
+export default function StreamingHistoryRedirectPage() {
+  redirect('/streaming');
 }

@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "../styles/design-tokens.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -9,11 +10,7 @@
 
 /* Dark theme CSS variables */
 :root.dark {
-  --background: linear-gradient(to bottom right,
-      rgba(249, 250, 251, 1) 0%,
-      rgba(255, 255, 255, 1) 50%,
-      rgba(243, 244, 246, 1) 100%);
-  ;
+  --background: #111827;
   --foreground: #ededed;
 }
 
@@ -1635,4 +1632,90 @@ textarea:focus-visible {
 
 .dark .notification-scrollbar::-webkit-scrollbar-thumb:hover {
   background: rgba(30, 41, 59, 0.95);
+}
+
+
+/* Dynamic Hero Header Slide-In Animations */
+@keyframes hbSlideFromLeft {
+  from {
+    opacity: 0;
+    transform: translate3d(-32px, 0, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes hbSlideFromBottom {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 32px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes hbSlideFromRight {
+  from {
+    opacity: 0;
+    transform: translate3d(24px, 0, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.animate-hb-slide-left {
+  animation: hbSlideFromLeft 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animate-hb-slide-bottom {
+  animation: hbSlideFromBottom 580ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animate-hb-slide-right {
+  animation: hbSlideFromRight 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-hb-slide-left,
+  .animate-hb-slide-bottom,
+  .animate-hb-slide-right {
+    animation: none !important;
+  }
+}
+
+/* Editorial display face for the dashboard hero (condensed heavy system faces, no network font). */
+.hb-display {
+  font-family: Impact, 'Haettenschweiler', 'Arial Narrow Bold', 'Franklin Gothic Bold', sans-serif;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+}
+
+@keyframes hbHeroProgress {
+  from {
+    width: 0%;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+.hb-hero-progress {
+  animation-name: hbHeroProgress;
+  animation-timing-function: linear;
+  animation-fill-mode: both;
+}
+
+.hb-scroll-hidden {
+  scrollbar-width: none;
+}
+
+.hb-scroll-hidden::-webkit-scrollbar {
+  display: none;
 }

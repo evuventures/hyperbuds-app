@@ -6,7 +6,6 @@ import { useDashboardData } from "@/hooks/features/useDashboardData";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
 interface RecommendationUser {
   id: string;
   username: string;
@@ -24,192 +23,169 @@ interface Recommendation {
   keyFeatures: string[];
 }
 
-// ─── Skeleton ─────────────────────────────────────────────────────────────────
 const RecommendationSkeleton: React.FC = () => (
-  <div className="space-y-4">
+  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
     {[1, 2, 3].map((i) => (
-      <div key={i} className="flex rounded-2xl overflow-hidden bg-gray-100 dark:bg-gray-800 animate-pulse">
-        {/* avatar placeholder */}
-        <div className="w-28 sm:w-36 md:w-44 shrink-0 bg-gray-200 dark:bg-gray-700 min-h-40" />
-        <div className="flex-1 p-4 space-y-3">
-          <div className="flex gap-2 flex-wrap">
-            <div className="h-10 w-16 rounded-xl bg-gray-200 dark:bg-gray-700" />
-            <div className="h-10 w-12 rounded-xl bg-gray-200 dark:bg-gray-700" />
-            <div className="h-10 w-28 rounded-xl bg-gray-200 dark:bg-gray-700 ml-auto" />
-          </div>
-          <div className="flex flex-wrap gap-1.5 mt-2">
-            {[1, 2, 3].map(j => <div key={j} className="h-5 w-14 rounded-full bg-gray-200 dark:bg-gray-700" />)}
-          </div>
-          <div className="h-3 w-1/2 rounded bg-gray-200 dark:bg-gray-700" />
-        </div>
+      <div
+        key={i}
+        className="rounded-xl border border-slate-100 bg-slate-50/60 p-4 space-y-3 animate-pulse dark:border-slate-800 dark:bg-slate-800/40"
+      >
+        <div className="h-10 w-10 rounded-xl bg-slate-200 dark:bg-slate-700" />
+        <div className="h-4 w-2/3 rounded bg-slate-200 dark:bg-slate-700" />
+        <div className="h-3 w-1/2 rounded bg-slate-200 dark:bg-slate-700" />
       </div>
     ))}
   </div>
 );
 
-// ─── Rank config ──────────────────────────────────────────────────────────────
-const RANK_CONFIG = [
-  { label: "Ultimate Match", gradient: "from-purple-600 to-violet-700" },
-  { label: "Top Compatibility", gradient: "from-violet-600 to-indigo-700" },
-  { label: "Great Fit", gradient: "from-indigo-600 to-purple-700" },
-];
+const RANK_LABELS = ["Top Synergy", "High Fit", "Recommended"];
 
-// ─── Single Card ──────────────────────────────────────────────────────────────
 const RecommendationCard: React.FC<{ rec: Recommendation; rank: number }> = ({ rec, rank }) => {
   const router = useRouter();
   const { user, compatibilityScore, commonNiches } = rec;
   const displayName = user?.displayName || user?.username || "Creator";
-  const cfg = RANK_CONFIG[rank] ?? RANK_CONFIG[2];
-  const allNiches = commonNiches.length > 0 ? commonNiches : (user?.niche ?? []);
+  const badgeLabel = RANK_LABELS[rank] ?? RANK_LABELS[2];
+  const allNiches = commonNiches?.length > 0 ? commonNiches : (user?.niche ?? []);
   const rizzDisplay = user?.rizzScore ?? rec.matchingRizzScore ?? 0;
+  const handle = user?.username?.startsWith("@") ? user.username.slice(1) : user?.username;
 
   return (
-    <div className="group relative flex flex-col sm:flex-row rounded-2xl overflow-hidden bg-white dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700/50 hover:border-purple-300 dark:hover:border-purple-600 hover:shadow-xl dark:hover:shadow-purple-900/20 transition-all duration-300">
-
-      {/* ── Avatar ── */}
-      <div className="relative w-full sm:w-36 md:w-44 h-48 shrink-0 bg-linear-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 overflow-hidden">
-        {user?.avatar && typeof user.avatar === 'string' && user.avatar.trim() !== '' ? (
-          /* eslint-disable-next-line @next/next/no-img-element */
-          <img
-            src={user.avatar}
-            alt={displayName}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center py-8 sm:py-0">
-            <div className={`w-16 h-16 rounded-2xl bg-linear-to-br ${cfg.gradient} flex items-center justify-center text-white text-3xl font-black shadow-lg`}>
-              {displayName?.[0]?.toUpperCase() || "C"}
+    <article className="flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-4 transition hover:border-indigo-300 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-indigo-800">
+      <div>
+        {/* Top Identity & Match Score Row */}
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-indigo-200 bg-indigo-50 text-base font-bold text-indigo-700 dark:border-indigo-900/60 dark:bg-indigo-950/60 dark:text-indigo-300 overflow-hidden">
+              {user?.avatar && typeof user.avatar === "string" && user.avatar.trim() !== "" ? (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img src={user.avatar} alt={displayName} className="h-full w-full object-cover" />
+              ) : (
+                displayName.charAt(0).toUpperCase()
+              )}
+            </div>
+            <div className="min-w-0">
+              <span className="inline-block rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+                {badgeLabel}
+              </span>
+              <h3 className="mt-0.5 truncate text-sm font-bold text-slate-900 dark:text-white">
+                {displayName}
+              </h3>
+              {handle && (
+                <p className="truncate text-xs text-slate-500 dark:text-slate-400">@{handle}</p>
+              )}
             </div>
           </div>
-        )}
 
-        {/* Rank + name overlay */}
-        <div className="absolute bottom-0 inset-x-0 bg-linear-to-t from-black/85 via-black/50 to-transparent px-3 pt-6 pb-2.5">
-          <div className={`inline-block px-2 py-0.5 rounded-full bg-linear-to-r ${cfg.gradient} text-white text-[8px] font-black tracking-widest uppercase mb-1 shadow`}>
-            {cfg.label}
+          <div className="shrink-0 text-right">
+            <span className="inline-flex items-center rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1 text-xs font-bold text-indigo-700 dark:border-indigo-900/60 dark:bg-indigo-950/60 dark:text-indigo-300">
+              {compatibilityScore}% Match
+            </span>
+            <p className="mt-1 text-[11px] font-medium text-slate-500 dark:text-slate-400">
+              Rizz: <strong className="text-slate-800 dark:text-slate-200">{rizzDisplay > 0 ? rizzDisplay : "—"}</strong>
+            </p>
           </div>
-          <p className="text-white font-bold text-sm leading-tight truncate">{displayName}</p>
-          <p className="text-white/60 text-[10px] truncate">@{user.username}</p>
+        </div>
+
+        {/* Niche Tags */}
+        <div className="mt-3.5">
+          {allNiches.length > 0 ? (
+            <div className="flex flex-wrap gap-1.5">
+              {allNiches.slice(0, 4).map((n) => (
+                <span
+                  key={n}
+                  className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-slate-50 px-2 py-0.5 text-[11px] font-medium capitalize text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
+                >
+                  <Tag className="h-2.5 w-2.5 text-indigo-500" />
+                  {n}
+                </span>
+              ))}
+            </div>
+          ) : (
+            <p className="text-xs text-slate-400 dark:text-slate-500">No niches listed</p>
+          )}
         </div>
       </div>
 
-      {/* ── Details ── */}
-      <div className="flex flex-col flex-1 p-4 min-w-0 gap-3">
-
-        {/* Match % + Rizz + Connect */}
-        <div className="flex items-center gap-2 flex-wrap">
-          {/* Match */}
-          <div className="text-center shrink-0">
-            <div className="text-xl font-black text-purple-600 dark:text-purple-400 leading-none">
-              {compatibilityScore}%
-            </div>
-            <div className="text-[8px] font-bold tracking-widest uppercase text-gray-400 dark:text-gray-500 mt-0.5">
-              Match
-            </div>
-          </div>
-
-          {/* Rizz */}
-          <div className="px-2.5 py-1 rounded-lg bg-gray-900 dark:bg-black border border-gray-700 text-center min-w-10 shrink-0">
-            <div className="text-base font-black text-orange-400 leading-none">
-              {rizzDisplay > 0 ? rizzDisplay : "–"}
-            </div>
-            <div className="text-[8px] font-bold tracking-widest uppercase text-gray-500 mt-0.5">
-              Rizz
-            </div>
-          </div>
-
-          {/* Connect — moves to new line on very small screens */}
-          <button
-            onClick={() => router.push(`/messages?userId=${user.id}`)}
-            className="ml-auto flex items-center gap-1.5 px-3 py-2 rounded-xl font-bold text-xs text-white bg-linear-to-r from-purple-600 to-violet-600 hover:from-purple-500 hover:to-violet-500 shadow-md shadow-purple-500/20 hover:shadow-purple-500/40 transition-all hover:scale-105 whitespace-nowrap shrink-0"
-          >
-            <MessageCircle className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Connect Now</span>
-            <span className="sm:hidden">Connect</span>
-          </button>
-        </div>
-
-        {/* Niches */}
-        {allNiches.length > 0 ? (
-          <div className="flex flex-wrap gap-1.5">
-            {allNiches.slice(0, 5).map((n) => (
-              <span
-                key={n}
-                className="flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 border border-purple-100 dark:border-purple-800 capitalize"
-              >
-                <Tag className="w-2.5 h-2.5" />
-                {n}
-              </span>
-            ))}
-            {allNiches.length > 5 && (
-              <span className="flex items-center text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-600">
-                +{allNiches.length - 5}
-              </span>
-            )}
-          </div>
-        ) : (
-          <p className="text-xs text-gray-400 dark:text-gray-500 italic">No niches listed</p>
-        )}
-
-        {/* Profile link */}
-        <div className="flex justify-end mt-auto pt-1">
+      {/* Action Footer */}
+      <div className="mt-4 flex items-center justify-between gap-2 border-t border-slate-100 pt-3 dark:border-slate-800">
+        {handle ? (
           <Link
-            href={`/profile/@${user.username?.startsWith("@") ? user.username.slice(1) : user.username}`}
-            className="flex items-center gap-1.5 text-xs font-semibold text-gray-400 dark:text-gray-500 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
+            href={`/profile/@${encodeURIComponent(handle)}`}
+            className="inline-flex items-center gap-1 text-xs font-semibold text-slate-600 transition hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400"
           >
-            <User className="w-3.5 h-3.5" />
+            <User className="h-3.5 w-3.5" />
             View Profile
           </Link>
-        </div>
+        ) : (
+          <span />
+        )}
+        <button
+          type="button"
+          onClick={() => router.push(`/messages?userId=${encodeURIComponent(user.id)}`)}
+          className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-indigo-700"
+        >
+          <MessageCircle className="h-3.5 w-3.5" />
+          Connect Now
+        </button>
       </div>
-    </div>
+    </article>
   );
 };
 
-// ─── Main ─────────────────────────────────────────────────────────────────────
 const Recommendations: React.FC = () => {
   const { recommendations, recommendationsLoading, recommendationsError } = useDashboardData();
-  const typedRecs = recommendations as Recommendation[];
+  const typedRecs = (recommendations as Recommendation[]) || [];
 
   return (
-    <section className="space-y-5" data-section="recommendations">
-      <div className="flex items-center justify-between">
+    <section className="space-y-4" data-section="recommendations">
+      <div className="flex items-center justify-between border-b border-slate-100 pb-3.5 dark:border-slate-800">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-linear-to-br from-purple-500 to-violet-600 rounded-xl shadow-md shadow-purple-200 dark:shadow-purple-900/30">
-            <Sparkles className="w-5 h-5 text-white" />
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-indigo-200 bg-indigo-50 text-indigo-600 dark:border-indigo-900/50 dark:bg-indigo-950/50 dark:text-indigo-400">
+            <Sparkles className="h-4 w-4" />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">AI Recommendations</h2>
-            <p className="text-sm text-gray-500 dark:text-gray-400">Matched just for you</p>
+            <h2 className="text-base font-bold text-slate-900 dark:text-white">
+              AI Recommendations
+            </h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              Explainable creator matches based on niche &amp; engagement alignment
+            </p>
           </div>
         </div>
         <Link
           href="/ai-matches"
-          className="flex items-center gap-1.5 text-xs font-semibold text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 transition-colors"
+          className="inline-flex items-center gap-1 text-xs font-semibold text-indigo-600 hover:text-indigo-700 dark:text-indigo-400"
         >
-          View all <ExternalLink className="w-3.5 h-3.5" />
+          View all <ExternalLink className="h-3.5 w-3.5" />
         </Link>
       </div>
 
       {recommendationsLoading ? (
         <RecommendationSkeleton />
       ) : recommendationsError ? (
-        <div className="p-10 text-center rounded-2xl border-2 border-dashed border-gray-200 dark:border-slate-700">
-          <Zap className="mx-auto w-8 h-8 text-purple-400 mb-3" />
-          <p className="text-sm text-gray-500 dark:text-gray-400">Our AI is calibrating your matches. Check back shortly!</p>
+        <div className="rounded-xl border border-dashed border-slate-200 p-8 text-center dark:border-slate-800">
+          <Zap className="mx-auto mb-2.5 h-7 w-7 text-indigo-400" />
+          <p className="text-xs text-slate-500 dark:text-slate-400">
+            Our matching service is calibrating your recommendations. Check back shortly.
+          </p>
         </div>
       ) : typedRecs.length === 0 ? (
-        <div className="p-10 text-center rounded-2xl border-2 border-dashed border-purple-100 dark:border-purple-900/40">
-          <Sparkles className="mx-auto w-8 h-8 text-purple-300 dark:text-purple-600 mb-3" />
-          <p className="text-sm text-gray-500 dark:text-gray-400">No recommendations yet. Complete your profile to get matched!</p>
-          <Link href="/profile" className="mt-3 inline-block text-xs font-semibold text-purple-600 dark:text-purple-400 underline underline-offset-2">
+        <div className="rounded-xl border border-dashed border-slate-200 p-8 text-center dark:border-slate-800">
+          <Sparkles className="mx-auto mb-2.5 h-7 w-7 text-indigo-400" />
+          <p className="text-xs text-slate-600 dark:text-slate-400">
+            No recommendations yet. Complete your profile to get matched!
+          </p>
+          <Link
+            href="/profile/complete-profile"
+            className="mt-2.5 inline-block text-xs font-semibold text-indigo-600 underline underline-offset-2 dark:text-indigo-400"
+          >
             Complete profile →
           </Link>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="grid gap-4 sm:grid-cols-2">
           {typedRecs.slice(0, 3).map((rec, i) => (
-            <RecommendationCard key={rec.user.id} rec={rec} rank={i} />
+            <RecommendationCard key={rec.user?.id || i} rec={rec} rank={i} />
           ))}
         </div>
       )}

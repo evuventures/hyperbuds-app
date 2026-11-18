@@ -28,6 +28,9 @@ export interface CreateStreamRequest {
   description?: string;
   scheduledAt?: string;
   tags?: string[];
+  chatEnabled?: boolean;
+  recordingEnabled?: boolean;
+  recordingConsent?: boolean;
 }
 
 export interface StreamListResponse {

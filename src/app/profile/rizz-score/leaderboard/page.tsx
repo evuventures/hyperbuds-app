@@ -15,7 +15,18 @@ import {
 } from 'lucide-react';
 import DashboardLayout from '@/components/layout/Dashboard/Dashboard';
 import RizzLeaderboard from '@/components/matching/RizzLeaderboard';
+import apiClient from '@/lib/api/client';
 import type { LeaderboardQuery } from '@/types/matching.types';
+
+interface MatchOfMonthHighlight {
+   matchId: string;
+   compatibilityScore: number;
+   commonNiches?: string[];
+   creators: Array<{
+      username?: string;
+      displayName?: string;
+   }>;
+}
 
 // Available niches for filtering
 const AVAILABLE_NICHES = [
@@ -77,6 +88,25 @@ const LeaderboardPage: React.FC = () => {
    }>({});
 
    const dropdownRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
+   const [matchesOfMonth, setMatchesOfMonth] = useState<MatchOfMonthHighlight[]>([]);
+   const [periodKey, setPeriodKey] = useState<string>('');
+
+   useEffect(() => {
+      let active = true;
+      void apiClient
+         .get('/matching/matches-of-month?limit=3')
+         .then((res) => {
+            if (!active) return;
+            if (Array.isArray(res.data?.matchesOfTheMonth)) {
+               setMatchesOfMonth(res.data.matchesOfTheMonth);
+            }
+            if (res.data?.periodKey) setPeriodKey(res.data.periodKey);
+         })
+         .catch(() => {});
+      return () => {
+         active = false;
+      };
+   }, []);
 
    const handleBack = () => {
       router.back();
@@ -628,6 +658,40 @@ const LeaderboardPage: React.FC = () => {
                            </button>
                         </span>
                      )}
+                  </motion.div>
+               )}
+
+               {/* Matches of the Month */}
+               {matchesOfMonth.length > 0 && (
+                  <motion.div
+                     initial={{ opacity: 0, y: 16 }}
+                     animate={{ opacity: 1, y: 0 }}
+                     className="mb-6 rounded-xl border border-purple-200 dark:border-purple-800 bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-950/30 dark:to-indigo-950/30 p-5"
+                  >
+                     <div className="flex items-center justify-between mb-3">
+                        <h2 className="text-sm font-bold text-purple-900 dark:text-purple-200 flex items-center gap-2">
+                           <Trophy className="w-4 h-4 text-amber-500" />
+                           Matches of the Month {periodKey ? `(${periodKey})` : ''}
+                        </h2>
+                        <span className="text-xs text-purple-700 dark:text-purple-300">
+                           Top verified mutual collaborations
+                        </span>
+                     </div>
+                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        {matchesOfMonth.map((m) => (
+                           <div
+                              key={m.matchId}
+                              className="rounded-lg bg-white/80 dark:bg-gray-900/80 border border-purple-200/70 dark:border-purple-800/50 p-3 text-xs"
+                           >
+                              <div className="font-semibold text-gray-900 dark:text-white">
+                                 @{m.creators?.[0]?.username || 'creatorA'} × @{m.creators?.[1]?.username || 'creatorB'}
+                              </div>
+                              <div className="mt-1 text-purple-600 dark:text-purple-400 font-bold">
+                                 {Math.round(m.compatibilityScore)}% Compatibility
+                              </div>
+                           </div>
+                        ))}
+                     </div>
                   </motion.div>
                )}
 

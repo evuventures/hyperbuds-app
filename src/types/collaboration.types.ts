@@ -14,6 +14,8 @@ export type CollaborationType =
   | "event"
   | "challenge"
   | "series"
+  | "startup_collaboration"
+  | "team"
   | "other";
 
 export type CollaboratorRole = "co-creator" | "featured" | "guest";
@@ -99,6 +101,15 @@ export interface CollaborationCollaborator {
   respondedAt?: string;
 }
 
+export interface CollaborationPinnedAgreement {
+  role?: string;
+  compensationType?: "salary" | "equity" | "hybrid";
+  salary?: number;
+  equity?: number;
+  vesting?: string;
+  status?: "active" | "in_dispute" | "completed" | "cancelled";
+}
+
 export interface Collaboration {
   _id: string;
   id:string;
@@ -108,6 +119,8 @@ export interface Collaboration {
   status: CollaborationStatus;
   creator: UserReference | string;
   collaborators: CollaborationCollaborator[];
+  pinnedAgreement?: CollaborationPinnedAgreement;
+  pitchId?: string | { _id: string; title?: string; startupName?: string };
   details?: CollaborationDetails;
   content?: CollaborationContent;
   deliverables?: CollaborationDeliverable[];

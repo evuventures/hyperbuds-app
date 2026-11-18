@@ -1,6 +1,31 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  distDir: process.env.NEXT_DIST_DIR || '.next.nosync',
+  async redirects() {
+    return [
+      {
+        source: '/signup',
+        destination: '/auth/signup',
+        permanent: false,
+      },
+      {
+        source: '/register',
+        destination: '/auth/register',
+        permanent: false,
+      },
+      {
+        source: '/signin',
+        destination: '/auth/signin',
+        permanent: false,
+      },
+      {
+        source: '/complete-profile',
+        destination: '/profile/complete-profile',
+        permanent: false,
+      },
+    ];
+  },
   images: {
     remotePatterns: [
       {

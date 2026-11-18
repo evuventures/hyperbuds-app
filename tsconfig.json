@@ -37,9 +37,20 @@
     "src/components/profile/ProfileCard.jsx",
     "src/app/profile/page.jsx",
     "src/types/jest-dom.d.ts",
-    ".next/dev/types/**/*.ts"
+    ".next/dev/types/**/*.ts",
+    ".next.nosync/types/**/*.ts",
+    ".next.nosync/dev/types/**/*.ts",
+    ".next-pw.nosync/types/**/*.ts",
+    ".next-pw.nosync/dev/types/**/*.ts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "node_modules/**",
+    "node_modules.nosync",
+    "node_modules.nosync/**",
+    "**/node_modules.nosync/**",
+    ".old_nm.nosync",
+    ".old_nm.nosync/**"
   ]
 }
+

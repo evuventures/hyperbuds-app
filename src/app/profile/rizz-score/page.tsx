@@ -1,17 +1,68 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { ArrowLeft, RefreshCw, Zap, TrendingUp, Users, MessageCircle, Calendar, Star, Trophy } from "lucide-react";
+import { ArrowLeft, RefreshCw, Zap, TrendingUp, Users, MessageCircle, Calendar, Star, Trophy, ShieldCheck } from "lucide-react";
 import DashboardLayout from "@/components/layout/Dashboard/Dashboard";
 import RizzScoreDisplay from "@/components/profile/RizzScoreDisplay";
 import { useRizzScore } from "@/hooks/useRizzScore";
+import apiClient from "@/lib/api/client";
+
+const RIZZ_V2_TIERS = [
+   { name: "Rookie", min: 0, max: 199 },
+   { name: "Rising Star", min: 200, max: 399 },
+   { name: "Connector", min: 400, max: 599 },
+   { name: "Influencer", min: 600, max: 749 },
+   { name: "Elite Creator", min: 750, max: 899 },
+   { name: "HyperLegend", min: 900, max: 1000 },
+];
+
+function getRizzV2Meta(scoreV2: number) {
+   const clamped = Math.max(0, Math.min(1000, Math.round(scoreV2)));
+   const tier = RIZZ_V2_TIERS.find((t) => clamped >= t.min && clamped <= t.max) || RIZZ_V2_TIERS[0];
+   const idx = RIZZ_V2_TIERS.findIndex((t) => t.name === tier.name);
+   const next = RIZZ_V2_TIERS[idx + 1] || null;
+   return {
+      scoreV2: clamped,
+      tier: tier.name,
+      nextTier: next,
+      pointsToNext: next ? Math.max(0, next.min - clamped) : 0,
+   };
+}
+
+interface RizzAppealItem {
+   _id: string;
+   scoreAtAppealV2: number;
+   tierAtAppeal: string;
+   reason: string;
+   status: "open" | "under_review" | "approved" | "rejected";
+   adjustedScoreV2?: number | null;
+   reviewerNotes?: string;
+   createdAt?: string;
+}
 
 const RizzScorePage: React.FC = () => {
    const router = useRouter();
    const { rizzScore, loading, error, recalculate, refetch } = useRizzScore();
    const [isNavigating, setIsNavigating] = useState(false);
+   const [appeals, setAppeals] = useState<RizzAppealItem[]>([]);
+   const [appealReason, setAppealReason] = useState("");
+   const [appealStatusMsg, setAppealStatusMsg] = useState<string | null>(null);
+   const [appealBusy, setAppealBusy] = useState(false);
+
+   const loadAppeals = useCallback(async () => {
+      try {
+         const res = await apiClient.get("/matching/rizz-score/appeals");
+         if (Array.isArray(res.data?.appeals)) setAppeals(res.data.appeals);
+      } catch {
+         // Non-blocking if user has no appeals yet
+      }
+   }, []);
+
+   useEffect(() => {
+      void loadAppeals();
+   }, [loadAppeals]);
 
    const handleBackToProfile = () => {
       setIsNavigating(true);
@@ -296,14 +347,136 @@ const RizzScorePage: React.FC = () => {
                         </div>
                      )}
                      
-                     {/* Enhanced Rizz Score Display */}
-                     <div className="overflow-hidden bg-white rounded-2xl border border-gray-200 shadow-xl dark:bg-gray-900 dark:border-gray-700">
-                        <RizzScoreDisplay
-                           userId={rizzScore.userId}
-                           showDetails={true}
-                           isFullPage={true}
-                        />
-                     </div>
+                      {/* Enhanced Rizz Score Display */}
+                      <div className="overflow-hidden bg-white rounded-2xl border border-gray-200 shadow-xl dark:bg-gray-900 dark:border-gray-700">
+                         <RizzScoreDisplay
+                            userId={rizzScore.userId}
+                            showDetails={true}
+                            isFullPage={true}
+                         />
+                      </div>
+
+                      {/* Rizz 2.0 (0-1000) 6-Tier Ladder & Score Appeals */}
+                      {(() => {
+                         const rawScoreV2 =
+                            (rizzScore as unknown as { scoreV2?: number }).scoreV2 ??
+                            Math.round((rizzScore.currentScore || 0) * 10);
+                         const v2 = getRizzV2Meta(rawScoreV2);
+                         return (
+                            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                               <div className="lg:col-span-7 p-6 bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-lg space-y-4">
+                                  <div className="flex flex-wrap items-center justify-between gap-2">
+                                     <div>
+                                        <p className="text-xs font-semibold uppercase tracking-wider text-purple-600 dark:text-purple-400">
+                                           Rizz Score 2.0 Progression (0–1000)
+                                        </p>
+                                        <div className="mt-1 flex items-baseline gap-2">
+                                           <span className="text-3xl font-bold tabular-nums text-gray-900 dark:text-white">
+                                              {v2.scoreV2}
+                                           </span>
+                                           <span className="text-sm text-gray-500">/ 1000</span>
+                                           <span className="ml-2 rounded-full bg-purple-100 dark:bg-purple-900/40 px-3 py-0.5 text-xs font-semibold text-purple-700 dark:text-purple-300">
+                                              {v2.tier}
+                                           </span>
+                                        </div>
+                                     </div>
+                                     <span className="text-xs text-gray-500 dark:text-gray-400">
+                                        {v2.nextTier
+                                           ? `${v2.pointsToNext} pts to ${v2.nextTier.name}`
+                                           : "Max Tier Reached (HyperLegend)"}
+                                     </span>
+                                  </div>
+
+                                  <div className="h-2.5 w-full overflow-hidden rounded-full bg-gray-100 dark:bg-gray-800">
+                                     <div
+                                        className="h-full rounded-full bg-gradient-to-r from-purple-600 to-fuchsia-500 transition-all duration-500"
+                                        style={{ width: `${Math.round((v2.scoreV2 / 1000) * 100)}%` }}
+                                     />
+                                  </div>
+
+                                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 text-center">
+                                     {RIZZ_V2_TIERS.map((tier) => {
+                                        const isCurrent = tier.name === v2.tier;
+                                        return (
+                                           <div
+                                              key={tier.name}
+                                              className={`rounded-xl border p-2 text-xs ${
+                                                 isCurrent
+                                                    ? "border-purple-500 bg-purple-50 dark:bg-purple-950/40 font-semibold text-purple-800 dark:text-purple-200"
+                                                    : "border-gray-200 dark:border-gray-800 text-gray-600 dark:text-gray-400"
+                                              }`}
+                                           >
+                                              <div>{tier.name}</div>
+                                              <div className="text-[10px] tabular-nums opacity-75">
+                                                 {tier.min}–{tier.max}
+                                              </div>
+                                           </div>
+                                        );
+                                     })}
+                                  </div>
+                               </div>
+
+                               <div className="lg:col-span-5 p-6 bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-lg space-y-3">
+                                  <div className="flex items-center gap-2">
+                                     <ShieldCheck className="h-4 w-4 text-purple-600" />
+                                     <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
+                                        Score Appeal & Audit Review
+                                     </h3>
+                                  </div>
+                                  <form
+                                     onSubmit={async (e) => {
+                                        e.preventDefault();
+                                        setAppealBusy(true);
+                                        setAppealStatusMsg(null);
+                                        try {
+                                           await apiClient.post("/matching/rizz-score/appeals", {
+                                              reason: appealReason.trim(),
+                                           });
+                                           setAppealReason("");
+                                           setAppealStatusMsg("Rizz score appeal submitted for review.");
+                                           await loadAppeals();
+                                        } catch (err) {
+                                           setAppealStatusMsg(
+                                              err instanceof Error ? err.message : "Unable to submit appeal."
+                                           );
+                                        } finally {
+                                           setAppealBusy(false);
+                                        }
+                                     }}
+                                     className="space-y-2 text-xs"
+                                  >
+                                     <textarea
+                                        rows={2}
+                                        value={appealReason}
+                                        onChange={(e) => setAppealReason(e.target.value)}
+                                        placeholder="Explain any missing collaboration credits or engagement sync discrepancy (min 10 chars)..."
+                                        className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-950 p-2.5 text-gray-900 dark:text-white"
+                                     />
+                                     <button
+                                        type="submit"
+                                        disabled={appealBusy || appealReason.trim().length < 10}
+                                        className="w-full rounded-lg bg-purple-600 px-3 py-2 font-semibold text-white hover:bg-purple-700 disabled:opacity-50"
+                                     >
+                                        {appealBusy ? "Submitting..." : "Submit Score Appeal"}
+                                     </button>
+                                  </form>
+                                  {appealStatusMsg && (
+                                     <p className="text-xs text-purple-700 dark:text-purple-300">{appealStatusMsg}</p>
+                                  )}
+                                  {appeals.length > 0 && (
+                                     <div className="space-y-1.5 pt-2 border-t border-gray-200 dark:border-gray-800 max-h-28 overflow-y-auto text-xs">
+                                        {appeals.map((ap) => (
+                                           <div key={ap._id} className="flex justify-between text-gray-600 dark:text-gray-300">
+                                              <span className="truncate pr-2">{ap.reason}</span>
+                                              <span className="font-semibold uppercase shrink-0">{ap.status}</span>
+                                           </div>
+                                        ))}
+                                     </div>
+                                  )}
+                               </div>
+                            </div>
+                         );
+                      })()}
 
                      {/* Additional Analytics Section */}
                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-4 lg:gap-6">

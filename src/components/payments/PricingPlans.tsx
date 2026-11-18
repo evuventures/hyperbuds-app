@@ -84,7 +84,7 @@ const PricingPlanCard = memo(function PricingPlanCard({ plan, isSelected, isLoad
          <div className="mt-3">
             <div className="flex items-baseline">
                <span className="text-3xl font-bold text-gray-900 dark:text-white">
-                  ${(plan.price / 100).toFixed(0)}
+                  ${(plan.price / 100).toFixed(2)}
                </span>
                <span className="ml-1 text-sm text-gray-600 dark:text-gray-400">
                   /{plan.interval}

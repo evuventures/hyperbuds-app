@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import React, { useState } from "react";
-import { motion } from "framer-motion";
-import { MapPin, MessageCircle, UserRound } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import type { MatchSuggestion } from "@/types/matching.types";
+import React, { useState } from 'react';
+import { motion } from 'framer-motion';
+import { Check, MapPin, MessageCircle, Sparkles, UserRound } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import type { MatchSuggestion } from '@/types/matching.types';
 
 interface MatchCardProps {
   match: MatchSuggestion;
@@ -13,13 +13,16 @@ interface MatchCardProps {
   onViewProfile?: (match: MatchSuggestion) => void;
 }
 
-const BADGE_LABELS = ["ULTIMATE MATCH", "TOP COMPATIBILITY"] as const;
-
-const getProfileAge = (profile?: MatchSuggestion["targetUser"]): number | undefined => {
+const getProfileAge = (profile?: MatchSuggestion['targetUser']): number | undefined => {
   const rawAge = (profile as { age?: unknown } | undefined)?.age;
-  return typeof rawAge === "number" && Number.isFinite(rawAge) && rawAge > 0
+  return typeof rawAge === 'number' && Number.isFinite(rawAge) && rawAge > 0
     ? Math.floor(rawAge)
     : undefined;
+};
+
+const compactNumber = (n?: number) => {
+  if (typeof n !== 'number' || !Number.isFinite(n) || n <= 0) return null;
+  return new Intl.NumberFormat(undefined, { notation: 'compact', maximumFractionDigits: 1 }).format(n);
 };
 
 const MatchCard: React.FC<MatchCardProps> = ({
@@ -35,111 +38,184 @@ const MatchCard: React.FC<MatchCardProps> = ({
     return null;
   }
 
+  const flipOrder = rank % 2 === 1;
   const locationLabel = [profile.location?.city, profile.location?.state, profile.location?.country]
     .filter(Boolean)
-    .join(", ");
-
+    .join(', ');
   const age = getProfileAge(profile);
-  const badgeLabel = BADGE_LABELS[rank];
-  const bioText = profile.bio?.trim() || "Bio not available yet.";
+  const bioText =
+    profile.bio?.trim() ||
+    'Creator open to high-impact collabs, co-streaming, and multi-channel storytelling.';
+  const niches = Array.isArray(profile.niche) ? profile.niche : [];
+  const followers = compactNumber(profile.stats?.totalFollowers);
+  const engagement =
+    typeof profile.stats?.avgEngagement === 'number' && profile.stats.avgEngagement > 0
+      ? `${profile.stats.avgEngagement.toFixed(1)}% avg engagement`
+      : null;
+
+  const strengthBullets = [
+    Number.isFinite(match.compatibilityScore)
+      ? `${match.compatibilityScore}% AI compatibility score`
+      : null,
+    typeof profile.rizzScore === 'number' && profile.rizzScore > 0
+      ? `Rizz Score ${profile.rizzScore} creator rating`
+      : null,
+    ...(Array.isArray(match.metadata?.features) ? match.metadata.features.slice(0, 2) : []),
+    locationLabel ? `Based in ${locationLabel}` : null,
+  ].filter(Boolean) as string[];
+
+  const nicheSignals = [
+    ...niches.slice(0, 4).map((n) => `${n} creator focus`),
+    followers ? `${followers} combined followers` : null,
+    engagement,
+  ].filter(Boolean) as string[];
 
   return (
     <motion.article
-      whileHover={{ y: -4 }}
-      transition={{ duration: 0.25, ease: "easeOut" }}
+      initial={{ opacity: 0, y: 14 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.25, ease: 'easeOut' }}
       className="w-full"
     >
-      <div className="overflow-hidden rounded-[30px] border border-fuchsia-200/60 bg-white/90 shadow-sm dark:border-white/10 dark:bg-[#101827]/95 dark:shadow-none">
-        <div className="grid min-h-105 lg:grid-cols-[320px_minmax(0,1fr)]">
-          <div className="relative min-h-80 overflow-hidden bg-linear-to-br from-[#5d304c] via-[#cb9c73] to-[#1c1632]">
-            {profile.avatar && !hasImageError ? (
-              // We use a direct img here because some remote avatar URLs fail through Next image optimization.
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={profile.avatar}
-                alt={profile.displayName}
-                onError={() => setHasImageError(true)}
-                className="absolute inset-0 h-full w-full object-cover"
-              />
-            ) : (
-              <div className="flex h-full w-full items-center justify-center bg-linear-to-br from-fuchsia-600/35 to-pink-500/25">
-                <span className="text-7xl font-black text-white/90">
-                  {profile.displayName.charAt(0).toUpperCase()}
-                </span>
+      <div className="grid grid-cols-1 items-center lg:grid-cols-12">
+        {/* Neon violet/cobalt studio portrait block */}
+        <div
+          className={`relative z-10 aspect-[4/4.4] min-h-[280px] overflow-hidden rounded-[24px] bg-linear-to-b from-[#7c3aed] via-[#4338ca] to-[#1d4ed8] shadow-[0_24px_60px_-20px_rgba(37,99,235,0.55)] ring-1 ring-white/15 lg:col-span-5 ${
+            flipOrder ? 'lg:order-2' : 'lg:order-1'
+          }`}
+        >
+          {profile.avatar && !hasImageError ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={profile.avatar}
+              alt={profile.displayName}
+              onError={() => setHasImageError(true)}
+              className="h-full w-full object-cover"
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center bg-linear-to-br from-[#6d28d9] via-[#4338ca] to-[#1e3a8a]">
+              <span className="text-7xl font-black text-white/90">
+                {(profile.displayName || profile.username || '?').charAt(0).toUpperCase()}
+              </span>
+            </div>
+          )}
+
+          {/* Moody violet/blue portrait sheen */}
+          <div className="pointer-events-none absolute inset-0 bg-linear-to-tr from-[#2563eb]/45 via-transparent to-[#7c3aed]/35" />
+          <div className="pointer-events-none absolute inset-0 bg-linear-to-t from-[#0b0d14]/90 via-transparent to-transparent" />
+
+          {/* Bottom floating frosted nameplate (reference Sofia/Michael pill) */}
+          <div className="absolute inset-x-3 bottom-3 rounded-2xl border border-white/15 bg-[#0f111a]/75 px-4 py-3 backdrop-blur-md">
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0">
+                <h3 className="truncate text-lg font-bold tracking-tight text-white sm:text-xl">
+                  {age ? `${profile.displayName}, ${age}` : profile.displayName}
+                </h3>
+                <p className="mt-0.5 truncate text-xs text-slate-300">
+                  {niches[0] || `@${profile.username || 'creator'}`}
+                </p>
               </div>
-            )}
-
-            <div className="absolute inset-0 bg-linear-to-t from-[#0d111f]/95 via-[#0d111f]/25 to-transparent" />
-
-            {badgeLabel && (
-              <div className="absolute left-5 top-5 rounded-full bg-linear-to-r from-fuchsia-500 to-pink-500 px-4 py-1.5 text-[11px] font-black tracking-[0.28em] text-white shadow-[0_14px_32px_-12px_rgba(217,70,239,0.9)]">
-                {badgeLabel}
-              </div>
-            )}
-
-            <div className="absolute inset-x-0 bottom-0 p-5 sm:p-6">
-              <h3 className="text-3xl font-black tracking-tight text-white sm:text-4xl">
-                {age ? `${profile.displayName}, ${age}` : profile.displayName}
-              </h3>
-
-              {locationLabel && (
-                <div className="mt-2 flex items-center gap-2 text-sm font-medium text-slate-200">
-                  <MapPin className="h-4 w-4 shrink-0 text-fuchsia-300" />
-                  <span className="truncate">{locationLabel}</span>
-                </div>
-              )}
+              <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-indigo-500/30 px-2.5 py-1 text-[11px] font-semibold text-indigo-100 ring-1 ring-indigo-300/30">
+                <Sparkles className="h-3 w-3 text-indigo-300" />
+                {Number.isFinite(match.compatibilityScore) ? `${match.compatibilityScore}%` : 'Match'}
+              </span>
             </div>
           </div>
+        </div>
 
-          <div className="flex flex-col justify-between gap-6 p-6 sm:p-7">
-            <div className="flex flex-wrap items-start justify-between gap-4">
-              <div className="flex flex-wrap gap-3">
-                <div className="min-w-29.5 rounded-2xl border border-fuchsia-300/40 bg-fuchsia-50/80 px-5 py-4 dark:border-fuchsia-500/15 dark:bg-[#171127]">
-                  <div className="text-4xl font-black text-transparent bg-linear-to-r from-fuchsia-400 to-pink-500 bg-clip-text">
-                    {match.compatibilityScore}%
-                  </div>
-                  <div className="mt-1 text-xs font-semibold tracking-[0.28em] text-slate-500 dark:text-slate-400">
-                    MATCH
-                  </div>
-                </div>
+        {/* Attached dark frosted slate persona details panel */}
+        <div
+          className={`relative rounded-b-[22px] border border-white/10 bg-[#32343e]/55 p-6 backdrop-blur-xl shadow-[0_24px_56px_-24px_rgba(0,0,0,0.8)] lg:col-span-7 lg:rounded-[22px] lg:py-7 ${
+            flipOrder ? 'lg:order-1 lg:-mr-5 lg:pr-10 lg:pl-7' : 'lg:order-2 lg:-ml-5 lg:pl-10 lg:pr-7'
+          }`}
+        >
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <span className="text-xs font-medium tracking-wide text-indigo-200/80">
+              @{profile.username || 'creator'}
+            </span>
+            {locationLabel && (
+              <span className="inline-flex items-center gap-1 text-xs text-slate-300/80">
+                <MapPin className="h-3 w-3 text-indigo-400" />
+                {locationLabel}
+              </span>
+            )}
+          </div>
 
-                <div className="min-w-25.5 rounded-2xl border border-fuchsia-300/35 bg-fuchsia-50/70 px-5 py-4 dark:border-fuchsia-500/10 dark:bg-[#18132a]">
-                  <div className="text-3xl font-black text-slate-900 dark:text-white">
-                    {profile.rizzScore ?? "—"}
-                  </div>
-                  <div className="mt-1 text-xs font-semibold tracking-[0.28em] text-fuchsia-300">
-                    RIZZ
-                  </div>
-                </div>
-              </div>
+          <p className="mt-2.5 break-words text-sm leading-relaxed text-slate-200/90">
+            {bioText}
+          </p>
 
-              <div className="flex flex-wrap gap-3">
-                <Button
-                  type="button"
-                  onClick={() => onMessage?.(match)}
-                  className="h-12 cursor-pointer rounded-full border border-fuchsia-300/60 bg-white px-5 text-sm font-semibold text-fuchsia-700 hover:bg-fuchsia-50 dark:border-fuchsia-400/25 dark:bg-white/5 dark:text-white dark:hover:bg-white/10"
+          {niches.length > 0 && (
+            <div className="mt-3 flex flex-wrap gap-1.5" aria-label="Creator niches">
+              {niches.map((niche) => (
+                <span
+                  key={niche}
+                  className="rounded-full border border-indigo-400/25 bg-indigo-500/15 px-2.5 py-0.5 text-[11px] font-medium text-indigo-200"
                 >
-                  <MessageCircle className="mr-2 h-4 w-4" />
-                  Message
-                </Button>
+                  {niche}
+                </span>
+              ))}
+            </div>
+          )}
 
-                <Button
-                  type="button"
-                  onClick={() => onViewProfile?.(match)}
-                  className="h-12 cursor-pointer rounded-full bg-linear-to-r from-fuchsia-500 to-pink-500 px-5 text-sm font-semibold text-white shadow-[0_14px_32px_-14px_rgba(217,70,239,0.9)] hover:from-fuchsia-400 hover:to-pink-500"
-                >
-                  <UserRound className="mr-2 h-4 w-4" />
-                  View Profile
-                </Button>
-              </div>
+          {/* Persona Goals / Match Signals bullets */}
+          <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+              <h4 className="text-xs font-bold uppercase tracking-wider text-white">
+                Match Highlights:
+              </h4>
+              <ul className="mt-2.5 space-y-1.5">
+                {strengthBullets.slice(0, 4).map((item) => (
+                  <li key={item} className="flex items-start gap-2 text-xs text-slate-300">
+                    <span className="mt-0.5 flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-full bg-indigo-500/30 text-indigo-300 ring-1 ring-indigo-400/35">
+                      <Check className="h-2.5 w-2.5" />
+                    </span>
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
 
-            <div className="space-y-3">
-              <p className="text-xs font-semibold uppercase tracking-[0.35em] text-slate-500 dark:text-slate-500">
-                @{profile.username || "user"}
-              </p>
-              <p className="max-w-3xl text-base leading-8 text-slate-700 dark:text-slate-300">{bioText}</p>
-            </div>
+            {nicheSignals.length > 0 && (
+              <div>
+                <h4 className="text-xs font-bold uppercase tracking-wider text-white">
+                  Creator Focus:
+                </h4>
+                <ul className="mt-2.5 space-y-1.5">
+                  {nicheSignals.slice(0, 4).map((item) => (
+                    <li key={item} className="flex items-start gap-2 text-xs text-slate-300">
+                      <span className="mt-0.5 flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-full bg-purple-500/30 text-purple-200 ring-1 ring-purple-400/35">
+                        <Check className="h-2.5 w-2.5" />
+                      </span>
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+
+          {/* Sleek Actions */}
+          <div className="mt-6 flex flex-wrap items-center gap-2.5 border-t border-white/10 pt-4">
+            <Button
+              type="button"
+              disabled={!onMessage}
+              onClick={() => onMessage?.(match)}
+              className="h-10 cursor-pointer rounded-full border border-white/15 bg-white/[0.06] px-4 text-xs font-semibold text-white transition hover:bg-white/[0.14]"
+            >
+              <MessageCircle className="mr-1.5 h-3.5 w-3.5" />
+              Message
+            </Button>
+
+            <Button
+              type="button"
+              disabled={!onViewProfile}
+              onClick={() => onViewProfile?.(match)}
+              className="h-10 cursor-pointer rounded-full bg-linear-to-r from-[#4f46e5] to-[#7c3aed] px-5 text-xs font-semibold text-white shadow-lg shadow-indigo-600/30 transition hover:opacity-95"
+            >
+              <UserRound className="mr-1.5 h-3.5 w-3.5" />
+              View Profile
+            </Button>
           </div>
         </div>
       </div>

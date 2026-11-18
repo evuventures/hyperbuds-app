@@ -14,6 +14,7 @@ interface User {
   displayName?: string
   email?: string
   avatar?: string
+  role?: string
 }
 
 export function useAuth() {

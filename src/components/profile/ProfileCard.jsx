@@ -1,152 +1,141 @@
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { PlatformStats } from "@/components/collaboration/PlatformStats";
 import { useMultiplePlatformData, useCombinedPlatformMetrics } from "@/hooks/features/usePlatformData";
 import { useMatchSuggestions } from "@/hooks/features/useMatching";
-import {User, Mail, Pencil, Users, TrendingUp, Star, Target, Activity, Share2, Heart, MessageCircle,
-Copy, Check, ExternalLink, Verified, Sparkles, UserCheck, PartyPopper, Info, Database,} from "lucide-react";
+import {
+  Pencil,
+  Users,
+  TrendingUp,
+  Star,
+  Target,
+  Activity,
+  Share2,
+  Heart,
+  MessageCircle,
+  Copy,
+  Check,
+  ExternalLink,
+  Verified,
+  Sparkles,
+  UserCheck,
+  PartyPopper,
+  Info,
+  Database,
+  Briefcase,
+  Clock,
+  Code2,
+  Globe,
+  Building2,
+  LayoutGrid,
+} from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 
-// Enhanced Loading skeleton component
 const LoadingSkeleton = () => (
-  <div className="bg-gray-50 transition-all dark:bg-gray-900">
-    <div className="p-8 bg-white rounded-3xl border border-gray-200 shadow-lg backdrop-blur-sm transition-all dark:bg-gray-800/50 dark:border-gray-700/50">
-      <div className="flex justify-between items-start mb-8">
-        <div className="flex gap-6 items-center">
-          <div className="w-32 h-32 bg-gray-300 rounded-3xl animate-pulse dark:bg-gray-700"></div>
-          <div className="space-y-4">
-            <div className="w-72 h-12 bg-gray-300 rounded-lg animate-pulse dark:bg-gray-700"></div>
-            <div className="w-48 h-6 bg-gray-300 rounded animate-pulse dark:bg-gray-700"></div>
-            <div className="w-96 h-5 bg-gray-300 rounded animate-pulse dark:bg-gray-700"></div>
-          </div>
+  <div className="space-y-5">
+    <div className="overflow-hidden bg-white rounded-2xl border border-slate-200 shadow-xs dark:bg-slate-900 dark:border-slate-800">
+      <div className="h-28 bg-slate-200 animate-pulse dark:bg-slate-800" />
+      <div className="px-6 pb-6 -mt-12 flex gap-6 items-end">
+        <div className="w-24 h-24 bg-slate-300 rounded-2xl border-4 border-white animate-pulse dark:bg-slate-700 dark:border-slate-900" />
+        <div className="space-y-2.5 flex-1 pt-14">
+          <div className="w-56 h-7 bg-slate-200 rounded-lg animate-pulse dark:bg-slate-800" />
+          <div className="w-36 h-4 bg-slate-200 rounded animate-pulse dark:bg-slate-800" />
         </div>
       </div>
     </div>
   </div>
 );
 
-// Social platform display info
 const PLATFORM_INFO = {
-  tiktok: { name: "TikTok", color: "from-black to-gray-800", icon: "🎵" },
-  instagram: { name: "Instagram", color: "from-pink-500 to-purple-600", icon: "📷" },
-  youtube: { name: "YouTube", color: "from-red-500 to-red-700", icon: "📺" },
-  twitch: { name: "Twitch", color: "from-purple-500 to-purple-700", icon: "🎮" },
-  twitter: { name: "Twitter", color: "from-blue-400 to-blue-600", icon: "🐦" },
+  tiktok: { name: "TikTok", icon: "🎵", handlePrefix: "@" },
+  instagram: { name: "Instagram", icon: "📷", handlePrefix: "@" },
+  youtube: { name: "YouTube", icon: "📺", handlePrefix: "@" },
+  twitch: { name: "Twitch", icon: "🎮", handlePrefix: "" },
+  twitter: { name: "X / Twitter", icon: "🐦", handlePrefix: "@" },
+  linkedin: { name: "LinkedIn", icon: "💼", handlePrefix: "in/" },
 };
 
-// Enhanced User Profile Header Component
+const AVAILABILITY_LABELS = {
+  immediately: "Available immediately",
+  within_2_weeks: "Available within 2 weeks",
+  within_1_month: "Available within 1 month",
+  in_2_3_months: "Available in 2–3 months",
+};
+
+const OFFER_PREFERENCE_LABELS = {
+  salary: "Salary preferred",
+  equity: "Equity preferred",
+  hybrid: "Hybrid (Salary + Equity)",
+};
+
 export default function UserProfileHeader({
   userData,
   isLoading = false,
   isOwnProfile = false,
   onEditProfile,
-  onConnect,
+  onConnect = /** @type {((id: string) => void) | undefined} */ (undefined),
   onMessage,
 }) {
   const router = useRouter();
   const [copied, setCopied] = useState(false);
-  const [isConnected, setIsConnected] = useState(false);
+  const [failedAvatar, setFailedAvatar] = useState(null);
   const [showFullBio, setShowFullBio] = useState(false);
-
-  // Platform data fetching for stats
-  const [platformCredentials, setPlatformCredentials] = useState({});
   const [platforms, setPlatforms] = useState([]);
 
-  // Extract platform credentials from social links
   useEffect(() => {
     if (userData?.profile?.socialLinks) {
       const socialLinks = userData.profile.socialLinks;
-      const creds = {};
       const platformList = [];
 
-      // Extract TikTok username from URL
       if (socialLinks.tiktok) {
         const match = socialLinks.tiktok.match(/tiktok\.com\/@?([^/?]+)/);
-        if (match) {
-          creds.tiktok = match[1];
-          platformList.push({ type: 'tiktok', username: match[1] });
-        }
+        if (match) platformList.push({ type: "tiktok", username: match[1] });
       }
-
-      // Extract Twitter username from URL
       if (socialLinks.twitter) {
         const match = socialLinks.twitter.match(/(?:twitter|x)\.com\/([^/?]+)/);
-        if (match) {
-          creds.twitter = match[1];
-          platformList.push({ type: 'twitter', username: match[1] });
-        }
+        if (match) platformList.push({ type: "twitter", username: match[1] });
       }
-
-      // Extract Twitch username from URL
       if (socialLinks.twitch) {
         const match = socialLinks.twitch.match(/twitch\.tv\/([^/?]+)/);
-        if (match) {
-          creds.twitch = match[1];
-          platformList.push({ type: 'twitch', username: match[1] });
-        }
+        if (match) platformList.push({ type: "twitch", username: match[1] });
       }
-
-      // Extract Instagram username from URL
       if (socialLinks.instagram) {
         const match = socialLinks.instagram.match(/instagram\.com\/([^/?]+)/);
-        if (match) {
-          creds.instagram = match[1];
-          platformList.push({ type: 'instagram', username: match[1] });
-        }
+        if (match) platformList.push({ type: "instagram", username: match[1] });
       }
-
-      // Extract YouTube username from URL
       if (socialLinks.youtube) {
-        const match = socialLinks.youtube.match(/(?:youtube\.com\/@|youtube\.com\/c\/)([^/?]+)/) ||
+        const match =
+          socialLinks.youtube.match(/(?:youtube\.com\/@|youtube\.com\/c\/)([^/?]+)/) ||
           socialLinks.youtube.match(/youtube\.com\/user\/([^/?]+)/);
-        if (match) {
-          creds.youtube = match[1];
-          platformList.push({ type: 'youtube', username: match[1] });
-        }
+        if (match) platformList.push({ type: "youtube", username: match[1] });
       }
 
-      setPlatformCredentials(creds);
       setPlatforms(platformList);
     }
   }, [userData?.profile?.socialLinks]);
 
-  // Fetch platform data only if we have platforms
-  const { data: platformData, loading: platformLoading } = useMultiplePlatformData(platforms, { enabled: platforms.length > 0 });
+  const { data: platformData, loading: platformLoading } = useMultiplePlatformData(platforms, {
+    enabled: platforms.length > 0,
+  });
   const combinedMetrics = useCombinedPlatformMetrics(platformData);
-
-  // Fetch suggested matches to calculate matching Rizz score (only for own profile)
   const { data: matchesData } = useMatchSuggestions({ limit: 10, enabled: isOwnProfile });
 
-  // Calculate average matching Rizz score from suggested matches
   const matchingRizzScore = useMemo(() => {
-    if (!isOwnProfile) {
-      return undefined;
-    }
-
-    // Check if matches data is available
+    if (!isOwnProfile) return undefined;
     const matches = matchesData?.matches || [];
+    if (matches.length === 0) return undefined;
 
-    if (matches.length === 0) {
-      // If no matches, return undefined to show "—"
-      return undefined;
-    }
-
-    // Extract compatibility scores from matches
     const scores = matches
       .map((match) => {
-        // Try different possible field names for compatibility score
-        if (match.compatibilityScore) {
-          return match.compatibilityScore;
-        }
+        if (match.compatibilityScore) return match.compatibilityScore;
         if (match.scoreBreakdown?.rizzScoreCompatibility) {
           return match.scoreBreakdown.rizzScoreCompatibility;
         }
         if (match.scoreBreakdown) {
           const values = Object.values(match.scoreBreakdown);
           if (values.length > 0) {
-            const sum = values.reduce((acc, val) => acc + (typeof val === 'number' ? val : 0), 0);
+            const sum = values.reduce((acc, val) => acc + (typeof val === "number" ? val : 0), 0);
             return sum / values.length;
           }
         }
@@ -154,11 +143,7 @@ export default function UserProfileHeader({
       })
       .filter((score) => score > 0);
 
-    if (scores.length === 0) {
-      return undefined;
-    }
-
-    // Calculate average and round to nearest integer
+    if (scores.length === 0) return undefined;
     const average = scores.reduce((sum, score) => sum + score, 0) / scores.length;
     return Math.round(average);
   }, [isOwnProfile, matchesData]);
@@ -167,33 +152,36 @@ export default function UserProfileHeader({
     router.push("/profile/rizz-score");
   };
 
-
-  if (isLoading || !userData || !userData.profile) {
+  if (isLoading || !userData || (!userData.profile && !userData.username)) {
     return <LoadingSkeleton />;
   }
 
   const user = userData.profile || userData;
 
-  // Only count social links that actually have a value (ignores "" / null entries)
   const filledSocialLinks = Object.entries(user.socialLinks || {}).filter(
     ([, url]) => typeof url === "string" && url.trim() !== ""
   );
   const hasSocialLinks = filledSocialLinks.length > 0;
 
-  const formatLocation = (location) => {
-    if (!location) return "Location not provided";
-    return `${location.city}, ${location.state}, ${location.country}`;
+  const formatLocation = (location, locationName) => {
+    if (typeof locationName === "string" && locationName.trim()) {
+      return locationName.trim();
+    }
+    if (!location) return "Anywhere";
+    return [location.city, location.state, location.country].filter(Boolean).join(", ") || "Anywhere";
   };
 
-
-
   const formatShortDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
+    const date = new Date(dateString);
+    if (!dateString || !Number.isFinite(date.getTime())) return null;
+    return date.toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",
       year: "numeric",
     });
   };
+
+  const joinedDate = formatShortDate(user.createdAt);
 
   const copyProfileUrl = async () => {
     try {
@@ -208,498 +196,572 @@ export default function UserProfileHeader({
     }
   };
 
-  const handleConnect = () => {
-    setIsConnected(!isConnected);
-    onConnect?.(user.id);
-  };
+  const skills = Array.isArray(user.skills) ? user.skills.filter(Boolean) : [];
+  const experience = Array.isArray(user.experience)
+    ? user.experience.filter((item) => item && (item.title || item.company || item.duration))
+    : [];
+  const portfolioEntries = Object.entries(user.portfolioLinks || {}).filter(
+    ([, url]) => typeof url === "string" && url.trim() !== ""
+  );
+  const hasProfessionalData =
+    Boolean(user.primaryRole) ||
+    Boolean(user.availability) ||
+    Boolean(user.offerPreference) ||
+    skills.length > 0 ||
+    experience.length > 0 ||
+    portfolioEntries.length > 0;
+
+  const followerDisplay = platformLoading
+    ? "..."
+    : combinedMetrics.totalFollowers > 0
+    ? combinedMetrics.totalFollowers.toLocaleString()
+    : user.stats?.totalFollowers?.toLocaleString() ?? "—";
 
   return (
-    <div className="space-y-6">
-      {/* Enhanced Header Profile Card */}
-
-      <div className="overflow-hidden relative bg-linear-to-br from-white to-white rounded-3xl border shadow-xl backdrop-blur-sm via-gray-50/50 dark:from-gray-800 dark:via-gray-800/80 dark:to-gray-900 border-gray-200/60 dark:border-gray-700/60">
-        {/* Decorative Background Pattern */}
-        <div className="absolute inset-0 opacity-5 dark:opacity-10">
-          <div className="absolute -top-24 -right-24 w-96 h-96 bg-linear-to-br from-blue-500 to-purple-500 rounded-full blur-3xl"></div>
-          <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-linear-to-tr from-pink-500 to-blue-500 rounded-full blur-3xl"></div>
+    <div className="space-y-5">
+      {/* LinkedIn Cover Banner + Instagram Identity Header */}
+      <section className="overflow-hidden bg-white rounded-2xl border border-slate-200 shadow-xs dark:bg-slate-900 dark:border-slate-800">
+        {/* Architectural Cover Banner (LinkedIn Header Pattern) */}
+        <div className="relative h-28 sm:h-36 bg-slate-900 dark:bg-slate-950 overflow-hidden border-b border-slate-200 dark:border-slate-800">
+          <div
+            className="absolute inset-0 opacity-90"
+            style={{
+              backgroundImage:
+                "radial-gradient(circle at 18% 25%, rgba(168, 85, 247, 0.38), transparent 45%), radial-gradient(circle at 82% 70%, rgba(99, 102, 241, 0.42), transparent 50%), linear-gradient(135deg, #0f172a 0%, #1e1b4b 55%, #0f172a 100%)",
+            }}
+          />
+          <div
+            className="absolute inset-0 opacity-15"
+            style={{
+              backgroundImage:
+                "linear-gradient(to right, #ffffff 1px, transparent 1px), linear-gradient(to bottom, #ffffff 1px, transparent 1px)",
+              backgroundSize: "28px 28px",
+            }}
+          />
+          <div className="relative h-full px-5 sm:px-7 py-3.5 flex justify-between items-start">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-semibold tracking-wide uppercase rounded-md bg-white/10 text-white/90 backdrop-blur-xs border border-white/15">
+              <LayoutGrid size={12} className="text-purple-300" />
+              Creator &amp; Talent Identity
+            </span>
+            <div className="flex flex-wrap gap-2 items-center">
+              {user.availability && (
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full bg-emerald-500/20 text-emerald-200 border border-emerald-400/30 backdrop-blur-xs">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                  {AVAILABILITY_LABELS[user.availability] || user.availability}
+                </span>
+              )}
+            </div>
+          </div>
         </div>
 
-        <div className="relative p-4 sm:p-6 md:p-8">
-          {/* Quick Actions Menu - Mobile First */}
-          <div className="flex gap-2 justify-end items-center mb-8 pb-4 border-b border-gray-200 dark:border-gray-700 md:hidden">
-            <button
-              onClick={copyProfileUrl}
-              className="p-3 text-gray-600 rounded-xl border shadow-md transition-all cursor-pointer hover:scale-105 bg-gray-100/80 dark:bg-gray-700/60 hover:bg-gray-200 dark:hover:bg-gray-600/80 dark:text-gray-300 border-gray-200/50 dark:border-gray-600/50 group"
-              title="Copy profile URL"
-            >
-              {copied ? (
-                <Check size={18} className="text-green-500" />
-              ) : (
-                <Copy size={18} />
-              )}
-            </button>
-
-            {/* Share button - removed for now
-            <button className="p-3 text-gray-600 rounded-xl border shadow-md transition-all cursor-pointer hover:scale-105 bg-gray-100/80 dark:bg-gray-700/60 hover:bg-gray-200 dark:hover:bg-gray-600/80 dark:text-gray-300 border-gray-200/50 dark:border-gray-600/50">
-              <Share2 size={18} />
-            </button>
-            */}
-
-            {isOwnProfile && (
-              <Link
-                href="/profile/edit"
-                className="p-3 text-gray-600 rounded-xl border shadow-md transition-all cursor-pointer hover:scale-105 bg-gray-100/80 dark:bg-gray-700/60 hover:bg-gray-200 dark:hover:bg-gray-600/80 dark:text-gray-300 border-gray-200/50 dark:border-gray-600/50"
-                title="Edit Profile"
-              >
-                <Pencil size={18} />
-              </Link>
-            )}
-          </div>
-
-          <div className="flex flex-col justify-between items-start mb-8 mt-4 md:mt-0 md:flex-row">
-
-            <div className="flex flex-row gap-4 sm:gap-6 md:gap-8 items-start w-full md:items-center md:w-auto">
-
-              {/* Enhanced Avatar*/}
+        {/* Overlapping Avatar + Action Row */}
+        <div className="px-5 sm:px-7 pb-6">
+          <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-end -mt-12 sm:-mt-14 mb-4 relative z-10">
+            <div className="flex items-end gap-4">
               <div className="relative shrink-0">
-                {user.avatar ? (
-                  <div className="relative overflow-hidden rounded-3xl ring-4 ring-white ring-offset-4 ring-offset-gray-50 shadow-2xl transition-all w-28 h-28 sm:w-32 sm:h-32 md:w-32 md:h-32 dark:ring-gray-800 dark:ring-offset-gray-900">
+                {user.avatar && failedAvatar !== user.avatar ? (
+                  <div className="relative overflow-hidden w-24 h-24 sm:w-28 sm:h-28 rounded-2xl border-4 border-white dark:border-slate-900 bg-slate-100 dark:bg-slate-800 shadow-sm">
                     <Image
                       src={user.avatar}
                       alt={`${user.displayName || user.username}'s avatar`}
-                      width={128}
-                      height={128}
+                      width={112}
+                      height={112}
                       className="object-cover w-full h-full"
                       priority
+                      onError={() => setFailedAvatar(user.avatar)}
                     />
                   </div>
                 ) : (
-                  <div className="flex justify-center items-center text-3xl font-bold text-white bg-linear-to-br from-blue-400 via-purple-500 to-pink-400 rounded-3xl ring-4 ring-white ring-offset-4 ring-offset-gray-50 shadow-2xl transition-all w-28 h-28 sm:w-32 sm:h-32 md:w-32 md:h-32 dark:from-blue-500 dark:via-purple-600 dark:to-pink-500 dark:ring-gray-800 dark:ring-offset-gray-900">
-                    {user.displayName?.charAt(0) ||
-                      user.username?.charAt(0) ||
-                      "U"}
+                  <div className="flex justify-center items-center w-24 h-24 sm:w-28 sm:h-28 text-2xl sm:text-3xl font-bold text-white rounded-2xl border-4 border-white dark:border-slate-900 bg-indigo-600 shadow-sm">
+                    {(user.displayName?.charAt(0) || user.username?.charAt(0) || "U").toUpperCase()}
                   </div>
                 )}
 
-                {/* Status Indicators */}
-                {user.isActive && (
-                  <div className="flex absolute -right-2 -bottom-2 justify-center items-center w-10 h-10 bg-purple-500 rounded-full border-4 border-white shadow-xl animate-pulse dark:border-gray-800">
-                    <Activity size={14} className="text-white" />
-                  </div>
-                )}
-
-                {user.isVerified && (
-                  <div className="flex absolute -top-2 -right-2 justify-center items-center w-10 h-10 bg-blue-500 rounded-full border-4 border-white shadow-xl dark:border-gray-800">
-                    <Verified size={14} className="text-white fill-current" />
+                {user.status === "online" && (
+                  <div className="flex absolute -right-1 -bottom-1 justify-center items-center w-6 h-6 bg-emerald-500 rounded-full border-2 border-white dark:border-slate-900">
+                    <Activity size={11} className="text-white" />
                   </div>
                 )}
               </div>
 
-              {/* Enhanced User Information */}
-              <div className="flex-1 space-y-3 text-left w-full md:w-auto">
+              {/* Instagram-style Compact Stat Strip on Desktop */}
+              <div className="hidden lg:flex items-center gap-6 pb-1 pl-2 text-sm">
                 <div>
-                  <div className="flex gap-3 justify-start items-center mb-2 mt-2 md:mt-0">
-                    <h1 className="text-2xl sm:text-3xl font-bold text-transparent bg-clip-text bg-linear-to-r from-gray-900 to-gray-600 dark:from-gray-100 dark:to-gray-300">
-                      {user.displayName || user.username}
-                    </h1>
-                    {user.isVerified && (
-                      <Verified
-                        size={24}
-                        className="text-blue-500 fill-current"
-                      />
-                    )}
-                  </div>
-
-                  <div className="flex gap-2 justify-start items-center mb-3 flex-row flex-wrap md:gap-4">
-                    <p className="text-base sm:text-lg font-medium text-blue-600 transition-colors cursor-pointer dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300">
-                      @{user.username}
-                    </p>
-                    <div
-                      className={`px-3 py-1 rounded-full text-sm font-medium flex items-center gap-2 ${user.isActive
-                        ? "bg-purple-50 dark:bg-purple-500/20 text-purple-500 dark:text-purple-300 border border-purple-200 dark:border-purple-500/30"
-                        : "bg-gray-50 dark:bg-gray-500/20 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-500/30"
-                        }`}
-                    >
-                      <div
-                        className={`w-2 h-2 rounded-full ${user.isActive
-                          ? "bg-purple-500 animate-pulse"
-                          : "bg-gray-400"
-                          }`}
-                      ></div>
-                      {user.isActive ? "Online" : "Offline"}
-                    </div>
-                  </div>
+                  <span className="font-bold text-slate-900 dark:text-white">{followerDisplay}</span>{" "}
+                  <span className="text-slate-500 dark:text-slate-400">followers</span>
                 </div>
-
-                {user.bio && (
-                  <div className="max-w-2xl">
-                    <p
-                      className={`text-base md:text-lg leading-relaxed text-gray-600 dark:text-gray-300 transition-all ${showFullBio ? "" : "line-clamp-2"}`}
-                    >
-                      {user.bio}
-                    </p>
-                    {user.bio.length > 150 && (
-                      <button
-                        onClick={() => setShowFullBio(!showFullBio)}
-                        className="mt-1 text-sm font-medium text-blue-600 transition-colors dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
-                      >
-                        {showFullBio ? "Show less" : "Show more"}
-                      </button>
-                    )}
-                  </div>
-                )}
-
+                <div className="h-3.5 w-px bg-slate-200 dark:bg-slate-800" />
+                <div>
+                  <span className="font-bold text-slate-900 dark:text-white">{user.rizzScore ?? "—"}</span>{" "}
+                  <span className="text-slate-500 dark:text-slate-400">rizz score</span>
+                </div>
+                <div className="h-3.5 w-px bg-slate-200 dark:bg-slate-800" />
+                <div>
+                  <span className="font-bold text-slate-900 dark:text-white">{user.niche?.length || 0}</span>{" "}
+                  <span className="text-slate-500 dark:text-slate-400">niches</span>
+                </div>
               </div>
             </div>
 
-            {/* Quick Actions Menu - Desktop Only */}
-            <div className="hidden gap-2 justify-end items-center md:flex">
+            {/* Action Toolbar */}
+            <div className="flex flex-wrap gap-2 items-center shrink-0 pt-2 sm:pt-0">
               <button
+                type="button"
                 onClick={copyProfileUrl}
-                className="p-3 text-gray-600 rounded-xl border shadow-md transition-all cursor-pointer hover:scale-105 bg-gray-100/80 dark:bg-gray-700/60 hover:bg-gray-200 dark:hover:bg-gray-600/80 dark:text-gray-300 border-gray-200/50 dark:border-gray-600/50 group"
+                className="inline-flex gap-1.5 items-center px-3 py-2 text-xs sm:text-sm font-medium text-slate-700 bg-slate-50 rounded-xl border border-slate-200 transition-colors hover:bg-slate-100 dark:bg-slate-800 dark:text-slate-200 dark:border-slate-700 dark:hover:bg-slate-700"
                 title="Copy profile URL"
+                aria-label="Copy profile URL"
               >
-                {copied ? (
-                  <Check size={18} className="text-green-500" />
-                ) : (
-                  <Copy size={18} />
-                )}
+                {copied ? <Check size={15} className="text-emerald-500" /> : <Copy size={15} />}
+                <span>{copied ? "Copied" : "Copy link"}</span>
               </button>
 
-              {/* Share button - removed for now
-              <button className="p-3 text-gray-600 rounded-xl border shadow-md transition-all cursor-pointer hover:scale-105 bg-gray-100/80 dark:bg-gray-700/60 hover:bg-gray-200 dark:hover:bg-gray-600/80 dark:text-gray-300 border-gray-200/50 dark:border-gray-600/50">
-                <Share2 size={18} />
-              </button>
-              */}
+              {isOwnProfile ? (
+                <>
+                  <Link
+                    href="/profile/edit"
+                    onClick={onEditProfile}
+                    className="inline-flex gap-1.5 items-center px-3.5 py-2 text-xs sm:text-sm font-medium text-slate-700 bg-white rounded-xl border border-slate-200 transition-colors hover:bg-slate-50 dark:bg-slate-800 dark:text-slate-200 dark:border-slate-700 dark:hover:bg-slate-700"
+                    title="Edit Profile"
+                  >
+                    <Pencil size={14} />
+                    <span>Edit Profile</span>
+                  </Link>
+                  <Link
+                    href="/ai-matches"
+                    className="inline-flex gap-1.5 items-center px-4 py-2 text-xs sm:text-sm font-semibold text-white bg-indigo-600 rounded-xl transition-colors hover:bg-indigo-500"
+                  >
+                    <Heart size={14} />
+                    <span>Get Match</span>
+                  </Link>
+                </>
+              ) : (
+                <>
+                  {onConnect && (
+                    <button
+                      type="button"
+                      onClick={() => onConnect(user.id || user.userId)}
+                      className="inline-flex gap-1.5 items-center px-4 py-2 text-xs sm:text-sm font-semibold text-white bg-indigo-600 rounded-xl transition-colors hover:bg-indigo-500"
+                    >
+                      Connect
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => onMessage?.(user.id || user.userId)}
+                    className="inline-flex gap-2 items-center px-4 py-2 text-xs sm:text-sm font-semibold text-slate-700 bg-white rounded-xl border border-slate-200 transition-colors hover:bg-slate-50 dark:bg-slate-800 dark:text-slate-200 dark:border-slate-700 dark:hover:bg-slate-700"
+                  >
+                    <MessageCircle size={15} />
+                    <span>Message</span>
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
 
-              {isOwnProfile && (
-                <Link
-                  href="/profile/edit"
-                  className="p-3 text-gray-600 rounded-xl border shadow-md transition-all cursor-pointer hover:scale-105 bg-gray-100/80 dark:bg-gray-700/60 hover:bg-gray-200 dark:hover:bg-gray-600/80 dark:text-gray-300 border-gray-200/50 dark:border-gray-600/50"
-                  title="Edit Profile"
-                >
-                  <Pencil size={18} />
-                </Link>
+          {/* Identity Headline & Metadata */}
+          <div className="space-y-2.5">
+            <div className="flex flex-wrap gap-2.5 items-center">
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100 break-words">
+                {user.displayName || user.username}
+              </h1>
+              {user.isVerified && <Verified size={20} className="text-indigo-600 dark:text-indigo-400 shrink-0" />}
+              {user.primaryRole && (
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 text-xs font-semibold text-indigo-700 bg-indigo-50 rounded-full border border-indigo-200 dark:bg-indigo-950/60 dark:text-indigo-300 dark:border-indigo-800">
+                  <Briefcase size={12} />
+                  {user.primaryRole}
+                </span>
               )}
             </div>
 
-          </div>
-
-          {/* Enhanced Meta Information */}
-          <div className="mt-0 md:mt-0 flex flex-col gap-3 items-start my-5 text-sm md:flex-row">
-            <div className="flex gap-2 items-center text-gray-500 dark:text-gray-400">
-              <PartyPopper size={16} className="text-purple-500" />
-              <span>Joined {formatShortDate(user.createdAt)}</span>
-            </div>
-
-            <div className="flex gap-2 items-center text-gray-500 dark:text-gray-400">
-              <UserCheck size={16} className="text-green-500" />
-              <span>{user.isPublic ? "Public" : "Private"} Profile</span>
-            </div>
-
-            <div className="flex gap-2 items-center text-gray-500 dark:text-gray-400">
-              <Sparkles size={16} className="text-blue-500" />
-              <span>
-                {user.location
-                  ? formatLocation(user.location)
-                  : "Anywhere"}
-              </span>
-            </div>
-          </div>
-
-
-          {/* Enhanced Action Buttons */}
-          {isOwnProfile ? (
-            <div className="flex justify-start">
-              <Link href="/ai-matches">
-                <button className="flex gap-2 justify-center items-center px-6 py-3 text-sm font-semibold text-white bg-linear-to-r from-purple-500 to-pink-500 rounded-lg shadow-lg transition-all transform cursor-pointer hover:scale-105 hover:from-purple-600 hover:to-pink-600 dark:from-purple-600 dark:to-pink-600 dark:hover:from-purple-700 dark:hover:to-pink-700 hover:shadow-xl">
-                  <Heart size={18} />
-                  Get Match
-                </button>
-              </Link>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 gap-4 w-full md:grid-cols-2">
-              <button
-                onClick={handleConnect}
-                className={`px-8 py-4 rounded-xl font-semibold transition-all transform hover:scale-105 shadow-xl hover:shadow-2xl flex items-center gap-3 justify-center ${isConnected
-                  ? "text-gray-700 bg-gray-200 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
-                  : "text-white bg-linear-to-r from-blue-500 to-purple-500 dark:from-blue-600 dark:to-purple-600 hover:from-blue-600 hover:to-purple-600 dark:hover:from-blue-700 dark:hover:to-purple-700"
-                  }`}
-              >
-                {isConnected ? (
-                  <>
-                    <Check size={20} />
-                    Connected
-                  </>
-                ) : (
-                  <>
-                    <User size={20} />
-                    Connect
-                  </>
-                )}
-              </button>
-
-              <button
-                onClick={() => onMessage?.(user.id)}
-                className="flex gap-3 justify-center items-center px-6 py-4 font-semibold text-gray-700 bg-white rounded-xl border-2 border-gray-200 shadow-lg transition-all hover:scale-105 dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500"
-              >
-                <MessageCircle size={20} />
-                Message
-              </button>
-
-              {/* Email button - removed for now
-              <button className="flex gap-3 justify-center items-center px-6 py-4 font-semibold text-gray-700 bg-white rounded-xl border-2 border-gray-200 shadow-lg transition-all hover:scale-105 dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500">
-                <Mail size={20} />
-                Email
-              </button>
-              */}
-            </div>
-          )}
-        </div>
-      </div >
-
-      {/* Enhanced Stats Overview with Animation */}
-      {
-        user.stats && (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 md:grid-cols-4">
-            {[
-              {
-                label: "Total Followers",
-                value: platformLoading ? "..." : (combinedMetrics.totalFollowers > 0 ? combinedMetrics.totalFollowers.toLocaleString() : (user.stats?.totalFollowers?.toLocaleString() || "0")),
-                color: "purple",
-                icon: Users,
-                change: "soon",
-                isFromAPI: !platformLoading && combinedMetrics.totalFollowers > 0,
-                isFromFallback: !platformLoading && combinedMetrics.totalFollowers === 0 && user.stats?.totalFollowers > 0,
-              },
-              {
-                label: "Matching Rizz Score",
-                value: matchingRizzScore !== undefined ? `${matchingRizzScore}` : "—",
-                color: "green",
-                icon: TrendingUp,
-                change: null,
-                isFromAPI: false,
-                isFromFallback: false,
-              },
-              {
-                label: "Profile Rizz Score",
-                value: user.rizzScore || "0",
-                color: "purple",
-                icon: Star,
-                change: "+8%",
-              },
-              {
-                label: "Content Niches",
-                value: user.niche?.length || "0",
-                color: "purple",
-                icon: Target,
-                change: null,
-              },
-            ].map((stat, index) => (
-              <div
-                key={stat.label}
-                className={`group relative overflow-hidden rounded-2xl bg-white dark:bg-gray-800/50 border border-gray-200/60 dark:border-gray-700/60 p-4 sm:p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] backdrop-blur-sm ${stat.label === "Profile Rizz Score" && isOwnProfile ? "cursor-pointer" : ""
-                  }`}
-                onClick={stat.label === "Profile Rizz Score" && isOwnProfile ? handleNavigateToRizzScore : undefined}
-              >
-                <div className="flex justify-between items-center mb-3 sm:mb-4">
-                  <div
-                    className={`p-2 sm:p-3 rounded-xl bg-linear-to-br shrink-0 ${stat.color === "blue"
-                      ? "from-blue-100 to-blue-200 dark:from-blue-500/20 dark:to-blue-600/20"
-                      : stat.color === "green"
-                        ? "from-green-100 to-green-200 dark:from-green-500/20 dark:to-green-600/20"
-                        : stat.color === "purple"
-                          ? "from-purple-100 to-purple-200 dark:from-purple-500/20 dark:to-purple-600/20"
-                          : "from-orange-100 to-orange-200 dark:from-orange-500/20 dark:to-orange-600/20"
-                      }`}
-                  >
-                    <stat.icon
-                      size={20}
-                      className={`sm:w-6 sm:h-6 ${stat.color === "blue"
-                        ? "text-blue-600 dark:text-blue-400"
-                        : stat.color === "green"
-                          ? "text-green-600 dark:text-green-400"
-                          : stat.color === "purple"
-                            ? "text-gray-600 dark:text-gray-400"
-                            : "text-gray-600 dark:text-gray-400 "
-                        }`}
-                    />
-                  </div>
-                  <div className="flex gap-2 items-center">
-                    {stat.change && (
-                      <span className="shrink-0 px-2 py-1 text-xs font-medium text-gray-600 bg-purple-50 rounded-full dark:text-gray-400 dark:bg-gray-500/20">
-                        {stat.change}
-                      </span>
-                    )}
-                    {/* Data Source Indicator */}
-                    {stat.isFromFallback && (stat.label === "Total Followers" || stat.label === "Engagement Rate") && (
-                      <div className="group/indicator relative">
-                        <div className="flex items-center justify-center w-5 h-5 text-gray-400 transition-colors cursor-help hover:text-amber-500 dark:text-gray-500 dark:hover:text-amber-400">
-                          <Database size={14} />
-                        </div>
-                        <div className="absolute right-0 top-6 z-10 hidden w-48 p-2 text-xs text-white bg-gray-900 rounded-lg shadow-lg group-hover/indicator:block dark:bg-gray-800">
-                          <div className="flex items-center gap-2">
-                            <Database size={12} className="text-amber-400" />
-                            <span>From stored profile data</span>
-                          </div>
-                          <div className="mt-1 text-xs text-gray-400">
-                            Connect platforms for real-time updates
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                    {stat.isFromAPI && (stat.label === "Total Followers" || stat.label === "Engagement Rate") && (
-                      <div className="group/indicator relative">
-                        <div className="flex items-center justify-center w-5 h-5 text-green-500 transition-colors cursor-help hover:text-green-600 dark:text-green-400 dark:hover:text-green-300">
-                          <Info size={14} />
-                        </div>
-                        <div className="absolute right-0 top-6 z-10 hidden w-48 p-2 text-xs text-white bg-gray-900 rounded-lg shadow-lg group-hover/indicator:block dark:bg-gray-800">
-                          <div className="flex items-center gap-2">
-                            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                            <span>Live data from platforms</span>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <div
-                  className={`text-2xl sm:text-3xl font-bold mb-2 wrap-break-word overflow-visible ${stat.color === "blue"
-                    ? "text-blue-600 dark:text-blue-400"
-                    : stat.color === "green"
-                      ? "text-green-600 dark:text-green-400"
-                      : stat.color === "purple"
-                        ? "text-purple-600 dark:text-purple-400"
-                        : "text-orange-600 dark:text-orange-400"
+            <div className="flex flex-wrap gap-3 items-center text-sm">
+              <span className="font-medium text-indigo-600 dark:text-indigo-400">@{user.username}</span>
+              {["online", "offline"].includes(user.status) && (
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 text-xs font-medium rounded-full border border-slate-200 text-slate-600 dark:border-slate-700 dark:text-slate-300">
+                  <span
+                    className={`w-1.5 h-1.5 rounded-full ${
+                      user.status === "online" ? "bg-emerald-500" : "bg-slate-400"
                     }`}
+                  />
+                  {user.status === "online" ? "Online" : "Offline"}
+                </span>
+              )}
+            </div>
+
+            {user.bio && (
+              <div className="max-w-3xl pt-0.5">
+                <p
+                  className={`text-sm sm:text-base leading-relaxed text-slate-600 dark:text-slate-300 ${
+                    showFullBio ? "" : "line-clamp-3"
+                  }`}
                 >
+                  {user.bio}
+                </p>
+                {user.bio.length > 160 && (
+                  <button
+                    type="button"
+                    onClick={() => setShowFullBio(!showFullBio)}
+                    className="mt-1 text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline"
+                  >
+                    {showFullBio ? "Show less" : "Show more"}
+                  </button>
+                )}
+              </div>
+            )}
+
+            {/* Metadata Bar */}
+            <div className="flex flex-wrap gap-x-5 gap-y-2 pt-2 text-xs sm:text-sm text-slate-500 dark:text-slate-400 border-t border-slate-100 dark:border-slate-800/80">
+              {joinedDate && (
+                <div className="flex gap-1.5 items-center">
+                  <PartyPopper size={14} className="text-purple-500 shrink-0" />
+                  <span>Joined {joinedDate}</span>
+                </div>
+              )}
+
+              <div className="flex gap-1.5 items-center">
+                <UserCheck size={14} className="text-emerald-500 shrink-0" />
+                <span>{user.isPublic !== false ? "Public" : "Private"} Profile</span>
+              </div>
+
+              <div className="flex gap-1.5 items-center">
+                <Sparkles size={14} className="text-indigo-500 shrink-0" />
+                <span>{formatLocation(user.location, user.locationName)}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Measured Metrics Row */}
+      {user.stats && (
+        <section
+          aria-label="Measured creator metrics"
+          className="grid grid-cols-2 gap-3 lg:grid-cols-4"
+        >
+          {[
+            {
+              label: "Total Followers",
+              value: followerDisplay,
+              icon: Users,
+              isFromAPI: !platformLoading && combinedMetrics.totalFollowers > 0,
+              isFromFallback:
+                !platformLoading && combinedMetrics.totalFollowers === 0 && user.stats?.totalFollowers > 0,
+            },
+            {
+              label: "Matching Rizz Score",
+              value: matchingRizzScore !== undefined ? `${matchingRizzScore}` : "—",
+              icon: TrendingUp,
+              isFromAPI: false,
+              isFromFallback: false,
+            },
+            {
+              label: "Profile Rizz Score",
+              value: user.rizzScore ?? "—",
+              icon: Star,
+            },
+            {
+              label: "Content Niches",
+              value: user.niche?.length || "0",
+              icon: Target,
+            },
+          ].map((stat) => (
+            <div
+              key={stat.label}
+              className={`p-4 bg-white rounded-xl border border-slate-200 shadow-xs dark:bg-slate-900 dark:border-slate-800 ${
+                stat.label === "Profile Rizz Score" && isOwnProfile
+                  ? "cursor-pointer hover:border-indigo-300 dark:hover:border-indigo-700"
+                  : ""
+              }`}
+              onClick={
+                stat.label === "Profile Rizz Score" && isOwnProfile ? handleNavigateToRizzScore : undefined
+              }
+            >
+              <div className="flex justify-between items-center mb-1.5">
+                <span className="text-xs font-medium text-slate-500 dark:text-slate-400">{stat.label}</span>
+                <div className="flex items-center gap-1">
+                  {stat.isFromFallback && stat.label === "Total Followers" && (
+                    <span
+                      className="inline-flex items-center gap-1 text-xs text-slate-400"
+                      title="Stored profile metric"
+                    >
+                      <Database size={12} />
+                    </span>
+                  )}
+                  {stat.isFromAPI && stat.label === "Total Followers" && (
+                    <span
+                      className="inline-flex items-center gap-1 text-xs text-emerald-500"
+                      title="Synced platform metric"
+                    >
+                      <Info size={12} />
+                    </span>
+                  )}
+                  <stat.icon size={15} className="text-indigo-500 dark:text-indigo-400" />
+                </div>
+              </div>
+              <div className="flex items-baseline justify-between gap-2">
+                <div className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">
                   {stat.value}
                 </div>
-                <div className="flex flex-col gap-2 justify-between">
-                  <div className="self-start text-sm font-medium text-gray-500 dark:text-gray-400">
-                    {stat.label}
+                {stat.label === "Profile Rizz Score" && isOwnProfile && (
+                  <span className="text-xs font-medium text-indigo-600 dark:text-indigo-400">Details →</span>
+                )}
+              </div>
+            </div>
+          ))}
+        </section>
+      )}
+
+      {/* LinkedIn + Instagram 2-Column Split Layout */}
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-12 items-start">
+        {/* Left Column (LinkedIn Professional Credentials & Skills Rail) */}
+        <div className="space-y-5 lg:col-span-5">
+          {(hasProfessionalData || isOwnProfile) && (
+            <section className="p-5 bg-white rounded-2xl border border-slate-200 shadow-xs dark:bg-slate-900 dark:border-slate-800">
+              <div className="flex flex-wrap gap-2 justify-between items-start mb-4 pb-3 border-b border-slate-100 dark:border-slate-800">
+                <div className="flex gap-2.5 items-center">
+                  <div className="p-2 rounded-lg bg-indigo-50 text-indigo-600 dark:bg-indigo-950/60 dark:text-indigo-400">
+                    <Briefcase size={17} />
                   </div>
-                  {stat.label === "Profile Rizz Score" && isOwnProfile && (
-                    <div className="flex self-end">
-                      <div className="flex items-center text-xs font-medium text-purple-500 opacity-0 transition-opacity duration-200 dark:text-purple-400 group-hover:opacity-100">
-                        View Details →
+                  <div>
+                    <h2 className="text-sm sm:text-base font-bold text-slate-900 dark:text-slate-100">
+                      Professional &amp; Startup Hub Profile
+                    </h2>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                      Role, availability, skills &amp; portfolio
+                    </p>
+                  </div>
+                </div>
+                {isOwnProfile && (
+                  <Link
+                    href="/profile/edit"
+                    className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline"
+                  >
+                    Update talent details →
+                  </Link>
+                )}
+              </div>
+
+              {hasProfessionalData ? (
+                <div className="space-y-4">
+                  {/* Role / Availability / Offer Preference */}
+                  {(user.primaryRole || user.availability || user.offerPreference) && (
+                    <div className="flex flex-wrap gap-2">
+                      {user.primaryRole && (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-lg bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-200">
+                          <Briefcase size={12} className="text-indigo-500" />
+                          Role: {user.primaryRole}
+                        </span>
+                      )}
+                      {user.availability && (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800/60">
+                          <Clock size={12} />
+                          {AVAILABILITY_LABELS[user.availability] || user.availability}
+                        </span>
+                      )}
+                      {user.offerPreference && (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-lg bg-purple-50 text-purple-700 border border-purple-200 dark:bg-purple-950/40 dark:text-purple-300 dark:border-purple-800/60">
+                          {OFFER_PREFERENCE_LABELS[user.offerPreference] || user.offerPreference}
+                        </span>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Skills */}
+                  {skills.length > 0 && (
+                    <div>
+                      <h3 className="flex gap-1.5 items-center mb-2 text-[11px] font-semibold tracking-wider uppercase text-slate-500 dark:text-slate-400">
+                        <Code2 size={13} />
+                        Verified &amp; Self-Reported Skills
+                      </h3>
+                      <div className="flex flex-wrap gap-1.5">
+                        {skills.map((skill) => (
+                          <span
+                            key={skill}
+                            className="px-2.5 py-1 text-xs font-medium text-slate-700 bg-slate-50 rounded-md border border-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:border-slate-700"
+                          >
+                            {skill}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Portfolio Links */}
+                  {portfolioEntries.length > 0 && (
+                    <div>
+                      <h3 className="flex gap-1.5 items-center mb-2 text-[11px] font-semibold tracking-wider uppercase text-slate-500 dark:text-slate-400">
+                        <Globe size={13} />
+                        Portfolio &amp; Code Links
+                      </h3>
+                      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                        {portfolioEntries.map(([key, url]) => (
+                          <a
+                            key={key}
+                            href={url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex justify-between items-center px-3 py-2 text-xs font-semibold text-slate-700 bg-slate-50 rounded-xl border border-slate-200 hover:bg-slate-100 dark:bg-slate-800 dark:text-slate-200 dark:border-slate-700 dark:hover:bg-slate-700"
+                          >
+                            <span className="capitalize">{key}</span>
+                            <ExternalLink size={13} className="text-slate-400" />
+                          </a>
+                        ))}
                       </div>
                     </div>
                   )}
                 </div>
+              ) : (
+                <div className="p-4 text-xs sm:text-sm text-slate-600 bg-slate-50 rounded-xl border border-dashed border-slate-200 dark:bg-slate-800/40 dark:text-slate-300 dark:border-slate-700">
+                  Add your primary role, skills, availability, and portfolio links to appear in Startup &amp; Talent Hub searches.
+                </div>
+              )}
+            </section>
+          )}
 
-                {/* Hover Effect Background */}
-                <div
-                  className={`absolute inset-0 opacity-0 group-hover:opacity-5 transition-opacity bg-linear-to-br ${stat.color === "blue"
-                    ? "from-blue-500 to-blue-700"
-                    : stat.color === "green"
-                      ? "from-green-500 to-green-700"
-                      : stat.color === "purple"
-                        ? "from-purple-500 to-purple-700"
-                        : "from-orange-500 to-orange-700"
-                    }`}
-                ></div>
-              </div>
-            ))}
-          </div>
-        )
-      }
-
-      {/* Enhanced Content Niches */}
-      {
-        user.niche && user.niche.length > 0 && (
-          <div className="p-6 bg-white rounded-2xl border shadow-lg backdrop-blur-sm dark:bg-gray-800/50 border-gray-200/60 dark:border-gray-700/60">
-            <h3 className="flex gap-3 items-center mb-6 text-xl font-bold text-gray-900 dark:text-gray-100">
-              <div className="p-2 bg-linear-to-br from-blue-100 to-purple-100 rounded-lg dark:from-blue-500/20 dark:to-purple-500/20">
-                <Target size={24} className="text-blue-600 dark:text-blue-400" />
-              </div>
-              Content Specializations
-            </h3>
-            <div className="flex flex-wrap gap-3">
-              {user.niche.map((tag, index) => (
-                <span
-                  key={index}
-                  className="px-4 py-3 text-sm font-medium text-blue-700 bg-linear-to-r from-blue-50 via-purple-50 to-pink-50 rounded-xl border transition-all cursor-pointer group hover:scale-105 dark:from-blue-500/10 dark:via-purple-500/10 dark:to-pink-500/10 dark:text-blue-300 border-blue-200/50 dark:border-blue-500/30 hover:border-blue-300 dark:hover:border-blue-400/50 hover:shadow-lg"
-                >
-                  <span className="transition-all group-hover:text-transparent group-hover:bg-linear-to-r group-hover:from-blue-600 group-hover:to-purple-600 group-hover:bg-clip-text">
+          {/* Content Specializations (Niches) */}
+          {user.niche && user.niche.length > 0 && (
+            <section className="p-5 bg-white rounded-2xl border border-slate-200 shadow-xs dark:bg-slate-900 dark:border-slate-800">
+              <h2 className="flex gap-2 items-center mb-3 text-sm sm:text-base font-bold text-slate-900 dark:text-slate-100">
+                <div className="p-1.5 rounded-lg bg-purple-50 text-purple-600 dark:bg-purple-950/60 dark:text-purple-400">
+                  <Target size={16} />
+                </div>
+                Content Specializations
+              </h2>
+              <div className="flex flex-wrap gap-2">
+                {user.niche.map((tag, index) => (
+                  <span
+                    key={index}
+                    className="px-3 py-1 text-xs font-semibold text-indigo-700 bg-indigo-50 rounded-lg border border-indigo-200 dark:bg-indigo-950/50 dark:text-indigo-300 dark:border-indigo-800/70"
+                  >
                     #{tag}
                   </span>
-                </span>
-              ))}
-            </div>
-          </div>
-        )
-      }
+                ))}
+              </div>
+            </section>
+          )}
+        </div>
 
-      {/* Social Media Links - always visible */}
-      <div className="p-6 bg-white rounded-2xl border shadow-lg backdrop-blur-sm dark:bg-gray-800/50 border-gray-200/60 dark:border-gray-700/60">
-        <h3 className="flex gap-3 items-center mb-6 text-xl font-bold text-gray-900 dark:text-gray-100">
-          <div className="p-2 bg-linear-to-br from-purple-100 to-purple-100 rounded-lg dark:from-purple-500/20 dark:to-purple-500/20">
-            <Share2 size={24} className="text-purple-600 dark:text-purple-400" />
-          </div>
-          Social Media
-        </h3>
-
-        {hasSocialLinks ? (
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {filledSocialLinks.map(([platform, url]) => {
-              const info = PLATFORM_INFO[platform] || { name: platform, color: "from-gray-500 to-gray-700", icon: "🔗" };
-
-              return (
-                <a
-                  key={platform}
-                  href={url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group p-4 rounded-xl transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-[1.02] hover:-translate-y-0.5 bg-gray-50/80 dark:bg-gray-700/40 border border-gray-200 dark:border-gray-600/50 hover:border-gray-300 dark:hover:border-gray-500/70 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500/60"
-                >
-                  <div className="flex gap-3 items-center">
-                    <div className={`p-3 rounded-xl bg-linear-to-br ${info.color} transition-transform duration-300 group-hover:scale-110`}>
-                      <span className="text-lg text-white">{info.icon}</span>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                        {info.name}
-                      </div>
-                      <div className="text-xs text-gray-500 truncate dark:text-gray-400">
-                        {url.replace('https://', '').replace('http://', '')}
-                      </div>
-                    </div>
-                    <ExternalLink size={16} className="text-gray-400 transition-all duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-gray-600 dark:group-hover:text-gray-300" />
+        {/* Right Column (LinkedIn Experience Timeline + Instagram Channel Showcase) */}
+        <div className="space-y-5 lg:col-span-7">
+          {experience.length > 0 && (
+            <section className="p-5 bg-white rounded-2xl border border-slate-200 shadow-xs dark:bg-slate-900 dark:border-slate-800">
+              <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100 dark:border-slate-800">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-2 rounded-lg bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                    <Building2 size={17} />
                   </div>
-                </a>
-              );
-            })}
-          </div>
-        ) : (
-          <div className="flex flex-col gap-4 items-center px-6 py-10 text-center rounded-xl border-2 border-dashed transition-colors duration-300 border-gray-200 dark:border-gray-700 bg-gray-50/60 dark:bg-gray-700/20">
-            <div className="p-3 bg-linear-to-br from-purple-100 to-pink-100 rounded-2xl dark:from-purple-500/20 dark:to-pink-500/20">
-              <Share2 size={24} className="text-purple-500 dark:text-purple-400" />
-            </div>
-            <div className="space-y-1 max-w-md">
-              <p className="text-base font-semibold text-gray-900 dark:text-gray-100">
-                {isOwnProfile ? "No social accounts linked yet" : "No social accounts shared"}
-              </p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                {isOwnProfile
-                  ? "Add your TikTok, Instagram, YouTube, Twitch or X profiles to show your reach, improve your Rizz Score and get better matches."
-                  : `${user.displayName || user.username} hasn't added any social media links yet.`}
-              </p>
-            </div>
-            {isOwnProfile && (
-              <Link
-                href="/profile/edit"
-                className="group inline-flex gap-2 items-center px-5 py-2.5 text-sm font-semibold text-white bg-linear-to-r from-purple-500 to-pink-500 rounded-lg shadow-md transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-105 hover:shadow-lg hover:from-purple-600 hover:to-pink-600 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500/60 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-800"
-              >
-                <Pencil size={16} className="transition-transform duration-300 group-hover:-rotate-12" />
-                Add social links
-              </Link>
-            )}
-          </div>
-        )}
-      </div>
+                  <div>
+                    <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-slate-100">
+                      Experience
+                    </h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                      Verified &amp; self-reported work history
+                    </p>
+                  </div>
+                </div>
+              </div>
 
-    </div >
+              <div className="relative pl-5 space-y-4 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-px before:bg-slate-200 dark:before:bg-slate-800">
+                {experience.map((exp, idx) => (
+                  <div
+                    key={idx}
+                    className="relative p-3.5 rounded-xl border border-slate-200 bg-slate-50/50 dark:border-slate-800 dark:bg-slate-800/40 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1"
+                  >
+                    <span className="absolute -left-[17px] top-5 w-2.5 h-2.5 rounded-full bg-indigo-600 ring-4 ring-white dark:ring-slate-900" />
+                    <div>
+                      <div className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                        {exp.title || "Contributor"}
+                      </div>
+                      {exp.company && (
+                        <div className="text-xs font-medium text-slate-600 dark:text-slate-300">
+                          {exp.company}
+                        </div>
+                      )}
+                    </div>
+                    {exp.duration && (
+                      <span className="inline-flex self-start sm:self-center px-2.5 py-0.5 text-xs font-medium rounded-md bg-white border border-slate-200 text-slate-600 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-400">
+                        {exp.duration}
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Social Media & Channel Grid */}
+          <section className="p-5 bg-white rounded-2xl border border-slate-200 shadow-xs dark:bg-slate-900 dark:border-slate-800">
+            <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100 dark:border-slate-800">
+              <h2 className="flex gap-2.5 items-center text-sm sm:text-base font-bold text-slate-900 dark:text-slate-100">
+                <div className="p-2 rounded-lg bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+                  <Share2 size={17} />
+                </div>
+                Social Media
+              </h2>
+              {isOwnProfile && hasSocialLinks && (
+                <Link
+                  href="/profile/edit"
+                  className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline"
+                >
+                  Manage channels →
+                </Link>
+              )}
+            </div>
+
+            {hasSocialLinks ? (
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                {filledSocialLinks.map(([platform, url]) => {
+                  const info = PLATFORM_INFO[platform] || { name: platform, icon: "🔗" };
+                  return (
+                    <a
+                      key={platform}
+                      href={url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex gap-3 items-center p-3.5 rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-slate-100 transition-colors dark:bg-slate-800/50 dark:border-slate-700 dark:hover:bg-slate-800"
+                    >
+                      <div className="flex justify-center items-center w-10 h-10 rounded-xl bg-white border border-slate-200 dark:bg-slate-900 dark:border-slate-700">
+                        <span className="text-base">{info.icon}</span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-semibold text-slate-900 dark:text-slate-100 capitalize">
+                          {info.name}
+                        </div>
+                        <div className="text-xs text-slate-500 truncate dark:text-slate-400">
+                          {url.replace("https://", "").replace("http://", "")}
+                        </div>
+                      </div>
+                      <ExternalLink size={15} className="text-slate-400 shrink-0" />
+                    </a>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="flex flex-col gap-3 items-center px-6 py-8 text-center rounded-xl border border-dashed border-slate-200 bg-slate-50/50 dark:border-slate-700 dark:bg-slate-800/30">
+                <div className="space-y-1 max-w-md">
+                  <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                    {isOwnProfile ? "No social accounts linked yet" : "No social accounts shared"}
+                  </p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    {isOwnProfile
+                      ? "Add your TikTok, Instagram, YouTube, Twitch, or X profiles to show your reach and improve your matches."
+                      : `${user.displayName || user.username} hasn't added any social media links yet.`}
+                  </p>
+                </div>
+                {isOwnProfile && (
+                  <Link
+                    href="/profile/edit"
+                    className="inline-flex gap-1.5 items-center px-4 py-2 text-xs font-semibold text-white bg-indigo-600 rounded-xl hover:bg-indigo-500"
+                  >
+                    <Pencil size={14} />
+                    Add social links
+                  </Link>
+                )}
+              </div>
+            )}
+          </section>
+        </div>
+      </div>
+    </div>
   );
 }

@@ -1,11 +1,5 @@
-import PagePlaceholder from "@/components/ui/PagePlaceholder";
+import { redirect } from 'next/navigation';
 
-export default function ProfileAnalyticsPage() {
-  return (
-    <PagePlaceholder
-      title="Profile Analytics"
-      description="Audience growth, engagement, and platform insights."
-      icon="trending"
-    />
-  );
+export default function ProfileAnalyticsRedirectPage() {
+  redirect('/analytics');
 }

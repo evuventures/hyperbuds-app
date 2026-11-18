@@ -13,6 +13,7 @@ const customJestConfig = {
       '^@/(.*)$': '<rootDir>/src/$1',
    },
    testEnvironment: 'jest-environment-jsdom',
+   testPathIgnorePatterns: ['/node_modules/', '/tests/browser/'],
    transform: {
       '^.+\\.(js|jsx|ts|tsx)$': ['babel-jest', { presets: ['next/babel'] }],
    },

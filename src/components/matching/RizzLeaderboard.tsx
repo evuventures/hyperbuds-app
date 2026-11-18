@@ -24,6 +24,11 @@ interface RizzLeaderboardProps {
 interface LeaderboardItem {
    userId: string;
    currentScore: number;
+   scoreV2?: number;
+   tierInfo?: {
+      scoreV2: number;
+      tier: string;
+   };
    trending: {
       isViral: boolean;
       trendingScore: number;
@@ -133,11 +138,12 @@ const RizzLeaderboard: React.FC<RizzLeaderboardProps> = ({
                <div className="flex items-center gap-1 justify-end sm:justify-end">
                   <Zap className="w-3 h-3 sm:w-4 sm:h-4 text-purple-500" />
                   <span className="text-lg sm:text-xl font-bold text-purple-600 dark:text-purple-400">
-                     {item.currentScore.toFixed(0)}
+                     {item.scoreV2 ?? Math.round(item.currentScore * 10)}
                   </span>
+                  <span className="text-xs text-gray-400">/ 1000</span>
                </div>
                <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
-                  Rizz Score
+                  {item.tierInfo?.tier || "Ranked"} · {item.currentScore.toFixed(0)}/100
                </p>
                {item.trending?.trendingScore && (
                   <p className={`text-xs ${item.trending.trendingScore > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>

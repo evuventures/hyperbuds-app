@@ -40,13 +40,13 @@ export interface ConfirmPaymentResponse {
 // Subscription Types
 export interface CreateSubscriptionRequest {
     priceId: string;
-    tier: 'premium' | 'pro';
+    tier: SubscriptionTier;
     paymentMethodId: string;
 }
 
 export interface UpdateSubscriptionRequest {
     priceId: string;
-    tier: 'premium' | 'pro';
+    tier: SubscriptionTier;
 }
 
 export interface CancelSubscriptionRequest {
@@ -240,7 +240,7 @@ export interface PaymentErrorResponse {
 }
 
 // Subscription Tiers
-export type SubscriptionTier = 'free' | 'basic' | 'premium' | 'pro' | 'enterprise';
+export type SubscriptionTier = 'free' | 'starter' | 'pro' | 'creator_max' | 'basic' | 'premium' | 'enterprise';
 
 export interface SubscriptionPlan {
     id: string;

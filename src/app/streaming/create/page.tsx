@@ -1,11 +1,5 @@
-import PagePlaceholder from "@/components/ui/PagePlaceholder";
+import { redirect } from 'next/navigation';
 
-export default function StreamingCreatePage() {
-  return (
-    <PagePlaceholder
-      title="Create Stream"
-      description="Schedule a live session with your audience."
-      icon="calendar"
-    />
-  );
+export default function StreamingCreateRedirectPage() {
+  redirect('/streaming');
 }

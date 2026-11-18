@@ -1,0 +1,11 @@
+2026-10-18; Node v24.13.1; installed Google Chrome via Playwright
+
+Backend M1 baseline: 3 suites / 55 tests passed, exit0.
+Nest foundation: TypeScript build and 7 tests passed, exit0.
+Prisma7.10.1: validate and generate passed, exit0; no DB connection.
+Frontend: npx --no-install tsc --noEmit passed, exit0.
+Frontend browser: npm run test:browser passed, 1 test (7.3s), total18.4s.
+Assertions: real profile niche display, empty-state render, 1440/768/390 no horizontal overflow, dark mode, mobile focus wrap, Escape/return focus, navigation, desktop collapse/expand, no page exceptions.
+Screenshots: discovery-1440.png, discovery-768.png, discovery-390.png, discovery-390-dark.png.
+
+All browser identities and API responses are isolated fixtures. No real DB/provider/account tests, data migration or restore test. Earlier failures were investigated and corrected; only the final run is counted as passing. Final frontend production build: npm run build passed, exit0; compilation, TypeScript and 56/56 static pages succeeded. No Docker image or production deployment was performed.

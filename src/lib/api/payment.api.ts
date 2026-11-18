@@ -23,7 +23,10 @@ import {
    PaymentErrorResponse
 } from '@/types/payment.types';
 
-const BASE_URL = 'https://api-hyperbuds-backend.onrender.com/api/v1/payments';
+const API_ORIGIN = (
+   process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4000/api/v1'
+).replace(/\/+$/, '');
+const BASE_URL = `${API_ORIGIN}/payments`;
 
 class PaymentAPI {
    private async request<T>(
@@ -220,4 +223,167 @@ class PaymentAPI {
    }
 }
 
+export interface WalletAccountSummary {
+   id: string | null;
+   userId: string;
+   balanceCredits: number;
+   reservedCredits: number;
+   availableCredits: number;
+   buckets?: {
+      purchased: number;
+      subscription: number;
+      promo: number;
+   };
+   currency: 'credits';
+   updatedAt: string | null;
+}
+
+export interface WalletLedgerEntry {
+   _id: string;
+   type: string;
+   bucket?: 'purchased' | 'subscription' | 'promo' | null;
+   amountMinor: number;
+   currency: string;
+   status: 'posted' | 'pending' | 'voided';
+   idempotencyKey?: string;
+   refType?: string;
+   refId?: string;
+   balanceAfter?: number;
+   createdAt: string;
+}
+
+export interface ReferralSummary {
+   referralCode: string;
+   policy: {
+      referrerPromoCredits: number;
+      refereePromoCredits: number;
+      maxMonthlyRewardedReferrals: number;
+   };
+   monthlyRewardedCount: number;
+   monthlyRemainingCount: number;
+   totalEarnedPromoCredits: number;
+   alreadyClaimedAsReferee: boolean;
+   referrals: Array<{
+      _id: string;
+      referralCode: string;
+      referrerRewardCredits: number;
+      rewardedAt: string;
+   }>;
+}
+
+export interface AiUsageRecordItem {
+   _id: string;
+   feature: string;
+   promptVersion: string;
+   model: string;
+   creditCost: number;
+   inputTokens: number;
+   outputTokens: number;
+   status: 'reserved' | 'settled' | 'refunded' | 'failed';
+   errorMessage?: string;
+   createdAt: string;
+}
+
+export interface CreatorChallengeItem {
+   _id: string;
+   title: string;
+   description: string;
+   category: string;
+   rewardCredits: number;
+   currency: 'credits';
+   status: string;
+   claimsCount: number;
+   maxClaims?: number | null;
+   mySubmission?: {
+      _id: string;
+      status: string;
+      rewardCreditsAwarded: number;
+   } | null;
+}
+
 export const paymentAPI = new PaymentAPI();
+
+async function originRequest<T>(path: string, token: string, options: RequestInit = {}): Promise<T> {
+   const response = await fetch(`${API_ORIGIN}${path}`, {
+      ...options,
+      headers: {
+         'Content-Type': 'application/json',
+         Authorization: `Bearer ${token}`,
+         ...options.headers,
+      },
+   });
+
+   const payload = await response.json().catch(() => ({}));
+   if (!response.ok) {
+      throw new Error(payload?.message || `HTTP error! status: ${response.status}`);
+   }
+   return payload as T;
+}
+
+export const walletAPI = {
+   getWallet(token: string) {
+      return originRequest<{ wallet: WalletAccountSummary; creditPacks: Record<string, number> }>(
+         '/wallet',
+         token
+      );
+   },
+   getLedger(token: string, page = 1, limit = 25) {
+      return originRequest<{
+         entries: WalletLedgerEntry[];
+         pagination: { page: number; limit: number; total: number; pages: number };
+      }>(`/wallet/ledger?page=${page}&limit=${limit}`, token);
+   },
+   getReconciliation(token: string) {
+      return originRequest<{
+         balanceMatches: boolean;
+         reservedMatches: boolean;
+         ledgerPostedBalance: number;
+         ledgerReservedCredits: number;
+         entryCount: number;
+      }>('/wallet/reconcile', token);
+   },
+   getAiUsage(token: string, limit = 20) {
+      return originRequest<{ records: AiUsageRecordItem[] }>(`/wallet/ai-usage?limit=${limit}`, token);
+   },
+   createTopUpIntent(token: string, credits: number, idempotencyKey: string) {
+      return originRequest<{
+         clientSecret?: string;
+         paymentIntentId: string;
+         amountCents: number;
+         currency: string;
+         creditGrant: number;
+      }>('/wallet/topup-intent', token, {
+         method: 'POST',
+         headers: { 'Idempotency-Key': idempotencyKey },
+         body: JSON.stringify({ credits, idempotencyKey }),
+      });
+   },
+   getChallenges(token: string) {
+      return originRequest<{ challenges: CreatorChallengeItem[] }>('/challenges', token);
+   },
+   claimChallenge(token: string, challengeId: string, body: { evidenceUrl?: string; notes?: string }) {
+      return originRequest<{
+         wallet: WalletAccountSummary;
+         ledgerEntry: WalletLedgerEntry;
+      }>(`/challenges/${challengeId}/claim`, token, {
+         method: 'POST',
+         body: JSON.stringify(body),
+      });
+   },
+   getReferrals(token: string) {
+      return originRequest<ReferralSummary>('/wallet/referrals', token);
+   },
+   claimReferral(token: string, referralCode: string, fingerprint?: string) {
+      return originRequest<{
+         refereeWallet: WalletAccountSummary;
+      }>('/wallet/referrals/claim', token, {
+         method: 'POST',
+         body: JSON.stringify({ referralCode, fingerprint }),
+      });
+   },
+   getCommercialCatalog(token: string) {
+      return originRequest<{
+         aiTariffs: Record<string, number>;
+      }>('/wallet/catalog', token);
+   },
+};
