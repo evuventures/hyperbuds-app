@@ -7,7 +7,6 @@ import type { ProfileByUsernameResponse } from '@/lib/api/profile.api';
 import DashboardLayout from '@/components/layout/Dashboard/Dashboard';
 import UserProfileHeader from '@/components/profile/ProfileCard.jsx';
 import { FaSpinner } from 'react-icons/fa';
-import { motion } from 'framer-motion';
 
 export default function ProfileByUsernamePage() {
   const params = useParams();
@@ -28,9 +27,6 @@ export default function ProfileByUsernamePage() {
       try {
         setIsLoading(true);
         setError(null);
-
-        // Handle both /profile/@username and /profile/username formats
-        // The API function will handle the @ symbol internally
         const data = await profileApi.getProfileByUsername(username);
         setProfile(data);
       } catch (err) {
@@ -48,72 +44,43 @@ export default function ProfileByUsernamePage() {
   if (isLoading) {
     return (
       <DashboardLayout>
-        <div className="flex justify-center items-center min-h-screen">
+        <div className="flex justify-center items-center min-h-[60vh]">
           <div className="text-center">
-            <FaSpinner className="animate-spin mx-auto h-8 w-8 text-purple-500 mb-4" />
-            <p className="text-gray-600 dark:text-gray-400">Loading profile...</p>
+            <FaSpinner className="animate-spin mx-auto h-7 w-7 text-indigo-600 mb-3" />
+            <p className="text-sm text-slate-600 dark:text-slate-400">Loading profile...</p>
           </div>
         </div>
       </DashboardLayout>
     );
   }
 
-  if (error) {
+  if (error || !profile) {
     return (
       <DashboardLayout>
-        <div className="flex flex-col justify-center items-center min-h-screen px-4">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-center max-w-md"
-          >
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+        <div className="flex flex-col justify-center items-center min-h-[60vh] px-4">
+          <div className="p-6 text-center max-w-md bg-white rounded-2xl border border-slate-200 shadow-xs dark:bg-slate-900 dark:border-slate-800">
+            <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-2">
               Profile Not Found
             </h1>
-            <p className="text-gray-600 dark:text-gray-400 mb-6">{error}</p>
-            <button
-              onClick={() => router.back()}
-              className="px-6 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
-            >
-              Go Back
-            </button>
-          </motion.div>
-        </div>
-      </DashboardLayout>
-    );
-  }
-
-  if (!profile) {
-    return (
-      <DashboardLayout>
-        <div className="flex flex-col justify-center items-center min-h-screen px-4">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-center max-w-md"
-          >
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-              Profile Not Found
-            </h1>
-            <p className="text-gray-600 dark:text-gray-400 mb-6">
-              The profile you&apos;re looking for doesn&apos;t exist.
+            <p className="text-sm text-slate-600 dark:text-slate-400 mb-5">
+              {error || "The profile you're looking for doesn't exist or is set to private."}
             </p>
             <button
+              type="button"
               onClick={() => router.back()}
-              className="px-6 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
+              className="px-5 py-2 text-sm font-semibold bg-indigo-600 text-white rounded-xl hover:bg-indigo-500 transition-colors"
             >
               Go Back
             </button>
-          </motion.div>
+          </div>
         </div>
       </DashboardLayout>
     );
   }
 
-  // Transform profile data to match UserProfileHeader component format
   const profileData = {
     profile: {
-      userId: profile.id || profile.username,
+      userId: profile.userId || profile.id || profile._id,
       username: profile.username,
       displayName: profile.displayName || profile.username,
       avatar: profile.avatar || null,
@@ -122,119 +89,50 @@ export default function ProfileByUsernamePage() {
       location: profile.location || {
         city: '',
         state: '',
-        country: ''
+        country: '',
       },
+      locationName: typeof profile.locationName === 'string' ? profile.locationName : undefined,
       socialLinks: profile.socialLinks || {},
-      rizzScore: profile.profileRizzScore,
-      stats: {
-        totalFollowers: 0,
-        avgEngagement: 0,
-        platformBreakdown: {}
-      },
+      rizzScore: profile.profileRizzScore ?? profile.rizzScore,
+      createdAt: profile.createdAt,
+      stats: profile.stats || { totalFollowers: undefined, avgEngagement: undefined },
+      primaryRole: typeof profile.primaryRole === 'string' ? profile.primaryRole : undefined,
+      skills: Array.isArray(profile.skills) ? profile.skills : [],
+      offerPreference: typeof profile.offerPreference === 'string' ? profile.offerPreference : undefined,
+      availability: typeof profile.availability === 'string' ? profile.availability : undefined,
+      portfolioLinks:
+        profile.portfolioLinks && typeof profile.portfolioLinks === 'object'
+          ? profile.portfolioLinks
+          : {},
+      experience: Array.isArray(profile.experience) ? profile.experience : [],
       isPublic: true,
-      isActive: true,
-      profileUrl: typeof window !== 'undefined'
-        ? `${window.location.origin}/profile/@${profile.username}`
-        : `https://www.hyperbuds.com/@${profile.username}`
-    }
-  };
-
-  const handleConnect = () => {
-    // TODO: wire up real connect API call once available.
-    // ProfileCard already toggles its own "Connected" state locally.
+      isActive: profile.isActive,
+      profileUrl:
+        typeof window !== 'undefined'
+          ? `${window.location.origin}/profile/@${profile.username}`
+          : `https://www.hyperbuds.com/@${profile.username}`,
+    },
   };
 
   const handleMessage = () => {
-    const userId = profile.id || profile.username;
-
+    const userId = profile.userId || profile.id || profile._id;
     if (userId) {
-      router.push(`/messages?userId=${encodeURIComponent(userId)}`);
+      router.push(`/messages?userId=${encodeURIComponent(String(userId))}`);
       return;
     }
-
     console.error('User ID not found for profile:', profile);
   };
 
   return (
     <DashboardLayout>
-      <div className="container mx-auto px-4 py-8 pb-32 max-w-6xl">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          <UserProfileHeader
-            userData={profileData}
-            isLoading={false}
-            isOwnProfile={false}
-            onEditProfile={() => { }}
-            onConnect={handleConnect}
-            onMessage={handleMessage}
-          />
-
-          {/* Additional profile information */}
-          <div className="mt-8 bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-              About @{profile.username}
-            </h2>
-
-            {profile.bio && (
-              <p className="text-gray-700 dark:text-gray-300 mb-6">{profile.bio}</p>
-            )}
-
-            {profile.niche && profile.niche.length > 0 && (
-              <div className="mb-6">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
-                  Niches
-                </h3>
-                <div className="flex flex-wrap gap-2">
-                  {profile.niche.map((niche) => (
-                    <span
-                      key={niche}
-                      className="px-3 py-1 bg-linear-to-r from-purple-500 to-blue-500 text-white rounded-full text-sm font-medium"
-                    >
-                      {niche}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {profile.location && (profile.location.city || profile.location.state || profile.location.country) && (
-              <div className="mb-6">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                  Location
-                </h3>
-                <p className="text-gray-700 dark:text-gray-300">
-                  {[
-                    profile.location.city,
-                    profile.location.state,
-                    profile.location.country
-                  ].filter(Boolean).join(', ')}
-                </p>
-              </div>
-            )}
-
-            {profile.profileRizzScore !== undefined && (
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                  Rizz Score
-                </h3>
-                <div className="flex items-center gap-3">
-                  <div className="text-3xl font-bold text-transparent bg-clip-text bg-linear-to-r from-purple-500 to-blue-500">
-                    {profile.profileRizzScore}
-                  </div>
-                  <div className="w-48 h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-linear-to-r from-purple-500 to-blue-500 transition-all duration-500"
-                      style={{ width: `${profile.profileRizzScore}%` }}
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        </motion.div>
+      <div className="mx-auto px-4 py-6 pb-24 max-w-6xl">
+        <UserProfileHeader
+          userData={profileData}
+          isLoading={false}
+          isOwnProfile={false}
+          onEditProfile={() => {}}
+          onMessage={handleMessage}
+        />
       </div>
     </DashboardLayout>
   );

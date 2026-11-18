@@ -2,6 +2,8 @@
 
 # dependencies
 /node_modules
+/node_modules.nosync/
+/.old_nm.nosync/
 /.pnp
 .pnp.*
 .yarn/*
@@ -15,6 +17,8 @@
 
 # next.js
 /.next/
+/.next.nosync/
+/.next-pw.nosync/
 /out/
 
 # production
@@ -42,4 +46,8 @@ next-env.d.ts
 branch_structure.json
 temp_auto_push.bat
 temp_interactive_push.bat
+
+# Browser test artifacts (selected screenshots live in docs/design)
+test-results/
+playwright-report/
 config.bat

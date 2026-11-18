@@ -6,6 +6,7 @@ import {
    PaymentIntentResponse,
    PaymentMethod,
    SubscriptionResponse,
+   SubscriptionTier,
    EarningsSummary,
    PaymentHistoryQuery,
    PayoutSetupRequest,
@@ -233,7 +234,7 @@ export function PaymentProvider({ children }: PaymentProviderProps) {
 
          const response = await paymentAPI.createSubscription(token, {
             priceId,
-            tier: tier as 'premium' | 'pro',
+            tier: tier as SubscriptionTier,
             paymentMethodId,
          });
 
@@ -264,7 +265,7 @@ export function PaymentProvider({ children }: PaymentProviderProps) {
 
          const response = await paymentAPI.updateSubscription(token, {
             priceId,
-            tier: tier as 'premium' | 'pro',
+            tier: tier as SubscriptionTier,
          });
 
          dispatch({ type: 'SET_SUBSCRIPTION', payload: response.data });

@@ -7,10 +7,17 @@ import {
    History,
    Settings,
    TrendingUp,
+   Wallet,
 } from 'lucide-react';
 
 export function PaymentNavigation() {
    const navigationItems = [
+      {
+         name: 'Wallet & Credits',
+         href: '/payments/wallet',
+         icon: Wallet,
+         description: 'Credits balance, ledger, AI usage & challenges'
+      },
       {
          name: 'Checkout',
          href: '/payments/checkout',

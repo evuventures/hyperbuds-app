@@ -1,2 +1,11 @@
 node_modules
 dist
+# Security: do not package preserved loaders, evidence, local secrets or Git metadata.
+api.js
+docs/security
+.env
+.env.*
+.git
+node_modules
+# Internal design research and browser evidence are not application assets.
+docs/design

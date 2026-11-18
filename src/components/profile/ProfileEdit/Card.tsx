@@ -132,6 +132,17 @@ export default function EditProfilePage() {
   const [socialLinks, setSocialLinks] = useState<SocialLinks>({});
   const [platformCredentials, setPlatformCredentials] = useState<PlatformCredentials>({});
   const [avatar, setAvatar] = useState<string | null>(null);
+  const [primaryRole, setPrimaryRole] = useState("");
+  const [availability, setAvailability] = useState("");
+  const [offerPreference, setOfferPreference] = useState("");
+  const [skillsInput, setSkillsInput] = useState("");
+  const [portfolioLinks, setPortfolioLinks] = useState<{ github: string; portfolio: string; linkedin: string }>({
+    github: "",
+    portfolio: "",
+    linkedin: "",
+  });
+  const [experience, setExperience] = useState<Array<{ title: string; company: string; duration: string }>>([]);
+  const [isPublic, setIsPublic] = useState(true);
 
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -251,6 +262,26 @@ export default function EditProfilePage() {
           setSocialLinks(socialLinksData);
           setPlatformCredentials(platformCreds);
           setAvatar(data.avatar || null);
+          setPrimaryRole(typeof data.primaryRole === "string" ? data.primaryRole : "");
+          setAvailability(typeof data.availability === "string" ? data.availability : "");
+          setOfferPreference(typeof data.offerPreference === "string" ? data.offerPreference : "");
+          setSkillsInput(Array.isArray(data.skills) ? data.skills.join(", ") : "");
+          const pl = (data.portfolioLinks as Record<string, string>) || {};
+          setPortfolioLinks({
+            github: pl.github || "",
+            portfolio: pl.portfolio || "",
+            linkedin: pl.linkedin || "",
+          });
+          setExperience(
+            Array.isArray(data.experience)
+              ? (data.experience as Array<{ title?: string; company?: string; duration?: string }>).map((item) => ({
+                  title: item?.title || "",
+                  company: item?.company || "",
+                  duration: item?.duration || "",
+                }))
+              : []
+          );
+          setIsPublic(data.isPublic !== false);
 
         } else if (response.status === 401) {
           router.push("/auth/signin");
@@ -459,12 +490,37 @@ export default function EditProfilePage() {
       }
 
 
+      const parsedSkills = skillsInput
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean);
+
+      const cleanedExperience = experience
+        .map((item) => ({
+          title: item.title.trim(),
+          company: item.company.trim(),
+          duration: item.duration.trim(),
+        }))
+        .filter((item) => item.title || item.company || item.duration);
+
+      const cleanedPortfolioLinks: Record<string, string> = {};
+      if (portfolioLinks.github.trim()) cleanedPortfolioLinks.github = portfolioLinks.github.trim();
+      if (portfolioLinks.portfolio.trim()) cleanedPortfolioLinks.portfolio = portfolioLinks.portfolio.trim();
+      if (portfolioLinks.linkedin.trim()) cleanedPortfolioLinks.linkedin = portfolioLinks.linkedin.trim();
+
       const cleanedProfile: Partial<UserProfile> = {
         displayName,
         bio,
         // Note: Niches are updated via POST /matchmaker/niches/update (separate endpoint)
         location,
         socialLinks: cleanedSocialLinksWithPlatforms, // Include platform URLs
+        primaryRole: primaryRole.trim(),
+        skills: parsedSkills,
+        portfolioLinks: cleanedPortfolioLinks,
+        experience: cleanedExperience,
+        isPublic,
+        ...(availability ? { availability } : {}),
+        ...(offerPreference ? { offerPreference } : {}),
       };
 
       if (avatar) {
@@ -1042,6 +1098,208 @@ export default function EditProfilePage() {
                 onChange={setPlatformCredentials}
                 showPreviews={true}
               />
+            </div>
+
+            {/* Professional & Startup Hub Profile Fields */}
+            <div className="p-5 mb-8 rounded-2xl border border-slate-200 bg-slate-50/70 dark:border-slate-700 dark:bg-slate-900/50 space-y-5">
+              <div>
+                <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">
+                  Professional & Startup Hub Profile
+                </h2>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  Share your role, skills, availability, work history, and portfolio for Startup & Talent Hub matching.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                <div>
+                  <label className="block mb-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300">
+                    Primary Role
+                  </label>
+                  <input
+                    type="text"
+                    value={primaryRole}
+                    onChange={(e) => setPrimaryRole(e.target.value)}
+                    placeholder="e.g. Full-Stack Engineer"
+                    className="px-3.5 py-2.5 w-full text-sm text-slate-900 bg-white rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+                  />
+                </div>
+
+                <div>
+                  <label className="block mb-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300">
+                    Availability
+                  </label>
+                  <select
+                    value={availability}
+                    onChange={(e) => setAvailability(e.target.value)}
+                    className="px-3.5 py-2.5 w-full text-sm text-slate-900 bg-white rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+                  >
+                    <option value="">Select availability</option>
+                    <option value="immediately">Available immediately</option>
+                    <option value="within_2_weeks">Within 2 weeks</option>
+                    <option value="within_1_month">Within 1 month</option>
+                    <option value="in_2_3_months">In 2–3 months</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block mb-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300">
+                    Offer Preference
+                  </label>
+                  <select
+                    value={offerPreference}
+                    onChange={(e) => setOfferPreference(e.target.value)}
+                    className="px-3.5 py-2.5 w-full text-sm text-slate-900 bg-white rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+                  >
+                    <option value="">Select preference</option>
+                    <option value="salary">Salary</option>
+                    <option value="equity">Equity</option>
+                    <option value="hybrid">Hybrid (Salary + Equity)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block mb-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  Skills (comma-separated)
+                </label>
+                <input
+                  type="text"
+                  value={skillsInput}
+                  onChange={(e) => setSkillsInput(e.target.value)}
+                  placeholder="TypeScript, React, Product Design, Growth"
+                  className="px-3.5 py-2.5 w-full text-sm text-slate-900 bg-white rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                <div>
+                  <label className="block mb-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300">
+                    GitHub URL
+                  </label>
+                  <input
+                    type="url"
+                    value={portfolioLinks.github}
+                    onChange={(e) => setPortfolioLinks((prev) => ({ ...prev, github: e.target.value }))}
+                    placeholder="https://github.com/username"
+                    className="px-3.5 py-2.5 w-full text-sm text-slate-900 bg-white rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+                  />
+                </div>
+                <div>
+                  <label className="block mb-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300">
+                    Portfolio URL
+                  </label>
+                  <input
+                    type="url"
+                    value={portfolioLinks.portfolio}
+                    onChange={(e) => setPortfolioLinks((prev) => ({ ...prev, portfolio: e.target.value }))}
+                    placeholder="https://yourportfolio.com"
+                    className="px-3.5 py-2.5 w-full text-sm text-slate-900 bg-white rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+                  />
+                </div>
+                <div>
+                  <label className="block mb-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300">
+                    LinkedIn URL
+                  </label>
+                  <input
+                    type="url"
+                    value={portfolioLinks.linkedin}
+                    onChange={(e) => setPortfolioLinks((prev) => ({ ...prev, linkedin: e.target.value }))}
+                    placeholder="https://linkedin.com/in/username"
+                    className="px-3.5 py-2.5 w-full text-sm text-slate-900 bg-white rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <div className="flex justify-between items-center mb-2">
+                  <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                    Work & Project Experience
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setExperience((prev) => [...prev, { title: "", company: "", duration: "" }])
+                    }
+                    className="px-3 py-1 text-xs font-semibold text-indigo-600 bg-indigo-50 rounded-lg border border-indigo-200 hover:bg-indigo-100 dark:bg-indigo-950/60 dark:text-indigo-300 dark:border-indigo-800"
+                  >
+                    + Add Experience
+                  </button>
+                </div>
+                {experience.length > 0 ? (
+                  <div className="space-y-3">
+                    {experience.map((item, idx) => (
+                      <div
+                        key={idx}
+                        className="grid grid-cols-1 gap-2 sm:grid-cols-10 items-center p-3 bg-white rounded-xl border border-slate-200 dark:bg-slate-800 dark:border-slate-700"
+                      >
+                        <input
+                          type="text"
+                          value={item.title}
+                          onChange={(e) =>
+                            setExperience((prev) =>
+                              prev.map((row, i) => (i === idx ? { ...row, title: e.target.value } : row))
+                            )
+                          }
+                          placeholder="Role / Title"
+                          className="sm:col-span-4 px-3 py-2 text-xs text-slate-900 bg-slate-50 rounded-lg border border-slate-200 dark:bg-slate-900 dark:text-slate-100 dark:border-slate-700"
+                        />
+                        <input
+                          type="text"
+                          value={item.company}
+                          onChange={(e) =>
+                            setExperience((prev) =>
+                              prev.map((row, i) => (i === idx ? { ...row, company: e.target.value } : row))
+                            )
+                          }
+                          placeholder="Company / Studio"
+                          className="sm:col-span-3 px-3 py-2 text-xs text-slate-900 bg-slate-50 rounded-lg border border-slate-200 dark:bg-slate-900 dark:text-slate-100 dark:border-slate-700"
+                        />
+                        <input
+                          type="text"
+                          value={item.duration}
+                          onChange={(e) =>
+                            setExperience((prev) =>
+                              prev.map((row, i) => (i === idx ? { ...row, duration: e.target.value } : row))
+                            )
+                          }
+                          placeholder="Duration (e.g. 2024–Present)"
+                          className="sm:col-span-2 px-3 py-2 text-xs text-slate-900 bg-slate-50 rounded-lg border border-slate-200 dark:bg-slate-900 dark:text-slate-100 dark:border-slate-700"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setExperience((prev) => prev.filter((_, i) => i !== idx))}
+                          className="sm:col-span-1 px-2 py-2 text-xs font-medium text-red-600 hover:underline"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    No experience entries added yet.
+                  </p>
+                )}
+              </div>
+
+              <div className="flex justify-between items-center pt-2 border-t border-slate-200 dark:border-slate-700">
+                <div>
+                  <span className="block text-xs font-semibold text-slate-800 dark:text-slate-200">
+                    Public Profile Visibility
+                  </span>
+                  <span className="text-xs text-slate-500 dark:text-slate-400">
+                    Allow creators and founders to view your public profile and invite you to collaborations.
+                  </span>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={isPublic}
+                  onChange={(e) => setIsPublic(e.target.checked)}
+                  aria-label="Public Profile Visibility"
+                  className="w-4 h-4 accent-indigo-600 rounded"
+                />
+              </div>
             </div>
 
             {/* Submit Button with Enhanced Animation */}

@@ -1,28 +1,25 @@
-"use client"
+'use client';
 
 import React from 'react';
-import {
-  FaUserCircle, FaUserPlus, FaUserEdit, FaLink,
-  FaArrowLeft, FaArrowRight, FaCheckCircle, FaSpinner
-} from 'react-icons/fa';
+import { motion } from 'framer-motion';
+import { Camera, CheckCircle2, Loader2, Sparkles, UserCheck } from 'lucide-react';
 import { useProfileForm } from '@/hooks/features/useProfile';
 
-// Import refactored step components
 import Step1Avatar from './components/StepOne';
 import Step2BasicInfo from './components/StepTwo';
 import Step3About from './components/StepThree';
 
 const STEPS = [
-  { id: 1, title: 'Profile Picture', icon: FaUserCircle },
-  { id: 2, title: 'Basic Info', icon: FaUserPlus },
-  { id: 3, title: 'About You', icon: FaUserEdit },
+  { id: 1, title: 'Photo', icon: Camera },
+  { id: 2, title: 'Identity', icon: UserCheck },
+  { id: 3, title: 'Story & Niches', icon: Sparkles },
 ];
 
 export default function MultiStepProfileForm() {
   const {
     currentStep,
     formData,
-    isLoading, 
+    isLoading,
     error,
     message,
     isCheckingUsername,
@@ -31,7 +28,6 @@ export default function MultiStepProfileForm() {
     handleFileChange,
     updateField,
     updateLocation,
-    updateSocials,
     nextStep,
     prevStep,
     handleSubmit,
@@ -47,167 +43,164 @@ export default function MultiStepProfileForm() {
     }
   };
 
-  // Success Screen (Step 4)
+  // Success screen (Step 4) matching Onboarding completion style
   if (currentStep === 4) {
     return (
-      <div className="flex justify-center items-center p-4 min-h-screen bg-linear-to-br from-purple-50 via-white to-blue-50">
-        <div className="w-full max-w-lg">
-          <div className="p-12 rounded-3xl border shadow-2xl backdrop-blur-sm bg-white/80 border-white/50 text-center space-y-8">
-            <div className="flex justify-center">
-              <div className="flex justify-center items-center w-24 h-24 bg-linear-to-r from-purple-500 to-blue-500 rounded-full shadow-2xl">
-                <FaCheckCircle className="w-12 h-12 text-white" />
-              </div>
+      <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 p-6 font-sans">
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="w-full max-w-lg rounded-3xl border border-gray-200 bg-white p-8 text-center shadow-xl sm:p-12"
+        >
+          <div className="mb-6 flex justify-center">
+            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg shadow-purple-500/25">
+              <CheckCircle2 className="h-10 w-10" />
             </div>
-            <div>
-              <h2 className="mb-4 text-4xl font-bold text-transparent bg-clip-text bg-linear-to-r from-purple-600 to-blue-600">
-                Profile Complete!
-              </h2>
-              <p className="mx-auto max-w-md text-lg text-gray-600">
-                Your profile has been created successfully! You can now start discovering and collaborating with other creators.
-              </p>
-            </div>
-            <button
-              className="px-8 py-4 w-full font-semibold text-white bg-linear-to-r from-purple-500 to-blue-500 rounded-xl shadow-lg transition-all duration-300 transform hover:shadow-xl hover:scale-105"
-              onClick={() => {
-                setTimeout(() => { window.location.href = '/'; }, 1000);
-              }}
-            >
-              Go to Dashboard
-            </button>
           </div>
-        </div>
+          <h2 className="mb-3 text-3xl font-extrabold text-gray-900 sm:text-4xl">
+            Profile Complete!
+          </h2>
+          <p className="mb-8 text-base text-gray-600 sm:text-lg">
+            You&apos;re all set to discover ideal collaborators, share posts and reels, and start co-streaming.
+          </p>
+          <button
+            type="button"
+            onClick={() => {
+              window.location.href = '/';
+            }}
+            className="w-full cursor-pointer rounded-full bg-gradient-to-r from-purple-600 to-blue-600 py-4 text-lg font-bold text-white shadow-lg transition-all hover:scale-[1.01] hover:from-purple-700 hover:to-blue-700"
+          >
+            Go to Dashboard
+          </button>
+        </motion.div>
       </div>
     );
   }
 
+  const activeMeta = STEPS.find((s) => s.id === currentStep) ?? STEPS[0];
+  const ActiveIcon = activeMeta.icon;
+
   return (
-    <div className="flex justify-center items-center p-4 min-h-screen bg-linear-to-br from-purple-50 via-white to-blue-50">
-      {/* Background decorative elements */}
-      <div className="overflow-hidden fixed inset-0 pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full blur-3xl bg-purple-300/20" />
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 rounded-full blur-3xl bg-blue-300/20" />
-      </div>
-
-      <div className="relative z-10 w-full max-w-2xl">
-        <div className="p-8 rounded-3xl border shadow-2xl backdrop-blur-sm bg-white/80 md:p-12 border-white/50">
-
-          {/* Progress Bar */}
-          <div className="mb-12">
-            <div className="flex justify-between items-center mb-4">
-              {STEPS.map((step, index) => (
-                <React.Fragment key={step.id}>
-                  <div className="flex flex-col items-center">
-                    <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 ${currentStep >= step.id
-                      ? 'bg-linear-to-r from-purple-500 to-blue-500 text-white shadow-lg'
-                      : 'bg-gray-200 text-gray-500'
-                      }`}>
-                      <step.icon className="w-5 h-5" />
-                    </div>
-                    <span className={`text-xs mt-2 font-medium ${currentStep >= step.id ? 'text-purple-600' : 'text-gray-500'
-                      }`}>
-                      {step.title}
-                    </span>
-                  </div>
-                  {index < STEPS.length - 1 && (
-                    <div className={`flex-1 h-1 mx-4 rounded-full transition-all duration-300 ${currentStep > step.id
-                      ? 'bg-linear-to-r from-purple-500 to-blue-500'
-                      : 'bg-gray-200'
-                      }`} />
-                  )}
-                </React.Fragment>
-              ))}
-            </div>
+    <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 p-4 font-sans sm:p-6">
+      <div className="w-full max-w-xl rounded-3xl border border-gray-200 bg-white p-6 shadow-xl sm:p-10">
+        {/* Top Onboarding-style Icon + Step Meta */}
+        <div className="mb-6 flex flex-col items-center text-center">
+          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-purple-50 text-purple-600 shadow-xs ring-1 ring-purple-100">
+            <ActiveIcon className="h-8 w-8" />
           </div>
-
-          {/* Feedback Messages */}
-          {message && (
-            <div className="p-4 mb-6 bg-green-50 rounded-xl border-2 border-green-200">
-              <p className="text-sm font-medium text-green-700">{message}</p>
-            </div>
-          )}
-          {error && (
-            <div className="p-4 mb-6 bg-red-50 rounded-xl border-2 border-red-200">
-              <p className="text-sm font-medium text-red-700">{error}</p>
-            </div>
-          )}
-
-          {/* Step Rendering */}
-          <div className="mb-8 min-h-87.5">
-            {currentStep === 1 && (
-              <Step1Avatar previewUrl={previewUrl}
-                handleFileChange={handleFileChange}
-                onClear={clearSelectedFile}
-                 />
-            )}
-            {currentStep === 2 && (
-              <Step2BasicInfo
-                username={formData.username}
-                displayName={formData.displayName}
-                isChecking={isCheckingUsername}
-                isAvailable={isUsernameAvailable}
-                onUpdateField={updateField}
-                suggestions={suggestions}
-              />
-            )}
-            {currentStep === 3 && (
-              <Step3About
-                bio={formData.bio}
-                selectedNiches={formData.niches}
-                location={formData.location}
-                onUpdateField={updateField}
-                onUpdateLocation={updateLocation}
-              />
-            )}
+          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-purple-600">
+            <span>Step {currentStep} of {STEPS.length}</span>
+            <span>·</span>
+            <span>{activeMeta.title}</span>
           </div>
+        </div>
 
-          {/* Navigation Controls */}
-          <div className="flex gap-2 justify-between items-center sm:gap-4">
+        {/* Feedback Banners */}
+        {message && (
+          <div role="status" className="mb-5 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-center text-sm font-medium text-emerald-700">
+            {message}
+          </div>
+        )}
+        {error && (
+          <div role="alert" className="mb-5 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-center text-sm font-medium text-rose-700">
+            {error}
+          </div>
+        )}
+
+        {/* Step Content */}
+        <div key={currentStep} className="min-h-[340px]">
+          {currentStep === 1 && (
+            <Step1Avatar
+              previewUrl={previewUrl}
+              handleFileChange={handleFileChange}
+              onClear={clearSelectedFile}
+            />
+          )}
+          {currentStep === 2 && (
+            <Step2BasicInfo
+              username={formData.username}
+              displayName={formData.displayName}
+              isChecking={isCheckingUsername}
+              isAvailable={isUsernameAvailable}
+              onUpdateField={updateField}
+              suggestions={suggestions}
+            />
+          )}
+          {currentStep === 3 && (
+            <Step3About
+              bio={formData.bio}
+              selectedNiches={formData.niches}
+              location={formData.location}
+              onUpdateField={updateField}
+              onUpdateLocation={updateLocation}
+            />
+          )}
+        </div>
+
+        {/* Onboarding-inspired Progress Dots */}
+        <div className="my-7 flex justify-center gap-2" aria-label="Profile setup progress">
+          {STEPS.map((step) => (
+            <div
+              key={step.id}
+              className={`h-2.5 rounded-full transition-all duration-300 ${
+                step.id === currentStep
+                  ? 'w-8 bg-purple-600'
+                  : step.id < currentStep
+                    ? 'w-3 bg-purple-300'
+                    : 'w-3 bg-gray-200'
+              }`}
+            />
+          ))}
+        </div>
+
+        {/* Primary Pill CTA + Minimal Secondary Navigation */}
+        <div className="space-y-3">
+          {currentStep === 3 ? (
             <button
-              onClick={prevStep}
-              disabled={currentStep === 1 || isLoading}
-              className="flex gap-1 items-center px-3 py-2 text-sm font-semibold text-gray-600 rounded-xl transition-all hover:bg-gray-100 disabled:opacity-50"
+              type="button"
+              onClick={handleSubmit}
+              disabled={isLoading || !canProceed()}
+              className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-full bg-gradient-to-r from-purple-600 to-blue-600 py-4 text-base font-bold text-white shadow-lg transition-all hover:scale-[1.01] hover:from-purple-700 hover:to-blue-700 disabled:cursor-not-allowed disabled:opacity-50 sm:text-lg"
             >
-              <FaArrowLeft className="w-3 h-3 sm:w-4 sm:h-4" />
-              <span className="hidden sm:inline">Back</span>
+              {isLoading ? (
+                <>
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  <span>Completing Profile...</span>
+                </>
+              ) : (
+                'Complete Profile'
+              )}
             </button>
+          ) : (
+            <button
+              type="button"
+              onClick={nextStep}
+              disabled={!canProceed()}
+              className="w-full cursor-pointer rounded-full bg-gradient-to-r from-purple-600 to-blue-600 py-4 text-base font-bold text-white shadow-lg transition-all hover:scale-[1.01] hover:from-purple-700 hover:to-blue-700 disabled:cursor-not-allowed disabled:opacity-50 sm:text-lg"
+            >
+              Next
+            </button>
+          )}
 
-            <div className="flex items-center space-x-2 sm:space-x-3">
+          <div className="flex items-center justify-center gap-6 pt-1">
+            {currentStep > 1 && (
               <button
                 type="button"
-                onClick={handleSkip}
+                onClick={prevStep}
                 disabled={isLoading}
-                className="px-3 py-2 text-sm font-semibold text-gray-500 rounded-xl transition-all hover:text-gray-800 hover:bg-gray-100 disabled:opacity-50 cursor-pointer"
+                className="cursor-pointer py-1.5 text-sm font-semibold text-gray-500 transition-colors hover:text-gray-900 disabled:opacity-50"
               >
-                Skip
+                Back
               </button>
-
-              {currentStep === 3 ? (
-                <button
-                  onClick={handleSubmit}
-                  disabled={isLoading || !canProceed()}
-                  className="flex gap-1 items-center px-4 py-2 text-sm font-semibold text-white bg-linear-to-r from-purple-500 to-blue-500 rounded-xl shadow-lg transition-all hover:scale-105 disabled:opacity-50 cursor-pointer"
-                >
-                  {isLoading ? (
-                    <FaSpinner className="w-3 h-3 animate-spin sm:w-4 sm:h-4" />
-                  ) : (
-                    <>
-                      <span className="hidden sm:inline">Complete Profile</span>
-                      <span className="sm:hidden">Complete</span>
-                      <FaCheckCircle className="w-3 h-3 sm:w-4 sm:h-4" />
-                    </>
-                  )}
-                </button>
-              ) : (
-                <button
-                  onClick={nextStep}
-                  disabled={!canProceed()}
-                  className="flex gap-1 items-center px-4 py-2 text-sm font-semibold text-white bg-linear-to-r from-purple-500 to-blue-500 rounded-xl shadow-lg transition-all hover:scale-105 disabled:opacity-50 cursor-pointer"
-                >
-                  Next
-                  <FaArrowRight className="w-3 h-3 sm:w-4 sm:h-4" />
-                </button>
-              )}
-            </div>
+            )}
+            <button
+              type="button"
+              onClick={handleSkip}
+              disabled={isLoading}
+              className="cursor-pointer py-1.5 text-sm font-semibold text-purple-600 transition-colors hover:text-purple-800 disabled:opacity-50"
+            >
+              Skip
+            </button>
           </div>
         </div>
       </div>

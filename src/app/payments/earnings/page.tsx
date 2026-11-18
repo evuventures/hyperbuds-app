@@ -25,17 +25,6 @@ function EarningsDashboard() {
 
     const loadPayoutAccountStatus = useCallback(async () => {
         try {
-            if (process.env.NODE_ENV === 'development') {
-                console.log('Development mode: Skipping payout account status API call');
-                setPayoutAccountStatus({
-                    detailsSubmitted: false,
-                    chargesEnabled: false,
-                    transfersEnabled: false,
-                    requiresAction: true
-                });
-                return;
-            }
-
             const status = await getPayoutAccountStatus();
             setPayoutAccountStatus(status);
         } catch (error) {
@@ -55,15 +44,6 @@ function EarningsDashboard() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    // Mock earnings data for development
-    const mockEarnings = process.env.NODE_ENV === 'development' ? {
-        totalEarnings: 1250.50,
-        availableForPayout: 85025, // Note: This should be in cents for the logic to work
-        pendingPayouts: 200.00,
-        completedPayouts: 200.25,
-        thisMonthEarnings: 425.75
-    } : null;
-
     const handleRequestPayout = async (e: React.FormEvent) => {
         e.preventDefault();
 
@@ -79,7 +59,7 @@ function EarningsDashboard() {
             return;
         }
 
-        const currentEarnings = state.earnings || mockEarnings;
+        const currentEarnings = state.earnings;
         if (currentEarnings && amount > currentEarnings.availableForPayout) {
             alert('Payout amount cannot exceed available balance');
             return;
@@ -125,7 +105,7 @@ function EarningsDashboard() {
         );
     }
 
-    const displayedEarnings = state.earnings || mockEarnings;
+    const displayedEarnings = state.earnings;
 
     return (
         <DashboardLayout>

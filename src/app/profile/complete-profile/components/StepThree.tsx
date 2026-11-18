@@ -1,8 +1,6 @@
 import React, { useRef, useEffect } from 'react';
-import { X, Check, LucideAArrowDown } from 'lucide-react';
-import { FaSearch } from 'react-icons/fa';
+import { Check, ChevronDown, Search, X } from 'lucide-react';
 import { useNiches } from '@/hooks/features/useNiches';
-import { motion, AnimatePresence } from 'framer-motion';
 import LocationSelector from '@/components/profile/LocationSelector';
 
 interface Step3Props {
@@ -13,26 +11,27 @@ interface Step3Props {
   onUpdateLocation: (key: string, value: string) => void;
 }
 
-
-const Step3About: React.FC<Step3Props> = ({ 
-  bio, selectedNiches, location, onUpdateField, onUpdateLocation 
+const Step3About: React.FC<Step3Props> = ({
+  bio,
+  selectedNiches,
+  location,
+  onUpdateField,
+  onUpdateLocation,
 }) => {
   const { data: availableNiches = [], isLoading: isLoadingNiches } = useNiches();
   const [isOpen, setIsOpen] = React.useState(false);
-  const [search, setSearch] = React.useState("");
+  const [search, setSearch] = React.useState('');
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const searchInputRef = useRef<HTMLInputElement>(null);
 
-  const filteredNiches = (availableNiches || []).filter(n =>
+  const filteredNiches = (availableNiches || []).filter((n) =>
     n.toLowerCase().includes(search.toLowerCase())
   );
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent | TouchEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsOpen(false);
-        setSearch("");
+        setSearch('');
       }
     };
     if (isOpen) {
@@ -47,128 +46,130 @@ const Step3About: React.FC<Step3Props> = ({
 
   const toggleNiche = (niche: string) => {
     if (selectedNiches.includes(niche)) {
-      onUpdateField('niches', selectedNiches.filter(n => n !== niche));
+      onUpdateField('niches', selectedNiches.filter((n) => n !== niche));
     } else {
       onUpdateField('niches', [...selectedNiches, niche]);
     }
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <div className="text-center">
-        <h2 className="mb-2 text-3xl font-bold text-transparent bg-clip-text bg-linear-to-r from-purple-600 to-blue-600">
-          Tell Us About You
+        <h2 className="text-3xl font-extrabold tracking-tight text-gray-900 sm:text-4xl">
+          Story &amp; Niches
         </h2>
-        <p className="text-gray-600">Share your story and interests</p>
+        <p className="mt-2 text-base text-gray-500">
+          Help AI match you with the right collaborators.
+        </p>
       </div>
 
-      <div className="space-y-6">
-        {/* Bio Section */}
+      <div className="space-y-4">
         <div>
-          <label className="block mb-2 text-sm font-semibold text-gray-700">Bio</label>
+          <label htmlFor="complete-bio" className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-gray-500">
+            Bio
+          </label>
           <textarea
-            rows={4}
+            id="complete-bio"
+            rows={3}
             value={bio}
             onChange={(e) => onUpdateField('bio', e.target.value)}
             maxLength={500}
-            className="px-4 py-3 w-full rounded-xl border-2 border-gray-200 transition-all duration-200 resize-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 outline-none"
-            placeholder="Tell us about yourself and your content..."
+            className="w-full resize-none rounded-2xl border border-transparent bg-[#f3f4f8] px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 outline-none transition focus:border-purple-500 focus:bg-white focus:ring-4 focus:ring-purple-500/10"
+            placeholder="Share what you create and who you love collaborating with..."
           />
-          <p className="mt-1 text-xs text-right text-gray-500">
-            {bio.length} / 500 characters
-          </p>
+          <p className="mt-1 text-right text-xs text-gray-400">{bio.length} / 500</p>
         </div>
 
-        {/* Niche Selection */}
-        <div className="relative w-full mx-auto" ref={dropdownRef}>
-          <label className="block mb-2 text-sm font-semibold text-gray-700">
-            Select your niches
+        <div className="relative" ref={dropdownRef}>
+          <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-gray-500">
+            Content Niches
           </label>
-          <p className='text-xs text-gray-500 mb-3'>
-            Select niches to help us match you with the right opportunities.
-          </p>
-
           <div
-            onClick={() => setIsOpen(!isOpen)}
-            className={`relative border-2 rounded-xl bg-white px-4 py-3 min-h-14 flex flex-wrap items-center gap-2 cursor-pointer transition-all duration-200 ${isOpen
-              ? "border-purple-500 ring-2 ring-purple-200"
-              : "border-gray-300 hover:border-purple-400"
-              }`}
+            role="button"
+            tabIndex={0}
+            onClick={() => setIsOpen((prev) => !prev)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                setIsOpen((prev) => !prev);
+              }
+            }}
+            className={`flex min-h-13 cursor-pointer flex-wrap items-center gap-2 rounded-2xl border px-4 py-2.5 transition ${
+              isOpen
+                ? 'border-purple-500 bg-white ring-4 ring-purple-500/10'
+                : 'border-transparent bg-[#f3f4f8] hover:border-purple-300'
+            }`}
           >
             {selectedNiches.length > 0 ? (
-              selectedNiches.map(niche => (
-                <motion.span
+              selectedNiches.map((niche) => (
+                <span
                   key={niche}
-                  initial={{ scale: 0.8, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  exit={{ scale: 0.8, opacity: 0 }}
-                  className="bg-linear-to-r from-purple-500 to-blue-500 text-white px-3 py-1.5 rounded-full text-xs font-medium flex items-center gap-1.5 shadow-sm"
+                  className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-purple-600 to-blue-600 px-3 py-1 text-xs font-semibold text-white shadow-xs"
                 >
                   <span>{niche}</span>
                   <button
                     type="button"
-                    onClick={(e) => { e.stopPropagation(); toggleNiche(niche); }}
-                    className="p-0.5 hover:bg-white/20 rounded-full transition-colors"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleNiche(niche);
+                    }}
+                    aria-label={`Remove ${niche}`}
+                    className="rounded-full p-0.5 transition hover:bg-white/20"
                   >
                     <X className="h-3 w-3" />
                   </button>
-                </motion.span>
+                </span>
               ))
             ) : (
-              <span className="text-gray-400 text-sm">Click to select niches...</span>
+              <span className="text-sm text-gray-400">Select your content niches...</span>
             )}
-            <div className="flex items-center gap-2 ml-auto pl-2">
-              <motion.div animate={{ rotate: isOpen ? 180 : 0 }}>
-                <LucideAArrowDown className="h-5 w-5 text-gray-400" />
-              </motion.div>
-            </div>
+            <ChevronDown
+              className={`ml-auto h-4 w-4 shrink-0 text-gray-400 transition-transform ${
+                isOpen ? 'rotate-180 text-purple-600' : ''
+              }`}
+            />
           </div>
 
-          <AnimatePresence>
-            {isOpen && !isLoadingNiches && (
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="absolute z-50 mt-2 w-full bg-white border-2 border-gray-200 rounded-xl shadow-xl max-h-80 overflow-hidden"
-              >
-                <div className="sticky top-0 bg-white z-10 p-3 border-b border-gray-200">
-                  <div className="relative">
-                    <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                    <input
-                      ref={searchInputRef}
-                      type="text"
-                      autoFocus
-                      placeholder="Search niches..."
-                      value={search}
-                      onChange={(e) => setSearch(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2.5 text-sm border border-gray-300 rounded-lg bg-gray-50 outline-none focus:ring-2 focus:ring-purple-500"
-                    />
-                  </div>
+          {isOpen && !isLoadingNiches && (
+            <div className="absolute z-50 mt-2 max-h-72 w-full overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-xl">
+              <div className="border-b border-gray-100 p-2.5">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                  <input
+                    type="text"
+                    autoFocus
+                    placeholder="Search niches..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="w-full rounded-xl bg-[#f3f4f8] py-2 pl-9 pr-3 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-purple-500/30"
+                  />
                 </div>
+              </div>
 
-                <div className="p-2 max-h-64 overflow-y-auto custom-scrollbar">
-                  {filteredNiches.map(niche => (
-                    <div
+              <div className="max-h-52 overflow-y-auto p-1.5">
+                {filteredNiches.map((niche) => {
+                  const selected = selectedNiches.includes(niche);
+                  return (
+                    <button
                       key={niche}
+                      type="button"
                       onClick={() => toggleNiche(niche)}
-                      className={`px-4 py-2.5 rounded-lg cursor-pointer text-sm mb-1 flex items-center justify-between transition-all ${
-                        selectedNiches.includes(niche)
-                          ? "bg-linear-to-r from-purple-500 to-blue-500 text-white"
-                          : "hover:bg-purple-50 text-gray-700"
+                      className={`mb-0.5 flex w-full cursor-pointer items-center justify-between rounded-xl px-3.5 py-2 text-left text-sm transition ${
+                        selected
+                          ? 'bg-gradient-to-r from-purple-600 to-blue-600 font-semibold text-white'
+                          : 'text-gray-700 hover:bg-purple-50'
                       }`}
                     >
-                      <span className="font-medium">{niche}</span>
-                      {selectedNiches.includes(niche) && <Check className="h-4 w-4" />}
-                    </div>
-                  ))}
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+                      <span>{niche}</span>
+                      {selected && <Check className="h-4 w-4" />}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Location Selection with countrycitystatejson */}
         <div>
           <LocationSelector
             country={location.country}

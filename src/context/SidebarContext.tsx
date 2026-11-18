@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import {
   setRightSidebarOpen,
@@ -28,6 +28,7 @@ interface SidebarContextType {
 export const useSidebar = (): SidebarContextType => {
   const dispatch = useAppDispatch();
   const sidebar = useAppSelector((state) => state.ui.sidebar);
+  const updateSidebarOpen = useCallback((open: boolean) => dispatch(setSidebarOpen(open)), [dispatch]);
 
   return {
     sidebarCollapsed: sidebar.sidebarCollapsed,
@@ -35,7 +36,7 @@ export const useSidebar = (): SidebarContextType => {
     rightSidebarOpen: sidebar.rightSidebarOpen,
     isInitialized: sidebar.isInitialized,
     setSidebarCollapsed: (collapsed) => dispatch(setSidebarCollapsed(collapsed)),
-    setSidebarOpen: (open) => dispatch(setSidebarOpen(open)),
+    setSidebarOpen: updateSidebarOpen,
     setRightSidebarOpen: (open) => dispatch(setRightSidebarOpen(open)),
     toggleSidebarCollapse: () => dispatch(toggleSidebarCollapse()),
     toggleSidebarOpen: () => dispatch(toggleSidebarOpen()),

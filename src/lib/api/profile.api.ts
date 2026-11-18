@@ -25,7 +25,11 @@ export interface SocialSyncResponse {
 }
 
 export interface ProfileByUsernameResponse {
-  id: string;
+  id?: string;
+  userId?: string;
+  _id?: string;
+  rizzScore?: number;
+  createdAt?: string;
   username: string;
   displayName?: string;
   bio?: string;

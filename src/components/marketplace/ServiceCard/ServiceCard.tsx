@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowRight, Edit3, Trash2, Loader2, ShieldCheck } from "lucide-react";
+import { ArrowRight, Clock, Edit3, Loader2, MapPin, ShieldCheck, Star, Trash2 } from "lucide-react";
 import { MarketplaceService } from "@/types/marketplace.types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { marketplaceApi } from "@/lib/api/marketplace.api";
@@ -26,7 +26,7 @@ export const ServiceCard = ({ service, ownerView = false }: ServiceCardProps) =>
   });
 
   const handleDelete = (e: React.MouseEvent) => {
-    e.preventDefault(); // Prevent navigating to details when clicking delete
+    e.preventDefault();
     if (!confirming) {
       setConfirming(true);
       setTimeout(() => setConfirming(false), 4000);
@@ -35,90 +35,121 @@ export const ServiceCard = ({ service, ownerView = false }: ServiceCardProps) =>
     deleteMutation.mutate(service._id);
   };
 
+  const hasMeasuredRating = (service.rating?.count ?? 0) > 0;
+
   return (
-    <div className="relative group bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-3xl flex flex-col overflow-hidden hover:border-purple-500/50 transition-all duration-300 shadow-sm hover:shadow-xl hover:shadow-purple-500/5">
-      
-      {/* SERVICE IMAGE */}
+    <article className="group relative flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white transition hover:border-indigo-300 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-indigo-800">
+      {/* Airbnb-Inspired Media Header */}
       <Link href={`/marketplace/services/${service._id}`} className="block">
-        <div className="relative w-full h-48 overflow-hidden bg-gray-100 dark:bg-gray-800">
+        <div className="relative h-44 w-full overflow-hidden border-b border-slate-100 bg-slate-100 dark:border-slate-800 dark:bg-slate-800/70">
           {service.images && service.images.length > 0 ? (
             <Image
               src={service.images[0]}
               alt={service.title}
               fill
-              className="object-cover transition-transform duration-700 group-hover:scale-105"
+              className="object-cover transition-transform duration-500 group-hover:scale-105"
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-gray-300 dark:text-gray-700">
-              <span className="text-xs font-medium">No Preview Available</span>
+            <div className="flex h-full w-full flex-col items-center justify-center bg-slate-900 text-slate-300">
+              <span className="rounded-md border border-slate-700 bg-slate-800 px-2.5 py-1 font-mono text-[11px] font-semibold uppercase tracking-wider text-indigo-300">
+                {service.category || "Service"}
+              </span>
+              <span className="mt-2 text-xs text-slate-400">Studio deliverable listing</span>
             </div>
           )}
-          
-          {/* Featured Badge */}
+
           {service.featured && (
-            <div className="absolute top-4 left-4 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md px-3 py-1 rounded-lg border border-gray-200 dark:border-gray-700 flex items-center gap-1.5 shadow-sm">
-              <ShieldCheck size={12} className="text-purple-500" />
-              <span className="text-xs  text-gray-500 dark:text-gray-100  ">Featured</span>
+            <div className="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white/95 px-2.5 py-1 text-[11px] font-semibold text-slate-800 shadow-xs dark:border-slate-700 dark:bg-slate-900/95 dark:text-slate-100">
+              <ShieldCheck size={12} className="text-indigo-600 dark:text-indigo-400" />
+              <span>Featured</span>
             </div>
           )}
         </div>
       </Link>
 
-      {/* CARD BODY */}
-      <div className="p-6 flex flex-col grow">
-        <div className="mb-3">
-          <span className="text-xs text-purple-600 dark:text-purple-400 uppercase">
-            {service.category}
-          </span>
+      {/* Card Body */}
+      <div className="flex grow flex-col justify-between p-5">
+        <div>
+          <div className="mb-2 flex items-center justify-between gap-2">
+            <span className="rounded bg-indigo-50 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wider text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300">
+              {service.category}
+            </span>
+            <span className="inline-flex items-center gap-1 text-xs font-medium text-slate-600 dark:text-slate-400">
+              <Star size={12} className={hasMeasuredRating ? "fill-amber-400 text-amber-400" : "text-slate-400"} />
+              {hasMeasuredRating
+                ? `${Number(service.rating?.average || 0).toFixed(1)} (${service.rating?.count})`
+                : "New"}
+            </span>
+          </div>
+
+          <Link href={`/marketplace/services/${service._id}`} className="block group/title">
+            <h3 className="line-clamp-1 text-base font-bold text-slate-900 transition-colors group-hover/title:text-indigo-600 dark:text-white dark:group-hover/title:text-indigo-400">
+              {service.title}
+            </h3>
+            <p className="mt-1.5 line-clamp-2 text-xs leading-relaxed text-slate-600 dark:text-slate-400">
+              {service.description}
+            </p>
+          </Link>
+
+          {/* Delivery & Location Meta */}
+          <div className="mt-3 flex flex-wrap items-center gap-3 text-[11px] text-slate-500 dark:text-slate-400">
+            {service.deliveryTime && (
+              <span className="inline-flex items-center gap-1">
+                <Clock size={12} /> {service.deliveryTime}
+              </span>
+            )}
+            {service.location && (
+              <span className="inline-flex items-center gap-1">
+                <MapPin size={12} /> {service.location}
+              </span>
+            )}
+          </div>
         </div>
 
-        <Link href={`/marketplace/services/${service._id}`} className="grow group/title">
-          <h3 className="text-xl font-bold  text-gray-700 dark:text-gray-100 group-hover/title:text-purple-600 dark:group-hover/title:text-purple-400 transition-colors line-clamp-1">
-            {service.title}
-          </h3>
-          <p className="mt-2 text-gray-500 dark:text-gray-400 text-sm ">
-            {service.description}
-          </p>
-        </Link>
-
-        {/* PRICE & ACTION */}
-        <div className="mt-6 pt-5 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between">
-          <div className="flex flex-col">
-            
-            <div className="flex items-baseline gap-1">
-              <span className="text-xl font-bold text-gray-900 dark:text-gray-100">{service.price}</span>
-              <span className="text-[9px] font-bold text-gray-400 uppercase">{service.currency || "USD"}</span>
+        {/* Price & Action Footer */}
+        <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3.5 dark:border-slate-800">
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Starting at</p>
+            <div className="mt-0.5 flex items-baseline gap-1">
+              <span className="text-lg font-bold text-slate-900 dark:text-white">
+                {Number(service.price || 0).toLocaleString()}
+              </span>
+              <span className="text-[11px] font-semibold uppercase text-slate-500 dark:text-slate-400">
+                {service.currency || "USD"}
+              </span>
             </div>
           </div>
-          
-          <Link 
+
+          <Link
             href={`/marketplace/services/${service._id}`}
-            className="w-10 h-10 rounded-xl bg-gray-50 dark:bg-gray-800 flex items-center justify-center group-hover:bg-linear-to-r group-hover:from-purple-500 group-hover:to-blue-500 group-hover:text-white transition-all duration-300 shadow-sm"
+            aria-label={`View ${service.title}`}
+            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700 transition group-hover:border-indigo-600 group-hover:bg-indigo-600 group-hover:text-white dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
           >
-            <ArrowRight size={18} />
+            View <ArrowRight size={14} />
           </Link>
         </div>
       </div>
 
-      {/* OWNER ACTIONS Overlay */}
+      {/* Owner Actions Overlay */}
       {ownerView && (
-        <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 transform -translate-y-1 group-hover:translate-y-0">
+        <div className="absolute right-3 top-3 flex gap-1.5">
           <Link
             href={`/marketplace/services/${service._id}/edit`}
-            className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-md text-gray-600 dark:text-gray-300 p-2 rounded-lg border border-gray-200 dark:border-gray-700 hover:text-purple-600 dark:hover:text-purple-400 shadow-lg transition-all"
+            className="rounded-lg border border-slate-200 bg-white/95 p-2 text-slate-700 shadow-xs transition hover:text-indigo-600 dark:border-slate-700 dark:bg-slate-900/95 dark:text-slate-200"
             title="Edit Service"
           >
             <Edit3 size={14} />
           </Link>
 
           <button
+            type="button"
             onClick={handleDelete}
             disabled={deleteMutation.isPending}
-            className={`p-2 rounded-lg backdrop-blur-md border shadow-lg transition-all ${
+            className={`rounded-lg border p-2 shadow-xs transition ${
               confirming
-                ? "bg-red-500 text-white border-red-400"
-                : "bg-white/90 dark:bg-gray-800/90 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:text-red-500"
+                ? "border-red-500 bg-red-600 text-white"
+                : "border-slate-200 bg-white/95 text-slate-700 hover:text-red-600 dark:border-slate-700 dark:bg-slate-900/95 dark:text-slate-200"
             }`}
             title={confirming ? "Confirm Delete" : "Delete Service"}
           >
@@ -130,6 +161,6 @@ export const ServiceCard = ({ service, ownerView = false }: ServiceCardProps) =>
           </button>
         </div>
       )}
-    </div>
+    </article>
   );
 };

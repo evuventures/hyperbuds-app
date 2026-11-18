@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import React, { useState } from "react";
-import { Eye, MessageCircle, Sparkles } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import MatchCard from "./MatchCard";
-import type { MatchSuggestion } from "@/types/matching.types";
+import React, { useState } from 'react';
+import { Eye, MessageCircle, Sparkles } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import MatchCard from './MatchCard';
+import type { MatchSuggestion } from '@/types/matching.types';
 
 interface MatchHistoryGalleryProps {
   historyMatches: MatchSuggestion[];
@@ -13,9 +13,9 @@ interface MatchHistoryGalleryProps {
   onViewProfile?: (match: MatchSuggestion) => void;
 }
 
-const getProfileAge = (profile?: MatchSuggestion["targetUser"]): number | undefined => {
+const getProfileAge = (profile?: MatchSuggestion['targetUser']): number | undefined => {
   const rawAge = (profile as { age?: unknown } | undefined)?.age;
-  return typeof rawAge === "number" && Number.isFinite(rawAge) && rawAge > 0
+  return typeof rawAge === 'number' && Number.isFinite(rawAge) && rawAge > 0
     ? Math.floor(rawAge)
     : undefined;
 };
@@ -27,16 +27,16 @@ const MatchHistoryGallery: React.FC<MatchHistoryGalleryProps> = ({
 }) => {
   const [showAllMatches, setShowAllMatches] = useState(false);
 
-  const featuredMatches = historyMatches.slice(0, 2);
-  const remainingMatches = historyMatches.slice(2);
-  const visibleSidebarMatches = showAllMatches ? remainingMatches : remainingMatches.slice(0, 4);
+  const featuredMatches = historyMatches.slice(0, 3);
+  const remainingMatches = historyMatches.slice(3);
+  const visibleExtraMatches = showAllMatches ? remainingMatches : remainingMatches.slice(0, 4);
 
   if (!historyMatches.length) {
     return (
-      <div className="py-16 text-center">
-        <Sparkles className="mx-auto mb-4 h-12 w-12 text-fuchsia-400 dark:text-fuchsia-300" />
-        <h3 className="text-xl font-semibold text-slate-900 dark:text-white">No matches available</h3>
-        <p className="mt-3 text-sm text-slate-500 dark:text-slate-400">
+      <div className="rounded-3xl border border-white/10 bg-white/[0.04] py-16 text-center backdrop-blur-xl">
+        <Sparkles className="mx-auto mb-4 h-12 w-12 text-indigo-300" />
+        <h3 className="text-xl font-semibold text-white">No matches available</h3>
+        <p className="mt-3 text-sm text-slate-300/80">
           We&apos;ll show your strongest creator matches here as soon as they&apos;re ready.
         </p>
       </div>
@@ -44,8 +44,9 @@ const MatchHistoryGallery: React.FC<MatchHistoryGalleryProps> = ({
   }
 
   return (
-    <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
-      <div className="space-y-6">
+    <div className="space-y-10">
+      {/* Alternating Persona Showcase Cards */}
+      <div className="mx-auto max-w-5xl space-y-8">
         {featuredMatches.map((match, index) => (
           <MatchCard
             key={match._id || match.id || `${match.targetUserId}-${index}`}
@@ -57,61 +58,66 @@ const MatchHistoryGallery: React.FC<MatchHistoryGalleryProps> = ({
         ))}
       </div>
 
+      {/* Additional matches in dark frosted bento row */}
       {remainingMatches.length > 0 && (
-        <aside className="h-fit rounded-[28px] border border-fuchsia-200/70 bg-white/85 p-5 shadow-sm backdrop-blur dark:border-white/10 dark:bg-[#1a1227]/88 dark:shadow-none">
-          <div className="mb-5 flex items-start justify-between gap-3">
+        <section className="mx-auto max-w-5xl rounded-[24px] border border-white/10 bg-white/[0.04] p-5 backdrop-blur-xl sm:p-6">
+          <div className="mb-4 flex items-center justify-between gap-3">
             <div>
-              <h2 className="text-2xl font-bold text-slate-900 dark:text-white">More Matches</h2>
-              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Keep exploring your next best fits.</p>
+              <h2 className="text-lg font-bold text-white">More Matches</h2>
+              <p className="text-xs text-slate-400">
+                Keep exploring creators compatible with your style.
+              </p>
             </div>
-            <button
-              type="button"
-              onClick={() => setShowAllMatches((current) => !current)}
-              className="shrink-0 text-sm font-semibold text-fuchsia-600 transition-colors hover:text-fuchsia-700 dark:text-fuchsia-300 dark:hover:text-white"
-            >
-              {showAllMatches ? "Show Less" : "See All"}
-            </button>
+            {remainingMatches.length > 4 && (
+              <button
+                type="button"
+                onClick={() => setShowAllMatches((current) => !current)}
+                className="shrink-0 text-xs font-semibold text-indigo-300 transition-colors hover:text-white"
+              >
+                {showAllMatches ? 'Show Less' : 'See All'}
+              </button>
+            )}
           </div>
 
-          <div className="space-y-3">
-            {visibleSidebarMatches.map((match, index) => {
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+            {visibleExtraMatches.map((match, index) => {
               const profile = match.targetUser;
-              const displayName = profile?.displayName || profile?.username || "Unknown Creator";
+              const displayName = profile?.displayName || profile?.username || 'Unknown Creator';
               const age = getProfileAge(profile);
 
               return (
                 <div
-                  key={match._id || match.id || `${match.targetUserId}-${index + 2}`}
-                  className="flex w-full items-center gap-2 rounded-2xl border border-fuchsia-200/60 bg-white/95 p-2 pr-1 transition-colors hover:border-fuchsia-300/80 hover:bg-fuchsia-50 dark:border-white/6 dark:bg-[#120d1d]/75 dark:hover:border-fuchsia-400/25 dark:hover:bg-[#181127]"
+                  key={match._id || match.id || `${match.targetUserId}-${index + 3}`}
+                  className="flex items-center gap-2 rounded-2xl border border-white/10 bg-[#181a24]/80 p-2.5 transition-colors hover:border-indigo-400/35 hover:bg-[#1f2230]"
                 >
                   <button
                     type="button"
                     onClick={() => onViewProfile?.(match)}
-                    className="flex min-w-0 flex-1 cursor-pointer items-center gap-3 rounded-xl p-1 text-left outline-none ring-offset-white focus-visible:ring-2 focus-visible:ring-fuchsia-500 dark:ring-offset-[#120d1d]"
+                    className="flex min-w-0 flex-1 cursor-pointer items-center gap-3 rounded-xl p-1 text-left outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
                   >
-                    <Avatar className="h-14 w-14 shrink-0 border border-fuchsia-500/20">
+                    <Avatar className="h-12 w-12 shrink-0 border border-white/15">
                       <AvatarImage src={profile?.avatar} alt={displayName} className="object-cover" />
-                      <AvatarFallback className="bg-linear-to-br from-fuchsia-500 to-pink-500 text-sm font-bold text-white">
+                      <AvatarFallback className="bg-linear-to-br from-indigo-500 to-purple-600 text-xs font-bold text-white">
                         {displayName.charAt(0).toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
 
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-base font-semibold text-slate-900 dark:text-white">
+                      <p className="truncate text-sm font-semibold text-white">
                         {age ? `${displayName}, ${age}` : displayName}
                       </p>
-                      <p className="mt-1 text-sm font-semibold text-transparent bg-linear-to-r from-fuchsia-400 to-pink-400 bg-clip-text">
+                      <p className="mt-0.5 text-xs font-semibold text-indigo-300">
                         {match.compatibilityScore}% Match
                       </p>
                     </div>
                   </button>
 
-                  <div className="flex shrink-0 items-center gap-0.5">
+                  <div className="flex shrink-0 items-center gap-1">
                     <Button
                       type="button"
                       variant="ghost"
                       size="icon"
-                      className="h-9 w-9 cursor-pointer text-fuchsia-600 hover:bg-fuchsia-100 hover:text-fuchsia-800 dark:text-fuchsia-300 dark:hover:bg-white/10 dark:hover:text-white"
+                      className="h-8 w-8 cursor-pointer text-slate-300 hover:bg-white/10 hover:text-white"
                       aria-label={`View profile of ${displayName}`}
                       onClick={() => onViewProfile?.(match)}
                     >
@@ -121,7 +127,7 @@ const MatchHistoryGallery: React.FC<MatchHistoryGalleryProps> = ({
                       type="button"
                       variant="ghost"
                       size="icon"
-                      className="h-9 w-9 cursor-pointer text-fuchsia-600 hover:bg-fuchsia-100 hover:text-fuchsia-800 dark:text-fuchsia-300 dark:hover:bg-white/10 dark:hover:text-white"
+                      className="h-8 w-8 cursor-pointer text-slate-300 hover:bg-white/10 hover:text-white"
                       aria-label={`Message ${displayName}`}
                       onClick={() => onMessage(match)}
                     >
@@ -132,7 +138,7 @@ const MatchHistoryGallery: React.FC<MatchHistoryGalleryProps> = ({
               );
             })}
           </div>
-        </aside>
+        </section>
       )}
     </div>
   );
