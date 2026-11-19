@@ -1,7 +1,8 @@
 import { io, Socket } from 'socket.io-client';
+import { BASE_URL } from '@/config/baseUrl';
 import { SocketEvents } from '@/types/messaging.types';
 
-const SOCKET_URL = 'https://api-hyperbuds-backend.onrender.com';
+const SOCKET_URL = BASE_URL;
 
 class MessagingSocketService {
   private socket: Socket | null = null;

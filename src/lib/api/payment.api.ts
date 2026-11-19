@@ -23,9 +23,9 @@ import {
    PaymentErrorResponse
 } from '@/types/payment.types';
 
-const API_ORIGIN = (
-   process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4000/api/v1'
-).replace(/\/+$/, '');
+import { API_BASE_URL } from './endpoints';
+
+const API_ORIGIN = API_BASE_URL.replace(/\/+$/, '');
 const BASE_URL = `${API_ORIGIN}/payments`;
 
 class PaymentAPI {

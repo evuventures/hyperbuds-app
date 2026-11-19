@@ -13,7 +13,9 @@ const customJestConfig = {
       '^@/(.*)$': '<rootDir>/src/$1',
    },
    testEnvironment: 'jest-environment-jsdom',
-   testPathIgnorePatterns: ['/node_modules/', '/tests/browser/'],
+   roots: ['<rootDir>/src'],
+   modulePathIgnorePatterns: ['<rootDir>/node_modules.nosync', '<rootDir>/.next.nosync'],
+   testPathIgnorePatterns: ['/node_modules/', '/node_modules.nosync/', '/tests/browser/'],
    transform: {
       '^.+\\.(js|jsx|ts|tsx)$': ['babel-jest', { presets: ['next/babel'] }],
    },

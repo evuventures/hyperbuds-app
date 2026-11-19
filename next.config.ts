@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  distDir: process.env.NEXT_DIST_DIR || '.next.nosync',
+  distDir: process.env.NEXT_DIST_DIR || (process.env.VERCEL || process.env.CI ? '.next' : '.next.nosync'),
   async redirects() {
     return [
       {

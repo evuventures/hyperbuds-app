@@ -1,4 +1,5 @@
 import { io, Socket } from "socket.io-client";
+import { BASE_URL } from "@/config/baseUrl";
 import { getAccessToken } from "@/store/authSelectors";
 
 export interface NotificationData {
@@ -11,7 +12,7 @@ export interface NotificationData {
   createdAt: string;
 }
 
-const SOCKET_URL = process.env.NEXT_PUBLIC_API_URL ?? "https://api-hyperbuds-backend.onrender.com";
+const SOCKET_URL = process.env.NEXT_PUBLIC_API_URL ?? BASE_URL;
 
 class NotificationSocketService {
   private socket: Socket | null = null;
