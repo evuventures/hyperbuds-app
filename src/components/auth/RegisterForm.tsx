@@ -34,6 +34,7 @@ export default function App() {
   const { register, initiateGoogleLogin } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [accountRole, setAccountRole] = useState<'founder' | 'creator' | 'talent'>('talent');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -72,7 +73,7 @@ export default function App() {
 
     try {
       // ✅ Using the hook's register method
-      await register({ email, password });
+      await register({ email, password, role: accountRole });
       setShowVerificationModal(true);
     } catch (err) {
       // ✅ Type-safe error handling avoiding 'any'
@@ -175,6 +176,20 @@ export default function App() {
                     )}
                   </button>
                 </div>
+              </div>
+
+              <div>
+                <label htmlFor="accountRole" className="block text-sm font-semibold text-gray-700">I&apos;m joining as</label>
+                <select
+                  id="accountRole"
+                  value={accountRole}
+                  onChange={(e) => setAccountRole(e.target.value as 'founder' | 'creator' | 'talent')}
+                  className="block px-4 py-2 mt-1 w-full rounded-md border border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                >
+                  <option value="talent">Talent</option>
+                  <option value="founder">Founder</option>
+                  <option value="creator">Creator (stored as Founder)</option>
+                </select>
               </div>
 
               <button

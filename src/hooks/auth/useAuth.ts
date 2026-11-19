@@ -16,6 +16,11 @@ interface User {
   avatar?: string
 }
 
+type RegistrationData = Partial<User> & {
+  password: string
+  role?: 'founder' | 'creator' | 'talent'
+}
+
 export function useAuth() {
   const dispatch = useAppDispatch()
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -118,7 +123,7 @@ export function useAuth() {
     }
   }, [dispatch])
 
-  const register = useCallback(async (userData: Partial<User> & { password: string }) => {
+  const register = useCallback(async (userData: RegistrationData) => {
     const res = await fetch(`${BASE_URL}/api/v1/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
