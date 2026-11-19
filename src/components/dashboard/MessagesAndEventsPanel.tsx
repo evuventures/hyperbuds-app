@@ -70,14 +70,19 @@ export default function MessagesAndEventsPanel({ currentUserId }: { currentUserI
           (Array.isArray(convRes?.data) ? convRes.data : []);
         setConversations(Array.isArray(convList) ? convList : []);
 
-        const streamItems: EventItem[] = (streamsRes?.data?.streams || []).slice(0, 2).map(
-          (s: { _id: string; title?: string; status?: string; scheduledFor?: string }) => ({
-            id: `stream-${s._id}`,
-            title: s.title || 'Live Creator Stream',
-            subtitle: s.status ? `Stream · ${s.status}` : 'Live Studio Room',
-            href: `/streaming/room/${s._id}`,
-          }),
-        );
+        const streamItems: EventItem[] = (streamsRes?.data?.streams || [])
+          .slice(0, 2)
+          .map(
+            (s: { _id?: string; id?: string; title?: string; status?: string; scheduledFor?: string }) => {
+              const sid = s._id || s.id;
+              return {
+                id: `stream-${sid || Math.random()}`,
+                title: s.title || 'Live Creator Stream',
+                subtitle: s.status ? `Stream · ${s.status}` : 'Live Studio Room',
+                href: sid ? `/streaming/room/${sid}` : '/streaming',
+              };
+            },
+          );
 
         const collabItems: EventItem[] = (trendingRes?.data?.trending || []).slice(0, 2).map(
           (c: { _id?: string; id?: string; title?: string; category?: string }) => ({

@@ -72,7 +72,8 @@ export interface HeroSlide {
   };
 }
 
-const img = (id: string, _w = 900) => `/images/hero/${id}.png`;
+const img = (id: string, w = 900) =>
+  `https://images.unsplash.com/${id}?auto=format&fit=crop&w=${w}&q=80`;
 
 export const HERO_AVATARS = [
   img('photo-1494790108377-be9c29b29330', 120),

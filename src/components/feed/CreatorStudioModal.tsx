@@ -457,10 +457,14 @@ export function CreatorStudioModal({
         recordingConsent: recordingEnabled ? recordingConsent : false,
       });
 
-      let finalStream = created;
-      if (timingMode === 'now' && created?._id) {
-        const started = await streamingApi.startStream(created._id);
-        finalStream = started.stream ?? created;
+      const createdId = created?._id || (created as unknown as { id?: string })?.id;
+      let finalStream: Stream = createdId ? { ...created, _id: createdId } : created;
+      if (timingMode === 'now' && createdId) {
+        const started = await streamingApi.startStream(createdId);
+        if (started.stream) {
+          const startedId = started.stream._id || (started.stream as unknown as { id?: string }).id || createdId;
+          finalStream = { ...started.stream, _id: startedId };
+        }
       }
 
       setCreatedStream(finalStream);
@@ -1108,7 +1112,11 @@ export function CreatorStudioModal({
               Manage Streams
             </Link>
             <Link
-              href={`/streaming/room/${createdStream._id}`}
+              href={
+                createdStream._id || (createdStream as unknown as { id?: string }).id
+                  ? `/streaming/room/${createdStream._id || (createdStream as unknown as { id?: string }).id}`
+                  : '/streaming'
+              }
               onClick={() => onOpenChange(false)}
               className="inline-flex items-center gap-1.5 rounded-xl bg-red-600 px-4 py-2 text-xs font-semibold text-white hover:bg-red-700"
             >

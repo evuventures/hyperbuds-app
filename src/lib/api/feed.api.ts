@@ -176,7 +176,7 @@ export async function uploadFeedMediaToCloudinary(
 
   try {
     const response = await apiClient.post<{ media: UploadedFeedMedia }>(
-      '/api/v1/feed/upload-media',
+      '/feed/upload-media',
       formData,
       {
         timeout: 120000,
@@ -208,16 +208,17 @@ export async function createFeedPost(
   payload: CreateFeedPostRequest
 ): Promise<FeedPostRecord> {
   try {
-    const response = await apiClient.post<{ post: Partial<FeedPostRecord> }>(
-      '/api/v1/feed/posts',
+    const response = await apiClient.post<{ post: Partial<FeedPostRecord> & { id?: string } }>(
+      '/feed/posts',
       payload
     );
     const raw = response.data?.post;
-    if (!raw?._id) {
+    const postId = raw?._id || raw?.id;
+    if (!postId) {
       throw new Error('Post was created without an identifier.');
     }
     return {
-      _id: raw._id,
+      _id: postId,
       kind: raw.kind ?? payload.kind,
       body: raw.body ?? payload.body,
       media: Array.isArray(raw.media) ? raw.media : payload.media ?? [],
