@@ -452,6 +452,8 @@ export function CreatorStudioModal({
             ? new Date(scheduledAt).toISOString()
             : undefined,
         tags: tags.length > 0 ? tags : undefined,
+        thumbnailUrl: uploadedMedia?.url || undefined,
+        category: tags[0] || 'Live',
         chatEnabled,
         recordingEnabled,
         recordingConsent: recordingEnabled ? recordingConsent : false,
@@ -1165,6 +1167,13 @@ export function CreatorStudioModal({
               placeholder="Tell viewers what you will cover or who is co-hosting..."
               className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50/70 p-3 text-sm text-slate-900 outline-none focus:border-red-500 focus:bg-white dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:focus:bg-slate-900"
             />
+          </div>
+
+          <div>
+            <p className="mb-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300">
+              Stream Thumbnail (Optional)
+            </p>
+            {renderCloudinaryUploadPanel()}
           </div>
 
           {renderTagsSection()}
