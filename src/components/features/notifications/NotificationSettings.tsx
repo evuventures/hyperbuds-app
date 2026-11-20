@@ -7,6 +7,7 @@ import { Bell, Mail, Smartphone, Monitor, Save, Loader2 } from 'lucide-react';
 import { useNotificationPreferences, useUpdateNotificationPreferences } from '@/hooks/features/useNotifications';
 import { useToast } from '@/hooks/ui/useToast';
 import type { NotificationPreferences } from '@/types/notifications.types';
+import PushNotificationControl from '@/components/pwa/PushNotificationControl';
 
 export const NotificationSettings: React.FC = () => {
   const { data: preferences, isLoading } = useNotificationPreferences();
@@ -121,6 +122,9 @@ export const NotificationSettings: React.FC = () => {
           <div className="flex items-center gap-3 mb-4">
             <Smartphone className="w-5 h-5 text-purple-600 dark:text-purple-400" />
             <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Push Notifications</h2>
+          </div>
+          <div className="mb-4">
+            <PushNotificationControl />
           </div>
           <div className="space-y-3">
             {notificationTypes.map((type) => (

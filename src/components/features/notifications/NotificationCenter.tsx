@@ -8,6 +8,7 @@ import { useNotifications, useMarkAllNotificationsAsRead } from '@/hooks/feature
 import { NotificationItem } from './NotificationItem';
 import { useNotificationSocket } from '@/hooks/features/useNotificationSocket';
 import { groupNotifications } from '@/utils/notificationGrouping';
+import PushNotificationControl from '@/components/pwa/PushNotificationControl';
 import type { Notification, NotificationType } from '@/types/notifications.types';
 
 export const NotificationCenter: React.FC = () => {
@@ -163,6 +164,11 @@ export const NotificationCenter: React.FC = () => {
                      </button>
                   )}
                </div>
+            </div>
+
+            {/* Device Web Push Control */}
+            <div className="mb-4">
+               <PushNotificationControl compact />
             </div>
 
             {/* Filter Tabs */}

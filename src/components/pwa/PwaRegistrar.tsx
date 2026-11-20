@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { Bell, Download, X } from 'lucide-react';
+import { syncExistingPushSubscription } from '@/lib/pwa/pushSubscription';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -18,9 +19,12 @@ export default function PwaRegistrar() {
     if (typeof window === 'undefined') return;
 
     if ('serviceWorker' in navigator && process.env.NODE_ENV === 'production') {
-      navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(() => {
-        // Ignore registration errors in unsupported contexts
-      });
+      navigator.serviceWorker
+        .register('/sw.js', { scope: '/' })
+        .then(() => syncExistingPushSubscription())
+        .catch(() => {
+          // Ignore registration errors in unsupported contexts
+        });
     }
 
     const handleBeforeInstall = (event: Event) => {

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'hyperbuds-pwa-v1';
+const CACHE_NAME = 'hyperbuds-pwa-v2';
 const STATIC_ASSETS = [
   '/manifest.json',
   '/android-chrome-192x192.png',
@@ -78,11 +78,19 @@ self.addEventListener('fetch', (event) => {
 });
 
 self.addEventListener('push', (event) => {
-  let payload = { title: 'HyperBuds', body: 'You have a new notification.', actionUrl: '/notifications' };
+  let payload = {
+    id: undefined,
+    type: 'system',
+    title: 'HyperBuds',
+    body: 'You have a new notification.',
+    actionUrl: '/notifications',
+  };
   try {
     if (event.data) {
       const parsed = event.data.json();
       payload = {
+        id: parsed.id || undefined,
+        type: parsed.type || 'system',
         title: parsed.title || payload.title,
         body: parsed.message || parsed.body || payload.body,
         actionUrl: parsed.actionUrl || payload.actionUrl,
@@ -97,6 +105,9 @@ self.addEventListener('push', (event) => {
       body: payload.body,
       icon: '/android-chrome-192x192.png',
       badge: '/favicon-32x32.png',
+      tag: payload.id ? `hb-${payload.id}` : `hb-${payload.type}`,
+      renotify: true,
+      vibrate: [100, 50, 100],
       data: { actionUrl: payload.actionUrl },
     }),
   );
