@@ -1,65 +1,108 @@
 // src/lib/api/client.ts
-import axios, { AxiosError } from "axios";
+import axios, { AxiosError, type InternalAxiosRequestConfig } from "axios";
 import { API_BASE_URL } from "./endpoints";
 import { getAccessToken } from "@/store/authSelectors";
 import { store } from "@/store/store";
-import { clearAuth } from "@/store/slices/authSlice";
+import { clearAuth, setToken } from "@/store/slices/authSlice";
 
-// ✅ 1. Base URL (auto from .env or fallback)
 const baseURL = API_BASE_URL;
 
-
-// ✅ 2. Create Axios instance
 export const apiClient = axios.create({
   baseURL,
   timeout: 60000,
   headers: {
     "Content-Type": "application/json",
   },
-  // ❌ Remove withCredentials unless you’re using cookies for auth
-  // (since you’re using Bearer tokens, not cookies)
-  withCredentials: false,
+  withCredentials: true,
 });
 
-// ✅ 3. Request Interceptor — attach token
+// Request Interceptor — attach Bearer token
 apiClient.interceptors.request.use(
   (config) => {
     const token = getAccessToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    if (typeof FormData !== 'undefined' && config.data instanceof FormData && config.headers) {
-      if (typeof config.headers.delete === 'function') {
-        config.headers.delete('Content-Type');
+    if (typeof FormData !== "undefined" && config.data instanceof FormData && config.headers) {
+      if (typeof config.headers.delete === "function") {
+        config.headers.delete("Content-Type");
       } else {
-        delete config.headers['Content-Type'];
+        delete config.headers["Content-Type"];
       }
     }
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => Promise.reject(error),
 );
 
-// ✅ 4. Response Interceptor — global error handling
-// Note: Tokens now last 3 days - no refresh logic needed
 type ApiErrorResponse = {
   message?: string;
   [key: string]: unknown;
 };
 
+type RetryableConfig = InternalAxiosRequestConfig & { _retry?: boolean };
+
+// Single-flight refresh promise so concurrent 401s share one refresh request
+let inflightRefresh: Promise<string | null> | null = null;
+
+async function attemptTokenRefresh(): Promise<string | null> {
+  if (typeof window === "undefined") return null;
+  if (inflightRefresh) return inflightRefresh;
+
+  inflightRefresh = (async () => {
+    try {
+      const storedRefresh = window.localStorage.getItem("refreshToken") || undefined;
+      const resp = await axios.post<{ accessToken?: string }>(
+        `${baseURL}/auth/refresh`,
+        storedRefresh ? { refreshToken: storedRefresh } : {},
+        { withCredentials: true, timeout: 15000 },
+      );
+      const nextToken = resp.data?.accessToken;
+      if (typeof nextToken === "string" && nextToken.trim()) {
+        window.localStorage.setItem("accessToken", nextToken);
+        store.dispatch(setToken(nextToken));
+        return nextToken;
+      }
+      return null;
+    } catch {
+      return null;
+    } finally {
+      inflightRefresh = null;
+    }
+  })();
+
+  return inflightRefresh;
+}
+
 apiClient.interceptors.response.use(
   (response) => response,
-  (error: AxiosError) => {
+  async (error: AxiosError) => {
     const status = error.response?.status;
     const responseData = error.response?.data as ApiErrorResponse | undefined;
+    const originalConfig = error.config as RetryableConfig | undefined;
+    const reqUrl = String(originalConfig?.url || "");
+    const isAuthRoute =
+      reqUrl.includes("/auth/login") ||
+      reqUrl.includes("/auth/register") ||
+      reqUrl.includes("/auth/refresh") ||
+      reqUrl.includes("/auth/logout");
 
-    // 🔒 Handle expired or invalid tokens
-    if (status === 401) {
-      console.warn("⚠️ Unauthorized. Clearing token and redirecting...");
-      localStorage.removeItem("accessToken");
+    // Attempt seamless single-flight token refresh before signing the user out
+    if (status === 401 && originalConfig && !originalConfig._retry && !isAuthRoute) {
+      originalConfig._retry = true;
+      const refreshed = await attemptTokenRefresh();
+      if (refreshed) {
+        originalConfig.headers = originalConfig.headers ?? {};
+        originalConfig.headers.Authorization = `Bearer ${refreshed}`;
+        return apiClient.request(originalConfig);
+      }
+
+      if (typeof window !== "undefined") {
+        window.localStorage.removeItem("accessToken");
+        window.localStorage.removeItem("refreshToken");
+      }
       store.dispatch(clearAuth());
 
-      // Redirect to login if we're in the browser and not on root or auth pages
       if (typeof window !== "undefined") {
         const currentPath = window.location.pathname;
         if (currentPath !== "/" && !currentPath.startsWith("/auth/")) {
@@ -68,7 +111,6 @@ apiClient.interceptors.response.use(
       }
     }
 
-    // 🧹 Normalize error output
     const normalizedError = {
       message: responseData?.message || error.message || "Unexpected error occurred",
       status,
@@ -77,7 +119,7 @@ apiClient.interceptors.response.use(
     };
 
     return Promise.reject(normalizedError);
-  }
+  },
 );
 
 export default apiClient;

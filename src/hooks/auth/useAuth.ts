@@ -43,6 +43,9 @@ export function useAuth() {
       localStorage.setItem('accessToken', data.accessToken)
       dispatch(setToken(data.accessToken))
     }
+    if (data.refreshToken) {
+      localStorage.setItem('refreshToken', data.refreshToken)
+    }
 
     if (data.user) {
       dispatch(setUser(data.user))
@@ -107,14 +110,20 @@ export function useAuth() {
 
   const logout = useCallback(async () => {
     try {
+      const refreshToken = typeof window !== 'undefined' ? localStorage.getItem('refreshToken') : null
       await fetch(`${BASE_URL}/api/v1/auth/logout`, {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(refreshToken ? { refreshToken } : {}),
         credentials: 'include',
       })
     } catch (err) {
       console.error('Logout error:', err)
     } finally {
-      localStorage.removeItem('accessToken')
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('refreshToken')
+        localStorage.removeItem('accessToken')
+      }
       dispatch(clearAuth())
     }
   }, [dispatch])

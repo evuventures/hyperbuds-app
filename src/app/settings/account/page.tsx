@@ -2,30 +2,40 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/layout/Dashboard/Dashboard';
 import apiClient from '@/lib/api/client';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Download, ShieldAlert, Undo2 } from 'lucide-react';
+
+interface DeletionRequestRecord {
+  status: string;
+  reason?: string;
+  requestedAt?: string;
+  scheduledFor?: string;
+}
 
 export default function AccountSettingsPage() {
-  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [confirmText, setConfirmText] = useState('');
+  const [deleteReason, setDeleteReason] = useState('');
   const [deleting, setDeleting] = useState(false);
+  const [deletionRequest, setDeletionRequest] = useState<DeletionRequestRecord | null>(null);
   const [email, setEmail] = useState('');
   const [fullName, setFullName] = useState('');
   const [username, setUsername] = useState('');
   const [bio, setBio] = useState('');
-  const [banner, setBanner] = useState<{ type: 'success' | 'error'; text: string } | null>(
-    null,
-  );
+  const [banner, setBanner] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   useEffect(() => {
     let active = true;
     (async () => {
       try {
-        const res = await apiClient.get('/users/me');
+        const [res, delRes] = await Promise.all([
+          apiClient.get('/users/me'),
+          apiClient.get('/users/me/deletion-request').catch(() => null),
+        ]);
         const user = res.data?.user ?? res.data ?? {};
         const profile = user.profile ?? res.data?.profile ?? {};
         if (!active) return;
@@ -33,6 +43,9 @@ export default function AccountSettingsPage() {
         setFullName(user.fullName ?? profile.displayName ?? '');
         setUsername(user.username ?? profile.username ?? '');
         setBio(profile.bio ?? '');
+        if (delRes?.data?.deletionRequest) {
+          setDeletionRequest(delRes.data.deletionRequest);
+        }
       } catch (err) {
         if (active) {
           setBanner({
@@ -71,18 +84,81 @@ export default function AccountSettingsPage() {
     }
   };
 
-  const handleDeleteAccount = async () => {
-    setDeleting(true);
+  const handleExportData = async () => {
+    setExporting(true);
     setBanner(null);
     try {
-      await apiClient.delete('/users/me');
-      localStorage.removeItem('accessToken');
-      router.push('/auth/signin');
+      const res = await apiClient.get('/users/me/export');
+      const blob = new Blob([JSON.stringify(res.data, null, 2)], {
+        type: 'application/json',
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `hyperbuds-data-export-${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      setBanner({
+        type: 'success',
+        text: 'Your personal data export (JSON) has been downloaded.',
+      });
     } catch (err) {
       setBanner({
         type: 'error',
-        text: (err as { message?: string })?.message || 'Unable to delete account.',
+        text: (err as { message?: string })?.message || 'Unable to export account data.',
       });
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const handleRequestDeletion = async () => {
+    if (confirmText.trim().toUpperCase() !== 'DELETE') {
+      setBanner({ type: 'error', text: 'Type DELETE to confirm scheduling account deletion.' });
+      return;
+    }
+    setDeleting(true);
+    setBanner(null);
+    try {
+      const res = await apiClient.post('/users/me/deletion-request', {
+        confirmText: 'DELETE',
+        reason: deleteReason.trim(),
+      });
+      setDeletionRequest(res.data?.deletionRequest ?? null);
+      setConfirmDelete(false);
+      setConfirmText('');
+      setDeleteReason('');
+      setBanner({
+        type: 'success',
+        text:
+          res.data?.retentionNotice ||
+          'Account deletion scheduled for 30 days from now. Your profile has been hidden.',
+      });
+    } catch (err) {
+      setBanner({
+        type: 'error',
+        text: (err as { message?: string })?.message || 'Unable to schedule account deletion.',
+      });
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const handleCancelDeletion = async () => {
+    setDeleting(true);
+    setBanner(null);
+    try {
+      const res = await apiClient.delete('/users/me/deletion-request');
+      setDeletionRequest(res.data?.deletionRequest ?? null);
+      setBanner({ type: 'success', text: 'Scheduled account deletion has been cancelled.' });
+    } catch (err) {
+      setBanner({
+        type: 'error',
+        text: (err as { message?: string })?.message || 'Unable to cancel deletion request.',
+      });
+    } finally {
       setDeleting(false);
     }
   };
@@ -101,10 +177,10 @@ export default function AccountSettingsPage() {
 
           <div className="mt-4 border-b border-slate-200 pb-4 dark:border-slate-800">
             <h1 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">
-              Account & Identity
+              Account &amp; Identity
             </h1>
             <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
-              Update your account email, display name, username, and bio.
+              Update your account details, download a portable copy of your data, or manage retention.
             </p>
           </div>
 
@@ -210,31 +286,97 @@ export default function AccountSettingsPage() {
             )}
           </form>
 
+          {/* Portable Data Export */}
+          <section className="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+            <div>
+              <h2 className="text-sm font-semibold text-slate-900 dark:text-white">
+                Download Your Data
+              </h2>
+              <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
+                Export your profile, posts, notifications, wallet ledger, orders, pitches, and agreements as a portable JSON archive.
+              </p>
+            </div>
+            <button
+              type="button"
+              disabled={exporting}
+              onClick={handleExportData}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2 text-xs font-semibold text-slate-900 hover:bg-slate-100 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+            >
+              <Download className="h-3.5 w-3.5" />
+              {exporting ? 'Preparing...' : 'Download JSON'}
+            </button>
+          </section>
+
+          {/* Retention-Aware 30-Day Account Deletion */}
           <section className="mt-6 rounded-xl border border-rose-200 bg-white p-5 dark:border-rose-900/60 dark:bg-slate-900">
-            <h2 className="text-sm font-semibold text-rose-700 dark:text-rose-300">
-              Delete Account
-            </h2>
+            <div className="flex items-center gap-2">
+              <ShieldAlert className="h-4 w-4 text-rose-600 dark:text-rose-400" />
+              <h2 className="text-sm font-semibold text-rose-700 dark:text-rose-300">
+                Account Deletion &amp; 30-Day Retention Window
+              </h2>
+            </div>
             <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
-              Deactivates your account and revokes active sessions. Financial and collaboration audit records remain preserved per policy.
+              Scheduling deletion immediately hides your public profile and revokes active refresh sessions, with a 30-day grace period to cancel. Immutable financial ledger and legal audit records remain preserved per policy.
             </p>
-            {confirmDelete ? (
-              <div className="mt-4 flex flex-wrap items-center gap-2">
+
+            {deletionRequest?.status === 'pending' ? (
+              <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-900 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-200">
+                <span>
+                  Deletion scheduled for{' '}
+                  <strong>
+                    {deletionRequest.scheduledFor
+                      ? new Date(deletionRequest.scheduledFor).toLocaleDateString()
+                      : '30 days from request'}
+                  </strong>
+                  .
+                </span>
                 <button
                   type="button"
-                  onClick={() => setConfirmDelete(false)}
                   disabled={deleting}
-                  className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-700 dark:border-slate-700 dark:text-slate-300"
+                  onClick={handleCancelDeletion}
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white dark:bg-white dark:text-slate-900"
                 >
-                  Cancel
+                  <Undo2 className="h-3.5 w-3.5" />
+                  Cancel Deletion
                 </button>
-                <button
-                  type="button"
-                  onClick={handleDeleteAccount}
-                  disabled={deleting}
-                  className="rounded-lg bg-rose-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-rose-700 disabled:opacity-50"
-                >
-                  {deleting ? 'Deleting...' : 'Confirm account deletion'}
-                </button>
+              </div>
+            ) : confirmDelete ? (
+              <div className="mt-4 space-y-2.5">
+                <input
+                  type="text"
+                  value={deleteReason}
+                  onChange={(e) => setDeleteReason(e.target.value)}
+                  placeholder="Optional reason for leaving..."
+                  className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                />
+                <input
+                  type="text"
+                  value={confirmText}
+                  onChange={(e) => setConfirmText(e.target.value)}
+                  placeholder='Type "DELETE" to confirm'
+                  className="w-full rounded-lg border border-rose-300 bg-white px-3 py-2 text-xs dark:border-rose-800 dark:bg-slate-950 dark:text-white"
+                />
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setConfirmDelete(false);
+                      setConfirmText('');
+                    }}
+                    disabled={deleting}
+                    className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-700 dark:border-slate-700 dark:text-slate-300"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleRequestDeletion}
+                    disabled={deleting || confirmText.trim().toUpperCase() !== 'DELETE'}
+                    className="rounded-lg bg-rose-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-rose-700 disabled:opacity-40"
+                  >
+                    {deleting ? 'Scheduling...' : 'Schedule 30-Day Deletion'}
+                  </button>
+                </div>
               </div>
             ) : (
               <button
@@ -242,7 +384,7 @@ export default function AccountSettingsPage() {
                 onClick={() => setConfirmDelete(true)}
                 className="mt-4 rounded-lg border border-rose-300 px-3.5 py-1.5 text-xs font-medium text-rose-700 hover:bg-rose-50 dark:border-rose-800 dark:text-rose-300 dark:hover:bg-rose-950/50"
               >
-                Delete account
+                Request account deletion
               </button>
             )}
           </section>
