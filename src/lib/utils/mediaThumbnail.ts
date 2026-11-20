@@ -28,6 +28,28 @@ export function deriveVideoPoster(
  * an initial video frame instead of a blank black rectangle.
  */
 export function withVideoPreviewFragment(mediaUrl: string, poster?: string): string {
-  if (poster || !mediaUrl || mediaUrl.includes('#')) return mediaUrl;
-  return `${mediaUrl}#t=0.5`;
+  const safeUrl = deriveChromeSafeVideoUrl(mediaUrl);
+  if (poster || !safeUrl || safeUrl.includes('#')) return safeUrl;
+  return `${safeUrl}#t=0.5`;
+}
+
+/**
+ * Ensures Cloudinary videos (especially iPhone HEVC .mov uploads) are delivered
+ * as H.264/AAC MP4 so Chrome on Android/Windows and Safari on iOS all play cleanly.
+ */
+export function deriveChromeSafeVideoUrl(mediaUrl: string): string {
+  const clean = (mediaUrl || '').trim();
+  if (!clean) return '';
+  if (/\/video\/upload\//i.test(clean) && !/\/video\/upload\/[^/]*f_mp4/i.test(clean)) {
+    const [base, query] = clean.split('?');
+    const transformed = base.replace(
+      /\/video\/upload\//i,
+      '/video/upload/f_mp4,vc_h264,ac_aac,q_auto/',
+    );
+    const mp4Base = /\.(mov|mkv|avi|m4v|webm)$/i.test(transformed)
+      ? transformed.replace(/\.(mov|mkv|avi|m4v|webm)$/i, '.mp4')
+      : transformed;
+    return query ? `${mp4Base}?${query}` : mp4Base;
+  }
+  return clean;
 }

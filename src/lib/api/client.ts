@@ -90,6 +90,20 @@ apiClient.interceptors.response.use(
     // Attempt seamless single-flight token refresh before signing the user out
     if (status === 401 && originalConfig && !originalConfig._retry && !isAuthRoute) {
       originalConfig._retry = true;
+
+      // Guard against initial-mount race where request fired before Redux/localStorage token synced
+      const hadAuthHeader = Boolean(
+        originalConfig.headers?.Authorization ||
+          (typeof originalConfig.headers?.get === "function" &&
+            originalConfig.headers.get("Authorization")),
+      );
+      const localToken = !hadAuthHeader ? getAccessToken() : null;
+      if (localToken) {
+        originalConfig.headers = originalConfig.headers ?? {};
+        originalConfig.headers.Authorization = `Bearer ${localToken}`;
+        return apiClient.request(originalConfig);
+      }
+
       const refreshed = await attemptTokenRefresh();
       if (refreshed) {
         originalConfig.headers = originalConfig.headers ?? {};

@@ -11,9 +11,13 @@ import {
   Heart,
   Loader2,
   MessageSquare,
+  RefreshCw,
+  Repeat2,
   Search,
+  SendHorizontal,
   Share2,
   Sparkles,
+  ThumbsUp,
   Trash2,
   UserPlus,
 } from 'lucide-react';
@@ -94,6 +98,8 @@ function ReelsActionIcon() {
 
 export interface FeedAuthor {
   _id?: string;
+  id?: string;
+  displayName?: string;
   fullName?: string;
   username?: string;
   avatar?: string;
@@ -101,8 +107,13 @@ export interface FeedAuthor {
 
 export interface FeedComment {
   _id: string;
+  id?: string;
   author?: FeedAuthor | string;
   text: string;
+  parentCommentId?: string | null;
+  likes?: string[];
+  likesCount?: number;
+  isLiked?: boolean;
   createdAt?: string;
 }
 
@@ -129,13 +140,31 @@ export interface FeedMatchCard {
   userB: MatchCardUser;
 }
 
+export interface RepostedPostSnapshot {
+  _id: string;
+  id?: string;
+  kind: 'post' | 'reel' | 'match' | string;
+  body: string;
+  caption?: string;
+  thumbnailUrl?: string | null;
+  media?: FeedMedia[];
+  tags?: string[];
+  createdAt?: string;
+  author?: FeedAuthor | string;
+}
+
 export interface FeedPost {
   _id: string;
   author?: FeedAuthor | string;
-  kind: 'post' | 'reel' | 'match';
+  kind: 'post' | 'reel' | 'match' | 'repost';
   body: string;
   thumbnailUrl?: string | null;
   matchCard?: FeedMatchCard | null;
+  originalPostId?: string | null;
+  repostThought?: string;
+  repostedPost?: RepostedPostSnapshot | null;
+  repostsCount?: number;
+  isReposted?: boolean;
   media?: FeedMedia[];
   tags?: string[];
   visibility: 'public' | 'followers' | 'private';
@@ -180,6 +209,18 @@ function formatTime(value?: string) {
     hour: '2-digit',
     minute: '2-digit',
   });
+}
+
+function formatRelativeShort(value?: string) {
+  if (!value) return 'Just now';
+  const ts = new Date(value).getTime();
+  if (Number.isNaN(ts)) return 'Just now';
+  const diffSec = Math.max(0, Math.floor((Date.now() - ts) / 1000));
+  if (diffSec < 45) return 'Just now';
+  if (diffSec < 3600) return `${Math.floor(diffSec / 60)}m`;
+  if (diffSec < 86400) return `${Math.floor(diffSec / 3600)}h`;
+  if (diffSec < 604800) return `${Math.floor(diffSec / 86400)}d`;
+  return `${Math.floor(diffSec / 604800)}w`;
 }
 
 type FeedTab = 'all' | 'post' | 'reel' | 'match' | 'saved';
@@ -516,10 +557,16 @@ export default function SocialFeedStream({
   const [studioMode, setStudioMode] = useState<CreatorStudioMode>('post');
   const [studioAutoFocusUpload, setStudioAutoFocusUpload] = useState(false);
 
-  // Comment & match-card action state
+  // Comment, repost & match-card action state
   const [openComments, setOpenComments] = useState<Record<string, boolean>>({});
   const [commentDrafts, setCommentDrafts] = useState<Record<string, string>>({});
+  const [replyingTo, setReplyingTo] = useState<Record<string, { commentId: string; authorName: string } | null>>({});
+  const [replyDrafts, setReplyDrafts] = useState<Record<string, string>>({});
+  const [repostSheetPostId, setRepostSheetPostId] = useState<string | null>(null);
+  const [repostThoughtDraft, setRepostThoughtDraft] = useState('');
+  const [repostBusy, setRepostBusy] = useState<Record<string, boolean>>({});
   const [followBothBusy, setFollowBothBusy] = useState<Record<string, boolean>>({});
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const loadingMoreRef = useRef(false);
@@ -530,16 +577,35 @@ export default function SocialFeedStream({
 
   const loadFeed = useCallback(async () => {
     setLoading(true);
+    setLoadError(null);
     setPage(1);
     setHasMore(false);
-    try {
-      const query = buildFeedQuery(tab, search, 1);
+    const query = buildFeedQuery(tab, search, 1);
 
+    const fetchFeedOnce = async () => {
       const [meRes, feedRes] = await Promise.all([
         currentUser?.id ? Promise.resolve(null) : apiClient.get('/users/me').catch(() => null),
         apiClient.get(`/feed/posts?${query}`),
       ]);
+      return { meRes, feedRes };
+    };
 
+    try {
+      let result: Awaited<ReturnType<typeof fetchFeedOnce>>;
+      try {
+        result = await fetchFeedOnce();
+      } catch (firstErr) {
+        const status = (firstErr as { status?: number })?.status;
+        // Retry once automatically for Chrome/mobile network wake-up or transient hiccups
+        if (!status || status >= 500 || status === 408) {
+          await new Promise((resolve) => setTimeout(resolve, 650));
+          result = await fetchFeedOnce();
+        } else {
+          throw firstErr;
+        }
+      }
+
+      const { meRes, feedRes } = result;
       const resolvedMe = meRes?.data?.user || meRes?.data;
       const resolvedProfile = meRes?.data?.profile || resolvedMe?.profile;
       const resolvedId =
@@ -574,9 +640,11 @@ export default function SocialFeedStream({
       setHasMore(1 < totalPages);
       onPostCountChange?.(nextPosts.length);
     } catch (err) {
+      const message = (err as { message?: string })?.message || 'Unable to load social feed.';
+      setLoadError(message);
       setBanner({
         type: 'error',
-        text: (err as { message?: string })?.message || 'Unable to load social feed.',
+        text: message,
       });
     } finally {
       setLoading(false);
@@ -735,11 +803,15 @@ export default function SocialFeedStream({
     }
   };
 
-  const handleAddComment = async (postId: string) => {
-    const text = (commentDrafts[postId] || '').trim();
+  const handleAddComment = async (postId: string, parentCommentId?: string | null) => {
+    const draftKey = parentCommentId ? `${postId}:${parentCommentId}` : postId;
+    const text = (parentCommentId ? replyDrafts[draftKey] : commentDrafts[postId] || '').trim();
     if (!text) return;
     try {
-      const res = await apiClient.post(`/feed/posts/${postId}/comments`, { text });
+      const res = await apiClient.post(`/feed/posts/${postId}/comments`, {
+        text,
+        ...(parentCommentId ? { parentCommentId } : {}),
+      });
       const rawComment = res.data?.comment;
       const created: FeedComment = rawComment
         ? {
@@ -751,6 +823,10 @@ export default function SocialFeedStream({
               avatar: resolvedUser?.avatar,
             },
             text: String(rawComment.text ?? text),
+            parentCommentId: rawComment.parentCommentId ?? parentCommentId ?? null,
+            likes: Array.isArray(rawComment.likes) ? rawComment.likes : [],
+            likesCount: Number(rawComment.likesCount ?? 0),
+            isLiked: Boolean(rawComment.isLiked),
             createdAt: String(rawComment.createdAt ?? new Date().toISOString()),
           }
         : {
@@ -762,6 +838,10 @@ export default function SocialFeedStream({
               avatar: resolvedUser?.avatar,
             },
             text,
+            parentCommentId: parentCommentId ?? null,
+            likes: [],
+            likesCount: 0,
+            isLiked: false,
             createdAt: new Date().toISOString(),
           };
       setPosts((prev) =>
@@ -778,12 +858,101 @@ export default function SocialFeedStream({
             : p,
         ),
       );
-      setCommentDrafts((prev) => ({ ...prev, [postId]: '' }));
+      if (parentCommentId) {
+        setReplyDrafts((prev) => ({ ...prev, [draftKey]: '' }));
+        setReplyingTo((prev) => ({ ...prev, [postId]: null }));
+      } else {
+        setCommentDrafts((prev) => ({ ...prev, [postId]: '' }));
+      }
     } catch (err) {
       setBanner({
         type: 'error',
         text: (err as { message?: string })?.message || 'Unable to post comment.',
       });
+    }
+  };
+
+  const handleToggleCommentLike = async (postId: string, commentId: string) => {
+    try {
+      const res = await apiClient.post(`/feed/posts/${postId}/comments/${commentId}/like`);
+      const liked = Boolean(res.data?.liked);
+      const serverLikes: string[] | null = Array.isArray(res.data?.likes)
+        ? res.data.likes.map((id: unknown) => String(id))
+        : null;
+      const likesCount =
+        typeof res.data?.likesCount === 'number'
+          ? res.data.likesCount
+          : serverLikes?.length ?? (liked ? 1 : 0);
+
+      setPosts((prev) =>
+        prev.map((p) => {
+          if (p._id !== postId) return p;
+          return {
+            ...p,
+            comments: (p.comments ?? []).map((c) => {
+              if (c._id !== commentId) return c;
+              const existing = c.likes ?? [];
+              const nextLikes =
+                serverLikes ??
+                (liked
+                  ? [...new Set([...existing, currentUserId || 'me'])]
+                  : existing.filter((id) => id !== currentUserId && id !== 'me'));
+              return {
+                ...c,
+                likes: nextLikes,
+                likesCount,
+                isLiked: liked,
+              };
+            }),
+          };
+        }),
+      );
+    } catch (err) {
+      setBanner({
+        type: 'error',
+        text: (err as { message?: string })?.message || 'Unable to update comment reaction.',
+      });
+    }
+  };
+
+  const handleRepost = async (post: FeedPost, thought?: string) => {
+    const targetId = post.originalPostId || post._id;
+    if (repostBusy[post._id]) return;
+    setRepostBusy((prev) => ({ ...prev, [post._id]: true }));
+    try {
+      const payload = typeof thought === 'string' && thought.trim()
+        ? { thought: thought.trim(), action: 'repost' }
+        : {};
+      const res = await apiClient.post(`/feed/posts/${targetId}/repost`, payload);
+      const reposted = Boolean(res.data?.reposted);
+      const repostsCount = Number(res.data?.repostsCount ?? 0);
+      const canonicalId = String(res.data?.originalPostId || targetId);
+
+      setPosts((prev) =>
+        prev.map((p) => {
+          const pCanonical = p.originalPostId || p._id;
+          if (pCanonical !== canonicalId) return p;
+          return { ...p, isReposted: reposted, repostsCount };
+        }),
+      );
+      setRepostSheetPostId(null);
+      setRepostThoughtDraft('');
+      setBanner({
+        type: 'success',
+        text: reposted
+          ? 'Reposted to your feed!'
+          : 'Removed from your reposts.',
+      });
+      if (reposted) {
+        void loadFeed();
+      }
+    } catch (err) {
+      setBanner({
+        type: 'error',
+        text: (err as { message?: string })?.message || 'Unable to repost right now.',
+      });
+    } finally {
+      setRepostBusy((prev) => ({ ...prev, [post._id]: false }));
     }
   };
 
@@ -1050,6 +1219,23 @@ export default function SocialFeedStream({
             />
           ))}
         </div>
+      ) : loadError && posts.length === 0 ? (
+        <div className="rounded-2xl border border-rose-200 bg-white p-8 text-center dark:border-rose-900/50 dark:bg-slate-900">
+          <p className="text-sm font-semibold text-slate-900 dark:text-white">
+            Could not load the feed
+          </p>
+          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+            {loadError}
+          </p>
+          <button
+            type="button"
+            onClick={() => void loadFeed()}
+            className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-purple-700 px-4 py-2 text-xs font-semibold text-white transition hover:bg-purple-800 dark:bg-purple-600 dark:hover:bg-purple-500"
+          >
+            <RefreshCw className="h-3.5 w-3.5" />
+            Retry loading feed
+          </button>
+        </div>
       ) : posts.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center dark:border-slate-700 dark:bg-slate-900">
           <p className="text-sm font-semibold text-slate-900 dark:text-white">
@@ -1072,18 +1258,148 @@ export default function SocialFeedStream({
           {posts.map((post) => {
             const authorObj = typeof post.author === 'object' && post.author ? post.author : null;
             const authorId =
-              typeof post.author === 'string' ? post.author : authorObj?._id || '';
+              typeof post.author === 'string' ? post.author : authorObj?._id || authorObj?.id || '';
             const authorName =
-              authorObj?.fullName || authorObj?.username || 'HyperBuds Creator';
+              authorObj?.displayName || authorObj?.fullName || authorObj?.username || 'HyperBuds Creator';
+            const authorHref = authorObj?.username
+              ? `/profile/${encodeURIComponent(authorObj.username)}`
+              : null;
             const liked = (post.likes ?? []).some(
               (id) => id === currentUserId || id === 'me',
             );
             const bookmarked = (post.bookmarks ?? []).some(
               (id) => id === currentUserId || id === 'me',
             );
+            const isReposted = Boolean(post.isReposted);
+            const likesTotal = (post.likes ?? []).length;
+            const commentsList = post.comments ?? [];
+            const commentsTotal = commentsList.length;
+            const repostsTotal = Number(post.repostsCount ?? 0);
             const isOwner = Boolean(currentUserId && authorId === currentUserId);
             const commentsOpen = Boolean(openComments[post._id]);
             const isMatchCard = post.kind === 'match' && Boolean(post.matchCard);
+            const isRepostCard = post.kind === 'repost' && Boolean(post.repostedPost);
+            const activeReplyTarget = replyingTo[post._id] ?? null;
+
+            const rootComments = commentsList.filter((c) => !c.parentCommentId);
+            const repliesByParent = new Map<string, FeedComment[]>();
+            for (const c of commentsList) {
+              if (!c.parentCommentId) continue;
+              const bucket = repliesByParent.get(c.parentCommentId) ?? [];
+              bucket.push(c);
+              repliesByParent.set(c.parentCommentId, bucket);
+            }
+
+            const renderFacebookComment = (c: FeedComment, isReply = false) => {
+              const cObj = typeof c.author === 'object' && c.author ? c.author : null;
+              const cName = cObj?.displayName || cObj?.fullName || cObj?.username || 'Creator';
+              const cAvatar = cObj?.avatar || '';
+              const cHref = cObj?.username ? `/profile/${encodeURIComponent(cObj.username)}` : null;
+              const cLiked =
+                Boolean(c.isLiked) ||
+                (c.likes ?? []).some((id) => id === currentUserId || id === 'me');
+              const cLikesCount =
+                typeof c.likesCount === 'number' ? c.likesCount : (c.likes ?? []).length;
+              const avatarSize = isReply ? 'h-6 w-6 text-[10px]' : 'h-8 w-8 text-[11px]';
+
+              return (
+                <div key={c._id} className="flex items-start gap-2">
+                  {cHref ? (
+                    <Link href={cHref} className="mt-0.5 shrink-0">
+                      {cAvatar ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={cAvatar}
+                          alt={cName}
+                          className={`${avatarSize} rounded-full object-cover ring-1 ring-slate-200 dark:ring-slate-700`}
+                        />
+                      ) : (
+                        <div
+                          className={`${avatarSize} flex items-center justify-center rounded-full bg-gradient-to-br from-purple-600 to-indigo-600 font-bold text-white`}
+                        >
+                          {getInitials(cName)}
+                        </div>
+                      )}
+                    </Link>
+                  ) : cAvatar ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={cAvatar}
+                      alt={cName}
+                      className={`${avatarSize} mt-0.5 shrink-0 rounded-full object-cover ring-1 ring-slate-200 dark:ring-slate-700`}
+                    />
+                  ) : (
+                    <div
+                      className={`${avatarSize} mt-0.5 flex shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-purple-600 to-indigo-600 font-bold text-white`}
+                    >
+                      {getInitials(cName)}
+                    </div>
+                  )}
+
+                  <div className="min-w-0 flex-1">
+                    <div className="relative inline-block max-w-full rounded-[18px] bg-[#F0F2F5] px-3.5 py-2 dark:bg-slate-800/90">
+                      {cHref ? (
+                        <Link
+                          href={cHref}
+                          className="block text-[13px] font-semibold leading-tight text-slate-900 hover:underline dark:text-white"
+                        >
+                          {cName}
+                        </Link>
+                      ) : (
+                        <p className="text-[13px] font-semibold leading-tight text-slate-900 dark:text-white">
+                          {cName}
+                        </p>
+                      )}
+                      <p className="mt-0.5 whitespace-pre-wrap break-words text-[14px] leading-snug text-slate-800 dark:text-slate-100">
+                        {c.text}
+                      </p>
+
+                      {cLikesCount > 0 && (
+                        <span
+                          aria-label={`${cLikesCount} likes`}
+                          className="absolute -bottom-2 -right-2 inline-flex items-center gap-0.5 rounded-full bg-white px-1.5 py-0.5 text-[11px] font-semibold text-slate-600 shadow-sm ring-1 ring-slate-200/80 dark:bg-slate-900 dark:text-slate-300 dark:ring-slate-700"
+                        >
+                          <span className="flex h-3.5 w-3.5 items-center justify-center rounded-full bg-blue-600 text-white">
+                            <ThumbsUp className="h-2 w-2 fill-current" />
+                          </span>
+                          <span className="tabular-nums">{cLikesCount}</span>
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="mt-1 flex items-center gap-3.5 px-3 text-[12px] text-slate-500 dark:text-slate-400">
+                      <span>{formatRelativeShort(c.createdAt)}</span>
+                      <button
+                        type="button"
+                        onClick={() => void handleToggleCommentLike(post._id, c._id)}
+                        className={`font-semibold transition hover:underline ${
+                          cLiked ? 'text-blue-600 dark:text-blue-400' : 'text-slate-600 dark:text-slate-400'
+                        }`}
+                      >
+                        Like
+                      </button>
+                      {!isReply && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setReplyingTo((prev) => ({
+                              ...prev,
+                              [post._id]:
+                                prev[post._id]?.commentId === c._id
+                                  ? null
+                                  : { commentId: c._id, authorName: cName },
+                            }))
+                          }
+                          className="font-semibold text-slate-600 transition hover:underline dark:text-slate-400"
+                        >
+                          Reply
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            };
 
             return (
               <article
@@ -1132,11 +1448,193 @@ export default function SocialFeedStream({
                       onFollowBoth={(ids) => void handleFollowBoth(post._id, ids)}
                     />
                   </>
+                ) : isRepostCard && post.repostedPost ? (
+                  <>
+                    {/* Instagram-style Repost Banner */}
+                    <div className="mb-3 flex items-center justify-between gap-2">
+                      <div className="flex min-w-0 items-center gap-2">
+                        <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-purple-100 text-purple-700 dark:bg-purple-950/70 dark:text-purple-300">
+                          <Repeat2 className="h-3.5 w-3.5" />
+                        </span>
+                        <div className="min-w-0 text-xs text-slate-600 dark:text-slate-300">
+                          {authorHref ? (
+                            <Link
+                              href={authorHref}
+                              className="font-semibold text-slate-900 hover:underline dark:text-white"
+                            >
+                              {authorName}
+                            </Link>
+                          ) : (
+                            <span className="font-semibold text-slate-900 dark:text-white">
+                              {authorName}
+                            </span>
+                          )}{' '}
+                          <span>reposted</span>
+                          <span className="text-slate-400"> · {formatRelativeShort(post.createdAt)}</span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-1">
+                        <button
+                          type="button"
+                          onClick={() => handleReport(post._id)}
+                          title="Report post"
+                          aria-label="Report post"
+                          className="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-rose-600 dark:hover:bg-slate-800"
+                        >
+                          <Flag className="h-4 w-4" />
+                        </button>
+                        {isOwner && (
+                          <button
+                            type="button"
+                            onClick={() => handleDelete(post._id)}
+                            title="Remove repost"
+                            aria-label="Remove repost"
+                            className="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-rose-600 dark:hover:bg-slate-800"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Instagram-style Floating Thought Bubble if Reposter Added a Note */}
+                    {(post.repostThought || post.body) && (
+                      <div className="mb-3 inline-flex max-w-full items-center gap-2 rounded-2xl rounded-tl-sm border border-purple-200/80 bg-purple-50/80 px-3.5 py-2 text-sm text-slate-800 dark:border-purple-900/60 dark:bg-purple-950/40 dark:text-purple-100">
+                        {authorObj?.avatar ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={authorObj.avatar}
+                            alt={authorName}
+                            className="h-6 w-6 shrink-0 rounded-full object-cover"
+                          />
+                        ) : (
+                          <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-purple-700 text-[10px] font-bold text-white">
+                            {getInitials(authorName)}
+                          </div>
+                        )}
+                        <p className="whitespace-pre-wrap break-words leading-snug">
+                          {post.repostThought || post.body}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Embedded Original Creator Card */}
+                    {(() => {
+                      const orig = post.repostedPost;
+                      const origAuthorObj =
+                        typeof orig.author === 'object' && orig.author ? orig.author : null;
+                      const origAuthorName =
+                        origAuthorObj?.displayName ||
+                        origAuthorObj?.fullName ||
+                        origAuthorObj?.username ||
+                        'HyperBuds Creator';
+                      const origAuthorHref = origAuthorObj?.username
+                        ? `/profile/${encodeURIComponent(origAuthorObj.username)}`
+                        : null;
+
+                      return (
+                        <div className="overflow-hidden rounded-2xl border border-slate-200/90 bg-slate-50/50 p-3.5 dark:border-slate-800 dark:bg-slate-950/60">
+                          <div className="flex items-center gap-2.5">
+                            {origAuthorObj?.avatar ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img
+                                src={origAuthorObj.avatar}
+                                alt={origAuthorName}
+                                className="h-9 w-9 rounded-full border border-slate-200 object-cover dark:border-slate-700"
+                              />
+                            ) : (
+                              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-900 text-xs font-bold text-white dark:bg-indigo-600">
+                                {getInitials(origAuthorName)}
+                              </div>
+                            )}
+                            <div>
+                              <div className="flex flex-wrap items-center gap-2">
+                                {origAuthorHref ? (
+                                  <Link
+                                    href={origAuthorHref}
+                                    className="text-sm font-semibold text-slate-900 hover:underline dark:text-white"
+                                  >
+                                    {origAuthorName}
+                                  </Link>
+                                ) : (
+                                  <p className="text-sm font-semibold text-slate-900 dark:text-white">
+                                    {origAuthorName}
+                                  </p>
+                                )}
+                                {orig.kind === 'reel' && (
+                                  <Link
+                                    href="/reels"
+                                    className="inline-flex items-center gap-1 rounded-full bg-purple-100 px-2 py-0.5 text-[10px] font-semibold text-purple-800 dark:bg-purple-950/70 dark:text-purple-200"
+                                  >
+                                    <Film className="h-3 w-3" />
+                                    Reel
+                                  </Link>
+                                )}
+                              </div>
+                              <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                                {formatTime(orig.createdAt)}
+                              </p>
+                            </div>
+                          </div>
+
+                          {orig.body && (
+                            <p className="mt-2.5 whitespace-pre-wrap text-sm leading-relaxed text-slate-800 dark:text-slate-200">
+                              {orig.body}
+                            </p>
+                          )}
+
+                          {Array.isArray(orig.media) && orig.media.length > 0 && (
+                            <div className="mt-3 grid grid-cols-1 gap-2 overflow-hidden rounded-xl">
+                              {orig.media.map((m, idx) => {
+                                if (m.type === 'video') {
+                                  const posterUrl = deriveVideoPoster(
+                                    m.url,
+                                    m.thumbnailUrl || orig.thumbnailUrl,
+                                  );
+                                  return (
+                                    <div
+                                      key={`${orig._id}-rm-${idx}`}
+                                      className="flex justify-center overflow-hidden rounded-xl border border-slate-200 bg-black dark:border-slate-800"
+                                    >
+                                      <video
+                                        src={withVideoPreviewFragment(m.url, posterUrl)}
+                                        poster={posterUrl}
+                                        controls
+                                        playsInline
+                                        preload="metadata"
+                                        className="mx-auto block h-auto max-h-[540px] w-full object-contain"
+                                      />
+                                    </div>
+                                  );
+                                }
+                                return (
+                                  <div
+                                    key={`${orig._id}-rm-${idx}`}
+                                    className="overflow-hidden rounded-xl border border-slate-200/80 bg-slate-100/70 dark:border-slate-800 dark:bg-slate-950"
+                                  >
+                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                    <img
+                                      src={m.url}
+                                      alt="Reposted media"
+                                      loading="lazy"
+                                      className="mx-auto block h-auto max-h-[580px] w-full object-contain"
+                                    />
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()}
+                  </>
                 ) : (
                   <>
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-center gap-3">
                         {authorObj?.avatar ? (
+                          // eslint-disable-next-line @next/next/no-img-element
                           <img
                             src={authorObj.avatar}
                             alt={authorName}
@@ -1149,9 +1647,18 @@ export default function SocialFeedStream({
                         )}
                         <div>
                           <div className="flex flex-wrap items-center gap-2">
-                            <p className="text-sm font-semibold text-slate-900 dark:text-white">
-                              {authorName}
-                            </p>
+                            {authorHref ? (
+                              <Link
+                                href={authorHref}
+                                className="text-sm font-semibold text-slate-900 hover:underline dark:text-white"
+                              >
+                                {authorName}
+                              </Link>
+                            ) : (
+                              <p className="text-sm font-semibold text-slate-900 dark:text-white">
+                                {authorName}
+                              </p>
+                            )}
                             {post.kind === 'reel' && (
                               <Link
                                 href="/reels"
@@ -1252,106 +1759,297 @@ export default function SocialFeedStream({
                   </>
                 )}
 
-                <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-3 dark:border-slate-800">
-                  <div className="flex items-center gap-2">
+                {/* Facebook-style Engagement Summary Strip */}
+                {(likesTotal > 0 || commentsTotal > 0 || repostsTotal > 0) && (
+                  <div className="mt-3 flex items-center justify-between gap-2 text-xs text-slate-500 dark:text-slate-400">
+                    <div className="flex items-center gap-1.5">
+                      {likesTotal > 0 && (
+                        <>
+                          <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-white">
+                            <Heart className="h-2.5 w-2.5 fill-current" />
+                          </span>
+                          <span className="tabular-nums">{likesTotal}</span>
+                        </>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-3">
+                      {commentsTotal > 0 && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setOpenComments((prev) => ({ ...prev, [post._id]: !prev[post._id] }))
+                          }
+                          className="hover:underline"
+                        >
+                          {commentsTotal} {commentsTotal === 1 ? 'comment' : 'comments'}
+                        </button>
+                      )}
+                      {repostsTotal > 0 && (
+                        <span>
+                          {repostsTotal} {repostsTotal === 1 ? 'repost' : 'reposts'}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Facebook-style Full-Width Action Bar + Instagram Repost */}
+                <div className="mt-3 flex items-center justify-between gap-1 border-y border-slate-100 py-1 dark:border-slate-800">
+                  <button
+                    type="button"
+                    onClick={() => handleToggleLike(post._id)}
+                    className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-semibold transition ${
+                      liked
+                        ? 'text-rose-600 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-950/40'
+                        : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800'
+                    }`}
+                  >
+                    <Heart className={`h-4 w-4 ${liked ? 'fill-current' : ''}`} />
+                    <span>Like</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setOpenComments((prev) => ({ ...prev, [post._id]: !prev[post._id] }))
+                    }
+                    className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-semibold transition ${
+                      commentsOpen
+                        ? 'text-purple-700 hover:bg-purple-50 dark:text-purple-300 dark:hover:bg-purple-950/40'
+                        : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800'
+                    }`}
+                  >
+                    <MessageSquare className="h-4 w-4" />
+                    <span>Comment</span>
+                  </button>
+
+                  {post.visibility === 'public' && (
                     <button
                       type="button"
-                      onClick={() => handleToggleLike(post._id)}
-                      className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition ${
-                        liked
-                          ? 'bg-rose-50 text-rose-600 dark:bg-rose-950/50 dark:text-rose-300'
+                      disabled={Boolean(repostBusy[post._id])}
+                      onClick={() => {
+                        setRepostThoughtDraft('');
+                        setRepostSheetPostId((prev) => (prev === post._id ? null : post._id));
+                      }}
+                      className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-semibold transition ${
+                        isReposted
+                          ? 'text-emerald-600 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-950/40'
                           : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800'
                       }`}
                     >
-                      <Heart className={`h-4 w-4 ${liked ? 'fill-current' : ''}`} />
-                      <span className="tabular-nums">{(post.likes ?? []).length}</span> Like
+                      <Repeat2 className="h-4 w-4" />
+                      <span>{isReposted ? 'Reposted' : 'Repost'}</span>
                     </button>
+                  )}
 
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setOpenComments((prev) => ({ ...prev, [post._id]: !prev[post._id] }))
-                      }
-                      className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-slate-600 transition hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
-                    >
-                      <MessageSquare className="h-4 w-4" />
-                      <span className="tabular-nums">{(post.comments ?? []).length}</span> Comment
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => handleShare(post._id)}
-                      className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-slate-600 transition hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
-                    >
-                      <Share2 className="h-4 w-4" />
-                      Share
-                    </button>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleShare(post._id)}
+                    className="flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-semibold text-slate-600 transition hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+                  >
+                    <Share2 className="h-4 w-4" />
+                    <span className="hidden sm:inline">Share</span>
+                  </button>
 
                   <button
                     type="button"
                     onClick={() => handleToggleBookmark(post._id)}
                     aria-label="Bookmark post"
-                    className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition ${
+                    className={`rounded-lg p-2 text-xs font-semibold transition ${
                       bookmarked
-                        ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300'
-                        : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800'
+                        ? 'text-purple-700 hover:bg-purple-50 dark:text-purple-300 dark:hover:bg-purple-950/40'
+                        : 'text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800'
                     }`}
                   >
                     <Bookmark className={`h-4 w-4 ${bookmarked ? 'fill-current' : ''}`} />
                   </button>
                 </div>
 
-                {commentsOpen && (
-                  <div className="mt-3 space-y-2.5 border-t border-slate-100 pt-3 dark:border-slate-800">
-                    {(post.comments ?? []).length > 0 ? (
+                {/* Instagram-style Inline Repost Popover (Instant Repost or Thought Bubble) */}
+                {repostSheetPostId === post._id && (
+                  <div
+                    data-testid="instagram-repost-bar"
+                    className="mt-2.5 rounded-2xl border border-purple-200/80 bg-purple-50/70 p-3 dark:border-purple-900/60 dark:bg-purple-950/30"
+                  >
+                    {isReposted ? (
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <p className="text-xs font-medium text-slate-700 dark:text-slate-200">
+                          You reposted this post to your feed.
+                        </p>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setRepostSheetPostId(null)}
+                            className="rounded-full px-3 py-1 text-xs font-semibold text-slate-600 hover:bg-white/70 dark:text-slate-300"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="button"
+                            disabled={Boolean(repostBusy[post._id])}
+                            onClick={() => void handleRepost(post)}
+                            className="inline-flex items-center gap-1 rounded-full bg-rose-600 px-3.5 py-1 text-xs font-semibold text-white transition hover:bg-rose-700 disabled:opacity-50"
+                          >
+                            Remove repost
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
                       <div className="space-y-2">
-                        {(post.comments ?? []).map((c) => {
-                          const cAuthor =
-                            typeof c.author === 'object' && c.author
-                              ? c.author.fullName || c.author.username || 'Creator'
-                              : 'Creator';
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            maxLength={240}
+                            value={repostThoughtDraft}
+                            onChange={(e) => setRepostThoughtDraft(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                void handleRepost(post, repostThoughtDraft);
+                              }
+                            }}
+                            placeholder="Add a thought (optional, Instagram-style)..."
+                            className="flex-1 rounded-full border border-purple-200 bg-white px-3.5 py-1.5 text-xs text-slate-900 placeholder:text-slate-400 focus:border-purple-500 focus:outline-none dark:border-purple-800 dark:bg-slate-900 dark:text-white"
+                          />
+                          <button
+                            type="button"
+                            disabled={Boolean(repostBusy[post._id])}
+                            onClick={() => void handleRepost(post, repostThoughtDraft)}
+                            className="inline-flex items-center gap-1 rounded-full bg-purple-700 px-4 py-1.5 text-xs font-semibold text-white transition hover:bg-purple-800 disabled:opacity-50 dark:bg-purple-600 dark:hover:bg-purple-500"
+                          >
+                            {repostBusy[post._id] ? (
+                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            ) : (
+                              <Repeat2 className="h-3.5 w-3.5" />
+                            )}
+                            Repost
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Facebook-style Comment Section (Bubbles, Nested Replies, Comment Likes, Rounded Pill Composer) */}
+                {commentsOpen && (
+                  <div
+                    data-testid="facebook-comment-section"
+                    className="mt-3 space-y-3 pt-1"
+                  >
+                    {rootComments.length > 0 ? (
+                      <div className="space-y-3">
+                        {rootComments.map((root) => {
+                          const replies = repliesByParent.get(root._id) ?? [];
+                          const isReplyingHere = activeReplyTarget?.commentId === root._id;
+                          const replyKey = `${post._id}:${root._id}`;
+
                           return (
-                            <div
-                              key={c._id}
-                              className="rounded-xl border border-slate-100 bg-slate-50 px-3 py-2 text-xs dark:border-slate-800 dark:bg-slate-950"
-                            >
-                              <span className="font-semibold text-slate-900 dark:text-white">
-                                {cAuthor}
-                              </span>{' '}
-                              <span className="text-slate-700 dark:text-slate-300">{c.text}</span>
+                            <div key={root._id} className="space-y-2">
+                              {renderFacebookComment(root, false)}
+
+                              {(replies.length > 0 || isReplyingHere) && (
+                                <div className="ml-6 space-y-2.5 border-l-2 border-slate-200 pl-3.5 dark:border-slate-700/80">
+                                  {replies.map((reply) => renderFacebookComment(reply, true))}
+
+                                  {isReplyingHere && (
+                                    <div className="flex items-center gap-2 pt-0.5">
+                                      {creatorProfile?.avatar ? (
+                                        // eslint-disable-next-line @next/next/no-img-element
+                                        <img
+                                          src={creatorProfile.avatar}
+                                          alt={creatorProfile.displayName || 'You'}
+                                          className="h-6 w-6 shrink-0 rounded-full object-cover"
+                                        />
+                                      ) : (
+                                        <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-purple-700 text-[10px] font-bold text-white">
+                                          {getInitials(creatorProfile?.displayName || 'You')}
+                                        </div>
+                                      )}
+                                      <div className="relative flex flex-1 items-center">
+                                        <input
+                                          type="text"
+                                          value={replyDrafts[replyKey] || ''}
+                                          onChange={(e) =>
+                                            setReplyDrafts((prev) => ({
+                                              ...prev,
+                                              [replyKey]: e.target.value,
+                                            }))
+                                          }
+                                          onKeyDown={(e) => {
+                                            if (e.key === 'Enter') {
+                                              e.preventDefault();
+                                              void handleAddComment(post._id, root._id);
+                                            }
+                                          }}
+                                          placeholder={`Reply to ${activeReplyTarget?.authorName || 'comment'}...`}
+                                          aria-label={`Reply to ${activeReplyTarget?.authorName || 'comment'}`}
+                                          className="w-full rounded-full bg-[#F0F2F5] py-1.5 pl-3.5 pr-9 text-[13px] text-slate-900 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500/40 dark:bg-slate-800 dark:text-white dark:placeholder:text-slate-400"
+                                        />
+                                        <button
+                                          type="button"
+                                          onClick={() => void handleAddComment(post._id, root._id)}
+                                          disabled={!(replyDrafts[replyKey] || '').trim()}
+                                          aria-label="Send reply"
+                                          className="absolute right-1.5 rounded-full p-1 text-purple-700 transition hover:bg-purple-100 disabled:opacity-40 dark:text-purple-400 dark:hover:bg-purple-950/60"
+                                        >
+                                          <SendHorizontal className="h-3.5 w-3.5" />
+                                        </button>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
                             </div>
                           );
                         })}
                       </div>
                     ) : (
-                      <p className="text-xs text-slate-400">No comments yet. Be the first to reply.</p>
+                      <p className="px-1 text-xs text-slate-400">
+                        No comments yet. Be the first to comment.
+                      </p>
                     )}
 
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="text"
-                        value={commentDrafts[post._id] || ''}
-                        onChange={(e) =>
-                          setCommentDrafts((prev) => ({ ...prev, [post._id]: e.target.value }))
-                        }
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            e.preventDefault();
-                            handleAddComment(post._id);
+                    {/* Facebook-style Bottom Comment Composer */}
+                    <div className="flex items-center gap-2 pt-1">
+                      {creatorProfile?.avatar ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={creatorProfile.avatar}
+                          alt={creatorProfile.displayName || 'You'}
+                          className="h-8 w-8 shrink-0 rounded-full object-cover ring-1 ring-slate-200 dark:ring-slate-700"
+                        />
+                      ) : (
+                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-purple-700 text-[11px] font-bold text-white">
+                          {getInitials(creatorProfile?.displayName || 'You')}
+                        </div>
+                      )}
+                      <div className="relative flex flex-1 items-center">
+                        <input
+                          type="text"
+                          value={commentDrafts[post._id] || ''}
+                          onChange={(e) =>
+                            setCommentDrafts((prev) => ({ ...prev, [post._id]: e.target.value }))
                           }
-                        }}
-                        placeholder="Write a comment..."
-                        aria-label="Write a comment"
-                        className="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:bg-white focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-white"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => handleAddComment(post._id)}
-                        className="rounded-xl bg-purple-700 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-purple-800 dark:bg-purple-600 dark:hover:bg-purple-500"
-                      >
-                        Reply
-                      </button>
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              void handleAddComment(post._id);
+                            }
+                          }}
+                          placeholder="Write a comment..."
+                          aria-label="Write a comment"
+                          className="w-full rounded-full bg-[#F0F2F5] py-2 pl-4 pr-10 text-[14px] text-slate-900 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500/40 dark:bg-slate-800 dark:text-white dark:placeholder:text-slate-400"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => void handleAddComment(post._id)}
+                          disabled={!(commentDrafts[post._id] || '').trim()}
+                          aria-label="Post comment"
+                          className="absolute right-2 rounded-full p-1.5 text-purple-700 transition hover:bg-purple-100 disabled:opacity-35 dark:text-purple-400 dark:hover:bg-purple-950/60"
+                        >
+                          <SendHorizontal className="h-4 w-4" />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 )}

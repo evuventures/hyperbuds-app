@@ -1,4 +1,4 @@
-const CACHE_NAME = 'hyperbuds-pwa-v3';
+const CACHE_NAME = 'hyperbuds-pwa-v4';
 const STATIC_ASSETS = [
   '/manifest.json',
   '/android-chrome-192x192.png',
@@ -38,23 +38,15 @@ self.addEventListener('fetch', (event) => {
   if (
     url.pathname.startsWith('/api/') ||
     url.pathname.startsWith('/socket.io') ||
-    url.pathname.startsWith('/_next/webpack-hmr')
+    url.pathname.startsWith('/_next/')
   ) {
     return;
   }
 
-  // Network-first for HTML navigations so users always get fresh app state
+  // Always fetch HTML navigations fresh from network so Chrome never holds stale chunk manifests after deploys
   if (request.mode === 'navigate') {
     event.respondWith(
-      fetch(request)
-        .then((response) => {
-          if (response && response.ok) {
-            const copy = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(request, copy)).catch(() => {});
-          }
-          return response;
-        })
-        .catch(() => caches.match(request).then((cached) => cached || caches.match('/dashboard'))),
+      fetch(request).catch(() => caches.match('/manifest.json').then(() => Response.error())),
     );
     return;
   }
