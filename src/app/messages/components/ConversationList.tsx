@@ -15,14 +15,22 @@ export const ConversationList = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<FilterType>('All');
 
+  const getUnreadForUser = (unreadCounts: unknown, userId?: string) => {
+    if (!userId || !unreadCounts) return 0;
+    if (Array.isArray(unreadCounts)) {
+      return unreadCounts.find((u: { userId?: string; count?: number }) => u?.userId === userId)?.count || 0;
+    }
+    if (typeof unreadCounts === 'object') {
+      return Number((unreadCounts as Record<string, unknown>)[userId] ?? 0);
+    }
+    return 0;
+  };
+
   const counts = useMemo(() => {
     const safeConversations = Array.isArray(conversations) ? conversations : [];
     return {
       All: safeConversations.filter(c => !c.isArchived).length,
-      Unread: safeConversations.filter(c => {
-        const userUnread = (c.unreadCounts ?? []).find(u => u.userId === currentUserId);
-        return (userUnread?.count || 0) > 0 && !c.isArchived;
-      }).length,
+      Unread: safeConversations.filter(c => getUnreadForUser(c.unreadCounts, currentUserId) > 0 && !c.isArchived).length,
       Archived: safeConversations.filter(c => c.isArchived).length,
     };
   }, [conversations, currentUserId]);
@@ -31,22 +39,23 @@ export const ConversationList = () => {
     const safeConversations = Array.isArray(conversations) ? conversations : [];
     
     const sortedList = [...safeConversations].sort((a, b) => {
-      const dateA = new Date(a.lastMessage?.createdAt || a.lastActivity || a.updatedAt).getTime();
-      const dateB = new Date(b.lastMessage?.createdAt || b.lastActivity || b.updatedAt).getTime();
+      const dateA = new Date(a.lastMessage?.createdAt || a.lastActivity || a.updatedAt || 0).getTime() || 0;
+      const dateB = new Date(b.lastMessage?.createdAt || b.lastActivity || b.updatedAt || 0).getTime() || 0;
       return dateB - dateA;
     });
 
     return sortedList.filter((chat) => {
-      const otherUser = chat.participants?.find(p => p._id !== currentUserId && p.id !== currentUserId) || chat.participants?.[0];
+      const otherUser = (chat.participants ?? []).find(p => typeof p === 'object' && p?._id !== currentUserId && p?.id !== currentUserId) || chat.participants?.[0];
+      const otherObj = typeof otherUser === 'object' && otherUser ? otherUser as { username?: string; fullName?: string; displayName?: string; email?: string } : undefined;
       const query = searchQuery.toLowerCase();
       
-      const matchesSearch = 
-        (otherUser?.username?.toLowerCase() || "").includes(query) || 
-        (otherUser?.fullName?.toLowerCase() || "").includes(query) ||
-        (otherUser?.email?.toLowerCase() || "").includes(query);
+      const matchesSearch = !query ||
+        (otherObj?.username?.toLowerCase() || "").includes(query) || 
+        (otherObj?.displayName?.toLowerCase() || "").includes(query) || 
+        (otherObj?.fullName?.toLowerCase() || "").includes(query) ||
+        (otherObj?.email?.toLowerCase() || "").includes(query);
       
-      const userUnreadData = (chat.unreadCounts ?? []).find(u => u.userId === currentUserId);
-      const hasUnread = (userUnreadData?.count || 0) > 0;
+      const hasUnread = getUnreadForUser(chat.unreadCounts, currentUserId) > 0;
 
       if (activeFilter === 'Archived') return matchesSearch && chat.isArchived;
       if (activeFilter === 'Unread') return matchesSearch && hasUnread && !chat.isArchived;

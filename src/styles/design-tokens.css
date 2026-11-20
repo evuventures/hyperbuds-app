@@ -48,7 +48,7 @@
 .hb-shell { background: var(--hb-canvas); color: var(--hb-text); }
 .hb-skip-link { position: fixed; top: 8px; left: 8px; z-index: 100; transform: translateY(-200%); padding: 12px 16px; background: var(--hb-surface); color: var(--hb-text); border: 2px solid var(--hb-action); border-radius: 8px; }
 .hb-skip-link:focus { transform: translateY(0); }
-.hb-nav-link { display: block; border-radius: 8px; }
+.hb-nav-link { border-radius: 10px; }
 .hb-nav-link:focus-visible { outline: 2px solid var(--hb-action); outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

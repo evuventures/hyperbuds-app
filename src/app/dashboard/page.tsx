@@ -71,8 +71,8 @@ const MainContent: React.FC = () => {
               </div>
             </main>
 
-            {/* Desktop Right Rail: Messages + Events + Activity (accessible via top 3-bar sidebar on mobile) */}
-            <div className="hidden space-y-4 lg:col-span-4 lg:block">
+            {/* Desktop Static Right Rail: Messages + Events + Activity (pinned while center feed scrolls) */}
+            <aside className="hidden space-y-4 lg:sticky lg:top-5 lg:col-span-4 lg:block lg:max-h-[calc(100dvh-88px)] lg:overflow-y-auto hb-scroll-hidden">
               {showSetup && <FinishSettingUp />}
 
               <MessagesAndEventsPanel currentUserId={userSummary.id} />
@@ -80,7 +80,7 @@ const MainContent: React.FC = () => {
               <div className="rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
                 <ActivityFeed />
               </div>
-            </div>
+            </aside>
           </div>
         </div>
       </div>

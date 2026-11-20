@@ -22,22 +22,35 @@ export const ConversationItem: React.FC<ConversationItemProps> = ({
 
   const currentUserId = currentUser?.id || currentUser?._id;
 
-  const otherUser = (conversation.participants ?? []).find(
-    (p) => p._id !== currentUserId && p.id !== currentUserId
+  const otherRaw = (conversation.participants ?? []).find(
+    (p) => typeof p === 'object' && p !== null && p._id !== currentUserId && p.id !== currentUserId
   ) || conversation.participants?.[0];
+  const otherUser = (typeof otherRaw === 'object' && otherRaw !== null ? otherRaw : undefined) as
+    | (typeof otherRaw & { displayName?: string; fullName?: string; username?: string; email?: string; avatar?: string; status?: string })
+    | undefined;
 
-  const unreadCount = conversation.unreadCounts?.find(
-    u => u.userId === currentUserId
-  )?.count || 0;
+  const rawUnread = conversation.unreadCounts as unknown;
+  const unreadCount = Array.isArray(rawUnread)
+    ? rawUnread.find((u: { userId?: string; count?: number }) => u?.userId === currentUserId)?.count || 0
+    : rawUnread && typeof rawUnread === 'object' && currentUserId
+      ? Number((rawUnread as Record<string, unknown>)[currentUserId] ?? 0)
+      : 0;
 
-  const formatLastActivity = (dateString: string) => {
+  const formatLastActivity = (dateString?: string) => {
+    if (!dateString) return '';
     const date = new Date(dateString);
+    if (Number.isNaN(date.getTime())) return '';
     if (isToday(date)) return format(date, 'h:mm a');
     return format(date, 'dd/MM/yyyy');
   };
 
-  const lastMsg = conversation.lastMessage;
-  const isSentByMe = lastMsg?.sender?._id === currentUserId;
+  const lastMsg = typeof conversation.lastMessage === 'object' && conversation.lastMessage !== null
+    ? conversation.lastMessage
+    : undefined;
+  const lastSenderId = typeof lastMsg?.sender === 'string' ? lastMsg.sender : lastMsg?.sender?._id;
+  const isSentByMe = Boolean(lastSenderId && lastSenderId === currentUserId);
+  const peerLabel =
+    otherUser?.displayName || otherUser?.fullName || otherUser?.username || otherUser?.email?.split('@')[0] || 'Creator';
 
   return (
     <Link
@@ -79,7 +92,7 @@ export const ConversationItem: React.FC<ConversationItemProps> = ({
               ? 'text-slate-900 dark:text-white' 
               : 'text-slate-800 dark:text-slate-200 group-hover:text-black dark:group-hover:text-white'
           }`}>
-            {otherUser?.username || otherUser?.fullName || otherUser?.email?.split('@')[0]}
+            {peerLabel}
           </h4>
 
           <span className={`text-[10px] shrink-0 ml-2 ${

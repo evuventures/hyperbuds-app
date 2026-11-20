@@ -241,7 +241,7 @@ export default function MessagesAndEventsPanel({ currentUserId }: { currentUserI
               return (
                 <Link
                   key={conv._id}
-                  href={`/messages?conversationId=${conv._id}`}
+                  href={`/messages/${conv._id}`}
                   className="flex items-center gap-2.5 rounded-xl px-2 py-1.5 transition hover:bg-slate-50 dark:hover:bg-slate-800/70"
                 >
                   <div className="relative shrink-0">

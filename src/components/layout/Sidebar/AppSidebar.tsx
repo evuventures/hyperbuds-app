@@ -340,7 +340,7 @@ export function AppSidebar({
     <div className={`relative flex h-full w-full p-3 ${className}`} data-sidebar-appearance={appearance}>
       {appearance === 'glass' && <GlassBackdrop />}
       <div className={`relative flex h-full w-full flex-col overflow-hidden rounded-3xl transition-colors duration-300 ${t.panel}`}>
-        <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-3 pb-3 pt-4 hb-scroll-hidden">
+        <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-2.5 pb-3 pt-3 hb-scroll-hidden">
           {showBrand && (
             <div className="flex items-center gap-2.5 px-1 pr-12">
               <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-white shadow-sm">
@@ -407,8 +407,8 @@ export function AppSidebar({
           {/* Primary navigation */}
           <nav aria-label="Primary">
             {visibleSections.map((section, sIdx) => (
-              <div key={section.title} className={sIdx > 0 ? `mt-3 border-t pt-3 ${t.divider}` : ''}>
-                <p className={`px-3 pb-1.5 text-[11px] font-semibold uppercase tracking-wider ${t.label}`}>{section.title}</p>
+              <div key={section.title} className={sIdx > 0 ? `mt-2.5 border-t pt-2.5 ${t.divider}` : ''}>
+                <p className={`px-2.5 pb-1 text-[10px] font-semibold uppercase tracking-wider ${t.label}`}>{section.title}</p>
                 <ul className="space-y-0.5">
                   {section.items.map((item) => {
                     const active = item.match(pathname);
@@ -419,9 +419,9 @@ export function AppSidebar({
                           href={item.href}
                           onClick={onNavigate}
                           aria-current={active ? 'page' : undefined}
-                          className={`hb-nav-link flex items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-medium transition ${active ? t.active : t.link}`}
+                          className={`hb-nav-link flex flex-row items-center gap-2.5 rounded-xl px-2.5 py-2 text-[13px] font-medium leading-none transition ${active ? t.active : t.link}`}
                         >
-                          <Icon className="h-[18px] w-[18px] shrink-0" />
+                          <Icon className="h-[17px] w-[17px] shrink-0" />
                           <span className="truncate">{item.label}</span>
                         </Link>
                       </li>
@@ -433,20 +433,20 @@ export function AppSidebar({
           </nav>
 
           {/* Shortcuts */}
-          <section className={`border-t pt-3 ${t.divider}`}>
-            <p className={`px-3 pb-1.5 text-[11px] font-semibold uppercase tracking-wider ${t.label}`}>Shortcuts</p>
+          <section className={`border-t pt-2.5 ${t.divider}`}>
+            <p className={`px-2.5 pb-1 text-[10px] font-semibold uppercase tracking-wider ${t.label}`}>Shortcuts</p>
             <ul className="space-y-0.5">
               {SHORTCUTS.map(({ label, href, icon: Icon }) => (
                 <li key={href}>
                   <Link
                     href={href}
                     onClick={onNavigate}
-                    className={`hb-nav-link flex items-center gap-3 rounded-xl px-3 py-2 text-[13px] font-medium transition ${t.link}`}
+                    className={`hb-nav-link flex flex-row items-center gap-2.5 rounded-xl px-2.5 py-1.5 text-[13px] font-medium leading-none transition ${t.link}`}
                   >
-                    <span className={`flex h-6 w-6 items-center justify-center rounded-lg ${t.iconTile}`}>
+                    <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-lg ${t.iconTile}`}>
                       <Icon className="h-3.5 w-3.5" />
                     </span>
-                    {label}
+                    <span className="truncate">{label}</span>
                   </Link>
                 </li>
               ))}

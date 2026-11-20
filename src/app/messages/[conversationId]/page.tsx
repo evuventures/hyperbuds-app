@@ -1,76 +1,56 @@
 "use client"
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useParams } from 'next/navigation';
-import { useAppDispatch } from '@/store/hooks';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import DashboardLayout from '@/components/layout/Dashboard/Dashboard';
 import { ConversationList } from '../components/ConversationList';
 import { ChatWindow } from '../components/ChatWindow';
-import { setActiveConversation } from '@/store/slices/chatSlice';
+import { useChatSocket } from '@/hooks/features/useChatSocket';
+import { messagingAPI } from '@/lib/api/messaging.api';
+import { setActiveConversation, setConversations } from '@/store/slices/chatSlice';
 
 const ConversationPage = () => {
+  useChatSocket();
   const params = useParams();
   const dispatch = useAppDispatch();
   const conversationId = params.conversationId as string;
-  const [isLoading, setIsLoading] = useState(true);
+  const conversations = useAppSelector((state) => state.chat.conversations);
 
   useEffect(() => {
     if (conversationId) {
-      // ✅ Set active conversation so isInActiveChat works correctly in socket handler
       dispatch(setActiveConversation(conversationId));
-
-      const timer = setTimeout(() => setIsLoading(false), 500);
-      return () => clearTimeout(timer);
     }
   }, [conversationId, dispatch]);
 
+  useEffect(() => {
+    if (Array.isArray(conversations) && conversations.length > 0) return;
+    let cancelled = false;
+    messagingAPI
+      .getConversations()
+      .then((listData) => {
+        if (cancelled) return;
+        dispatch(setConversations(Array.isArray(listData?.conversations) ? listData.conversations : []));
+      })
+      .catch((error) => {
+        console.error('Failed to load conversations:', error);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [conversations, dispatch]);
+
   return (
     <DashboardLayout>
-      <div className="flex h-[calc(100vh-64px)]  bg-white dark:bg-slate-900 overflow-hidden">
+      <div className="flex h-[calc(100vh-64px)] bg-white dark:bg-slate-900 overflow-hidden">
         <div className="hidden md:flex w-80 flex-col border-r border-gray-100 dark:border-slate-800/50">
           <ConversationList />
         </div>
-        <div className="flex-1 flex flex-col min-w-0  bg-white dark:bg-slate-900">
-          {isLoading ? (
-            <ChatWindowSkeleton />
-          ) : (
-            <ChatWindow conversationId={conversationId} />
-          )}
+        <div className="flex-1 flex flex-col min-w-0 bg-white dark:bg-slate-900">
+          <ChatWindow conversationId={conversationId} />
         </div>
       </div>
     </DashboardLayout>
   );
 };
-
-const ChatWindowSkeleton = () => (
-  <div className="flex flex-col h-full animate-pulse">
-    <div className="px-4 py-3 border-b border-slate-800 flex items-center justify-between">
-      <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-full bg-slate-800" />
-        <div className="space-y-2">
-          <div className="h-3 w-24 bg-slate-800 rounded" />
-          <div className="h-2 w-16 bg-slate-800 rounded" />
-        </div>
-      </div>
-      <div className="flex gap-4">
-        <div className="w-5 h-5 bg-slate-800 rounded" />
-        <div className="w-5 h-5 bg-slate-800 rounded" />
-      </div>
-    </div>
-    <div className="flex-1 p-6 space-y-6">
-      <div className="flex justify-start">
-        <div className="h-10 w-2/3 bg-slate-800 rounded-2xl rounded-tl-none" />
-      </div>
-      <div className="flex justify-end">
-        <div className="h-10 w-1/2 bg-purple-900/20 rounded-2xl rounded-tr-none" />
-      </div>
-      <div className="flex justify-start">
-        <div className="h-10 w-3/4 bg-slate-800 rounded-2xl rounded-tl-none" />
-      </div>
-    </div>
-    <div className="p-4">
-      <div className="h-12 w-full bg-slate-800 rounded-xl" />
-    </div>
-  </div>
-);
 
 export default ConversationPage;

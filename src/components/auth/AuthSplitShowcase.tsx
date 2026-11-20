@@ -1,11 +1,63 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
-import { SlidersHorizontal, Sparkles, Users, Volume2, VolumeX } from 'lucide-react';
+import Link from 'next/link';
+import { Sparkles, Volume2, VolumeX, X } from 'lucide-react';
 
-const MATCHMAKING_VIDEO_SRC =
-  'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4';
+interface ShowcaseSlide {
+  id: string;
+  tabLabel: string;
+  badge: string;
+  headline: string;
+  subtitle: string;
+  mediaType: 'video' | 'image';
+  src: string;
+  poster?: string;
+}
+
+const SLIDE_DURATION_MS = 6000;
+
+const SHOWCASE_SLIDES: ShowcaseSlide[] = [
+  {
+    id: 'live-studio',
+    tabLabel: 'Live Studio 4K',
+    badge: 'LiveKit WebRTC',
+    headline: 'LIVE CO-STREAMING',
+    subtitle: 'Broadcast multi-guest WebRTC sessions with studio audio and real-time chat.',
+    mediaType: 'video',
+    src: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+    poster: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=1400&q=85',
+  },
+  {
+    id: 'ai-match',
+    tabLabel: 'AI Matchmaking',
+    badge: 'Rizz Score 2.0',
+    headline: 'SMART CREATOR MATCH',
+    subtitle: 'Explainable AI pairing ranked by niche, engagement velocity, and audience fit.',
+    mediaType: 'image',
+    src: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=1400&q=90',
+  },
+  {
+    id: 'creator-reels',
+    tabLabel: 'Creator Reels',
+    badge: '9:16 Vertical',
+    headline: 'CINEMATIC REELS',
+    subtitle: 'Publish behind-the-scenes clips and creator stories directly on global CDN.',
+    mediaType: 'video',
+    src: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
+    poster: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=1400&q=85',
+  },
+  {
+    id: 'startup-hub',
+    tabLabel: 'Startup Hub',
+    badge: 'Transparent Offers',
+    headline: 'STARTUP & TALENT HUB',
+    subtitle: 'Pitch ventures, invite top talent, and negotiate salary and equity in the open.',
+    mediaType: 'image',
+    src: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1400&q=90',
+  },
+];
 
 interface AuthSplitShowcaseProps {
   title: React.ReactNode;
@@ -14,122 +66,197 @@ interface AuthSplitShowcaseProps {
 }
 
 /**
- * Shared split-card authentication shell matching the dark blurred backdrop,
- * sculpted white pill form column, and creator matchmaking video column.
+ * Higgsfield-inspired full-bleed dark split authentication shell:
+ * Left: high-impact image & video carousel with bottom segmented progress tabs.
+ * Right: centered dark auth column with clean brand header and legal footer.
  */
 export default function AuthSplitShowcase({
   title,
   subtitle,
   children,
 }: AuthSplitShowcaseProps) {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [progress, setProgress] = useState(0);
   const [muted, setMuted] = useState(true);
 
+  useEffect(() => {
+    setProgress(0);
+    const stepMs = 50;
+    const increment = (stepMs / SLIDE_DURATION_MS) * 100;
+    const timer = window.setInterval(() => {
+      setProgress((prev) => {
+        if (prev + increment >= 100) {
+          setActiveIndex((idx) => (idx + 1) % SHOWCASE_SLIDES.length);
+          return 0;
+        }
+        return prev + increment;
+      });
+    }, stepMs);
+    return () => window.clearInterval(timer);
+  }, [activeIndex]);
+
+  const currentSlide = SHOWCASE_SLIDES[activeIndex];
+
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#12131c] p-4 sm:p-8">
-      {/* Moody blurred ambient glow backdrop */}
-      <div aria-hidden className="pointer-events-none fixed inset-0">
-        <div className="absolute -left-24 -top-24 h-96 w-96 rounded-full bg-purple-700/30 blur-[130px]" />
-        <div className="absolute -bottom-24 -right-24 h-96 w-96 rounded-full bg-indigo-600/25 blur-[140px]" />
-        <div className="absolute left-1/2 top-1/2 h-80 w-80 -translate-x-1/2 -translate-y-1/2 rounded-full bg-violet-500/15 blur-[120px]" />
-      </div>
+    <div className="relative grid min-h-screen w-full grid-cols-1 bg-[#0b0b0e] text-white lg:grid-cols-2">
+      {/* Left Column: Full-bleed Higgsfield-style high-res image & video carousel */}
+      <div className="relative order-2 p-3 sm:p-4 lg:order-1 lg:h-screen lg:sticky lg:top-0">
+        <div className="relative flex h-[440px] w-full flex-col justify-end overflow-hidden rounded-[22px] bg-zinc-950 ring-1 ring-white/10 lg:h-full">
+          {/* Active slide media */}
+          {SHOWCASE_SLIDES.map((slide, idx) => {
+            const isActive = idx === activeIndex;
+            return (
+              <div
+                key={slide.id}
+                aria-hidden={!isActive}
+                className={`absolute inset-0 transition-opacity duration-700 ${
+                  isActive ? 'z-0 opacity-100' : 'pointer-events-none z-0 opacity-0'
+                }`}
+              >
+                {slide.mediaType === 'video' ? (
+                  <video
+                    src={slide.src}
+                    poster={slide.poster}
+                    autoPlay
+                    muted={muted}
+                    loop
+                    playsInline
+                    preload="metadata"
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={slide.src}
+                    alt={slide.headline}
+                    className="h-full w-full object-cover object-center"
+                  />
+                )}
+              </div>
+            );
+          })}
 
-      {/* Main split showcase card */}
-      <div className="relative z-10 grid w-full max-w-5xl grid-cols-1 items-stretch gap-3 rounded-[32px] bg-white p-3 shadow-[0_32px_90px_-18px_rgba(0,0,0,0.65)] sm:p-4 lg:grid-cols-12">
-        {/* Left column: Sculpted pill form */}
-        <div className="flex flex-col justify-center px-4 py-8 sm:px-8 lg:col-span-5 lg:py-10">
-          <div className="mx-auto w-full max-w-[300px]">
-            <div className="flex items-center justify-center gap-2">
-              <Image
-                src="/images/logo.png"
-                alt="HyperBuds"
-                width={22}
-                height={22}
-                className="h-5 w-5 object-contain"
-              />
-              <span className="text-sm font-extrabold tracking-tight text-purple-700">
-                hyperbuds
-              </span>
+          {/* Moody cinema gradient overlay */}
+          <div className="pointer-events-none absolute inset-0 z-10 bg-linear-to-t from-black/95 via-black/35 to-black/20" />
+
+          {/* Audio toggle for video slides */}
+          {currentSlide.mediaType === 'video' && (
+            <button
+              type="button"
+              onClick={() => setMuted((m) => !m)}
+              aria-label={muted ? 'Unmute preview video' : 'Mute preview video'}
+              className="absolute right-4 top-4 z-20 flex h-9 w-9 items-center justify-center rounded-full border border-white/15 bg-black/50 text-white backdrop-blur-md transition hover:bg-black/75"
+            >
+              {muted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+            </button>
+          )}
+
+          {/* Bottom editorial caption + Higgsfield segmented tab bar */}
+          <div className="relative z-20 p-5 sm:p-7">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[11px] font-medium text-white/95 backdrop-blur-md">
+              <Sparkles className="h-3 w-3 text-purple-300" />
+              {currentSlide.badge}
+            </span>
+
+            <h2 className="mt-3 text-3xl font-black uppercase leading-[1.02] tracking-tight text-white sm:text-4xl xl:text-[42px]">
+              {currentSlide.headline}
+            </h2>
+
+            <p className="mt-2 max-w-lg text-sm leading-relaxed text-zinc-300">
+              {currentSlide.subtitle}
+            </p>
+
+            {/* 4 Segmented Progress Tabs */}
+            <div
+              role="tablist"
+              aria-label="HyperBuds highlights"
+              className="mt-6 grid grid-cols-4 gap-2.5 sm:gap-3"
+            >
+              {SHOWCASE_SLIDES.map((slide, idx) => {
+                const isActive = idx === activeIndex;
+                const isPast = idx < activeIndex;
+                return (
+                  <button
+                    key={slide.id}
+                    type="button"
+                    role="tab"
+                    aria-selected={isActive}
+                    onClick={() => {
+                      setActiveIndex(idx);
+                      setProgress(0);
+                    }}
+                    className="group flex flex-col text-left focus:outline-none"
+                  >
+                    <span className="h-[3px] w-full overflow-hidden rounded-full bg-white/20">
+                      <span
+                        className="block h-full rounded-full bg-white transition-[width] duration-75"
+                        style={{
+                          width: isActive ? `${progress}%` : isPast ? '100%' : '0%',
+                        }}
+                      />
+                    </span>
+                    <span
+                      className={`mt-2 truncate text-[11px] font-medium transition sm:text-xs ${
+                        isActive ? 'text-white' : 'text-zinc-400 group-hover:text-zinc-200'
+                      }`}
+                    >
+                      {slide.tabLabel}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
-
-            <h1 className="mt-4 text-center text-3xl font-extrabold leading-[1.1] tracking-tight text-slate-950 sm:text-[34px]">
-              {title}
-            </h1>
-            {subtitle && (
-              <p className="mt-2 text-center text-xs text-slate-500">{subtitle}</p>
-            )}
-
-            {children}
           </div>
         </div>
+      </div>
 
-        {/* Right column: Looping video showcase with creator matchmaking & sorting pins */}
-        <div className="relative min-h-[360px] overflow-hidden rounded-[24px] bg-slate-950 lg:col-span-7 lg:min-h-[540px]">
-          <video
-            src={MATCHMAKING_VIDEO_SRC}
-            poster="/images/hero/photo-1522071820081-009f0129c71c.png"
-            autoPlay
-            muted={muted}
-            loop
-            playsInline
-            preload="metadata"
-            aria-label="Creator matchmaking and smart collaboration sorting preview video"
-            className="absolute inset-0 h-full w-full object-cover"
-          />
+      {/* Right Column: Centered dark Higgsfield-style auth panel */}
+      <div className="relative order-1 flex min-h-[540px] flex-col justify-center px-6 py-12 sm:px-10 lg:order-2 lg:min-h-screen">
+        <Link
+          href="/"
+          aria-label="Back to home"
+          className="absolute right-5 top-5 flex h-9 w-9 items-center justify-center rounded-full bg-white/[0.06] text-zinc-400 ring-1 ring-white/10 transition hover:bg-white/10 hover:text-white"
+        >
+          <X className="h-4 w-4" />
+        </Link>
 
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-purple-950/25 to-slate-950/35" />
-
-          <button
-            type="button"
-            onClick={() => setMuted((m) => !m)}
-            aria-label={muted ? 'Unmute background video' : 'Mute background video'}
-            className="absolute right-4 top-4 z-10 rounded-full bg-black/45 p-2.5 text-white backdrop-blur-md transition hover:bg-black/65"
-          >
-            {muted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
-          </button>
-
-          {/* Top-left floating match callout pin */}
-          <div className="absolute left-6 top-10 z-10 flex flex-col items-start">
-            <div className="ml-6 flex flex-col items-center">
-              <span className="h-2.5 w-2.5 rounded-full bg-white shadow-[0_0_10px_rgba(255,255,255,0.9)]" />
-              <span className="h-7 w-px bg-white/60" />
-            </div>
-            <div className="flex items-center gap-3 rounded-2xl border border-white/25 bg-slate-950/55 px-4 py-3 text-white shadow-xl backdrop-blur-md">
-              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-purple-600/80 text-white">
-                <Sparkles className="h-4 w-4" />
+        <div className="mx-auto w-full max-w-[360px]">
+          <div className="text-center">
+            <h1 className="text-[28px] font-bold leading-[1.18] tracking-tight text-white sm:text-[32px]">
+              {title}
+              <span className="mt-1 inline-flex items-center justify-center gap-2 align-middle">
+                <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-purple-600/20 ring-1 ring-purple-400/40">
+                  <Image
+                    src="/images/logo.png"
+                    alt="HyperBuds"
+                    width={22}
+                    height={22}
+                    className="h-5 w-5 object-contain"
+                  />
+                </span>
+                <span className="bg-linear-to-r from-purple-400 via-fuchsia-400 to-indigo-400 bg-clip-text font-extrabold text-transparent">
+                  HyperBuds
+                </span>
               </span>
-              <div>
-                <p className="text-xs font-bold leading-tight">AI Match · 96%</p>
-                <p className="text-[11px] text-white/80">Design &amp; Live Creators</p>
-              </div>
-            </div>
+            </h1>
+            {subtitle && (
+              <p className="mt-2 text-xs text-zinc-400">{subtitle}</p>
+            )}
           </div>
 
-          {/* Right-middle floating smart sorting pin */}
-          <div className="absolute right-5 top-1/2 z-10 hidden -translate-y-1/2 flex-col items-end sm:flex">
-            <div className="rounded-2xl border border-white/25 bg-slate-950/55 px-4 py-3 text-white shadow-xl backdrop-blur-md">
-              <div className="flex items-center gap-2">
-                <SlidersHorizontal className="h-3.5 w-3.5 text-purple-300" />
-                <p className="text-sm font-extrabold">Smart Sorting</p>
-              </div>
-              <p className="mt-0.5 text-[11px] leading-snug text-white/80">
-                Ranked by niche, audience &amp; Rizz
-              </p>
-            </div>
-            <div className="mr-8 flex flex-col items-center">
-              <span className="h-8 w-px bg-white/60" />
-              <span className="h-2.5 w-2.5 rounded-full bg-white shadow-[0_0_10px_rgba(255,255,255,0.9)]" />
-            </div>
-          </div>
+          {children}
 
-          {/* Bottom-center white landmark tag */}
-          <div className="absolute bottom-6 left-1/2 z-10 flex -translate-x-1/2 flex-col items-center">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-2 text-xs font-bold text-slate-950 shadow-xl">
-              <Users className="h-3.5 w-3.5 text-purple-700" />
-              <span>Creator Matchmaking Hub</span>
-            </div>
-            <span className="h-4 w-px bg-white/70" />
-            <span className="h-2.5 w-2.5 rounded-full bg-white shadow-[0_0_10px_rgba(255,255,255,0.9)]" />
-          </div>
+          <p className="mt-7 text-center text-[11px] leading-relaxed text-zinc-500">
+            By continuing, you agree to the{' '}
+            <Link href="/about" className="underline underline-offset-2 transition hover:text-zinc-300">
+              Terms of Use
+            </Link>
+            , acknowledge the{' '}
+            <Link href="/about" className="underline underline-offset-2 transition hover:text-zinc-300">
+              Privacy Policy
+            </Link>{' '}
+            and confirm that you are at least 18 years old.
+          </p>
         </div>
       </div>
     </div>

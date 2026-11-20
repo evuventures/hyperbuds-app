@@ -59,11 +59,20 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ conversationId }) => {
     }
   }, [sortedMessages]);
 
+  const getSenderId = (sender: unknown): string => {
+    if (typeof sender === 'string') return sender;
+    if (sender && typeof sender === 'object') {
+      const s = sender as { _id?: string; id?: string };
+      return s._id || s.id || '';
+    }
+    return '';
+  };
+
   useEffect(() => {
     const currentUserId = currentUser?.id || currentUser?._id;
     if (activeId && sortedMessages.length > 0 && currentUserId) {
       const unreadIds = sortedMessages
-        .filter(m => !m.isRead && m.sender._id !== currentUserId)
+        .filter(m => !m.isRead && getSenderId(m.sender) !== currentUserId)
         .map(m => m._id);
       if (unreadIds.length > 0) {
         void messagingAPI.markAsRead(activeId, unreadIds).then(()=>dispatch(markMessagesAsRead({conversationId:activeId,messageIds:unreadIds,userId:currentUserId}))).catch(()=>{});
@@ -96,9 +105,10 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ conversationId }) => {
 
   const activeChat = conversations.find(c => c._id === activeId);
   const currentUserId = currentUser?.id || currentUser?._id;
-  const recipient = activeChat?.participants.find(p => p._id !== currentUserId) || activeChat?.participants[0];
-  const recipientRecord = recipient as (typeof recipient & { displayName?: string; isOnline?: boolean }) | undefined;
-  const recipientName = recipientRecord?.displayName || recipient?.username || 'Collaborator';
+  const recipientRaw = (activeChat?.participants ?? []).find(p => typeof p === 'object' && p !== null && p._id !== currentUserId && p.id !== currentUserId) || activeChat?.participants?.[0];
+  const recipient = typeof recipientRaw === 'object' && recipientRaw !== null ? recipientRaw : undefined;
+  const recipientRecord = recipient as (typeof recipient & { displayName?: string; fullName?: string; isOnline?: boolean }) | undefined;
+  const recipientName = recipientRecord?.displayName || recipientRecord?.fullName || recipient?.username || 'Collaborator';
   const recipientHandle = recipient?.username ? `@${recipient.username}` : '';
   const isOnline = Boolean(recipientRecord?.isOnline);
 
@@ -136,7 +146,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ conversationId }) => {
                     </span>
                   </div>
                 )}
-                <MessageBubble message={msg} isMe={msg.sender._id === currentUserId} />
+                <MessageBubble message={msg} isMe={getSenderId(msg.sender) === currentUserId} />
               </React.Fragment>
             );
           })}

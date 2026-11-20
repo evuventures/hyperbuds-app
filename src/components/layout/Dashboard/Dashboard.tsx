@@ -434,7 +434,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   ? 'visible translate-y-0 opacity-100'
                   : 'pointer-events-none invisible -translate-y-3 opacity-0 lg:pointer-events-auto lg:visible lg:translate-y-0 lg:opacity-100'
               }
-              ${sidebarCollapsed ? 'lg:w-[76px]' : 'lg:w-[288px]'}
+              ${sidebarCollapsed ? 'lg:w-[76px]' : 'lg:w-[252px]'}
             `}
           >
             <div className="relative h-full overflow-hidden rounded-3xl shadow-2xl transition-colors duration-200 lg:rounded-none lg:shadow-none">

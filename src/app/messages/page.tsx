@@ -1,7 +1,7 @@
 "use client"
 import React, { useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { useAppDispatch } from '@/store/hooks'
+import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import DashboardLayout from '@/components/layout/Dashboard/Dashboard';
 import { ConversationList } from './components/ConversationList';
 import { ChatWindow } from './components/ChatWindow';
@@ -14,16 +14,17 @@ const MessagesPage = () => {
    const dispatch = useAppDispatch();
    const searchParams = useSearchParams();
    const targetUserId = searchParams.get('userId');
+   const targetConversationId = searchParams.get('conversationId');
+   const activeConversationId = useAppSelector((state) => state.chat.activeConversationId);
 
-   // Clear selection only when there is no deep-linked user (avoid wiping state before `userId` flow runs).
    useEffect(() => {
-      if (!targetUserId) {
+      if (targetConversationId && targetConversationId !== 'undefined') {
+         dispatch(setActiveConversation(targetConversationId));
+      } else if (!targetUserId) {
          dispatch(setActiveConversation(null));
       }
-   }, [dispatch, targetUserId]);
+   }, [dispatch, targetUserId, targetConversationId]);
 
-   // Re-run when `userId` query changes (e.g. from AI matches) — do not use a one-shot ref
-   // or navigation to a different user will keep the previous conversation.
    useEffect(() => {
       let cancelled = false;
 
@@ -31,16 +32,20 @@ const MessagesPage = () => {
          try {
             const listData = await messagingAPI.getConversations();
             if (cancelled) return;
-            dispatch(setConversations(listData.conversations));
+            const list = Array.isArray(listData?.conversations) ? listData.conversations : [];
+            dispatch(setConversations(list));
 
-            if (targetUserId && targetUserId !== 'undefined') {
+            if (targetConversationId && targetConversationId !== 'undefined') {
+               dispatch(setActiveConversation(targetConversationId));
+            } else if (targetUserId && targetUserId !== 'undefined') {
                const conversation = await messagingAPI.startConversation(targetUserId);
                if (cancelled) return;
-               dispatch(setActiveConversation(conversation._id));
+               const cid = conversation?._id || (conversation as unknown as { id?: string })?.id;
+               if (cid) dispatch(setActiveConversation(cid));
 
                const updatedListData = await messagingAPI.getConversations();
                if (cancelled) return;
-               dispatch(setConversations(updatedListData.conversations));
+               dispatch(setConversations(Array.isArray(updatedListData?.conversations) ? updatedListData.conversations : []));
             }
          } catch (error) {
             console.error("Failed to initialize messaging data:", error);
@@ -51,23 +56,20 @@ const MessagesPage = () => {
       return () => {
          cancelled = true;
       };
-   }, [targetUserId, dispatch]);
+   }, [targetUserId, targetConversationId, dispatch]);
+
+   const hasSelected = Boolean(activeConversationId);
 
    return (
       <DashboardLayout>
-         
          <div className="flex h-[calc(100vh-64px)] bg-white dark:bg-slate-900 overflow-hidden transition-colors duration-300">
-            
-            
-            <div className="w-full md:w-80 flex flex-col border-r border-gray-100 dark:border-slate-800/50">
+            <div className={`${hasSelected ? 'hidden md:flex' : 'flex'} w-full md:w-80 flex-col border-r border-gray-100 dark:border-slate-800/50`}>
                <ConversationList />
             </div>
 
-            
-            <div className="hidden flex-1 md:flex flex-col min-w-0 bg-white dark:bg-slate-900">
+            <div className={`${hasSelected ? 'flex' : 'hidden md:flex'} flex-1 flex-col min-w-0 bg-white dark:bg-slate-900`}>
                <ChatWindow />
             </div>
-            
          </div>
       </DashboardLayout>
    )

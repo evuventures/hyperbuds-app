@@ -165,10 +165,8 @@ function CutoutImage({
         src={src}
         alt={alt}
         fallbackTitle={alt || 'HyperBuds Spotlight'}
-        className={`h-full w-full select-none object-cover object-top ${
-          anchored
-            ? `rounded-t-2xl ${CUTOUT_ANCHORED_SHADOW}`
-            : `rounded-2xl ${CUTOUT_BORDER_SHADOW}`
+        className={`h-full w-full select-none object-contain object-bottom ${
+          anchored ? CUTOUT_ANCHORED_SHADOW : CUTOUT_BORDER_SHADOW
         }`}
       />
     </div>
@@ -224,12 +222,12 @@ function FeaturedCard({ slide, toneText, compact = false }: { slide: HeroSlide; 
         compact ? 'w-[176px]' : 'w-[196px]'
       }`}
     >
-      <div className="flex h-[126px] items-center justify-center overflow-hidden rounded-[14px] bg-slate-100 dark:bg-slate-900">
+      <div className="flex h-[126px] items-center justify-center rounded-[14px] bg-transparent p-1.5">
         <SafeHeroImage
           src={slide.featured.image}
           alt={slide.featured.title}
           fallbackTitle={slide.featured.title}
-          className={`h-full w-full rounded-[14px] object-cover object-top ${MINI_CUTOUT_BORDER_SHADOW}`}
+          className={`max-h-full w-auto max-w-full object-contain ${MINI_CUTOUT_BORDER_SHADOW}`}
         />
       </div>
       <p className="mt-2.5 truncate text-sm font-bold text-slate-900 dark:text-white">{slide.featured.title}</p>
