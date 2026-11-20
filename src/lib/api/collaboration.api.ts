@@ -12,12 +12,53 @@ import type {
   CollaborationSearchFilters,
 } from "@/types/collaboration.types";
 
+function normalizeCollaborationItem(raw: unknown): Collaboration {
+  const item = (raw && typeof raw === "object" ? raw : {}) as Record<string, unknown>;
+  const id = String(item._id || item.id || "");
+  return {
+    ...(item as unknown as Collaboration),
+    _id: id,
+    status: (typeof item.status === "string" && item.status ? item.status : "draft") as Collaboration["status"],
+    type: (typeof item.type === "string" && item.type ? item.type : "video") as Collaboration["type"],
+    collaborators: Array.isArray(item.collaborators) ? (item.collaborators as Collaboration["collaborators"]) : [],
+    deliverables: Array.isArray(item.deliverables) ? (item.deliverables as Collaboration["deliverables"]) : [],
+    details:
+      item.details && typeof item.details === "object"
+        ? (item.details as Collaboration["details"])
+        : item.scheduledDate
+          ? { scheduledDate: String(item.scheduledDate) }
+          : undefined,
+  };
+}
+
+function unwrapCollaborationList(payload: unknown): Collaboration[] {
+  if (Array.isArray(payload)) return payload.map(normalizeCollaborationItem);
+  if (payload && typeof payload === "object") {
+    const rec = payload as Record<string, unknown>;
+    if (Array.isArray(rec.collaborations)) return rec.collaborations.map(normalizeCollaborationItem);
+    if (Array.isArray(rec.invites)) return rec.invites.map(normalizeCollaborationItem);
+    if (Array.isArray(rec.items)) return rec.items.map(normalizeCollaborationItem);
+    if (Array.isArray(rec.data)) return rec.data.map(normalizeCollaborationItem);
+  }
+  return [];
+}
+
+function unwrapCollaborationOne(payload: unknown): Collaboration {
+  if (payload && typeof payload === "object") {
+    const rec = payload as Record<string, unknown>;
+    if (rec.collaboration && typeof rec.collaboration === "object") {
+      return normalizeCollaborationItem(rec.collaboration);
+    }
+  }
+  return normalizeCollaborationItem(payload);
+}
+
 export const collaborationApi = {
   createCollaboration: async (
     data: CreateCollaborationRequest
   ): Promise<Collaboration> => {
     const response = await apiClient.post("/collaborations", data);
-    return response.data;
+    return unwrapCollaborationOne(response.data);
   },
 
   getCollaborations: async (
@@ -30,12 +71,12 @@ export const collaborationApi = {
     if (filters.offset) params.set("offset", filters.offset.toString());
 
     const response = await apiClient.get(`/collaborations?${params.toString()}`);
-    return response.data;
+    return unwrapCollaborationList(response.data);
   },
 
   getCollaborationById: async (id: string): Promise<Collaboration> => {
     const response = await apiClient.get(`/collaborations/${id}`);
-    return response.data;
+    return unwrapCollaborationOne(response.data);
   },
 
   updateCollaboration: async (
@@ -43,7 +84,7 @@ export const collaborationApi = {
     data: UpdateCollaborationRequest
   ): Promise<Collaboration> => {
     const response = await apiClient.put(`/collaborations/${id}`, data);
-    return response.data;
+    return unwrapCollaborationOne(response.data);
   },
 
   deleteCollaboration: async (id: string): Promise<{ message: string }> => {
@@ -56,7 +97,10 @@ export const collaborationApi = {
     data: InviteCollaboratorsRequest
   ): Promise<{ collaboration: Collaboration; newInvites: number }> => {
     const response = await apiClient.post(`/collaborations/${id}/invite`, data);
-    return response.data;
+    return {
+      collaboration: unwrapCollaborationOne(response.data),
+      newInvites: Number((response.data as { newInvites?: number })?.newInvites ?? 0),
+    };
   },
 
   respondToInvite: async (
@@ -64,7 +108,7 @@ export const collaborationApi = {
     data: RespondToInviteRequest
   ): Promise<Collaboration> => {
     const response = await apiClient.put(`/collaborations/${id}/respond`, data);
-    return response.data;
+    return unwrapCollaborationOne(response.data);
   },
 
   updateStatus: async (
@@ -72,7 +116,7 @@ export const collaborationApi = {
     status: Collaboration["status"]
   ): Promise<Collaboration> => {
     const response = await apiClient.put(`/collaborations/${id}/status`, { status });
-    return response.data;
+    return unwrapCollaborationOne(response.data);
   },
 
   addDeliverable: async (
@@ -80,7 +124,7 @@ export const collaborationApi = {
     data: AddDeliverableRequest
   ): Promise<Collaboration> => {
     const response = await apiClient.post(`/collaborations/${id}/deliverables`, data);
-    return response.data;
+    return unwrapCollaborationOne(response.data);
   },
 
   updateDeliverable: async (
@@ -92,7 +136,7 @@ export const collaborationApi = {
       `/collaborations/${id}/deliverables/${deliverableId}`,
       data
     );
-    return response.data;
+    return unwrapCollaborationOne(response.data);
   },
 
   reviewCollaboration: async (
@@ -100,7 +144,7 @@ export const collaborationApi = {
     data: ReviewCollaborationRequest
   ): Promise<Collaboration> => {
     const response = await apiClient.post(`/collaborations/${id}/review`, data);
-    return response.data;
+    return unwrapCollaborationOne(response.data);
   },
 
   getPendingInvites: async (filters: CollaborationFilters = {}): Promise<Collaboration[]> => {
@@ -111,7 +155,7 @@ export const collaborationApi = {
     if (filters.offset) params.set("offset", filters.offset.toString());
 
     const response = await apiClient.get(`/collaborations/invites?${params.toString()}`);
-    return response.data;
+    return unwrapCollaborationList(response.data);
   },
 
   getHistory: async (filters: CollaborationFilters = {}): Promise<Collaboration[]> => {
@@ -120,7 +164,7 @@ export const collaborationApi = {
     if (filters.offset) params.set("offset", filters.offset.toString());
 
     const response = await apiClient.get(`/collaborations/history?${params.toString()}`);
-    return response.data;
+    return unwrapCollaborationList(response.data);
   },
 
   searchCollaborations: async (
@@ -134,7 +178,7 @@ export const collaborationApi = {
     if (filters.offset) params.set("offset", filters.offset.toString());
 
     const response = await apiClient.get(`/collaborations/search?${params.toString()}`);
-    return response.data;
+    return unwrapCollaborationList(response.data);
   },
 };
 

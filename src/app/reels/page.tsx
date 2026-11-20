@@ -220,21 +220,43 @@ export default function ReelsPage() {
 
   const handleShare = async (reel: ReelItem) => {
     if (typeof window === 'undefined') return;
-    const shareUrl = `${window.location.origin}/reels?id=${encodeURIComponent(reel._id)}`;
+    const shareUrl = `${window.location.origin}/post/${encodeURIComponent(reel._id)}`;
     const shareData = {
       title: 'HyperBuds Reel',
       text: reel.body?.slice(0, 120) || 'Watch this reel on HyperBuds',
       url: shareUrl,
     };
     try {
-      if (navigator.share) {
+      if (typeof navigator.share === 'function') {
         await navigator.share(shareData);
-      } else {
+        return;
+      }
+    } catch (err) {
+      if ((err as { name?: string })?.name === 'AbortError') return;
+    }
+    try {
+      if (navigator.clipboard?.writeText) {
         await navigator.clipboard.writeText(shareUrl);
-        toast.success('Reel link copied to clipboard.');
+        toast.success('Shareable reel link copied! Anyone can open it and join HyperBuds.');
+        return;
       }
     } catch {
-      await navigator.clipboard?.writeText(shareUrl).catch(() => {});
+      // Fallback below
+    }
+    try {
+      const textarea = document.createElement('textarea');
+      textarea.value = shareUrl;
+      textarea.setAttribute('readonly', '');
+      textarea.style.position = 'fixed';
+      textarea.style.top = '-9999px';
+      document.body.appendChild(textarea);
+      textarea.focus();
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+      toast.success('Shareable reel link copied!');
+    } catch {
+      toast.error('Unable to copy link.');
     }
   };
 

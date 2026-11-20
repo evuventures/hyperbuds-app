@@ -6,10 +6,13 @@ import apiClient from '@/lib/api/client';
 import {
   Bookmark,
   Check,
+  Copy,
   Film,
   Flag,
   Heart,
+  Link2,
   Loader2,
+  Mail,
   MessageSquare,
   RefreshCw,
   Repeat2,
@@ -20,6 +23,7 @@ import {
   ThumbsUp,
   Trash2,
   UserPlus,
+  X,
 } from 'lucide-react';
 import {
   CreatorStudioModal,
@@ -565,6 +569,8 @@ export default function SocialFeedStream({
   const [repostSheetPostId, setRepostSheetPostId] = useState<string | null>(null);
   const [repostThoughtDraft, setRepostThoughtDraft] = useState('');
   const [repostBusy, setRepostBusy] = useState<Record<string, boolean>>({});
+  const [sharePost, setSharePost] = useState<FeedPost | null>(null);
+  const [shareCopied, setShareCopied] = useState(false);
   const [followBothBusy, setFollowBothBusy] = useState<Record<string, boolean>>({});
   const [loadError, setLoadError] = useState<string | null>(null);
 
@@ -1033,16 +1039,75 @@ export default function SocialFeedStream({
     }
   };
 
-  const handleShare = async (postId: string) => {
+  const getShareUrl = (postId: string) => {
+    const origin =
+      typeof window !== 'undefined' && window.location?.origin
+        ? window.location.origin
+        : 'https://app.hyperbuds.cloud';
+    return `${origin}/post/${encodeURIComponent(postId)}`;
+  };
+
+  const copyTextReliable = async (text: string): Promise<boolean> => {
     try {
-      const shareUrl = `${window.location.origin}/feed#${postId}`;
-      if (navigator.clipboard?.writeText) {
-        await navigator.clipboard.writeText(shareUrl);
+      if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text);
+        return true;
       }
-      setBanner({ type: 'success', text: 'Post link copied to clipboard.' });
     } catch {
-      setBanner({ type: 'success', text: 'Share link ready.' });
+      // Fallback below
     }
+    try {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.setAttribute('readonly', '');
+      textarea.style.position = 'fixed';
+      textarea.style.top = '-9999px';
+      document.body.appendChild(textarea);
+      textarea.focus();
+      textarea.select();
+      const ok = document.execCommand('copy');
+      document.body.removeChild(textarea);
+      return ok;
+    } catch {
+      return false;
+    }
+  };
+
+  const handleShare = (post: FeedPost) => {
+    setShareCopied(false);
+    setSharePost(post);
+  };
+
+  const handleCopyShareLink = async (postId: string) => {
+    const url = getShareUrl(postId);
+    const ok = await copyTextReliable(url);
+    if (ok) {
+      setShareCopied(true);
+      setBanner({ type: 'success', text: 'Shareable post link copied! Anyone can open it and join HyperBuds.' });
+      setTimeout(() => setShareCopied(false), 2200);
+    } else {
+      setBanner({ type: 'error', text: 'Tap the link box below to copy manually.' });
+    }
+  };
+
+  const handleNativeShare = async (post: FeedPost) => {
+    const url = getShareUrl(post._id);
+    const authorObj = typeof post.author === 'object' && post.author ? post.author : null;
+    const authorLabel =
+      authorObj?.displayName || authorObj?.fullName || authorObj?.username || 'HyperBuds Creator';
+    const text = post.body
+      ? `${authorLabel} on HyperBuds: "${post.body.slice(0, 120)}"`
+      : `Check out ${authorLabel}'s post on HyperBuds!`;
+    if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
+      try {
+        await navigator.share({ title: `${authorLabel} on HyperBuds`, text, url });
+        setSharePost(null);
+        return;
+      } catch (err) {
+        if ((err as { name?: string })?.name === 'AbortError') return;
+      }
+    }
+    await handleCopyShareLink(post._id);
   };
 
   const creatorProfile = currentUser || resolvedUser;
@@ -1844,7 +1909,7 @@ export default function SocialFeedStream({
 
                   <button
                     type="button"
-                    onClick={() => handleShare(post._id)}
+                    onClick={() => handleShare(post)}
                     className="flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-semibold text-slate-600 transition hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
                   >
                     <Share2 className="h-4 w-4" />
@@ -2084,6 +2149,176 @@ export default function SocialFeedStream({
           </div>
         </div>
       )}
+
+      {/* Popular Social Media Share Sheet Modal */}
+      {sharePost && (() => {
+        const shareUrl = getShareUrl(sharePost._id);
+        const sAuthorObj = typeof sharePost.author === 'object' && sharePost.author ? sharePost.author : null;
+        const sAuthorName =
+          sAuthorObj?.displayName || sAuthorObj?.fullName || sAuthorObj?.username || 'HyperBuds Creator';
+        const shareMessage = sharePost.body
+          ? `${sAuthorName} on HyperBuds: "${sharePost.body.slice(0, 120)}"`
+          : `Check out ${sAuthorName}'s post on HyperBuds!`;
+        const encodedUrl = encodeURIComponent(shareUrl);
+        const encodedText = encodeURIComponent(shareMessage);
+        const encodedCombined = encodeURIComponent(`${shareMessage} ${shareUrl}`);
+        const supportsNativeShare =
+          typeof navigator !== 'undefined' && typeof navigator.share === 'function';
+
+        const socialTargets = [
+          {
+            label: 'WhatsApp',
+            href: `https://wa.me/?text=${encodedCombined}`,
+            bg: 'bg-[#25D366] text-white',
+            badge: 'WA',
+          },
+          {
+            label: 'X / Twitter',
+            href: `https://twitter.com/intent/tweet?text=${encodedText}&url=${encodedUrl}`,
+            bg: 'bg-slate-900 text-white dark:bg-white dark:text-slate-950',
+            badge: 'X',
+          },
+          {
+            label: 'Facebook',
+            href: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`,
+            bg: 'bg-[#1877F2] text-white',
+            badge: 'f',
+          },
+          {
+            label: 'Telegram',
+            href: `https://t.me/share/url?url=${encodedUrl}&text=${encodedText}`,
+            bg: 'bg-[#229ED9] text-white',
+            badge: 'TG',
+          },
+          {
+            label: 'LinkedIn',
+            href: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`,
+            bg: 'bg-[#0A66C2] text-white',
+            badge: 'in',
+          },
+        ];
+
+        return (
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Share post"
+            data-testid="social-share-modal"
+            onClick={() => setSharePost(null)}
+            className="fixed inset-0 z-50 flex items-end justify-center bg-black/55 p-3 backdrop-blur-xs sm:items-center"
+          >
+            <div
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-md overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl dark:border-slate-800 dark:bg-slate-900"
+            >
+              <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4 dark:border-slate-800">
+                <div>
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white">Share post</h3>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                    Anyone with this link can view this post and join HyperBuds.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setSharePost(null)}
+                  aria-label="Close share dialog"
+                  className="rounded-full p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-white"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+
+              <div className="space-y-4 p-5">
+                {/* One-Tap Social Targets Grid */}
+                <div className="grid grid-cols-3 gap-2.5 sm:grid-cols-6">
+                  {socialTargets.map((target) => (
+                    <a
+                      key={target.label}
+                      href={target.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={() => setSharePost(null)}
+                      className="flex flex-col items-center gap-1.5 rounded-2xl p-2 text-center transition hover:bg-slate-50 dark:hover:bg-slate-800/70"
+                    >
+                      <span
+                        className={`flex h-11 w-11 items-center justify-center rounded-full text-sm font-black shadow-xs ${target.bg}`}
+                      >
+                        {target.badge}
+                      </span>
+                      <span className="text-[11px] font-medium text-slate-700 dark:text-slate-300">
+                        {target.label}
+                      </span>
+                    </a>
+                  ))}
+                  <a
+                    href={`mailto:?subject=${encodeURIComponent(`${sAuthorName} on HyperBuds`)}&body=${encodedCombined}`}
+                    onClick={() => setSharePost(null)}
+                    className="flex flex-col items-center gap-1.5 rounded-2xl p-2 text-center transition hover:bg-slate-50 dark:hover:bg-slate-800/70"
+                  >
+                    <span className="flex h-11 w-11 items-center justify-center rounded-full bg-purple-700 text-white shadow-xs">
+                      <Mail className="h-5 w-5" />
+                    </span>
+                    <span className="text-[11px] font-medium text-slate-700 dark:text-slate-300">
+                      Email
+                    </span>
+                  </a>
+                </div>
+
+                {/* Native Device Share (iOS / Android / Modern Browsers) */}
+                {supportsNativeShare && (
+                  <button
+                    type="button"
+                    onClick={() => void handleNativeShare(sharePost)}
+                    className="flex w-full items-center justify-center gap-2 rounded-2xl border border-purple-200 bg-purple-50 py-2.5 text-xs font-bold text-purple-800 transition hover:bg-purple-100 dark:border-purple-900/60 dark:bg-purple-950/40 dark:text-purple-200"
+                  >
+                    <Share2 className="h-4 w-4" />
+                    Share via Device Apps (Instagram, Messages, AirDrop...)
+                  </button>
+                )}
+
+                {/* Copyable Public Link Bar */}
+                <div>
+                  <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                    Post link
+                  </label>
+                  <div className="flex items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 p-1.5 pl-3 dark:border-slate-700 dark:bg-slate-950">
+                    <Link2 className="h-4 w-4 shrink-0 text-slate-400" />
+                    <input
+                      type="text"
+                      readOnly
+                      value={shareUrl}
+                      onFocus={(e) => e.currentTarget.select()}
+                      aria-label="Shareable post URL"
+                      className="min-w-0 flex-1 bg-transparent text-xs text-slate-700 focus:outline-none dark:text-slate-200"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => void handleCopyShareLink(sharePost._id)}
+                      className={`inline-flex shrink-0 items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-bold transition ${
+                        shareCopied
+                          ? 'bg-emerald-600 text-white'
+                          : 'bg-purple-700 text-white hover:bg-purple-800 dark:bg-purple-600'
+                      }`}
+                    >
+                      {shareCopied ? (
+                        <>
+                          <Check className="h-3.5 w-3.5" />
+                          Copied
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="h-3.5 w-3.5" />
+                          Copy
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }

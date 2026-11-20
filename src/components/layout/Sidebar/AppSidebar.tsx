@@ -23,7 +23,6 @@ import {
   PlusCircle,
   Radio,
   Settings,
-  Shield,
   ShieldAlert,
   ShoppingBag,
   User2,
@@ -62,7 +61,6 @@ export const NAV_SECTIONS: Array<{ title: string; items: NavItem[] }> = [
       { label: 'Sponsorships', href: '/sponsorships', icon: Megaphone, match: (p) => p.startsWith('/sponsorships') },
       { label: 'Analytics', href: '/analytics', icon: BarChart3, match: (p) => p.startsWith('/analytics') },
       { label: 'Moderation & Copyright', href: '/moderation', icon: ShieldAlert, match: (p) => p.startsWith('/moderation') },
-      { label: 'Superadmin', href: '/admin', icon: Shield, match: (p) => p.startsWith('/admin') },
     ],
   },
   {
@@ -72,7 +70,7 @@ export const NAV_SECTIONS: Array<{ title: string; items: NavItem[] }> = [
 ];
 
 const SHORTCUTS: Array<{ label: string; href: string; icon: LucideIcon }> = [
-  { label: 'New Collaboration', href: '/collaborations/create', icon: PlusCircle },
+  { label: 'New Collaboration', href: '/collaborations#new-collaboration', icon: PlusCircle },
   { label: 'Wallet & Credits', href: '/payments/wallet', icon: Wallet },
   { label: 'Subscription', href: '/payments/subscription', icon: CreditCard },
   { label: 'Settings', href: '/settings', icon: Settings },

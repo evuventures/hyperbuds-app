@@ -68,6 +68,9 @@ const CollaborationsPage: React.FC = () => {
 
   useEffect(() => {
     loadCollaborations();
+    if (typeof window !== "undefined" && window.location.hash === "#new-collaboration") {
+      setIsCreating(true);
+    }
   }, []);
 
   const handleTogglePlatform = (platform: string) => {
@@ -300,7 +303,10 @@ const CollaborationsPage: React.FC = () => {
               </Button>
             </div>
 
-            <div className="mb-6 rounded-2xl border border-gray-200/60 bg-white/90 p-5 shadow-lg backdrop-blur-sm dark:border-white/10 dark:bg-slate-800/90">
+            <div
+              id="new-collaboration"
+              className="mb-6 rounded-2xl border border-gray-200/60 bg-white/90 p-5 shadow-lg backdrop-blur-sm dark:border-white/10 dark:bg-slate-800/90"
+            >
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
