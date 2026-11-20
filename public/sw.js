@@ -1,8 +1,9 @@
-const CACHE_NAME = 'hyperbuds-pwa-v2';
+const CACHE_NAME = 'hyperbuds-pwa-v3';
 const STATIC_ASSETS = [
   '/manifest.json',
   '/android-chrome-192x192.png',
   '/android-chrome-512x512.png',
+  '/pwa-maskable-512x512.png',
   '/apple-touch-icon.png',
   '/favicon-32x32.png',
 ];
