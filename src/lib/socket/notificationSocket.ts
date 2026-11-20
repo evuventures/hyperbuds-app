@@ -4,10 +4,25 @@ import { getAccessToken } from "@/store/authSelectors";
 
 export interface NotificationData {
   _id: string;
-  // Added 'debug' to the type union to handle the system logs
-  type: 'new_message' | 'collab_request' | 'system_alert' | 'debug';
-  content: string;
-  message?: string; // Added to support the "Socket is working" structure
+  id?: string;
+  type:
+    | "like"
+    | "comment"
+    | "follow"
+    | "new_message"
+    | "stream_live"
+    | "invite"
+    | "collaboration"
+    | "collab_request"
+    | "system_alert"
+    | "system"
+    | "debug"
+    | string;
+  title?: string;
+  content?: string;
+  message?: string;
+  actionUrl?: string | null;
+  data?: Record<string, unknown> | null;
   isRead: boolean;
   createdAt: string;
 }
@@ -16,7 +31,7 @@ const SOCKET_URL = process.env.NEXT_PUBLIC_API_URL ?? BASE_URL;
 
 class NotificationSocketService {
   private socket: Socket | null = null;
-  private maxReconnectAttempts = 5;
+  private maxReconnectAttempts = 10;
   private listeners: Map<string, Set<(data?: unknown) => void>> = new Map();
 
   connect(token?: string): Socket {
@@ -24,10 +39,18 @@ class NotificationSocketService {
     const resolvedToken = token ?? getAccessToken();
     if (!resolvedToken) throw new Error("Missing access token.");
 
+    if (this.socket) {
+      this.socket.auth = { token: resolvedToken };
+      this.socket.connect();
+      return this.socket;
+    }
+
     this.socket = io(SOCKET_URL, {
       auth: { token: resolvedToken },
-      transports: ["websocket"],
+      transports: ["polling", "websocket"],
+      reconnection: true,
       reconnectionAttempts: this.maxReconnectAttempts,
+      reconnectionDelay: 1500,
     });
 
     this.setupEventListeners();
@@ -37,16 +60,26 @@ class NotificationSocketService {
   private setupEventListeners(): void {
     if (!this.socket) return;
 
-    // Filter out debug notifications before they reach the rest of the app
     this.socket.on("notification:new", (data: NotificationData) => {
-      if (data.type === 'debug') return; // Silence the "Socket is working" logs
+      if (data?.type === "debug") return;
       this.localEmit("notification:new", data);
     });
 
+    this.socket.on("notification:updated", (data: NotificationData) => {
+      this.localEmit("notification:updated", data);
+    });
+
+    this.socket.on("notification:deleted", (data: string) => {
+      this.localEmit("notification:deleted", data);
+    });
+
     this.socket.on("notifications:read-all", () => this.localEmit("notifications:read-all"));
+
+    this.socket.on("new-message", (data: unknown) => {
+      this.localEmit("new-message", data);
+    });
   }
-  
-  // Restoring the missing function!
+
   public isConnected(): boolean {
     return this.socket?.connected ?? false;
   }

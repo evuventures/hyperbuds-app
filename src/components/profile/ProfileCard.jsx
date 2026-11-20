@@ -19,6 +19,7 @@ import {
   Verified,
   Sparkles,
   UserCheck,
+  UserPlus,
   PartyPopper,
   Info,
   Database,
@@ -76,6 +77,10 @@ export default function UserProfileHeader({
   onEditProfile,
   onConnect = /** @type {((id: string) => void) | undefined} */ (undefined),
   onMessage,
+  isFollowing = false,
+  followLoading = false,
+  followersCount = /** @type {number | null} */ (null),
+  onToggleFollow = /** @type {(() => void) | undefined} */ (undefined),
 }) {
   const router = useRouter();
   const [copied, setCopied] = useState(false);
@@ -211,11 +216,14 @@ export default function UserProfileHeader({
     experience.length > 0 ||
     portfolioEntries.length > 0;
 
-  const followerDisplay = platformLoading
-    ? "..."
-    : combinedMetrics.totalFollowers > 0
-    ? combinedMetrics.totalFollowers.toLocaleString()
-    : user.stats?.totalFollowers?.toLocaleString() ?? "—";
+  const followerDisplay =
+    typeof followersCount === "number"
+      ? followersCount.toLocaleString()
+      : platformLoading
+      ? "..."
+      : combinedMetrics.totalFollowers > 0
+      ? combinedMetrics.totalFollowers.toLocaleString()
+      : user.stats?.totalFollowers?.toLocaleString() ?? "0";
 
   return (
     <div className="space-y-5">
@@ -337,6 +345,21 @@ export default function UserProfileHeader({
                 </>
               ) : (
                 <>
+                  {onToggleFollow && (
+                    <button
+                      type="button"
+                      disabled={followLoading}
+                      onClick={onToggleFollow}
+                      className={`inline-flex gap-1.5 items-center px-4 py-2 text-xs sm:text-sm font-semibold rounded-xl transition-colors disabled:opacity-60 ${
+                        isFollowing
+                          ? "border border-slate-300 bg-slate-100 text-slate-900 hover:bg-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
+                          : "bg-slate-900 text-white hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100"
+                      }`}
+                    >
+                      {isFollowing ? <UserCheck size={15} /> : <UserPlus size={15} />}
+                      <span>{followLoading ? "Updating..." : isFollowing ? "Following" : "Follow"}</span>
+                    </button>
+                  )}
                   {onConnect && (
                     <button
                       type="button"

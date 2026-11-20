@@ -21,6 +21,7 @@ import {
 } from './CreatorStudioModal';
 import type { FeedPostRecord } from '@/lib/api/feed.api';
 import type { Stream } from '@/types/streaming.types';
+import { deriveVideoPoster, withVideoPreviewFragment } from '@/lib/utils/mediaThumbnail';
 
 function LiveStreamActionIcon() {
   return (
@@ -105,6 +106,7 @@ export interface FeedComment {
 export interface FeedMedia {
   type: 'image' | 'video';
   url: string;
+  thumbnailUrl?: string;
 }
 
 export interface FeedPost {
@@ -112,12 +114,17 @@ export interface FeedPost {
   author?: FeedAuthor | string;
   kind: 'post' | 'reel';
   body: string;
+  thumbnailUrl?: string | null;
   media?: FeedMedia[];
   tags?: string[];
   visibility: 'public' | 'followers' | 'private';
   likes?: string[];
   bookmarks?: string[];
   comments?: FeedComment[];
+  likesCount?: number;
+  commentsCount?: number;
+  isLiked?: boolean;
+  isBookmarked?: boolean;
   createdAt?: string;
 }
 
@@ -366,14 +373,25 @@ export default function SocialFeedStream({
     try {
       const res = await apiClient.post(`/feed/posts/${postId}/like`);
       const liked = Boolean(res.data?.liked);
+      const serverLikes: string[] | null = Array.isArray(res.data?.likes)
+        ? res.data.likes.map((id: unknown) => String(id))
+        : null;
       setPosts((prev) =>
         prev.map((p) => {
           if (p._id !== postId) return p;
           const existing = p.likes ?? [];
-          const nextLikes = liked
-            ? [...new Set([...existing, currentUserId || 'me'])]
-            : existing.filter((id) => id !== currentUserId && id !== 'me');
-          return { ...p, likes: nextLikes };
+          const nextLikes =
+            serverLikes ??
+            (liked
+              ? [...new Set([...existing, currentUserId || 'me'])]
+              : existing.filter((id) => id !== currentUserId && id !== 'me'));
+          return {
+            ...p,
+            likes: nextLikes,
+            likesCount:
+              typeof res.data?.likesCount === 'number' ? res.data.likesCount : nextLikes.length,
+            isLiked: liked,
+          };
         }),
       );
     } catch (err) {
@@ -388,14 +406,19 @@ export default function SocialFeedStream({
     try {
       const res = await apiClient.post(`/feed/posts/${postId}/bookmark`);
       const bookmarked = Boolean(res.data?.bookmarked);
+      const serverBookmarks: string[] | null = Array.isArray(res.data?.bookmarks)
+        ? res.data.bookmarks.map((id: unknown) => String(id))
+        : null;
       setPosts((prev) =>
         prev.map((p) => {
           if (p._id !== postId) return p;
           const existing = p.bookmarks ?? [];
-          const next = bookmarked
-            ? [...new Set([...existing, currentUserId || 'me'])]
-            : existing.filter((id) => id !== currentUserId && id !== 'me');
-          return { ...p, bookmarks: next };
+          const next =
+            serverBookmarks ??
+            (bookmarked
+              ? [...new Set([...existing, currentUserId || 'me'])]
+              : existing.filter((id) => id !== currentUserId && id !== 'me'));
+          return { ...p, bookmarks: next, isBookmarked: bookmarked };
         }),
       );
     } catch (err) {
@@ -411,14 +434,42 @@ export default function SocialFeedStream({
     if (!text) return;
     try {
       const res = await apiClient.post(`/feed/posts/${postId}/comments`, { text });
-      const created: FeedComment = res.data?.comment ?? {
-        _id: `c-${Date.now()}`,
-        text,
-        createdAt: new Date().toISOString(),
-      };
+      const rawComment = res.data?.comment;
+      const created: FeedComment = rawComment
+        ? {
+            _id: String(rawComment._id || rawComment.id || `c-${Date.now()}`),
+            author: rawComment.author ?? {
+              _id: currentUserId || undefined,
+              fullName: resolvedUser?.displayName || resolvedUser?.username || 'You',
+              username: resolvedUser?.username,
+              avatar: resolvedUser?.avatar,
+            },
+            text: String(rawComment.text ?? text),
+            createdAt: String(rawComment.createdAt ?? new Date().toISOString()),
+          }
+        : {
+            _id: `c-${Date.now()}`,
+            author: {
+              _id: currentUserId || undefined,
+              fullName: resolvedUser?.displayName || resolvedUser?.username || 'You',
+              username: resolvedUser?.username,
+              avatar: resolvedUser?.avatar,
+            },
+            text,
+            createdAt: new Date().toISOString(),
+          };
       setPosts((prev) =>
         prev.map((p) =>
-          p._id === postId ? { ...p, comments: [...(p.comments ?? []), created] } : p,
+          p._id === postId
+            ? {
+                ...p,
+                comments: [...(p.comments ?? []), created],
+                commentsCount:
+                  typeof res.data?.commentsCount === 'number'
+                    ? res.data.commentsCount
+                    : (p.comments ?? []).length + 1,
+              }
+            : p,
         ),
       );
       setCommentDrafts((prev) => ({ ...prev, [postId]: '' }));
@@ -748,36 +799,40 @@ export default function SocialFeedStream({
 
                 {Array.isArray(post.media) && post.media.length > 0 && (
                   <div className="mt-3 grid grid-cols-1 gap-2 overflow-hidden rounded-xl">
-                    {post.media.map((m, idx) =>
-                      m.type === 'video' ? (
+                    {post.media.map((m, idx) => {
+                      if (m.type === 'video') {
+                        const posterUrl = deriveVideoPoster(m.url, m.thumbnailUrl || post.thumbnailUrl);
+                        return (
+                          <div
+                            key={`${post._id}-m-${idx}`}
+                            className="flex justify-center overflow-hidden rounded-xl border border-slate-200 bg-black dark:border-slate-800"
+                          >
+                            <video
+                              src={withVideoPreviewFragment(m.url, posterUrl)}
+                              poster={posterUrl}
+                              controls
+                              playsInline
+                              preload="metadata"
+                              className="mx-auto block h-auto max-h-[580px] w-full object-contain"
+                            />
+                          </div>
+                        );
+                      }
+                      return (
                         <div
                           key={`${post._id}-m-${idx}`}
-                          className={`overflow-hidden rounded-xl border border-slate-200 bg-black dark:border-slate-800 ${
-                            post.kind === 'reel' ? 'flex justify-center' : ''
-                          }`}
+                          className="overflow-hidden rounded-xl border border-slate-200/80 bg-slate-100/70 dark:border-slate-800 dark:bg-slate-950"
                         >
-                          <video
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
                             src={m.url}
-                            controls
-                            playsInline
-                            preload="metadata"
-                            className={
-                              post.kind === 'reel'
-                                ? 'aspect-[9/16] max-h-[460px] w-auto object-cover'
-                                : 'max-h-96 w-full object-cover'
-                            }
+                            alt="Post attachment"
+                            loading="lazy"
+                            className="mx-auto block h-auto max-h-[640px] w-full object-contain"
                           />
                         </div>
-                      ) : (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          key={`${post._id}-m-${idx}`}
-                          src={m.url}
-                          alt="Post attachment"
-                          className="max-h-96 w-full rounded-xl border border-slate-200 object-cover dark:border-slate-800"
-                        />
-                      ),
-                    )}
+                      );
+                    })}
                   </div>
                 )}
 

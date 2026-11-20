@@ -2,120 +2,151 @@
 
 'use client';
 
-import { useEffect} from 'react';
-import { notificationSocket } from '@/lib/socket/notificationSocket';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import toast from 'react-hot-toast';
+import { notificationSocket, type NotificationData } from '@/lib/socket/notificationSocket';
 import { useQueryClient } from '@tanstack/react-query';
-import { useUnreadNotificationCount } from './useNotifications';
-// TEMPORARILY COMMENTED OUT - Backend not ready yet
-// import { notificationKeys } from './useNotifications';
+import { notificationKeys, useUnreadNotificationCount } from './useNotifications';
+import { getAccessToken } from '@/store/authSelectors';
 import type { Notification } from '@/types/notifications.types';
 
 interface UseNotificationSocketOptions {
-   enabled?: boolean;
-   onNewNotification?: (notification: Notification) => void;
+  enabled?: boolean;
+  showToast?: boolean;
+  onNewNotification?: (notification: Notification) => void;
+}
+
+const recentNotificationIds = new Set<string>();
+
+function triggerBrowserNotification(payload: NotificationData) {
+  if (typeof window === 'undefined' || typeof Notification === 'undefined') return;
+  if (Notification.permission !== 'granted') return;
+  if (!document.hidden) return;
+
+  const title = payload.title || 'HyperBuds';
+  const body = payload.message || payload.content || 'You have a new update.';
+  const actionUrl = payload.actionUrl || '/notifications';
+
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.ready
+      .then((reg) =>
+        reg.showNotification(title, {
+          body,
+          icon: '/android-chrome-192x192.png',
+          badge: '/favicon-32x32.png',
+          data: { actionUrl },
+        }),
+      )
+      .catch(() => {
+        try {
+          new Notification(title, { body, icon: '/android-chrome-192x192.png' });
+        } catch {
+          // Ignore browser notification errors
+        }
+      });
+    return;
+  }
+
+  try {
+    new Notification(title, { body, icon: '/android-chrome-192x192.png' });
+  } catch {
+    // Ignore browser notification errors
+  }
 }
 
 export const useNotificationSocket = (options: UseNotificationSocketOptions = {}) => {
-   const {
-      enabled = true,
-      onNewNotification,
-   } = options;
+  const { enabled = true, showToast = true, onNewNotification } = options;
 
-   const queryClient = useQueryClient();
-   const { refetch: refetchUnreadCount } = useUnreadNotificationCount();
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const { refetch: refetchUnreadCount } = useUnreadNotificationCount();
 
-  // Connect to socket and set up listeners
   useEffect(() => {
-    // TEMPORARILY DISABLED - Backend not ready yet
-    // TODO: Uncomment when backend is working
-    return;
-    
-    // if (!enabled) return;
-    // 
-    // const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
-    // if (!token) {
-    //   if (process.env.NODE_ENV === 'development') {
-    //     console.warn('⚠️ No access token found, cannot connect to notification socket');
-    //   }
-    //   return;
-    // }
-    // 
-    // // Attempt to connect (will fail silently if backend is not ready)
-    // try {
-    //   notificationSocket.connect(token);
-    // } catch (error) {
-    //   // Silently handle connection failures when backend is not ready
-    //   if (process.env.NODE_ENV === 'development') {
-    //     console.warn('⚠️ Failed to connect to notification socket (backend may not be ready):', error);
-    //   }
-    // }
+    if (!enabled || typeof window === 'undefined') return;
 
-      // TEMPORARILY DISABLED - Backend not ready yet
-      // TODO: Uncomment when backend is working
-      
-      // const handleNewNotification = (data?: unknown) => {
-      //   const notification = data as Notification;
-      //   console.log('🔔 New notification via WebSocket:', notification);
-      // 
-      //   // Invalidate notifications query to refetch
-      //   queryClient.invalidateQueries({ queryKey: notificationKeys.lists() });
-      //   queryClient.invalidateQueries({ queryKey: notificationKeys.detail(notification.id) });
-      // 
-      //   // Refetch unread count (this will update the red dot indicator)
-      //   refetchUnreadCount();
-      // 
-      //   // Call custom callback
-      //   onNewNotification?.(notification);
-      // };
-      // 
-      // const handleUpdatedNotification = (data?: unknown) => {
-      //   const notification = data as Notification;
-      //   console.log('📝 Notification updated via WebSocket:', notification);
-      // 
-      //   // Invalidate queries to refetch
-      //   queryClient.invalidateQueries({ queryKey: notificationKeys.lists() });
-      //   queryClient.invalidateQueries({ queryKey: notificationKeys.detail(notification.id) });
-      //   refetchUnreadCount();
-      // };
-      // 
-      // const handleDeletedNotification = (data?: unknown) => {
-      //   const notificationId = data as string;
-      //   console.log('🗑️ Notification deleted via WebSocket:', notificationId);
-      // 
-      //   // Remove from cache and invalidate
-      //   queryClient.removeQueries({ queryKey: notificationKeys.detail(notificationId) });
-      //   queryClient.invalidateQueries({ queryKey: notificationKeys.lists() });
-      //   refetchUnreadCount();
-      // };
-      // 
-      // const handleReadAll = () => {
-      //   console.log('✅ All notifications marked as read via WebSocket');
-      // 
-      //   // Invalidate all notification queries
-      //   queryClient.invalidateQueries({ queryKey: notificationKeys.all });
-      //   refetchUnreadCount();
-      // };
-      // 
-      // // Subscribe to events
-      // notificationSocket.on('notification:new', handleNewNotification);
-      // notificationSocket.on('notification:updated', handleUpdatedNotification);
-      // notificationSocket.on('notification:deleted', handleDeletedNotification);
-      // notificationSocket.on('notifications:read-all', handleReadAll);
-      // 
-      // // Cleanup
-      // return () => {
-      //   notificationSocket.off('notification:new', handleNewNotification);
-      //   notificationSocket.off('notification:updated', handleUpdatedNotification);
-      //   notificationSocket.off('notification:deleted', handleDeletedNotification);
-      //   notificationSocket.off('notifications:read-all', handleReadAll);
-      // };
-   }, [enabled, queryClient, refetchUnreadCount, onNewNotification]);
+    const token = getAccessToken() || window.localStorage.getItem('accessToken');
+    if (!token) return;
 
-   return {
-      isConnected: notificationSocket.isConnected(),
-      disconnect: () => notificationSocket.disconnect(),
-   };
+    try {
+      notificationSocket.connect(token);
+    } catch {
+      return;
+    }
+
+    const handleNewNotification = (data?: unknown) => {
+      if (!data || typeof data !== 'object') return;
+      const raw = data as NotificationData;
+      const id = String(raw._id || raw.id || '');
+
+      queryClient.invalidateQueries({ queryKey: notificationKeys.all });
+      void refetchUnreadCount();
+
+      // Deduplicate live toast/OS notification across multiple mounted hook instances
+      if (id && recentNotificationIds.has(id)) {
+        onNewNotification?.(raw as unknown as Notification);
+        return;
+      }
+      if (id) {
+        recentNotificationIds.add(id);
+        setTimeout(() => recentNotificationIds.delete(id), 10000);
+      }
+
+      if (showToast) {
+        const headline = raw.title || 'New notification';
+        const body = raw.message || raw.content || '';
+        const actionUrl = raw.actionUrl || '/notifications';
+        toast(
+          `${headline}${body && body !== headline ? ` — ${body.slice(0, 90)}` : ''}`,
+          {
+            id: id || undefined,
+            duration: 4500,
+            icon: '🔔',
+            style: { cursor: 'pointer', maxWidth: '380px', fontSize: '13px' },
+          },
+        );
+        if (actionUrl && typeof window !== 'undefined' && raw.type === 'stream_live') {
+          // Stream live notifications also keep router ready
+          void router.prefetch?.(actionUrl);
+        }
+      }
+
+      triggerBrowserNotification(raw);
+      onNewNotification?.(raw as unknown as Notification);
+    };
+
+    const handleUpdatedNotification = () => {
+      queryClient.invalidateQueries({ queryKey: notificationKeys.all });
+      void refetchUnreadCount();
+    };
+
+    const handleDeletedNotification = () => {
+      queryClient.invalidateQueries({ queryKey: notificationKeys.all });
+      void refetchUnreadCount();
+    };
+
+    const handleReadAll = () => {
+      queryClient.invalidateQueries({ queryKey: notificationKeys.all });
+      void refetchUnreadCount();
+    };
+
+    notificationSocket.on('notification:new', handleNewNotification);
+    notificationSocket.on('notification:updated', handleUpdatedNotification);
+    notificationSocket.on('notification:deleted', handleDeletedNotification);
+    notificationSocket.on('notifications:read-all', handleReadAll);
+
+    return () => {
+      notificationSocket.off('notification:new', handleNewNotification);
+      notificationSocket.off('notification:updated', handleUpdatedNotification);
+      notificationSocket.off('notification:deleted', handleDeletedNotification);
+      notificationSocket.off('notifications:read-all', handleReadAll);
+    };
+  }, [enabled, showToast, queryClient, refetchUnreadCount, onNewNotification, router]);
+
+  return {
+    isConnected: notificationSocket.isConnected(),
+    disconnect: () => notificationSocket.disconnect(),
+  };
 };
 
 export default useNotificationSocket;
-

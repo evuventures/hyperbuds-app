@@ -287,7 +287,7 @@ export default function StreamingPage() {
                   onClick={() => setStudioMode('live')}
                   className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 font-medium transition-colors ${
                     studioMode === 'live'
-                      ? 'bg-purple-600 text-white'
+                      ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900'
                       : 'text-slate-600 dark:text-slate-300'
                   }`}
                 >
@@ -299,7 +299,7 @@ export default function StreamingPage() {
                   onClick={() => setStudioMode('podcast')}
                   className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 font-medium transition-colors ${
                     studioMode === 'podcast'
-                      ? 'bg-purple-600 text-white'
+                      ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900'
                       : 'text-slate-600 dark:text-slate-300'
                   }`}
                 >
@@ -337,7 +337,7 @@ export default function StreamingPage() {
             <div className="mt-5 grid grid-cols-2 sm:grid-cols-4 gap-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 text-xs">
               <div>
                 <p className="text-slate-500 dark:text-slate-400">Active Plan Tier</p>
-                <p className="mt-0.5 font-semibold text-purple-600 dark:text-purple-400">{quota.tierName}</p>
+                <p className="mt-0.5 font-semibold text-slate-900 dark:text-white">{quota.tierName}</p>
               </div>
               <div>
                 <p className="text-slate-500 dark:text-slate-400">Max Session & Hosts</p>

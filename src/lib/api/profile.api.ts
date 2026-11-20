@@ -234,6 +234,63 @@ export const profileApi = {
       throw error instanceof Error ? error : new Error('Failed to fetch profile');
     }
   },
+
+  /**
+   * Get follow status and follower/following counts for a user
+   * Endpoint: GET /api/v1/profiles/:targetUserId/follow-status
+   */
+  getFollowStatus: async (
+    targetUserId: string,
+  ): Promise<{
+    success: boolean;
+    targetUserId: string;
+    isFollowing: boolean;
+    followersCount: number;
+    followingCount: number;
+  }> => {
+    const response = await apiClient.get(
+      `/profiles/${encodeURIComponent(targetUserId)}/follow-status`,
+    );
+    return response.data;
+  },
+
+  /**
+   * Follow a user
+   * Endpoint: POST /api/v1/profiles/:targetUserId/follow
+   */
+  followUser: async (
+    targetUserId: string,
+  ): Promise<{
+    success: boolean;
+    targetUserId: string;
+    isFollowing: boolean;
+    followersCount: number;
+    followingCount: number;
+  }> => {
+    const response = await apiClient.post(
+      `/profiles/${encodeURIComponent(targetUserId)}/follow`,
+    );
+    return response.data;
+  },
+
+  /**
+   * Unfollow a user
+   * Endpoint: DELETE /api/v1/profiles/:targetUserId/follow
+   */
+  unfollowUser: async (
+    targetUserId: string,
+  ): Promise<{
+    success: boolean;
+    targetUserId: string;
+    isFollowing: boolean;
+    followersCount: number;
+    followingCount: number;
+  }> => {
+    const response = await apiClient.delete(
+      `/profiles/${encodeURIComponent(targetUserId)}/follow`,
+    );
+    return response.data;
+  },
 };
 
 export default profileApi;

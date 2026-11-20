@@ -2,8 +2,10 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import toast from 'react-hot-toast';
 import { profileApi } from '@/lib/api/profile.api';
 import type { ProfileByUsernameResponse } from '@/lib/api/profile.api';
+import apiClient from '@/lib/api/client';
 import DashboardLayout from '@/components/layout/Dashboard/Dashboard';
 import UserProfileHeader from '@/components/profile/ProfileCard.jsx';
 import { FaSpinner } from 'react-icons/fa';
@@ -13,10 +15,15 @@ export default function ProfileByUsernamePage() {
   const router = useRouter();
   const username = params.username as string;
   const [profile, setProfile] = useState<ProfileByUsernameResponse | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [followersCount, setFollowersCount] = useState<number | null>(null);
+  const [followLoading, setFollowLoading] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    let active = true;
     const fetchProfile = async () => {
       if (!username) {
         setError('Username is required');
@@ -27,18 +34,38 @@ export default function ProfileByUsernamePage() {
       try {
         setIsLoading(true);
         setError(null);
-        const data = await profileApi.getProfileByUsername(username);
+        const [data, meRes] = await Promise.all([
+          profileApi.getProfileByUsername(username),
+          apiClient.get('/users/me').catch(() => null),
+        ]);
+        if (!active) return;
+
         setProfile(data);
+        const viewerId = meRes?.data?.user?._id || meRes?.data?.user?.id || meRes?.data?._id || null;
+        setCurrentUserId(viewerId ? String(viewerId) : null);
+
+        const targetId = String(data.userId || data.id || data._id || data.username || '');
+        if (targetId) {
+          const followRes = await profileApi.getFollowStatus(targetId).catch(() => null);
+          if (active && followRes) {
+            setIsFollowing(Boolean(followRes.isFollowing));
+            setFollowersCount(typeof followRes.followersCount === 'number' ? followRes.followersCount : null);
+          }
+        }
       } catch (err) {
+        if (!active) return;
         const errorMessage = err instanceof Error ? err.message : 'Failed to load profile';
         setError(errorMessage);
         console.error('Error fetching profile:', err);
       } finally {
-        setIsLoading(false);
+        if (active) setIsLoading(false);
       }
     };
 
-    fetchProfile();
+    void fetchProfile();
+    return () => {
+      active = false;
+    };
   }, [username]);
 
   if (isLoading) {
@@ -78,9 +105,12 @@ export default function ProfileByUsernamePage() {
     );
   }
 
+  const targetUserId = String(profile.userId || profile.id || profile._id || '');
+  const isOwnProfile = Boolean(currentUserId && targetUserId && currentUserId === targetUserId);
+
   const profileData = {
     profile: {
-      userId: profile.userId || profile.id || profile._id,
+      userId: targetUserId,
       username: profile.username,
       displayName: profile.displayName || profile.username,
       avatar: profile.avatar || null,
@@ -110,14 +140,37 @@ export default function ProfileByUsernamePage() {
       profileUrl:
         typeof window !== 'undefined'
           ? `${window.location.origin}/profile/@${profile.username}`
-          : `https://www.hyperbuds.com/@${profile.username}`,
+          : `https://app.hyperbuds.cloud/profile/@${profile.username}`,
     },
   };
 
+  const handleToggleFollow = async () => {
+    if (!targetUserId || followLoading) return;
+    setFollowLoading(true);
+    try {
+      const result = isFollowing
+        ? await profileApi.unfollowUser(targetUserId)
+        : await profileApi.followUser(targetUserId);
+      setIsFollowing(Boolean(result.isFollowing));
+      if (typeof result.followersCount === 'number') {
+        setFollowersCount(result.followersCount);
+      }
+      toast.success(
+        result.isFollowing
+          ? `Following @${profile.username}`
+          : `Unfollowed @${profile.username}`,
+      );
+    } catch (err) {
+      const msg = (err as { message?: string })?.message || 'Unable to update follow status.';
+      toast.error(msg);
+    } finally {
+      setFollowLoading(false);
+    }
+  };
+
   const handleMessage = () => {
-    const userId = profile.userId || profile.id || profile._id;
-    if (userId) {
-      router.push(`/messages?userId=${encodeURIComponent(String(userId))}`);
+    if (targetUserId) {
+      router.push(`/messages?userId=${encodeURIComponent(targetUserId)}`);
       return;
     }
     console.error('User ID not found for profile:', profile);
@@ -129,9 +182,13 @@ export default function ProfileByUsernamePage() {
         <UserProfileHeader
           userData={profileData}
           isLoading={false}
-          isOwnProfile={false}
+          isOwnProfile={isOwnProfile}
           onEditProfile={() => {}}
           onMessage={handleMessage}
+          isFollowing={isFollowing}
+          followLoading={followLoading}
+          followersCount={followersCount}
+          onToggleFollow={isOwnProfile ? undefined : handleToggleFollow}
         />
       </div>
     </DashboardLayout>
