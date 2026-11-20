@@ -97,8 +97,27 @@ export default function ReelsPage() {
           avatar: me?.avatar || profile?.avatar,
         });
       }
-      const list: ReelItem[] = Array.isArray(res.data?.posts) ? res.data.posts : [];
-      setReels(list);
+      const rawList: ReelItem[] = Array.isArray(res.data?.posts) ? res.data.posts : [];
+      const targetId =
+        typeof window !== 'undefined'
+          ? new URLSearchParams(window.location.search).get('id')?.trim() || ''
+          : '';
+      let ordered = rawList;
+      if (targetId) {
+        const hit = rawList.find((r) => r._id === targetId);
+        if (hit) {
+          ordered = [hit, ...rawList.filter((r) => r._id !== targetId)];
+        } else {
+          const singleRes = await apiClient
+            .get(`/feed/public/posts/${encodeURIComponent(targetId)}`)
+            .catch(() => null);
+          const singlePost = singleRes?.data?.post as ReelItem | undefined;
+          if (singlePost && singlePost._id) {
+            ordered = [singlePost, ...rawList.filter((r) => r._id !== singlePost._id)];
+          }
+        }
+      }
+      setReels(ordered);
       setActiveIndex(0);
     } catch (err) {
       setBanner({

@@ -14,6 +14,7 @@ import {
   Loader2,
   Mail,
   MessageSquare,
+  Play,
   RefreshCw,
   Repeat2,
   Search,
@@ -732,7 +733,7 @@ export default function SocialFeedStream({
     setBanner({
       type: 'success',
       text: 'Reel uploaded to Cloudinary and published.',
-      actionHref: '/reels',
+      actionHref: `/reels?id=${encodeURIComponent(reel._id)}`,
       actionLabel: 'Watch in Reels',
     });
   };
@@ -1629,7 +1630,7 @@ export default function SocialFeedStream({
                                 )}
                                 {orig.kind === 'reel' && (
                                   <Link
-                                    href="/reels"
+                                    href={`/reels?id=${encodeURIComponent(orig._id)}`}
                                     className="inline-flex items-center gap-1 rounded-full bg-purple-100 px-2 py-0.5 text-[10px] font-semibold text-purple-800 dark:bg-purple-950/70 dark:text-purple-200"
                                   >
                                     <Film className="h-3 w-3" />
@@ -1657,6 +1658,34 @@ export default function SocialFeedStream({
                                     m.url,
                                     m.thumbnailUrl || orig.thumbnailUrl,
                                   );
+                                  if (orig.kind === 'reel') {
+                                    return (
+                                      <Link
+                                        key={`${orig._id}-rm-${idx}`}
+                                        href={`/reels?id=${encodeURIComponent(orig._id)}`}
+                                        aria-label="Watch this reel in Reels"
+                                        className="group relative flex justify-center overflow-hidden rounded-xl border border-slate-200 bg-black dark:border-slate-800"
+                                      >
+                                        <video
+                                          src={withVideoPreviewFragment(m.url, posterUrl)}
+                                          poster={posterUrl}
+                                          muted
+                                          playsInline
+                                          preload="metadata"
+                                          className="pointer-events-none mx-auto block h-auto max-h-[540px] w-full object-contain transition duration-300 group-hover:scale-[1.01]"
+                                        />
+                                        <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/15 transition group-hover:bg-black/25">
+                                          <span className="flex h-14 w-14 items-center justify-center rounded-full bg-black/60 text-white shadow-lg ring-1 ring-white/30 backdrop-blur-xs transition group-hover:scale-105">
+                                            <Play className="ml-0.5 h-6 w-6 fill-current" />
+                                          </span>
+                                        </div>
+                                        <span className="pointer-events-none absolute bottom-3 right-3 inline-flex items-center gap-1.5 rounded-full bg-black/70 px-3 py-1 text-[11px] font-semibold text-white ring-1 ring-white/20 backdrop-blur-xs">
+                                          <Film className="h-3.5 w-3.5 text-purple-300" />
+                                          Watch in Reels
+                                        </span>
+                                      </Link>
+                                    );
+                                  }
                                   return (
                                     <div
                                       key={`${orig._id}-rm-${idx}`}
@@ -1726,7 +1755,7 @@ export default function SocialFeedStream({
                             )}
                             {post.kind === 'reel' && (
                               <Link
-                                href="/reels"
+                                href={`/reels?id=${encodeURIComponent(post._id)}`}
                                 className="inline-flex items-center gap-1 rounded-full bg-purple-100 px-2 py-0.5 text-[10px] font-semibold text-purple-800 transition hover:bg-purple-200 dark:bg-purple-950/70 dark:text-purple-200"
                               >
                                 <Film className="h-3 w-3" />
@@ -1775,6 +1804,35 @@ export default function SocialFeedStream({
                         {post.media.map((m, idx) => {
                           if (m.type === 'video') {
                             const posterUrl = deriveVideoPoster(m.url, m.thumbnailUrl || post.thumbnailUrl);
+                            if (post.kind === 'reel') {
+                              return (
+                                <Link
+                                  key={`${post._id}-m-${idx}`}
+                                  href={`/reels?id=${encodeURIComponent(post._id)}`}
+                                  data-testid="home-reel-card-link"
+                                  aria-label="Open in Reels player"
+                                  className="group relative flex justify-center overflow-hidden rounded-xl border border-slate-200 bg-black dark:border-slate-800"
+                                >
+                                  <video
+                                    src={withVideoPreviewFragment(m.url, posterUrl)}
+                                    poster={posterUrl}
+                                    muted
+                                    playsInline
+                                    preload="metadata"
+                                    className="pointer-events-none mx-auto block h-auto max-h-[580px] w-full object-contain transition duration-300 group-hover:scale-[1.01]"
+                                  />
+                                  <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/15 transition group-hover:bg-black/25">
+                                    <span className="flex h-14 w-14 items-center justify-center rounded-full bg-black/60 text-white shadow-lg ring-1 ring-white/30 backdrop-blur-xs transition group-hover:scale-105">
+                                      <Play className="ml-0.5 h-6 w-6 fill-current" />
+                                    </span>
+                                  </div>
+                                  <span className="pointer-events-none absolute bottom-3 right-3 inline-flex items-center gap-1.5 rounded-full bg-black/70 px-3 py-1 text-[11px] font-semibold text-white ring-1 ring-white/20 backdrop-blur-xs">
+                                    <Film className="h-3.5 w-3.5 text-purple-300" />
+                                    Watch in Reels
+                                  </span>
+                                </Link>
+                              );
+                            }
                             return (
                               <div
                                 key={`${post._id}-m-${idx}`}
