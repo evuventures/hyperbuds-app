@@ -9,6 +9,9 @@ import {
   Room,
   RoomEvent,
   Track,
+  VideoPresets,
+  createLocalVideoTrack,
+  type LocalVideoTrack,
   type RemoteParticipant,
   type RemoteTrack,
   type RemoteTrackPublication,
@@ -20,21 +23,27 @@ import {
   CheckCircle2,
   Circle,
   Copy,
+  Gamepad2,
   Hash,
+  LayoutGrid,
   LogOut,
   Mic,
   MicOff,
   MonitorUp,
+  PictureInPicture2,
   Play,
   Radio,
+  RefreshCw,
   Send,
   ShieldCheck,
+  SlidersHorizontal,
   Square,
   Users,
   Video,
   VideoOff,
   Wifi,
   WifiOff,
+  X,
 } from 'lucide-react';
 
 interface StreamDetail {
@@ -67,7 +76,15 @@ interface VideoTile {
   name: string;
   isLocal: boolean;
   isScreen: boolean;
+  isConsole?: boolean;
   track: Track;
+}
+
+const CAPTURE_CARD_RE =
+  /elgato|capture|hdmi|cam\s*link|avermedia|usb\s*video|game|uvc|evga|ripsaw|magewell|blackmagic|atem/i;
+
+function isCaptureCardLabel(label: string): boolean {
+  return CAPTURE_CARD_RE.test(label || '');
 }
 
 interface StreamChatItem {
@@ -84,7 +101,13 @@ function formatChatTime(value?: string) {
   return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
 
-function VideoTrackView({ tile }: { tile: VideoTile }) {
+function VideoTrackView({
+  tile,
+  compact = false,
+}: {
+  tile: VideoTile;
+  compact?: boolean;
+}) {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
@@ -97,7 +120,13 @@ function VideoTrackView({ tile }: { tile: VideoTile }) {
   }, [tile.track]);
 
   return (
-    <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-[#090b0f] ring-1 ring-white/10">
+    <div
+      className={`relative aspect-video w-full overflow-hidden bg-[#090b0f] ${
+        compact
+          ? 'rounded-xl shadow-2xl ring-2 ring-purple-400/70'
+          : 'rounded-lg ring-1 ring-white/10'
+      }`}
+    >
       <video
         ref={videoRef}
         autoPlay
@@ -105,17 +134,25 @@ function VideoTrackView({ tile }: { tile: VideoTile }) {
         muted={tile.isLocal}
         className={`h-full w-full ${tile.isScreen ? 'object-contain bg-black' : 'object-cover'}`}
       />
-      <div className="absolute bottom-2.5 left-2.5 flex items-center gap-1.5 rounded-md bg-black/75 px-2 py-1 text-[11px] font-medium text-zinc-100 ring-1 ring-white/10 backdrop-blur-xs">
+      <div
+        className={`absolute flex items-center gap-1.5 rounded-md bg-black/75 font-medium text-zinc-100 ring-1 ring-white/10 backdrop-blur-xs ${
+          compact ? 'bottom-1.5 left-1.5 px-1.5 py-0.5 text-[10px]' : 'bottom-2.5 left-2.5 px-2 py-1 text-[11px]'
+        }`}
+      >
         <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-        <span>
+        <span className="max-w-[120px] truncate">
           {tile.name}
-          {tile.isLocal ? ' · Host' : ''}
+          {tile.isLocal && !compact ? ' · Host' : ''}
         </span>
-        {tile.isScreen && (
+        {tile.isConsole ? (
+          <span className="rounded bg-purple-500/30 px-1.5 py-0.5 text-[10px] font-semibold text-purple-200">
+            Console
+          </span>
+        ) : tile.isScreen ? (
           <span className="rounded bg-white/15 px-1.5 py-0.5 text-[10px] font-medium text-zinc-200">
             Screen
           </span>
-        )}
+        ) : null}
       </div>
     </div>
   );
@@ -132,6 +169,7 @@ export default function StreamingRoomPage() {
 
   // LiveKit state
   const roomRef = useRef<Room | null>(null);
+  const consoleTrackRef = useRef<LocalVideoTrack | null>(null);
   const audioContainerRef = useRef<HTMLDivElement>(null);
   const [lkRole, setLkRole] = useState<'host' | 'viewer' | null>(null);
   const [lkConnected, setLkConnected] = useState(false);
@@ -139,9 +177,21 @@ export default function StreamingRoomPage() {
   const [camEnabled, setCamEnabled] = useState(false);
   const [micEnabled, setMicEnabled] = useState(false);
   const [screenEnabled, setScreenEnabled] = useState(false);
+  const [consoleEnabled, setConsoleEnabled] = useState(false);
+  const [consoleBusy, setConsoleBusy] = useState(false);
   const [videoTiles, setVideoTiles] = useState<VideoTile[]>([]);
   const [participantCount, setParticipantCount] = useState(0);
   const [copiedLink, setCopiedLink] = useState(false);
+
+  // Console / Gaming Mode & Device selector state
+  const [videoDevices, setVideoDevices] = useState<MediaDeviceInfo[]>([]);
+  const [audioDevices, setAudioDevices] = useState<MediaDeviceInfo[]>([]);
+  const [selectedCamId, setSelectedCamId] = useState('');
+  const [selectedMicId, setSelectedMicId] = useState('');
+  const [selectedConsoleCamId, setSelectedConsoleCamId] = useState('');
+  const [layoutMode, setLayoutMode] = useState<'pip' | 'grid'>('pip');
+  const [showConsolePanel, setShowConsolePanel] = useState(false);
+  const [consoleGuideTab, setConsoleGuideTab] = useState<'capture' | 'remoteplay'>('capture');
 
   // Live chat state
   const [chatMessages, setChatMessages] = useState<StreamChatItem[]>([]);
@@ -153,17 +203,54 @@ export default function StreamingRoomPage() {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
   }, [chatMessages.length]);
 
+  const refreshDevices = useCallback(async () => {
+    if (typeof navigator === 'undefined' || !navigator.mediaDevices?.enumerateDevices) return;
+    try {
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const cams = devices.filter((d) => d.kind === 'videoinput');
+      const mics = devices.filter((d) => d.kind === 'audioinput');
+      setVideoDevices(cams);
+      setAudioDevices(mics);
+
+      const captureCard = cams.find((d) => isCaptureCardLabel(d.label));
+      const regularCam = cams.find((d) => !isCaptureCardLabel(d.label)) || cams[0];
+      if (regularCam && !selectedCamId) setSelectedCamId(regularCam.deviceId);
+      if (mics[0] && !selectedMicId) setSelectedMicId(mics[0].deviceId);
+      if (captureCard) {
+        setSelectedConsoleCamId((prev) => prev || captureCard.deviceId);
+      } else if (cams.length > 1) {
+        setSelectedConsoleCamId((prev) => prev || cams[1].deviceId);
+      } else if (cams[0]) {
+        setSelectedConsoleCamId((prev) => prev || cams[0].deviceId);
+      }
+    } catch {
+      // Device enumeration unavailable before permissions
+    }
+  }, [selectedCamId, selectedMicId]);
+
+  useEffect(() => {
+    void refreshDevices();
+    if (typeof navigator === 'undefined' || !navigator.mediaDevices?.addEventListener) return;
+    const handler = () => void refreshDevices();
+    navigator.mediaDevices.addEventListener('devicechange', handler);
+    return () => {
+      navigator.mediaDevices.removeEventListener('devicechange', handler);
+    };
+  }, [refreshDevices]);
+
   const rebuildTiles = useCallback((room: Room) => {
     const tiles: VideoTile[] = [];
     const local = room.localParticipant;
     local.videoTrackPublications.forEach((pub: LocalTrackPublication) => {
       if (pub.track && !pub.isMuted) {
+        const isConsole = pub.trackName === 'console-feed';
         tiles.push({
-          id: `local-${pub.trackSid || pub.source}`,
+          id: `local-${pub.trackSid || pub.trackName || pub.source}`,
           identity: local.identity,
-          name: local.name || 'Host',
+          name: isConsole ? 'PlayStation / Console' : local.name || 'Host',
           isLocal: true,
-          isScreen: pub.source === Track.Source.ScreenShare,
+          isScreen: pub.source === Track.Source.ScreenShare || isConsole,
+          isConsole,
           track: pub.track,
         });
       }
@@ -171,12 +258,14 @@ export default function StreamingRoomPage() {
     room.remoteParticipants.forEach((p: RemoteParticipant) => {
       p.videoTrackPublications.forEach((pub: RemoteTrackPublication) => {
         if (pub.track && pub.isSubscribed) {
+          const isConsole = pub.trackName === 'console-feed';
           tiles.push({
             id: `${p.identity}-${pub.trackSid}`,
             identity: p.identity,
-            name: p.name || p.identity,
+            name: isConsole ? `${p.name || p.identity} · Console` : p.name || p.identity,
             isLocal: false,
-            isScreen: pub.source === Track.Source.ScreenShare,
+            isScreen: pub.source === Track.Source.ScreenShare || isConsole,
+            isConsole,
             track: pub.track,
           });
         }
@@ -187,6 +276,14 @@ export default function StreamingRoomPage() {
   }, []);
 
   const disconnectLiveKit = useCallback(() => {
+    if (consoleTrackRef.current) {
+      try {
+        consoleTrackRef.current.stop();
+      } catch {
+        // Ignore stop errors
+      }
+      consoleTrackRef.current = null;
+    }
     if (roomRef.current) {
       roomRef.current.disconnect();
       roomRef.current = null;
@@ -198,6 +295,7 @@ export default function StreamingRoomPage() {
     setCamEnabled(false);
     setMicEnabled(false);
     setScreenEnabled(false);
+    setConsoleEnabled(false);
     setVideoTiles([]);
     setParticipantCount(0);
   }, []);
@@ -280,6 +378,7 @@ export default function StreamingRoomPage() {
         } catch {
           // Mic permission may be denied or absent
         }
+        void refreshDevices();
         sync();
       }
     } catch (err) {
@@ -288,7 +387,7 @@ export default function StreamingRoomPage() {
     } finally {
       setLkConnecting(false);
     }
-  }, [streamId, lkConnecting, rebuildTiles, disconnectLiveKit]);
+  }, [streamId, lkConnecting, rebuildTiles, disconnectLiveKit, refreshDevices]);
 
   useEffect(() => {
     if (!streamId) return;
@@ -372,16 +471,121 @@ export default function StreamingRoomPage() {
     }
   };
 
+  const stopConsoleFeed = async () => {
+    const room = roomRef.current;
+    const track = consoleTrackRef.current;
+    if (track) {
+      if (room) {
+        try {
+          await room.localParticipant.unpublishTrack(track, true);
+        } catch {
+          // Ignore unpublish error
+        }
+      }
+      try {
+        track.stop();
+      } catch {
+        // Ignore stop error
+      }
+      consoleTrackRef.current = null;
+    }
+    setConsoleEnabled(false);
+    if (room) rebuildTiles(room);
+  };
+
   const toggleScreen = async () => {
     const room = roomRef.current;
     if (!room) return;
     const next = !screenEnabled;
     try {
-      await room.localParticipant.setScreenShareEnabled(next);
+      if (next && consoleEnabled) {
+        await stopConsoleFeed();
+      }
+      await room.localParticipant.setScreenShareEnabled(next, { audio: true });
       setScreenEnabled(next);
       rebuildTiles(room);
     } catch (err) {
       setError((err as { message?: string })?.message || 'Screen share cancelled or unavailable.');
+    }
+  };
+
+  const toggleConsoleFeed = async () => {
+    const room = roomRef.current;
+    if (!room || consoleBusy) return;
+    if (consoleEnabled) {
+      setConsoleBusy(true);
+      try {
+        await stopConsoleFeed();
+      } finally {
+        setConsoleBusy(false);
+      }
+      return;
+    }
+
+    if (!selectedConsoleCamId) {
+      setError('Select a Capture Card or second camera first.');
+      setShowConsolePanel(true);
+      return;
+    }
+
+    setConsoleBusy(true);
+    setError(null);
+    try {
+      if (screenEnabled) {
+        await room.localParticipant.setScreenShareEnabled(false).catch(() => {});
+        setScreenEnabled(false);
+      }
+      let track: LocalVideoTrack;
+      try {
+        track = await createLocalVideoTrack({
+          deviceId: { exact: selectedConsoleCamId },
+          resolution: VideoPresets.h1080.resolution,
+          frameRate: 60,
+        });
+      } catch {
+        track = await createLocalVideoTrack({
+          deviceId: selectedConsoleCamId,
+        });
+      }
+      await room.localParticipant.publishTrack(track, {
+        source: Track.Source.ScreenShare,
+        name: 'console-feed',
+        simulcast: true,
+      });
+      consoleTrackRef.current = track;
+      setConsoleEnabled(true);
+      setLayoutMode('pip');
+      rebuildTiles(room);
+    } catch (err) {
+      setError(
+        (err as { message?: string })?.message ||
+          'Unable to start Console / Capture Card video feed. Make sure no other app is locking the capture card.',
+      );
+    } finally {
+      setConsoleBusy(false);
+    }
+  };
+
+  const switchCamera = async (deviceId: string) => {
+    setSelectedCamId(deviceId);
+    const room = roomRef.current;
+    if (!room || !deviceId) return;
+    try {
+      await room.switchActiveDevice('videoinput', deviceId);
+      rebuildTiles(room);
+    } catch (err) {
+      setError((err as { message?: string })?.message || 'Unable to switch facecam device.');
+    }
+  };
+
+  const switchMic = async (deviceId: string) => {
+    setSelectedMicId(deviceId);
+    const room = roomRef.current;
+    if (!room || !deviceId) return;
+    try {
+      await room.switchActiveDevice('audioinput', deviceId);
+    } catch (err) {
+      setError((err as { message?: string })?.message || 'Unable to switch microphone device.');
     }
   };
 
@@ -562,17 +766,42 @@ export default function StreamingRoomPage() {
                 {/* Broadcast Stage */}
                 <section className="flex flex-col overflow-hidden rounded-xl border border-slate-200 bg-[#0d1015] dark:border-zinc-800 lg:col-span-8">
                   <div className="flex-1 p-3 sm:p-4">
-                    {videoTiles.length > 0 ? (
-                      <div
-                        className={`grid gap-3 ${
-                          videoTiles.length > 1 ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1'
-                        }`}
-                      >
-                        {videoTiles.map((tile) => (
-                          <VideoTrackView key={tile.id} tile={tile} />
-                        ))}
-                      </div>
-                    ) : (
+                    {videoTiles.length > 0 ? (() => {
+                      const primaryStageTile = videoTiles.find((t) => t.isConsole || t.isScreen) ?? null;
+                      const cameraTiles = primaryStageTile
+                        ? videoTiles.filter((t) => t.id !== primaryStageTile.id)
+                        : videoTiles;
+                      const usePipLayout = Boolean(
+                        layoutMode === 'pip' && primaryStageTile && cameraTiles.length > 0,
+                      );
+
+                      if (usePipLayout && primaryStageTile) {
+                        return (
+                          <div className="relative" data-testid="gaming-pip-stage">
+                            <VideoTrackView tile={primaryStageTile} />
+                            <div className="pointer-events-auto absolute bottom-3 right-3 z-20 flex flex-col gap-2">
+                              {cameraTiles.map((camTile) => (
+                                <div key={camTile.id} className="w-32 sm:w-44 md:w-52">
+                                  <VideoTrackView tile={camTile} compact />
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      }
+
+                      return (
+                        <div
+                          className={`grid gap-3 ${
+                            videoTiles.length > 1 ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1'
+                          }`}
+                        >
+                          {videoTiles.map((tile) => (
+                            <VideoTrackView key={tile.id} tile={tile} />
+                          ))}
+                        </div>
+                      );
+                    })() : (
                       <div className="flex aspect-video flex-col items-center justify-center rounded-lg border border-zinc-800/90 bg-[#12151c] px-6 py-8 text-center">
                         <div className="flex h-11 w-11 items-center justify-center rounded-lg border border-zinc-700 bg-zinc-900 text-zinc-200">
                           <Radio className="h-5 w-5" />
@@ -586,7 +815,7 @@ export default function StreamingRoomPage() {
                         </p>
                         <p className="mt-1 max-w-md text-xs text-zinc-400">
                           {stream.description ||
-                            'Check your audio and video tracks before entering the broadcast stage.'}
+                            'Check your audio and video tracks, or connect your PlayStation / Console before entering the broadcast stage.'}
                         </p>
 
                         {/* Riverside-style Pre-Flight Readiness Strip */}
@@ -615,22 +844,236 @@ export default function StreamingRoomPage() {
                             )}
                             Camera
                           </span>
+                          <span className="inline-flex items-center gap-1.5 rounded-md border border-zinc-800 bg-zinc-900/80 px-2.5 py-1">
+                            {consoleEnabled || screenEnabled ? (
+                              <CheckCircle2 className="h-3.5 w-3.5 text-purple-400" />
+                            ) : (
+                              <Gamepad2 className="h-3.5 w-3.5 text-zinc-500" />
+                            )}
+                            Console / Capture
+                          </span>
                         </div>
 
-                        {!lkConnected && stream.status !== 'ended' && stream.status !== 'cancelled' && (
+                        <div className="mt-5 flex flex-wrap items-center justify-center gap-2.5">
+                          {!lkConnected && stream.status !== 'ended' && stream.status !== 'cancelled' && (
+                            <button
+                              type="button"
+                              disabled={lkConnecting}
+                              onClick={connectLiveKit}
+                              className="inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2 text-xs font-semibold text-zinc-950 transition hover:bg-zinc-200 disabled:opacity-50"
+                            >
+                              <Radio className="h-3.5 w-3.5" />
+                              {lkConnecting ? 'Connecting to studio...' : 'Join Broadcast Room'}
+                            </button>
+                          )}
                           <button
                             type="button"
-                            disabled={lkConnecting}
-                            onClick={connectLiveKit}
-                            className="mt-5 inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2 text-xs font-semibold text-zinc-950 transition hover:bg-zinc-200 disabled:opacity-50"
+                            onClick={() => setShowConsolePanel((prev) => !prev)}
+                            className="inline-flex items-center gap-1.5 rounded-lg border border-purple-500/40 bg-purple-600/15 px-3.5 py-2 text-xs font-semibold text-purple-200 transition hover:bg-purple-600/25"
                           >
-                            <Radio className="h-3.5 w-3.5" />
-                            {lkConnecting ? 'Connecting to studio...' : 'Join Broadcast Room'}
+                            <Gamepad2 className="h-3.5 w-3.5" />
+                            Connect PlayStation / Console
                           </button>
-                        )}
+                        </div>
                       </div>
                     )}
                   </div>
+
+                  {/* Collapsible PlayStation / Console Gaming Mode & Device Deck */}
+                  {showConsolePanel && (
+                    <div
+                      data-testid="console-setup-panel"
+                      className="border-t border-zinc-800 bg-[#12151e] px-4 py-3.5 text-xs text-zinc-200"
+                    >
+                      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-zinc-800/90 pb-2.5">
+                        <div className="flex items-center gap-2">
+                          <span className="flex h-6 w-6 items-center justify-center rounded-md bg-purple-600/25 text-purple-300">
+                            <Gamepad2 className="h-3.5 w-3.5" />
+                          </span>
+                          <div>
+                            <p className="font-semibold text-zinc-100">
+                              PlayStation / Console Gaming Setup &amp; Devices
+                            </p>
+                            <p className="text-[11px] text-zinc-400">
+                              Stream PS5, PS4, Xbox, or Switch gameplay with your Facecam overlay — no OBS required.
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => void refreshDevices()}
+                            title="Refresh connected cameras & capture cards"
+                            className="inline-flex items-center gap-1 rounded-md border border-zinc-700 bg-zinc-900 px-2 py-1 text-[11px] font-medium text-zinc-300 hover:bg-zinc-800"
+                          >
+                            <RefreshCw className="h-3 w-3" />
+                            Refresh devices
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setShowConsolePanel(false)}
+                            aria-label="Close console panel"
+                            className="rounded-md p-1 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100"
+                          >
+                            <X className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Guide Tabs: USB HDMI Capture Card vs Free PS Remote Play */}
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setConsoleGuideTab('capture')}
+                          className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-[11px] font-semibold transition ${
+                            consoleGuideTab === 'capture'
+                              ? 'bg-purple-600 text-white'
+                              : 'border border-zinc-700 bg-zinc-900 text-zinc-300 hover:bg-zinc-800'
+                          }`}
+                        >
+                          <SlidersHorizontal className="h-3 w-3" />
+                          USB HDMI Capture Card (1080p60 + Dual Cam)
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setConsoleGuideTab('remoteplay')}
+                          className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-[11px] font-semibold transition ${
+                            consoleGuideTab === 'remoteplay'
+                              ? 'bg-purple-600 text-white'
+                              : 'border border-zinc-700 bg-zinc-900 text-zinc-300 hover:bg-zinc-800'
+                          }`}
+                        >
+                          <MonitorUp className="h-3 w-3" />
+                          Free ($0): PS Remote Play
+                        </button>
+                      </div>
+
+                      {consoleGuideTab === 'capture' ? (
+                        <div className="mt-3 space-y-3">
+                          <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-3">
+                            <label className="block">
+                              <span className="mb-1 block text-[11px] font-medium text-zinc-400">
+                                Console / Capture Card (2nd Camera)
+                              </span>
+                              <select
+                                value={selectedConsoleCamId}
+                                onChange={(e) => setSelectedConsoleCamId(e.target.value)}
+                                className="w-full rounded-md border border-zinc-700 bg-zinc-900 px-2.5 py-1.5 text-xs text-zinc-100 outline-none focus:border-purple-500"
+                              >
+                                {videoDevices.length === 0 ? (
+                                  <option value="">Join room to detect devices</option>
+                                ) : (
+                                  videoDevices.map((d, idx) => (
+                                    <option key={d.deviceId || idx} value={d.deviceId}>
+                                      {isCaptureCardLabel(d.label) ? '🎮 ' : ''}
+                                      {d.label || `Video Device ${idx + 1}`}
+                                    </option>
+                                  ))
+                                )}
+                              </select>
+                            </label>
+
+                            <label className="block">
+                              <span className="mb-1 block text-[11px] font-medium text-zinc-400">
+                                Host Facecam
+                              </span>
+                              <select
+                                value={selectedCamId}
+                                onChange={(e) => void switchCamera(e.target.value)}
+                                className="w-full rounded-md border border-zinc-700 bg-zinc-900 px-2.5 py-1.5 text-xs text-zinc-100 outline-none focus:border-purple-500"
+                              >
+                                {videoDevices.length === 0 ? (
+                                  <option value="">Default camera</option>
+                                ) : (
+                                  videoDevices.map((d, idx) => (
+                                    <option key={d.deviceId || idx} value={d.deviceId}>
+                                      {d.label || `Camera ${idx + 1}`}
+                                    </option>
+                                  ))
+                                )}
+                              </select>
+                            </label>
+
+                            <label className="block">
+                              <span className="mb-1 block text-[11px] font-medium text-zinc-400">
+                                Microphone / Headset
+                              </span>
+                              <select
+                                value={selectedMicId}
+                                onChange={(e) => void switchMic(e.target.value)}
+                                className="w-full rounded-md border border-zinc-700 bg-zinc-900 px-2.5 py-1.5 text-xs text-zinc-100 outline-none focus:border-purple-500"
+                              >
+                                {audioDevices.length === 0 ? (
+                                  <option value="">Default microphone</option>
+                                ) : (
+                                  audioDevices.map((d, idx) => (
+                                    <option key={d.deviceId || idx} value={d.deviceId}>
+                                      {d.label || `Microphone ${idx + 1}`}
+                                    </option>
+                                  ))
+                                )}
+                              </select>
+                            </label>
+                          </div>
+
+                          <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-zinc-800 bg-zinc-900/70 px-3 py-2">
+                            <p className="text-[11px] text-zinc-400">
+                              Plug your PS5/PS4/Xbox HDMI into a USB capture card (Elgato, Cam Link, or UVC HDMI). Select it above and launch your dual-camera gameplay feed.
+                            </p>
+                            {lkConnected && lkRole === 'host' ? (
+                              <button
+                                type="button"
+                                disabled={consoleBusy}
+                                onClick={() => void toggleConsoleFeed()}
+                                className={`inline-flex shrink-0 items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition ${
+                                  consoleEnabled
+                                    ? 'bg-rose-600 text-white hover:bg-rose-500'
+                                    : 'bg-purple-600 text-white hover:bg-purple-500'
+                                } disabled:opacity-50`}
+                              >
+                                <Gamepad2 className="h-3.5 w-3.5" />
+                                {consoleBusy
+                                  ? 'Starting...'
+                                  : consoleEnabled
+                                    ? 'Stop Console Feed'
+                                    : 'Start Console Feed'}
+                              </button>
+                            ) : (
+                              <span className="text-[11px] font-medium text-purple-300">
+                                Join the Broadcast Room as Host to start Console Feed
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="mt-3 space-y-2.5 rounded-lg border border-zinc-800 bg-zinc-900/70 p-3">
+                          <ol className="list-decimal space-y-1 pl-4 text-[11px] leading-relaxed text-zinc-300">
+                            <li>
+                              Open Sony&apos;s free <span className="font-semibold text-white">PS Remote Play</span> app on your Mac/PC and connect to your PS4 or PS5.
+                            </li>
+                            <li>
+                              Click <span className="font-semibold text-white">Share PS Screen</span> below, pick the <span className="font-semibold text-white">PS Remote Play</span> window, and enable <span className="font-semibold text-white">Share audio</span>.
+                            </li>
+                            <li>
+                              Keep your camera &amp; mic enabled — HyperBuds automatically switches to full-screen gameplay with your Facecam docked in Picture-in-Picture!
+                            </li>
+                          </ol>
+                          {lkConnected && lkRole === 'host' && (
+                            <div className="pt-1">
+                              <button
+                                type="button"
+                                onClick={() => void toggleScreen()}
+                                className="inline-flex items-center gap-1.5 rounded-md bg-purple-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-purple-500"
+                              >
+                                <MonitorUp className="h-3.5 w-3.5" />
+                                {screenEnabled ? 'Stop Sharing PS Screen' : 'Share PS Screen (with Audio)'}
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   {/* Docked Riverside-style Studio Control Deck */}
                   <div className="flex flex-wrap items-center justify-between gap-2 border-t border-zinc-800/90 bg-[#111318] px-4 py-3">
@@ -673,13 +1116,66 @@ export default function StreamingRoomPage() {
                             <MonitorUp className="h-3.5 w-3.5" />
                             {screenEnabled ? 'Sharing screen' : 'Share screen'}
                           </button>
+                          <button
+                            type="button"
+                            onClick={() => setShowConsolePanel((prev) => !prev)}
+                            className={`inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium transition ${
+                              consoleEnabled || showConsolePanel
+                                ? 'border-purple-500/70 bg-purple-600/25 text-purple-200 hover:bg-purple-600/35'
+                                : 'border-zinc-700 bg-zinc-800 text-zinc-200 hover:bg-zinc-700'
+                            }`}
+                          >
+                            <Gamepad2 className="h-3.5 w-3.5" />
+                            {consoleEnabled ? 'Console Live' : 'Console / PS5'}
+                          </button>
+                          {videoTiles.some((t) => t.isScreen || t.isConsole) && videoTiles.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => setLayoutMode((prev) => (prev === 'pip' ? 'grid' : 'pip'))}
+                              title="Switch between Gaming PiP overlay and side-by-side grid"
+                              className="inline-flex items-center gap-1.5 rounded-md border border-zinc-700 bg-zinc-800 px-2.5 py-1.5 text-xs font-medium text-zinc-200 hover:bg-zinc-700"
+                            >
+                              {layoutMode === 'pip' ? (
+                                <>
+                                  <PictureInPicture2 className="h-3.5 w-3.5 text-purple-400" />
+                                  PiP Gaming
+                                </>
+                              ) : (
+                                <>
+                                  <LayoutGrid className="h-3.5 w-3.5 text-zinc-300" />
+                                  Grid
+                                </>
+                              )}
+                            </button>
+                          )}
                         </>
                       ) : (
-                        <span className="text-[11px] text-zinc-500">
-                          {lkConnected
-                            ? 'Viewer mode · Subscribed to host tracks'
-                            : 'Click Join Broadcast Room to connect audio & video'}
-                        </span>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="text-[11px] text-zinc-500">
+                            {lkConnected
+                              ? 'Viewer mode · Subscribed to host tracks'
+                              : 'Click Join Broadcast Room to connect audio & video'}
+                          </span>
+                          {videoTiles.some((t) => t.isScreen || t.isConsole) && videoTiles.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => setLayoutMode((prev) => (prev === 'pip' ? 'grid' : 'pip'))}
+                              className="inline-flex items-center gap-1 rounded-md border border-zinc-700 bg-zinc-800 px-2 py-1 text-[11px] font-medium text-zinc-200 hover:bg-zinc-700"
+                            >
+                              {layoutMode === 'pip' ? (
+                                <>
+                                  <PictureInPicture2 className="h-3 w-3 text-purple-400" />
+                                  PiP
+                                </>
+                              ) : (
+                                <>
+                                  <LayoutGrid className="h-3 w-3" />
+                                  Grid
+                                </>
+                              )}
+                            </button>
+                          )}
+                        </div>
                       )}
                     </div>
 
