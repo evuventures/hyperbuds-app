@@ -1,10 +1,11 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Eye, EyeOff, Loader2, Lock, Mail, Sparkles } from 'lucide-react';
+import { CheckCircle2, Eye, EyeOff, Loader2, Lock, Mail, RefreshCw, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/auth/useAuth';
+import { BASE_URL } from '@/config/baseUrl';
 import AuthSplitShowcase from './AuthSplitShowcase';
 
 function GoogleMark() {
@@ -37,13 +38,36 @@ export default function LoginForm() {
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const [unverifiedNotice, setUnverifiedNotice] = useState<string | null>(null);
+  const [resendingEmail, setResendingEmail] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+
+  const handleResendVerification = async () => {
+    const cleanEmail = email.trim();
+    if (!cleanEmail || resendingEmail) return;
+    setResendingEmail(true);
+    try {
+      await fetch(`${BASE_URL}/api/v1/auth/resend-verification`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: cleanEmail }),
+      });
+      setUnverifiedNotice(
+        `A fresh verification link has been sent to ${cleanEmail}. Please check your inbox (and spam folder) and click the link to confirm your email.`,
+      );
+    } catch {
+      setError('Unable to resend verification link right now. Please try again.');
+    } finally {
+      setResendingEmail(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setMessage('');
     setError('');
+    setUnverifiedNotice(null);
     setIsLoading(true);
 
     if (!email || !password) {
@@ -68,7 +92,11 @@ export default function LoginForm() {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Login failed';
 
-      if (errorMessage.includes('404')) {
+      if (/not verified/i.test(errorMessage)) {
+        setUnverifiedNotice(
+          `Your email (${email.trim()}) is not verified yet. We just sent a new verification link to your inbox — please open your email and confirm your account to sign in.`,
+        );
+      } else if (errorMessage.includes('404')) {
         setError('Account not found. Please sign up first.');
         setTimeout(() => router.push('/auth/signup'), 2000);
       } else if (errorMessage.includes('PROFILE_INCOMPLETE')) {
@@ -117,6 +145,30 @@ export default function LoginForm() {
           className="mb-4 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-2.5 text-center text-xs font-medium text-emerald-300"
         >
           {message}
+        </div>
+      )}
+
+      {unverifiedNotice && (
+        <div
+          role="alert"
+          data-testid="email-unverified-notice"
+          className="mb-4 space-y-2.5 rounded-xl border border-amber-400/40 bg-amber-500/10 px-4 py-3 text-xs text-amber-200"
+        >
+          <div className="flex items-start gap-2">
+            <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-amber-300" />
+            <p className="leading-relaxed font-medium">{unverifiedNotice}</p>
+          </div>
+          <div className="flex justify-end">
+            <button
+              type="button"
+              disabled={resendingEmail}
+              onClick={() => void handleResendVerification()}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-amber-400/40 bg-amber-500/15 px-3 py-1.5 text-[11px] font-semibold text-amber-100 transition hover:bg-amber-500/25 disabled:opacity-50"
+            >
+              <RefreshCw className={`h-3 w-3 ${resendingEmail ? 'animate-spin' : ''}`} />
+              {resendingEmail ? 'Sending link...' : 'Send verification link again'}
+            </button>
+          </div>
         </div>
       )}
 

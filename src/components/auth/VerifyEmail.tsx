@@ -33,6 +33,9 @@ export default function VerifyEmail() {
 
         // ✅ Correct way to parse response
         const data = await res.text();
+        if (/Verification Failed/i.test(data)) {
+          throw new Error("The verification link is invalid or has expired.");
+        }
 
         setHtmlBody(data);
 
@@ -115,7 +118,7 @@ export default function VerifyEmail() {
           <!-- Actions -->
           <div>
             <a
-              href="${BASE_URL}/auth/signin"
+              href="/auth/signin"
               class="flex justify-center items-center gap-2 w-full h-12 font-semibold text-white bg-linear-to-r from-purple-600 to-blue-600 rounded-xl shadow-lg transition-all duration-300 transform cursor-pointer hover:from-purple-700 hover:to-blue-700 hover:scale-[1.02] hover:shadow-xl hover:shadow-purple-500/25 active:scale-[0.98]"
             >
               Login to HyperBuds
