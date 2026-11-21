@@ -8,9 +8,12 @@ import {
   ArrowLeft,
   Check,
   CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
   Coins,
   ExternalLink,
   Heart,
+  Loader2,
   Minus,
   Package,
   Plus,
@@ -21,6 +24,7 @@ import {
   SlidersHorizontal,
   Star,
   Trash2,
+  Truck,
   X,
 } from 'lucide-react';
 
@@ -100,15 +104,31 @@ interface JurisdictionCheck {
 }
 
 const CATEGORY_PILLS = [
-  { key: 'all', label: 'All Categories' },
-  { key: 'deals', label: 'Deals' },
-  { key: 'microphones', label: 'Microphones' },
+  { key: 'all', label: 'All Gear' },
+  { key: 'audio', label: 'Audio & Mics' },
   { key: 'lighting', label: 'Lighting' },
-  { key: 'cameras', label: 'Cameras' },
-  { key: 'tripods', label: 'Tripods' },
-  { key: 'audio', label: 'Audio' },
-  { key: 'accessories', label: 'Creator Merch' },
+  { key: 'camera', label: 'Cameras & Webcams' },
+  { key: 'studio', label: 'Studio & Stands' },
+  { key: 'accessories', label: 'Accessories' },
 ];
+
+interface ProductVariant {
+  vid: string;
+  name: string;
+  sku: string;
+  priceMinor: number;
+  image: string | null;
+}
+
+interface ShippingOption {
+  logisticName: string;
+  deliveryDays: string;
+  shippingFeeMinor: number;
+  currency: string;
+  source?: string;
+}
+
+const PAGE_SIZE = 15;
 
 const BRAND_LIST = [
   { key: 'Shure', badge: 'SH' },
@@ -195,17 +215,36 @@ export default function HyperBudsMarketplaceStorefront() {
   const [activeCategory, setActiveCategory] = useState('all');
   const [onlyFavourites, setOnlyFavourites] = useState(false);
   const [favourites, setFavourites] = useState<string[]>([]);
-  const [minPriceUsd, setMinPriceUsd] = useState(20);
+  const [minPriceUsd, setMinPriceUsd] = useState(0);
   const [maxPriceUsd, setMaxPriceUsd] = useState(1130);
-  const [minStars, setMinStars] = useState(4);
+  const [minStars, setMinStars] = useState(0);
   const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
   const [showAllBrands, setShowAllBrands] = useState(false);
   const [deliveryOption, setDeliveryOption] = useState<'standard' | 'express'>('standard');
+  const [page, setPage] = useState(1);
+
+  // Product Details & Multi-Image Gallery Modal state
+  const [selectedProduct, setSelectedProduct] = useState<GearProduct | null>(null);
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [detailGallery, setDetailGallery] = useState<string[]>([]);
+  const [activeGalleryIdx, setActiveGalleryIdx] = useState(0);
+  const [detailDescription, setDetailDescription] = useState('');
+  const [detailVariants, setDetailVariants] = useState<ProductVariant[]>([]);
+  const [selectedVariantVid, setSelectedVariantVid] = useState<string>('');
+  const [detailWeightGrams, setDetailWeightGrams] = useState<number | null>(null);
+  const [detailQty, setDetailQty] = useState(1);
+  const [shippingQuoteLoading, setShippingQuoteLoading] = useState(false);
+  const [shippingOptions, setShippingOptions] = useState<ShippingOption[]>([]);
+  const [shippingQuoteAllowed, setShippingQuoteAllowed] = useState(true);
+  const [shippingQuoteReason, setShippingQuoteReason] = useState<string | null>(null);
 
   // Checkout & cart state
   const [busyId, setBusyId] = useState<string | null>(null);
   const [creditsToApply, setCreditsToApply] = useState(0);
   const [shipCountry, setShipCountry] = useState('US');
+  const [recipientName, setRecipientName] = useState('');
+  const [shipPhone, setShipPhone] = useState('');
+  const [shipState, setShipState] = useState('');
   const [line1, setLine1] = useState('');
   const [city, setCity] = useState('');
   const [postalCode, setPostalCode] = useState('');
@@ -242,7 +281,7 @@ export default function HyperBudsMarketplaceStorefront() {
     setLoading(true);
     try {
       const [prodRes, cartRes, ordRes, dispRes] = await Promise.all([
-        apiClient.get('/marketplace/gear/products?limit=50'),
+        apiClient.get('/marketplace/gear/products?limit=200'),
         apiClient.get('/marketplace/cart').catch(() => null),
         apiClient.get('/marketplace/gear/orders').catch(() => ({ data: { orders: [] } })),
         apiClient.get('/marketplace/disputes').catch(() => ({ data: { disputes: [] } })),
@@ -257,6 +296,66 @@ export default function HyperBudsMarketplaceStorefront() {
       setLoading(false);
     }
   }, []);
+
+  const fetchShippingQuoteForProduct = useCallback(
+    async (productId: string, countryCode: string, quantity: number, vid?: string) => {
+      setShippingQuoteLoading(true);
+      try {
+        const res = await apiClient.post(`/marketplace/products/${productId}/shipping-quote`, {
+          countryCode,
+          quantity,
+          ...(vid ? { vid } : {}),
+        });
+        setShippingQuoteAllowed(res.data?.allowed !== false);
+        setShippingQuoteReason(res.data?.reason ?? null);
+        setShippingOptions(Array.isArray(res.data?.options) ? res.data.options : []);
+      } catch {
+        setShippingOptions([]);
+      } finally {
+        setShippingQuoteLoading(false);
+      }
+    },
+    [],
+  );
+
+  const openProductModal = useCallback(
+    async (product: GearProduct) => {
+      const id = product._id || product.id || '';
+      if (!id) return;
+      setSelectedProduct(product);
+      setDetailGallery(Array.isArray(product.images) ? product.images.filter(Boolean) : []);
+      setActiveGalleryIdx(0);
+      setDetailDescription(product.description || '');
+      setDetailVariants([]);
+      setSelectedVariantVid('');
+      setDetailWeightGrams(null);
+      setDetailQty(1);
+      setShippingOptions([]);
+      setDetailLoading(true);
+
+      try {
+        const res = await apiClient.get(`/marketplace/products/${id}/details`);
+        const gallery: string[] = Array.isArray(res.data?.gallery) && res.data.gallery.length > 0
+          ? res.data.gallery
+          : Array.isArray(product.images)
+            ? product.images
+            : [];
+        const variants: ProductVariant[] = Array.isArray(res.data?.variants) ? res.data.variants : [];
+        setDetailGallery(gallery);
+        setDetailDescription(res.data?.product?.description || product.description || '');
+        setDetailVariants(variants);
+        setDetailWeightGrams(typeof res.data?.weightGrams === 'number' ? res.data.weightGrams : null);
+        const firstVid = variants[0]?.vid || '';
+        setSelectedVariantVid(firstVid);
+        void fetchShippingQuoteForProduct(id, shipCountry, 1, firstVid);
+      } catch {
+        void fetchShippingQuoteForProduct(id, shipCountry, 1);
+      } finally {
+        setDetailLoading(false);
+      }
+    },
+    [fetchShippingQuoteForProduct, shipCountry],
+  );
 
   useEffect(() => {
     void loadStoreData();
@@ -298,15 +397,16 @@ export default function HyperBudsMarketplaceStorefront() {
       const priceUsd = Number(p.priceMinor ?? p.priceCents ?? 0) / 100;
       const brand = inferBrand(p.title);
       const rating = PRODUCT_RATINGS[id] ?? 4.7;
+      const cat = String(p.category || '').toLowerCase();
 
       if (onlyFavourites && !favourites.includes(id)) return false;
-      if (activeCategory === 'deals' && !(id in DEAL_COMPARE_PRICES)) return false;
-      if (
-        activeCategory !== 'all' &&
-        activeCategory !== 'deals' &&
-        p.category.toLowerCase() !== activeCategory
-      ) {
-        return false;
+      if (activeCategory !== 'all') {
+        const matchesCat =
+          cat === activeCategory ||
+          (activeCategory === 'camera' && (cat === 'cameras' || cat === 'tripods')) ||
+          (activeCategory === 'audio' && cat === 'microphones') ||
+          (activeCategory === 'studio' && cat === 'tripods');
+        if (!matchesCat) return false;
       }
       if (priceUsd < minPriceUsd || priceUsd > maxPriceUsd) return false;
       if (rating < minStars) return false;
@@ -316,7 +416,8 @@ export default function HyperBudsMarketplaceStorefront() {
         if (
           !p.title.toLowerCase().includes(q) &&
           !p.description.toLowerCase().includes(q) &&
-          !brand.toLowerCase().includes(q)
+          !brand.toLowerCase().includes(q) &&
+          !cat.includes(q)
         ) {
           return false;
         }
@@ -335,6 +436,17 @@ export default function HyperBudsMarketplaceStorefront() {
     search,
   ]);
 
+  useEffect(() => {
+    setPage(1);
+  }, [activeCategory, onlyFavourites, minPriceUsd, maxPriceUsd, minStars, selectedBrands, search]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredProducts.length / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages);
+  const paginatedProducts = useMemo(() => {
+    const start = (safePage - 1) * PAGE_SIZE;
+    return filteredProducts.slice(start, start + PAGE_SIZE);
+  }, [filteredProducts, safePage]);
+
   const cartItemCount = useMemo(
     () => cart.items.reduce((sum, item) => sum + item.quantity, 0),
     [cart.items],
@@ -345,9 +457,14 @@ export default function HyperBudsMarketplaceStorefront() {
     cart.maxApplicableCredits,
   );
   const creditDiscountMinor = appliedCredits * cart.creditValueMinor;
+  const estimatedShippingMinor = useMemo(() => {
+    if (cart.items.length === 0) return 0;
+    const base = shipCountry === 'US' ? 599 : ['CA', 'GB', 'DE', 'FR'].includes(shipCountry) ? 899 : 1299;
+    return deliveryOption === 'express' ? base + 900 : base;
+  }, [cart.items.length, shipCountry, deliveryOption]);
   const netTotalMinor = Math.max(0, cart.subtotalMinor - creditDiscountMinor);
 
-  const handleAddToCart = async (product: GearProduct) => {
+  const handleAddToCart = async (product: GearProduct, quantity = 1, openDrawerAfter = false) => {
     const id = product._id || product.id || '';
     if (product.providerType === 'affiliate' && product.externalCheckoutUrl) {
       window.open(product.externalCheckoutUrl, '_blank', 'noopener,noreferrer');
@@ -355,9 +472,16 @@ export default function HyperBudsMarketplaceStorefront() {
     }
     setBusyId(id);
     try {
-      const res = await apiClient.post('/marketplace/cart/items', { productId: id, quantity: 1 });
+      const res = await apiClient.post('/marketplace/cart/items', {
+        productId: id,
+        quantity: Math.max(1, quantity),
+      });
       setCart(res.data);
       toast.success(`Added "${product.title}" to cart`);
+      if (openDrawerAfter) {
+        setSelectedProduct(null);
+        setCartOpen(true);
+      }
     } catch (err) {
       toast.error((err as { message?: string })?.message || 'Sign in to add items to your cart.');
     } finally {
@@ -391,10 +515,15 @@ export default function HyperBudsMarketplaceStorefront() {
         {
           creditsToApply: appliedCredits,
           shippingAddress: {
+            fullName: recipientName.trim(),
+            phone: shipPhone.trim(),
             line1: line1.trim(),
             city: city.trim(),
+            state: shipState.trim(),
             postalCode: postalCode.trim(),
             country: shipCountry,
+            deliveryOption,
+            estimatedShippingMinor,
           },
         },
         { headers: { 'Idempotency-Key': idemKey } },
@@ -404,6 +533,9 @@ export default function HyperBudsMarketplaceStorefront() {
       );
       setCartOpen(false);
       setCreditsToApply(0);
+      setRecipientName('');
+      setShipPhone('');
+      setShipState('');
       setLine1('');
       setCity('');
       setPostalCode('');
@@ -963,157 +1095,254 @@ export default function HyperBudsMarketplaceStorefront() {
                     </button>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
-                    {filteredProducts.map((product, idx) => {
-                      const id = product._id || product.id || '';
-                      const priceMinor = Number(product.priceMinor ?? product.priceCents ?? 0);
-                      const compareMinor = DEAL_COMPARE_PRICES[id];
-                      const isTopItem = TOP_ITEM_IDS.has(id);
-                      const isFav = favourites.includes(id);
-                      const imgUrl = product.images?.[0];
-                      const isAffiliate = product.providerType === 'affiliate';
-                      const isFeaturedViolet =
-                        id === 'hb-gear-hb-hoodie' || (idx === 4 && filteredProducts.length >= 5);
+                  <>
+                    <div className="mb-3 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500 dark:text-slate-400">
+                      <span>
+                        Showing{' '}
+                        <strong className="text-slate-900 dark:text-white">
+                          {(safePage - 1) * PAGE_SIZE + 1}–
+                          {Math.min(safePage * PAGE_SIZE, filteredProducts.length)}
+                        </strong>{' '}
+                        of{' '}
+                        <strong className="text-slate-900 dark:text-white">
+                          {filteredProducts.length}
+                        </strong>{' '}
+                        products
+                      </span>
+                      <span className="inline-flex items-center gap-1 rounded-full bg-[#6C5CE7]/10 px-2.5 py-0.5 text-[11px] font-semibold text-[#6C5CE7]">
+                        <Truck className="h-3 w-3" />
+                        Global CJdropshipping Fulfillment
+                      </span>
+                    </div>
 
-                      if (isFeaturedViolet) {
+                    <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
+                      {paginatedProducts.map((product, idx) => {
+                        const id = product._id || product.id || '';
+                        const priceMinor = Number(product.priceMinor ?? product.priceCents ?? 0);
+                        const compareMinor = DEAL_COMPARE_PRICES[id];
+                        const isTopItem = TOP_ITEM_IDS.has(id);
+                        const isFav = favourites.includes(id);
+                        const imgUrl = product.images?.[0];
+                        const isAffiliate = product.providerType === 'affiliate';
+                        const isFeaturedViolet =
+                          safePage === 1 && idx === 4 && paginatedProducts.length >= 5;
+
+                        if (isFeaturedViolet) {
+                          return (
+                            <article
+                              key={id}
+                              onClick={() => void openProductModal(product)}
+                              className="group relative flex min-h-[322px] cursor-pointer flex-col justify-end overflow-hidden rounded-[22px] bg-linear-to-br from-[#8B5CF6] via-[#6C5CE7] to-[#4338CA] p-5 text-white shadow-[0_12px_32px_rgba(108,92,231,0.28)]"
+                            >
+                              {imgUrl && (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img
+                                  src={imgUrl}
+                                  alt={product.title}
+                                  className="absolute inset-0 h-full w-full object-cover opacity-55 mix-blend-luminosity transition duration-500 group-hover:scale-105"
+                                />
+                              )}
+                              <div className="absolute inset-0 bg-linear-to-t from-[#3B28CC]/95 via-[#6C5CE7]/45 to-transparent" />
+
+                              {/* Favourite button */}
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  toggleFavourite(id);
+                                }}
+                                aria-label="Toggle favourite"
+                                className="absolute top-3.5 right-3.5 z-20 flex h-8 w-8 items-center justify-center rounded-full bg-white text-[#6C5CE7] shadow-sm transition hover:scale-105"
+                              >
+                                <Heart className={`h-4 w-4 ${isFav ? 'fill-[#6C5CE7]' : ''}`} />
+                              </button>
+
+                              {/* Floating frosted review badges */}
+                              <div className="pointer-events-none absolute top-4 left-4 z-10 flex items-center gap-1.5 rounded-full bg-white/85 px-2.5 py-1 text-[11px] font-bold text-slate-900 shadow backdrop-blur-md">
+                                <span className="h-4 w-4 rounded-full bg-[#6C5CE7] text-center text-[9px] leading-4 text-white">
+                                  A
+                                </span>
+                                <span>4.9/5</span>
+                                <Star className="h-3 w-3 fill-[#FACC15] text-[#FACC15]" />
+                              </div>
+
+                              <div className="relative z-20 mt-auto text-center">
+                                <h2 className="line-clamp-2 text-[14px] font-bold leading-snug text-white">
+                                  {product.title}
+                                </h2>
+                                <div
+                                  className="mt-3 flex justify-center gap-2"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <button
+                                    type="button"
+                                    disabled={busyId === id}
+                                    onClick={() => void handleAddToCart(product)}
+                                    className="inline-flex items-center gap-1.5 rounded-full border border-white/75 bg-white/15 px-4 py-1.5 text-xs font-bold text-white backdrop-blur-md transition hover:bg-white hover:text-[#6C5CE7] disabled:opacity-50"
+                                  >
+                                    <ShoppingBag className="h-3.5 w-3.5" />
+                                    {formatPrice(priceMinor, product.currency)}
+                                  </button>
+                                </div>
+                              </div>
+                            </article>
+                          );
+                        }
+
                         return (
                           <article
                             key={id}
-                            className="group relative flex min-h-[322px] flex-col justify-end overflow-hidden rounded-[22px] bg-linear-to-br from-[#8B5CF6] via-[#6C5CE7] to-[#4338CA] p-5 text-white shadow-[0_12px_32px_rgba(108,92,231,0.28)]"
+                            onClick={() => void openProductModal(product)}
+                            className="group flex cursor-pointer flex-col overflow-hidden rounded-[22px] bg-white shadow-[0_2px_14px_rgba(15,23,42,0.04)] transition-all hover:-translate-y-0.5 hover:shadow-[0_14px_30px_rgba(108,92,231,0.12)] dark:border dark:border-slate-800 dark:bg-slate-900"
                           >
-                            {imgUrl && (
-                              // eslint-disable-next-line @next/next/no-img-element
-                              <img
-                                src={imgUrl}
-                                alt={product.title}
-                                className="absolute inset-0 h-full w-full object-cover opacity-55 mix-blend-luminosity transition duration-500 group-hover:scale-105"
-                              />
+                            {/* Top Studio Gray Image Stage */}
+                            <div className="relative aspect-[4/3.1] w-full overflow-hidden bg-linear-to-b from-[#EAECEF] via-[#F2F3F6] to-[#F8F9FB] dark:from-slate-800 dark:to-slate-900">
+                              {imgUrl ? (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img
+                                  src={imgUrl}
+                                  alt={product.title}
+                                  loading="lazy"
+                                  className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                                />
+                              ) : (
+                                <div className="flex h-full w-full items-center justify-center text-slate-400">
+                                  <Package className="h-10 w-10" />
+                                </div>
+                              )}
+
+                              {/* Top-left category pill */}
+                              <span className="absolute top-3 left-3 rounded-full bg-white/90 px-2.5 py-0.5 text-[10px] font-bold capitalize text-slate-700 shadow-xs backdrop-blur-sm dark:bg-slate-900/85 dark:text-slate-200">
+                                {product.category || 'gear'}
+                              </span>
+
+                              {/* Top-right circular white Favourite button */}
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  toggleFavourite(id);
+                                }}
+                                aria-label="Toggle favourite"
+                                className="absolute top-3 right-3 flex h-8 w-8 items-center justify-center rounded-full bg-white text-[#6C5CE7] shadow-sm transition hover:scale-105 dark:bg-slate-900"
+                              >
+                                <Heart className={`h-4 w-4 ${isFav ? 'fill-[#6C5CE7]' : ''}`} />
+                              </button>
+                            </div>
+
+                            {/* Optional Yellow "Top item" Pill straddling seam */}
+                            {isTopItem && (
+                              <span className="relative z-10 mx-auto -mt-3 rounded-full bg-[#FFE44D] px-3 py-0.5 text-[11px] font-bold text-[#111318] shadow-xs">
+                                Top item
+                              </span>
                             )}
-                            <div className="absolute inset-0 bg-linear-to-t from-[#3B28CC]/95 via-[#6C5CE7]/45 to-transparent" />
 
-                            {/* Favourite button */}
-                            <button
-                              type="button"
-                              onClick={() => toggleFavourite(id)}
-                              aria-label="Toggle favourite"
-                              className="absolute top-3.5 right-3.5 z-20 flex h-8 w-8 items-center justify-center rounded-full bg-white text-[#6C5CE7] shadow-sm transition hover:scale-105"
+                            {/* Centered White Body */}
+                            <div
+                              className={`flex flex-1 flex-col items-center px-4 pb-4 text-center ${
+                                isTopItem ? 'pt-2' : 'pt-3.5'
+                              }`}
                             >
-                              <Heart className={`h-4 w-4 ${isFav ? 'fill-[#6C5CE7]' : ''}`} />
-                            </button>
-
-                            {/* Floating frosted review badges (reference spotlight motif) */}
-                            <div className="pointer-events-none absolute top-4 left-4 z-10 flex items-center gap-1.5 rounded-full bg-white/85 px-2.5 py-1 text-[11px] font-bold text-slate-900 shadow backdrop-blur-md">
-                              <span className="h-4 w-4 rounded-full bg-[#6C5CE7] text-center text-[9px] leading-4 text-white">
-                                A
-                              </span>
-                              <span>4.9/5</span>
-                              <Star className="h-3 w-3 fill-[#FACC15] text-[#FACC15]" />
-                            </div>
-                            <div className="pointer-events-none absolute top-16 right-4 z-10 flex items-center gap-1.5 rounded-full bg-white/85 px-2.5 py-1 text-[11px] font-bold text-slate-900 shadow backdrop-blur-md">
-                              <span className="h-4 w-4 rounded-full bg-emerald-500 text-center text-[9px] leading-4 text-white">
-                                K
-                              </span>
-                              <span>4.8/5</span>
-                              <Star className="h-3 w-3 fill-[#FACC15] text-[#FACC15]" />
-                            </div>
-                            <div className="pointer-events-none absolute top-28 left-4 z-10 flex items-center gap-1.5 rounded-full bg-white/85 px-2.5 py-1 text-[11px] font-bold text-slate-900 shadow backdrop-blur-md">
-                              <span className="h-4 w-4 rounded-full bg-slate-900 text-center text-[9px] leading-4 text-white">
-                                M
-                              </span>
-                              <span>5/5</span>
-                              <Star className="h-3 w-3 fill-[#FACC15] text-[#FACC15]" />
-                            </div>
-
-                            <div className="relative z-20 mt-auto text-center">
-                              <h2 className="line-clamp-2 text-[14px] font-bold leading-snug text-white">
+                              <h2 className="line-clamp-2 w-full text-[13px] font-bold leading-snug text-[#14171F] dark:text-white">
                                 {product.title}
                               </h2>
-                              <div className="mt-3 flex justify-center">
+
+                              <div
+                                className="mt-auto flex items-center justify-center gap-2.5 pt-3"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                {compareMinor && compareMinor > priceMinor && (
+                                  <span className="text-xs font-medium text-slate-400 line-through tabular-nums">
+                                    {formatPrice(compareMinor, product.currency)}
+                                  </span>
+                                )}
                                 <button
                                   type="button"
                                   disabled={busyId === id}
-                                  onClick={() => handleAddToCart(product)}
-                                  className="inline-flex items-center gap-1.5 rounded-full border border-white/75 bg-white/15 px-4 py-1.5 text-xs font-bold text-white backdrop-blur-md transition hover:bg-white hover:text-[#6C5CE7] disabled:opacity-50"
+                                  onClick={() => void handleAddToCart(product)}
+                                  className="inline-flex items-center gap-1.5 rounded-full border border-[#6C5CE7]/60 bg-white px-4 py-1.5 text-[12px] font-bold tabular-nums text-[#6C5CE7] transition hover:bg-[#6C5CE7] hover:text-white disabled:opacity-50 dark:bg-slate-900 dark:hover:bg-[#6C5CE7]"
                                 >
-                                  <ShoppingBag className="h-3.5 w-3.5" />
+                                  {isAffiliate ? (
+                                    <ExternalLink className="h-3.5 w-3.5" />
+                                  ) : (
+                                    <ShoppingBag className="h-3.5 w-3.5" />
+                                  )}
                                   {formatPrice(priceMinor, product.currency)}
                                 </button>
                               </div>
                             </div>
                           </article>
                         );
-                      }
+                      })}
+                    </div>
 
-                      return (
-                        <article
-                          key={id}
-                          className="group flex flex-col overflow-hidden rounded-[22px] bg-white shadow-[0_2px_14px_rgba(15,23,42,0.04)] transition-all hover:-translate-y-0.5 hover:shadow-[0_14px_30px_rgba(108,92,231,0.10)] dark:border dark:border-slate-800 dark:bg-slate-900"
+                    {/* Pagination Bar */}
+                    {totalPages > 1 && (
+                      <nav
+                        aria-label="Marketplace pagination"
+                        className="mt-7 flex flex-wrap items-center justify-center gap-1.5"
+                      >
+                        <button
+                          type="button"
+                          disabled={safePage <= 1}
+                          onClick={() => {
+                            setPage((p) => Math.max(1, p - 1));
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                          }}
+                          className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 disabled:opacity-40 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200"
                         >
-                          {/* Top Studio Gray Image Stage */}
-                          <div className="relative aspect-[4/3.1] w-full overflow-hidden bg-linear-to-b from-[#EAECEF] via-[#F2F3F6] to-[#F8F9FB] dark:from-slate-800 dark:to-slate-900">
-                            {imgUrl ? (
-                              // eslint-disable-next-line @next/next/no-img-element
-                              <img
-                                src={imgUrl}
-                                alt={product.title}
-                                loading="lazy"
-                                className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-                              />
-                            ) : (
-                              <div className="flex h-full w-full items-center justify-center text-slate-400">
-                                <Package className="h-10 w-10" />
-                              </div>
-                            )}
+                          <ChevronLeft className="h-3.5 w-3.5" />
+                          Previous
+                        </button>
 
-                            {/* Top-right circular white Favourite button */}
-                            <button
-                              type="button"
-                              onClick={() => toggleFavourite(id)}
-                              aria-label="Toggle favourite"
-                              className="absolute top-3 right-3 flex h-8 w-8 items-center justify-center rounded-full bg-white text-[#6C5CE7] shadow-sm transition hover:scale-105 dark:bg-slate-900"
-                            >
-                              <Heart className={`h-4 w-4 ${isFav ? 'fill-[#6C5CE7]' : ''}`} />
-                            </button>
-                          </div>
-
-                          {/* Optional Yellow "Top item" Pill straddling seam */}
-                          {isTopItem && (
-                            <span className="relative z-10 mx-auto -mt-3 rounded-full bg-[#FFE44D] px-3 py-0.5 text-[11px] font-bold text-[#111318] shadow-xs">
-                              Top item
-                            </span>
-                          )}
-
-                          {/* Centered White Body */}
-                          <div className={`flex flex-1 flex-col items-center px-4 pb-4 text-center ${isTopItem ? 'pt-2' : 'pt-3.5'}`}>
-                            <h2 className="w-full truncate text-[13px] font-bold text-[#14171F] dark:text-white">
-                              {product.title}
-                            </h2>
-
-                            <div className="mt-3 flex items-center justify-center gap-2.5">
-                              {compareMinor && compareMinor > priceMinor && (
-                                <span className="text-xs font-medium text-slate-400 line-through tabular-nums">
-                                  {formatPrice(compareMinor, product.currency)}
-                                </span>
-                              )}
-                              <button
-                                type="button"
-                                disabled={busyId === id}
-                                onClick={() => handleAddToCart(product)}
-                                className="inline-flex items-center gap-1.5 rounded-full border border-[#6C5CE7]/60 bg-white px-4 py-1.5 text-[12px] font-bold tabular-nums text-[#6C5CE7] transition hover:bg-[#6C5CE7] hover:text-white disabled:opacity-50 dark:bg-slate-900 dark:hover:bg-[#6C5CE7]"
-                              >
-                                {isAffiliate ? (
-                                  <ExternalLink className="h-3.5 w-3.5" />
-                                ) : (
-                                  <ShoppingBag className="h-3.5 w-3.5" />
+                        {Array.from({ length: totalPages }, (_, i) => i + 1)
+                          .filter(
+                            (num) =>
+                              num === 1 ||
+                              num === totalPages ||
+                              Math.abs(num - safePage) <= 2,
+                          )
+                          .map((num, idx, arr) => {
+                            const prev = arr[idx - 1];
+                            const showEllipsis = prev && num - prev > 1;
+                            return (
+                              <React.Fragment key={num}>
+                                {showEllipsis && (
+                                  <span className="px-1.5 text-xs text-slate-400">…</span>
                                 )}
-                                {formatPrice(priceMinor, product.currency)}
-                              </button>
-                            </div>
-                          </div>
-                        </article>
-                      );
-                    })}
-                  </div>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setPage(num);
+                                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                                  }}
+                                  className={`h-9 min-w-9 rounded-full px-3 text-xs font-bold transition ${
+                                    num === safePage
+                                      ? 'bg-[#6C5CE7] text-white shadow-[0_6px_16px_rgba(108,92,231,0.32)]'
+                                      : 'border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300'
+                                  }`}
+                                >
+                                  {num}
+                                </button>
+                              </React.Fragment>
+                            );
+                          })}
+
+                        <button
+                          type="button"
+                          disabled={safePage >= totalPages}
+                          onClick={() => {
+                            setPage((p) => Math.min(totalPages, p + 1));
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                          }}
+                          className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 disabled:opacity-40 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200"
+                        >
+                          Next
+                          <ChevronRight className="h-3.5 w-3.5" />
+                        </button>
+                      </nav>
+                    )}
+                  </>
                 )}
               </main>
             </div>
@@ -1268,17 +1497,37 @@ export default function HyperBudsMarketplaceStorefront() {
 
                     <input
                       required
-                      value={line1}
-                      onChange={(e) => setLine1(e.target.value)}
-                      placeholder="Street address"
+                      value={recipientName}
+                      onChange={(e) => setRecipientName(e.target.value)}
+                      placeholder="Recipient full name"
                       className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs dark:border-slate-700 dark:bg-slate-950 dark:text-white"
                     />
-                    <div className="grid grid-cols-2 gap-2">
+                    <input
+                      required
+                      value={shipPhone}
+                      onChange={(e) => setShipPhone(e.target.value)}
+                      placeholder="Phone number (for courier delivery)"
+                      className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                    />
+                    <input
+                      required
+                      value={line1}
+                      onChange={(e) => setLine1(e.target.value)}
+                      placeholder="Street address & apartment"
+                      className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                    />
+                    <div className="grid grid-cols-3 gap-2">
                       <input
                         required
                         value={city}
                         onChange={(e) => setCity(e.target.value)}
                         placeholder="City"
+                        className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                      />
+                      <input
+                        value={shipState}
+                        onChange={(e) => setShipState(e.target.value)}
+                        placeholder="State/Region"
                         className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs dark:border-slate-700 dark:bg-slate-950 dark:text-white"
                       />
                       <input
@@ -1301,6 +1550,10 @@ export default function HyperBudsMarketplaceStorefront() {
                     <span>Subtotal</span>
                     <span className="tabular-nums">{formatPrice(cart.subtotalMinor, cart.currency)}</span>
                   </div>
+                  <div className="flex justify-between text-slate-500">
+                    <span>Est. Shipping ({shipCountry} · {deliveryOption})</span>
+                    <span className="tabular-nums">{formatPrice(estimatedShippingMinor, cart.currency)}</span>
+                  </div>
                   {creditDiscountMinor > 0 && (
                     <div className="flex justify-between text-emerald-600">
                       <span>Credit Discount ({appliedCredits} cr)</span>
@@ -1308,7 +1561,7 @@ export default function HyperBudsMarketplaceStorefront() {
                     </div>
                   )}
                   <div className="flex justify-between pt-1 text-sm font-bold text-slate-900 dark:text-white">
-                    <span>Total</span>
+                    <span>Order Total</span>
                     <span className="tabular-nums">{formatPrice(netTotalMinor, cart.currency)}</span>
                   </div>
                 </div>
@@ -1327,6 +1580,276 @@ export default function HyperBudsMarketplaceStorefront() {
           </div>
         </div>
       )}
+
+      {/* PRODUCT DETAILS, MULTI-IMAGE GALLERY & LIVE SHIPPING MODAL */}
+      {selectedProduct && (() => {
+        const pid = selectedProduct._id || selectedProduct.id || '';
+        const selectedVariant = detailVariants.find((v) => v.vid === selectedVariantVid);
+        const unitPriceMinor =
+          selectedVariant && selectedVariant.priceMinor > 0
+            ? selectedVariant.priceMinor
+            : Number(selectedProduct.priceMinor ?? selectedProduct.priceCents ?? 0);
+        const galleryImages =
+          detailGallery.length > 0
+            ? detailGallery
+            : Array.isArray(selectedProduct.images)
+              ? selectedProduct.images
+              : [];
+        const mainImg = galleryImages[activeGalleryIdx] || galleryImages[0] || null;
+        const maxStock = Math.max(1, Number(selectedProduct.stockQty ?? selectedProduct.stock ?? 10));
+
+        return (
+          <div
+            onClick={() => setSelectedProduct(null)}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 p-3 sm:p-6 backdrop-blur-xs"
+          >
+            <div
+              onClick={(e) => e.stopPropagation()}
+              className="relative max-h-[92vh] w-full max-w-4xl overflow-y-auto rounded-[28px] bg-white shadow-2xl dark:border dark:border-slate-800 dark:bg-slate-900"
+            >
+              <button
+                type="button"
+                onClick={() => setSelectedProduct(null)}
+                aria-label="Close product details"
+                className="absolute top-4 right-4 z-20 flex h-9 w-9 items-center justify-center rounded-full bg-white/90 text-slate-600 shadow hover:bg-slate-100 dark:bg-slate-800 dark:text-slate-200"
+              >
+                <X className="h-4 w-4" />
+              </button>
+
+              <div className="grid grid-cols-1 gap-6 p-5 sm:p-7 md:grid-cols-12">
+                {/* Left: Main Image + Clickable Thumbnail Strip */}
+                <div className="space-y-3 md:col-span-6">
+                  <div className="relative aspect-square w-full overflow-hidden rounded-[22px] bg-[#F3F4F8] dark:bg-slate-800">
+                    {mainImg ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={mainImg}
+                        alt={selectedProduct.title}
+                        className="h-full w-full object-contain p-2"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center text-slate-400">
+                        <Package className="h-14 w-14" />
+                      </div>
+                    )}
+                    {detailLoading && (
+                      <div className="absolute right-3 bottom-3 inline-flex items-center gap-1.5 rounded-full bg-black/65 px-3 py-1 text-[11px] font-semibold text-white backdrop-blur-sm">
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                        Loading gallery...
+                      </div>
+                    )}
+                  </div>
+
+                  {galleryImages.length > 1 && (
+                    <div className="flex gap-2 overflow-x-auto pb-1">
+                      {galleryImages.map((img, i) => (
+                        <button
+                          key={`${img}-${i}`}
+                          type="button"
+                          onClick={() => setActiveGalleryIdx(i)}
+                          className={`relative h-16 w-16 shrink-0 overflow-hidden rounded-xl border-2 bg-[#F3F4F8] transition dark:bg-slate-800 ${
+                            i === activeGalleryIdx
+                              ? 'border-[#6C5CE7] ring-2 ring-[#6C5CE7]/25'
+                              : 'border-transparent opacity-75 hover:opacity-100'
+                          }`}
+                        >
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={img} alt={`View ${i + 1}`} className="h-full w-full object-cover" />
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Right: Product Info, Variants, Shipping Quote & Actions */}
+                <div className="flex flex-col space-y-4 md:col-span-6">
+                  <div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="rounded-full bg-[#6C5CE7]/10 px-3 py-0.5 text-[11px] font-bold capitalize text-[#6C5CE7]">
+                        {selectedProduct.category || 'Creator Gear'}
+                      </span>
+                      <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300">
+                        In Stock ({maxStock})
+                      </span>
+                      {detailWeightGrams && (
+                        <span className="text-[11px] text-slate-500">{detailWeightGrams}g</span>
+                      )}
+                    </div>
+
+                    <h2 className="mt-2 text-lg font-extrabold leading-snug text-slate-900 dark:text-white sm:text-xl">
+                      {selectedProduct.title}
+                    </h2>
+
+                    <div className="mt-2 flex items-baseline gap-3">
+                      <span className="text-2xl font-black text-[#6C5CE7] tabular-nums">
+                        {formatPrice(unitPriceMinor, selectedProduct.currency)}
+                      </span>
+                      <span className="text-xs text-slate-500">
+                        Fulfilled via CJdropshipping · Tracked Shipping
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Variants selector (if available) */}
+                  {detailVariants.length > 1 && (
+                    <div>
+                      <p className="mb-1.5 text-xs font-bold text-slate-700 dark:text-slate-300">
+                        Options / Variants
+                      </p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {detailVariants.slice(0, 8).map((v) => {
+                          const active = v.vid === selectedVariantVid;
+                          return (
+                            <button
+                              key={v.vid}
+                              type="button"
+                              onClick={() => {
+                                setSelectedVariantVid(v.vid);
+                                if (v.image) {
+                                  const imgIdx = galleryImages.indexOf(v.image);
+                                  if (imgIdx >= 0) setActiveGalleryIdx(imgIdx);
+                                }
+                                void fetchShippingQuoteForProduct(pid, shipCountry, detailQty, v.vid);
+                              }}
+                              className={`rounded-xl border px-2.5 py-1.5 text-[11px] font-semibold transition ${
+                                active
+                                  ? 'border-[#6C5CE7] bg-[#6C5CE7]/10 text-[#6C5CE7]'
+                                  : 'border-slate-200 text-slate-700 hover:border-slate-300 dark:border-slate-700 dark:text-slate-300'
+                              }`}
+                            >
+                              {v.name.slice(0, 28)}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Description */}
+                  <div className="rounded-2xl bg-[#F6F7FB] p-3.5 text-xs leading-relaxed text-slate-600 dark:bg-slate-950 dark:text-slate-300">
+                    <p className="mb-1 font-bold text-slate-800 dark:text-white">Product Details</p>
+                    <p className="line-clamp-5">
+                      {detailDescription ||
+                        selectedProduct.description ||
+                        'Creator studio gear with global tracked delivery via HyperBuds Marketplace.'}
+                    </p>
+                  </div>
+
+                  {/* Live Shipping & Delivery Calculator */}
+                  <div className="rounded-2xl border border-slate-200 p-3.5 text-xs dark:border-slate-800">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <span className="inline-flex items-center gap-1.5 font-bold text-slate-900 dark:text-white">
+                        <Truck className="h-4 w-4 text-[#6C5CE7]" />
+                        Shipping & Delivery
+                      </span>
+                      <select
+                        value={shipCountry}
+                        onChange={(e) => {
+                          const nextCountry = e.target.value;
+                          setShipCountry(nextCountry);
+                          void fetchShippingQuoteForProduct(pid, nextCountry, detailQty, selectedVariantVid);
+                        }}
+                        className="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-semibold dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                      >
+                        {SHIPPING_COUNTRIES.map((c) => (
+                          <option key={c.code} value={c.code}>
+                            {c.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {shippingQuoteLoading ? (
+                      <div className="mt-2.5 flex items-center gap-2 text-[11px] text-slate-500">
+                        <Loader2 className="h-3.5 w-3.5 animate-spin text-[#6C5CE7]" />
+                        Calculating live shipping rates...
+                      </div>
+                    ) : !shippingQuoteAllowed ? (
+                      <p className="mt-2 text-[11px] font-medium text-amber-600">
+                        {shippingQuoteReason || `Shipping is currently unavailable to ${shipCountry}.`}
+                      </p>
+                    ) : shippingOptions.length > 0 ? (
+                      <div className="mt-2.5 space-y-1.5">
+                        {shippingOptions.slice(0, 3).map((opt, idx) => (
+                          <div
+                            key={`${opt.logisticName}-${idx}`}
+                            className="flex items-center justify-between rounded-xl bg-[#F6F7FB] px-3 py-2 text-[11px] dark:bg-slate-950"
+                          >
+                            <div>
+                              <p className="font-bold text-slate-900 dark:text-white">
+                                {opt.logisticName}
+                              </p>
+                              <p className="text-slate-500">Est. {opt.deliveryDays}</p>
+                            </div>
+                            <span className="font-extrabold text-[#6C5CE7] tabular-nums">
+                              {formatPrice(opt.shippingFeeMinor, opt.currency)}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="mt-2 text-[11px] text-slate-500">
+                        Tracked international shipping available to {shipCountry}.
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Quantity + Add to Cart / Buy Now */}
+                  <div className="mt-auto flex flex-wrap items-center gap-2.5 pt-2">
+                    <div className="inline-flex items-center rounded-full border border-slate-200 bg-white px-2 py-1 dark:border-slate-700 dark:bg-slate-950">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const next = Math.max(1, detailQty - 1);
+                          setDetailQty(next);
+                          void fetchShippingQuoteForProduct(pid, shipCountry, next, selectedVariantVid);
+                        }}
+                        className="p-1 text-slate-600 hover:text-slate-900 dark:text-slate-300"
+                        aria-label="Decrease quantity"
+                      >
+                        <Minus className="h-3.5 w-3.5" />
+                      </button>
+                      <span className="w-8 text-center text-xs font-bold tabular-nums">
+                        {detailQty}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const next = Math.min(maxStock, detailQty + 1);
+                          setDetailQty(next);
+                          void fetchShippingQuoteForProduct(pid, shipCountry, next, selectedVariantVid);
+                        }}
+                        className="p-1 text-slate-600 hover:text-slate-900 dark:text-slate-300"
+                        aria-label="Increase quantity"
+                      >
+                        <Plus className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+
+                    <button
+                      type="button"
+                      disabled={busyId === pid || !shippingQuoteAllowed}
+                      onClick={() => void handleAddToCart(selectedProduct, detailQty, false)}
+                      className="flex-1 rounded-full border border-[#6C5CE7] bg-white px-4 py-2.5 text-xs font-bold text-[#6C5CE7] transition hover:bg-[#6C5CE7]/10 disabled:opacity-40 dark:bg-slate-900"
+                    >
+                      Add to Cart
+                    </button>
+
+                    <button
+                      type="button"
+                      disabled={busyId === pid || !shippingQuoteAllowed}
+                      onClick={() => void handleAddToCart(selectedProduct, detailQty, true)}
+                      className="flex-1 rounded-full bg-[#6C5CE7] px-4 py-2.5 text-xs font-bold text-white shadow-[0_6px_18px_rgba(108,92,231,0.35)] transition hover:bg-[#5b4bd6] disabled:opacity-40"
+                    >
+                      Buy Now · {formatPrice(unitPriceMinor * detailQty, selectedProduct.currency)}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }
