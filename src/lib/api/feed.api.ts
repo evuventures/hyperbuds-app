@@ -157,6 +157,32 @@ export function extractApiErrorMessage(err: unknown, fallback: string): string {
   return fallback;
 }
 
+export async function uploadStudioMediaToCloudinary(
+  file: File,
+  kind: 'podcast' | 'recording',
+  onProgress?: (percent: number) => void,
+): Promise<UploadedFeedMedia & { sizeMb?: number }> {
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('kind', kind);
+
+  const response = await apiClient.post<{ media: UploadedFeedMedia & { sizeMb?: number } }>(
+    '/feed/upload-media',
+    formData,
+    {
+      timeout: 180000,
+      onUploadProgress: (progressEvent) => {
+        if (!onProgress || !progressEvent.total) return;
+        onProgress(Math.min(100, Math.round((progressEvent.loaded * 100) / progressEvent.total)));
+      },
+    },
+  );
+  if (!response.data?.media?.url) {
+    throw new Error('Media upload succeeded without returning a URL.');
+  }
+  return response.data.media;
+}
+
 export async function uploadFeedMediaToCloudinary(
   file: File,
   options?: {

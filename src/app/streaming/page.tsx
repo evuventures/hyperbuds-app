@@ -8,6 +8,7 @@ import { streamingApi } from '@/lib/api/streaming.api';
 import {
   formatFileSize,
   uploadFeedMediaToCloudinary,
+  uploadStudioMediaToCloudinary,
 } from '@/lib/api/feed.api';
 import {
   formatCompactMetric,
@@ -192,6 +193,12 @@ export default function StreamingPage() {
   const [epDurationMin, setEpDurationMin] = useState(30);
   const [epConsent, setEpConsent] = useState(false);
   const [epCoverUploading, setEpCoverUploading] = useState(false);
+  const [epAudioUploading, setEpAudioUploading] = useState(false);
+  const [epAudioDurationSec, setEpAudioDurationSec] = useState<number | null>(null);
+  const [isRecordingMic, setIsRecordingMic] = useState(false);
+  const [recordSeconds, setRecordSeconds] = useState(0);
+  const micRecorderRef = useRef<MediaRecorder | null>(null);
+  const micChunksRef = useRef<Blob[]>([]);
   const [epSubmitting, setEpSubmitting] = useState(false);
   const [epBusyId, setEpBusyId] = useState<string | null>(null);
   const [selectedPlaylistCat, setSelectedPlaylistCat] = useState<string | null>(null);
@@ -200,7 +207,8 @@ export default function StreamingPage() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [activeEpisodeId, setActiveEpisodeId] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [playProgressSec, setPlayProgressSec] = useState(80);
+  const [playProgressSec, setPlayProgressSec] = useState(0);
+  const [realAudioDurationSec, setRealAudioDurationSec] = useState<number | null>(null);
   const [repeatOn, setRepeatOn] = useState(false);
   const [shuffleOn, setShuffleOn] = useState(false);
 
@@ -561,10 +569,20 @@ export default function StreamingPage() {
     [episodes, activeEpisodeId],
   );
 
-  const activeDuration = Math.max(30, Number(activeEpisode?.durationSeconds ?? 210));
+  const activeDuration = Math.max(
+    15,
+    Math.round(realAudioDurationSec ?? Number(activeEpisode?.durationSeconds ?? 210)),
+  );
 
   useEffect(() => {
-    if (!isPlaying) return;
+    if (!isRecordingMic) return;
+    const t = setInterval(() => setRecordSeconds((s) => s + 1), 1000);
+    return () => clearInterval(t);
+  }, [isRecordingMic]);
+
+  useEffect(() => {
+    // Only use timer fallback when episode has no real audioUrl
+    if (!isPlaying || activeEpisode?.audioUrl) return;
     const timer = setInterval(() => {
       setPlayProgressSec((prev) => {
         if (prev + 1 >= activeDuration) {
@@ -576,7 +594,7 @@ export default function StreamingPage() {
       });
     }, 1000);
     return () => clearInterval(timer);
-  }, [isPlaying, activeDuration, repeatOn]);
+  }, [isPlaying, activeDuration, repeatOn, activeEpisode?.audioUrl]);
 
   const handleTogglePlayEpisode = async (ep: PodcastEpisodeItem) => {
     const isSame = activeEpisodeId === ep._id;
@@ -671,6 +689,65 @@ export default function StreamingPage() {
     }
   };
 
+  const handleUploadEpisodeAudio = async (file: File) => {
+    setEpAudioUploading(true);
+    try {
+      const uploaded = await uploadStudioMediaToCloudinary(file, 'podcast');
+      setEpAudioUrl(uploaded.url);
+      if (uploaded.durationSeconds && uploaded.durationSeconds > 0) {
+        setEpAudioDurationSec(Math.round(uploaded.durationSeconds));
+      }
+      setBanner({ type: 'success', text: 'Podcast audio track uploaded to Cloudinary!' });
+    } catch (err) {
+      setBanner({
+        type: 'error',
+        text: err instanceof Error ? err.message : 'Failed to upload audio track.',
+      });
+    } finally {
+      setEpAudioUploading(false);
+    }
+  };
+
+  const startMicRecording = async () => {
+    if (typeof navigator === 'undefined' || !navigator.mediaDevices?.getUserMedia) {
+      setBanner({ type: 'error', text: 'Microphone recording is not supported in this browser.' });
+      return;
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
+        ? 'audio/webm;codecs=opus'
+        : 'audio/webm';
+      const recorder = new MediaRecorder(stream, { mimeType });
+      micChunksRef.current = [];
+      recorder.ondataavailable = (ev) => {
+        if (ev.data.size > 0) micChunksRef.current.push(ev.data);
+      };
+      recorder.onstop = async () => {
+        stream.getTracks().forEach((t) => t.stop());
+        const blob = new Blob(micChunksRef.current, { type: 'audio/webm' });
+        if (blob.size > 0) {
+          const recFile = new File([blob], `podcast-${Date.now()}.webm`, { type: 'audio/webm' });
+          setEpAudioDurationSec(Math.max(1, recordSeconds));
+          await handleUploadEpisodeAudio(recFile);
+        }
+      };
+      micRecorderRef.current = recorder;
+      setRecordSeconds(0);
+      setIsRecordingMic(true);
+      recorder.start(1000);
+    } catch {
+      setBanner({ type: 'error', text: 'Microphone permission denied.' });
+    }
+  };
+
+  const stopMicRecording = () => {
+    if (micRecorderRef.current && micRecorderRef.current.state !== 'inactive') {
+      micRecorderRef.current.stop();
+    }
+    setIsRecordingMic(false);
+  };
+
   const handleCreatePodcastEpisode = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!epTitle.trim()) {
@@ -696,7 +773,10 @@ export default function StreamingPage() {
             thumbnailUrl: epThumbnailUrl.trim() || undefined,
             audioUrl: epAudioUrl.trim() || undefined,
             category: epCategory,
-            durationSeconds: Math.min(3600, Math.max(60, Number(epDurationMin) * 60)),
+            durationSeconds:
+              epAudioDurationSec && epAudioDurationSec > 0
+                ? epAudioDurationSec
+                : Math.min(3600, Math.max(60, Number(epDurationMin) * 60)),
           })
           .catch(() => {});
       }
@@ -1354,7 +1434,25 @@ export default function StreamingPage() {
              ================================================================ */}
           {studioMode === 'podcast' && (
             <div className="grid grid-cols-1 gap-7 lg:grid-cols-12">
-              <audio ref={audioRef} className="hidden" />
+              <audio
+                ref={audioRef}
+                className="hidden"
+                onLoadedMetadata={(e) => {
+                  const d = e.currentTarget.duration;
+                  if (Number.isFinite(d) && d > 0) setRealAudioDurationSec(d);
+                }}
+                onTimeUpdate={(e) => {
+                  setPlayProgressSec(Math.floor(e.currentTarget.currentTime));
+                }}
+                onEnded={() => {
+                  if (repeatOn && audioRef.current) {
+                    audioRef.current.currentTime = 0;
+                    void audioRef.current.play().catch(() => {});
+                  } else {
+                    setIsPlaying(false);
+                  }
+                }}
+              />
 
               {/* LEFT MAIN COLUMN (8 cols) */}
               <div className="space-y-7 lg:col-span-8">
@@ -1734,9 +1832,13 @@ export default function StreamingPage() {
                           <button
                             key={idx}
                             type="button"
-                            onClick={() =>
-                              setPlayProgressSec(Math.round(barProgress * activeDuration))
-                            }
+                            onClick={() => {
+                              const nextSec = Math.round(barProgress * activeDuration);
+                              setPlayProgressSec(nextSec);
+                              if (audioRef.current && activeEpisode?.audioUrl) {
+                                audioRef.current.currentTime = nextSec;
+                              }
+                            }}
                             aria-label={`Seek to ${Math.round(barProgress * 100)}%`}
                             style={{ height: `${Math.max(8, Math.round(heightPct * 0.38))}px` }}
                             className={`w-[3px] rounded-full transition-all ${
@@ -2089,14 +2191,62 @@ export default function StreamingPage() {
                 </div>
               </div>
 
-              <div>
-                <label className="mb-1 block font-semibold">Audio Track URL (Optional)</label>
+              <div className="space-y-2 rounded-2xl border border-purple-200 bg-purple-50/60 p-3 dark:border-slate-700 dark:bg-slate-950">
+                <label className="block font-semibold text-slate-800 dark:text-slate-200">
+                  Podcast Audio Track (Record Mic or Upload File)
+                </label>
+                <div className="flex flex-wrap items-center gap-2">
+                  {!isRecordingMic ? (
+                    <button
+                      type="button"
+                      disabled={epAudioUploading}
+                      onClick={() => void startMicRecording()}
+                      className="inline-flex items-center gap-1.5 rounded-full bg-rose-600 px-3.5 py-1.5 text-xs font-bold text-white shadow-xs transition hover:bg-rose-700 disabled:opacity-50"
+                    >
+                      <Mic className="h-3.5 w-3.5" />
+                      Record with Mic
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={stopMicRecording}
+                      className="inline-flex items-center gap-1.5 rounded-full bg-slate-900 px-3.5 py-1.5 text-xs font-bold text-white animate-pulse"
+                    >
+                      <Square className="h-3 w-3 fill-rose-500 text-rose-500" />
+                      Stop Recording ({formatDurationClock(recordSeconds)})
+                    </button>
+                  )}
+
+                  <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-purple-300 bg-white px-3.5 py-1.5 text-xs font-bold text-purple-700 hover:bg-purple-50 dark:border-slate-700 dark:bg-slate-900 dark:text-purple-300">
+                    {epAudioUploading ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <UploadCloud className="h-3.5 w-3.5" />
+                    )}
+                    {epAudioUploading ? 'Uploading Audio...' : 'Upload Audio File'}
+                    <input
+                      type="file"
+                      accept="audio/*"
+                      className="sr-only"
+                      onChange={(e) => {
+                        const f = e.target.files?.[0];
+                        e.target.value = '';
+                        if (f) void handleUploadEpisodeAudio(f);
+                      }}
+                    />
+                  </label>
+                </div>
+
+                {epAudioUrl && (
+                  <audio controls src={epAudioUrl} className="mt-2 h-8 w-full" />
+                )}
+
                 <input
                   type="url"
                   value={epAudioUrl}
                   onChange={(e) => setEpAudioUrl(e.target.value)}
-                  placeholder="https://..."
-                  className="w-full rounded-xl border border-slate-200 px-3 py-2 outline-none focus:border-purple-500 dark:border-slate-700 dark:bg-slate-950"
+                  placeholder="Or paste audio track URL (https://...)"
+                  className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 outline-none focus:border-purple-500 dark:border-slate-700 dark:bg-slate-900"
                 />
               </div>
 

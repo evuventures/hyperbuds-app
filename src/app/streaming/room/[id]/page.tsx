@@ -5,6 +5,11 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import DashboardLayout from '@/components/layout/Dashboard/Dashboard';
 import apiClient from '@/lib/api/client';
+import { uploadStudioMediaToCloudinary } from '@/lib/api/feed.api';
+import { useAuth } from '@/hooks/auth/useAuth';
+import { io, type Socket } from 'socket.io-client';
+import { BASE_URL } from '@/config/baseUrl';
+import { getAccessToken } from '@/store/authSelectors';
 import {
   Room,
   RoomEvent,
@@ -23,9 +28,12 @@ import {
   CheckCircle2,
   Circle,
   Copy,
+  Disc,
+  Film,
   Gamepad2,
   Hash,
   LayoutGrid,
+  Loader2,
   LogOut,
   Mic,
   MicOff,
@@ -38,6 +46,8 @@ import {
   ShieldCheck,
   SlidersHorizontal,
   Square,
+  Trash2,
+  UserPlus,
   Users,
   Video,
   VideoOff,
@@ -55,6 +65,7 @@ interface StreamDetail {
   status: 'scheduled' | 'live' | 'ended' | 'cancelled';
   playbackUrl?: string;
   ingestUrl?: string;
+  recordingUrl?: string | null;
   viewersCurrent?: number;
   viewersPeak?: number;
   chatEnabled?: boolean;
@@ -65,9 +76,20 @@ interface LiveKitTokenPayload {
   token: string;
   url: string;
   roomName: string;
-  role: 'host' | 'viewer';
+  role: 'host' | 'cohost' | 'viewer';
   identity: string;
   name: string;
+}
+
+interface StreamCohost {
+  id: string;
+  streamId: string;
+  userId: string;
+  username?: string | null;
+  displayName?: string | null;
+  avatar?: string | null;
+  status: string;
+  createdAt?: string;
 }
 
 interface VideoTile {
@@ -161,6 +183,7 @@ function VideoTrackView({
 export default function StreamingRoomPage() {
   const params = useParams<{ id: string }>();
   const streamId = params?.id;
+  const { user } = useAuth();
 
   const [stream, setStream] = useState<StreamDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -171,7 +194,7 @@ export default function StreamingRoomPage() {
   const roomRef = useRef<Room | null>(null);
   const consoleTrackRef = useRef<LocalVideoTrack | null>(null);
   const audioContainerRef = useRef<HTMLDivElement>(null);
-  const [lkRole, setLkRole] = useState<'host' | 'viewer' | null>(null);
+  const [lkRole, setLkRole] = useState<'host' | 'cohost' | 'viewer' | null>(null);
   const [lkConnected, setLkConnected] = useState(false);
   const [lkConnecting, setLkConnecting] = useState(false);
   const [camEnabled, setCamEnabled] = useState(false);
@@ -182,6 +205,30 @@ export default function StreamingRoomPage() {
   const [videoTiles, setVideoTiles] = useState<VideoTile[]>([]);
   const [participantCount, setParticipantCount] = useState(0);
   const [copiedLink, setCopiedLink] = useState(false);
+
+  // Co-Host Invites state
+  const [cohosts, setCohosts] = useState<StreamCohost[]>([]);
+  const [showCohostPanel, setShowCohostPanel] = useState(false);
+  const [cohostUsername, setCohostUsername] = useState('');
+  const [cohostBusy, setCohostBusy] = useState(false);
+  const [cohostNotice, setCohostNotice] = useState<string | null>(null);
+
+  // Browser-Side VOD Recording state
+  const [isRecordingVod, setIsRecordingVod] = useState(false);
+  const [vodSeconds, setVodSeconds] = useState(0);
+  const [vodUploading, setVodUploading] = useState(false);
+  const [vodNotice, setVodNotice] = useState<string | null>(null);
+  const vodRecorderRef = useRef<MediaRecorder | null>(null);
+  const vodChunksRef = useRef<BlobPart[]>([]);
+  const vodTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const vodFallbackStreamRef = useRef<MediaStream | null>(null);
+
+  // Derived role helpers
+  const currentUserId = user?._id || (user as { id?: string } | null)?.id || null;
+  const isStreamHost = Boolean(
+    lkRole === 'host' || (stream?.userId && currentUserId && stream.userId === currentUserId),
+  );
+  const canPublish = lkRole === 'host' || lkRole === 'cohost';
 
   // Console / Gaming Mode & Device selector state
   const [videoDevices, setVideoDevices] = useState<MediaDeviceInfo[]>([]);
@@ -340,16 +387,20 @@ export default function StreamingRoomPage() {
             createdAt?: string;
           };
           if (parsed?.type === 'chat' && typeof parsed.message === 'string' && parsed.message.trim()) {
+            const msgId = parsed.id || `${Date.now()}-${Math.random()}`;
             const msgText = parsed.message;
-            setChatMessages((prev) => [
-              ...prev,
-              {
-                id: parsed.id || `${Date.now()}-${Math.random()}`,
-                senderName: parsed.senderName || participant?.name || 'Viewer',
-                message: msgText,
-                createdAt: parsed.createdAt || new Date().toISOString(),
-              },
-            ]);
+            setChatMessages((prev) => {
+              if (prev.some((m) => m.id === msgId)) return prev;
+              return [
+                ...prev,
+                {
+                  id: msgId,
+                  senderName: parsed.senderName || participant?.name || 'Viewer',
+                  message: msgText,
+                  createdAt: parsed.createdAt || new Date().toISOString(),
+                },
+              ];
+            });
           }
         } catch {
           // Ignore non-JSON packets
@@ -365,7 +416,7 @@ export default function StreamingRoomPage() {
       setLkConnected(true);
       sync();
 
-      if (role === 'host') {
+      if (role === 'host' || role === 'cohost') {
         try {
           await room.localParticipant.setCameraEnabled(true);
           setCamEnabled(true);
@@ -392,11 +443,14 @@ export default function StreamingRoomPage() {
   useEffect(() => {
     if (!streamId) return;
     let active = true;
+    let streamSocket: Socket | null = null;
+
     (async () => {
       try {
-        const [streamRes, chatRes] = await Promise.all([
+        const [streamRes, chatRes, cohostsRes] = await Promise.all([
           apiClient.get(`/streaming/streams/${streamId}`),
           apiClient.get(`/streaming/streams/${streamId}/chat`).catch(() => null),
+          apiClient.get(`/streaming/streams/${streamId}/cohosts`).catch(() => null),
         ]);
         if (!active) return;
         const s = streamRes.data?.stream ?? null;
@@ -413,6 +467,78 @@ export default function StreamingRoomPage() {
             ),
           );
         }
+        if (Array.isArray(cohostsRes?.data?.cohosts)) {
+          setCohosts(cohostsRes.data.cohosts);
+        }
+
+        // Track live viewer presence
+        apiClient
+          .post(`/streaming/streams/${streamId}/presence`, { action: 'join' })
+          .then((res) => {
+            if (!active) return;
+            const vc = res.data?.viewersCurrent;
+            const vp = res.data?.viewersPeak;
+            if (typeof vc === 'number') {
+              setStream((prev) => (prev ? { ...prev, viewersCurrent: vc, viewersPeak: vp ?? prev.viewersPeak } : prev));
+            }
+          })
+          .catch(() => {});
+
+        // Subscribe to real-time Socket.IO stream chat & viewer count updates
+        const token = getAccessToken();
+        if (token) {
+          const socketUrl = process.env.NEXT_PUBLIC_API_URL ?? BASE_URL;
+          streamSocket = io(socketUrl, {
+            auth: { token },
+            transports: ['polling', 'websocket'],
+            reconnection: true,
+          });
+          streamSocket.on('connect', () => {
+            streamSocket?.emit('join-stream', streamId);
+          });
+          streamSocket.on(
+            'stream:viewers',
+            (payload: { streamId?: string; viewersCurrent?: number; viewersPeak?: number }) => {
+              if (!active || payload?.streamId !== streamId) return;
+              if (typeof payload.viewersCurrent === 'number') {
+                setStream((prev) =>
+                  prev
+                    ? {
+                        ...prev,
+                        viewersCurrent: payload.viewersCurrent,
+                        viewersPeak: payload.viewersPeak ?? prev.viewersPeak,
+                      }
+                    : prev,
+                );
+              }
+            },
+          );
+          streamSocket.on(
+            'stream:chat',
+            (payload: {
+              _id?: string;
+              id?: string;
+              senderName?: string;
+              message?: string;
+              createdAt?: string;
+            }) => {
+              if (!active || !payload?.message) return;
+              const msgId = payload._id || payload.id || `${Date.now()}-${Math.random()}`;
+              setChatMessages((prev) => {
+                if (prev.some((m) => m.id === msgId)) return prev;
+                return [
+                  ...prev,
+                  {
+                    id: msgId,
+                    senderName: payload.senderName || 'Viewer',
+                    message: payload.message || '',
+                    createdAt: payload.createdAt || new Date().toISOString(),
+                  },
+                ];
+              });
+            },
+          );
+        }
       } catch (err) {
         if (active) {
           setError((err as { message?: string })?.message || 'Unable to load stream room.');
@@ -421,17 +547,173 @@ export default function StreamingRoomPage() {
         if (active) setLoading(false);
       }
     })();
+
     return () => {
       active = false;
+      if (vodTimerRef.current) {
+        clearInterval(vodTimerRef.current);
+        vodTimerRef.current = null;
+      }
+      if (streamSocket) {
+        streamSocket.emit('leave-stream', streamId);
+        streamSocket.disconnect();
+      }
+      apiClient.post(`/streaming/streams/${streamId}/presence`, { action: 'leave' }).catch(() => {});
       disconnectLiveKit();
     };
   }, [streamId, disconnectLiveKit]);
+
+  const handleInviteCohost = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const cleaned = cohostUsername.trim().replace(/^@/, '');
+    if (!cleaned || !streamId || cohostBusy) return;
+    setCohostBusy(true);
+    setCohostNotice(null);
+    setError(null);
+    try {
+      const res = await apiClient.post(`/streaming/streams/${streamId}/cohosts`, { username: cleaned });
+      if (res.data?.cohost) {
+        setCohosts((prev) => {
+          const exists = prev.some((c) => c.userId === res.data.cohost.userId);
+          return exists ? prev : [res.data.cohost, ...prev];
+        });
+      }
+      setCohostUsername('');
+      setCohostNotice(`Invited @${cleaned} as co-host! They can join with camera & mic controls.`);
+    } catch (err) {
+      setError((err as { message?: string })?.message || 'Unable to invite co-host.');
+    } finally {
+      setCohostBusy(false);
+    }
+  };
+
+  const handleRemoveCohost = async (targetUserId: string) => {
+    if (!streamId || cohostBusy) return;
+    setCohostBusy(true);
+    setError(null);
+    try {
+      await apiClient.delete(`/streaming/streams/${streamId}/cohosts/${targetUserId}`);
+      setCohosts((prev) => prev.filter((c) => c.userId !== targetUserId));
+    } catch (err) {
+      setError((err as { message?: string })?.message || 'Unable to remove co-host.');
+    } finally {
+      setCohostBusy(false);
+    }
+  };
+
+  const formatVodTimer = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+  };
+
+  const stopVodRecording = useCallback(() => {
+    if (vodTimerRef.current) {
+      clearInterval(vodTimerRef.current);
+      vodTimerRef.current = null;
+    }
+    if (vodRecorderRef.current && vodRecorderRef.current.state !== 'inactive') {
+      vodRecorderRef.current.stop();
+    }
+    setIsRecordingVod(false);
+  }, []);
+
+  const startVodRecording = async () => {
+    if (!streamId || isRecordingVod || vodUploading) return;
+    setError(null);
+    setVodNotice(null);
+    try {
+      const tracks: MediaStreamTrack[] = [];
+      const local = roomRef.current?.localParticipant;
+      if (local) {
+        local.videoTrackPublications.forEach((pub) => {
+          if (pub.track?.mediaStreamTrack && !pub.isMuted && pub.track.mediaStreamTrack.readyState === 'live') {
+            tracks.push(pub.track.mediaStreamTrack);
+          }
+        });
+        local.audioTrackPublications.forEach((pub) => {
+          if (pub.track?.mediaStreamTrack && !pub.isMuted && pub.track.mediaStreamTrack.readyState === 'live') {
+            tracks.push(pub.track.mediaStreamTrack);
+          }
+        });
+      }
+
+      let recordStream: MediaStream;
+      if (tracks.length > 0) {
+        recordStream = new MediaStream(tracks);
+      } else {
+        const display = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
+        vodFallbackStreamRef.current = display;
+        recordStream = display;
+      }
+
+      const preferredMime = MediaRecorder.isTypeSupported('video/webm;codecs=vp9,opus')
+        ? 'video/webm;codecs=vp9,opus'
+        : MediaRecorder.isTypeSupported('video/webm')
+          ? 'video/webm'
+          : '';
+      const recorder = preferredMime
+        ? new MediaRecorder(recordStream, { mimeType: preferredMime })
+        : new MediaRecorder(recordStream);
+
+      vodChunksRef.current = [];
+      recorder.ondataavailable = (ev) => {
+        if (ev.data && ev.data.size > 0) vodChunksRef.current.push(ev.data);
+      };
+      recorder.onstop = async () => {
+        if (vodFallbackStreamRef.current) {
+          vodFallbackStreamRef.current.getTracks().forEach((t) => t.stop());
+          vodFallbackStreamRef.current = null;
+        }
+        const blob = new Blob(vodChunksRef.current, { type: preferredMime || 'video/webm' });
+        vodChunksRef.current = [];
+        if (blob.size === 0) return;
+
+        setVodUploading(true);
+        try {
+          const file = new File([blob], `stream-${streamId}-${Date.now()}.webm`, {
+            type: 'video/webm',
+          });
+          const uploaded = await uploadStudioMediaToCloudinary(file, 'recording');
+          const savedRes = await apiClient.put(`/streaming/streams/${streamId}/recording`, {
+            recordingUrl: uploaded.url,
+          });
+          if (savedRes.data?.stream) {
+            setStream(savedRes.data.stream);
+          } else {
+            setStream((prev) => (prev ? { ...prev, recordingUrl: uploaded.url } : prev));
+          }
+          setVodNotice('VOD recording saved! Viewers can replay it when the broadcast ends.');
+        } catch (err) {
+          setError((err as { message?: string })?.message || 'Failed to upload VOD recording.');
+        } finally {
+          setVodUploading(false);
+        }
+      };
+
+      vodRecorderRef.current = recorder;
+      recorder.start(1000);
+      setVodSeconds(0);
+      setIsRecordingVod(true);
+      vodTimerRef.current = setInterval(() => {
+        setVodSeconds((s) => s + 1);
+      }, 1000);
+    } catch (err) {
+      setError(
+        (err as { message?: string })?.message ||
+          'Unable to start VOD recording. Enable your camera/mic or allow screen capture.',
+      );
+    }
+  };
 
   const handleAction = async (action: 'start' | 'end') => {
     if (!streamId) return;
     setBusy(true);
     setError(null);
     try {
+      if (action === 'end' && isRecordingVod) {
+        stopVodRecording();
+      }
       const res = await apiClient.put(`/streaming/streams/${streamId}/${action}`);
       if (res.data?.stream) setStream(res.data.stream);
       if (action === 'start' && !lkConnected) {
@@ -595,14 +877,17 @@ export default function StreamingRoomPage() {
     if (!text || !streamId || sendingChat) return;
     setSendingChat(true);
     try {
-      await apiClient.post(`/streaming/streams/${streamId}/chat`, { message: text });
+      const res = await apiClient.post(`/streaming/streams/${streamId}/chat`, { message: text });
+      const saved = res.data?.message as
+        | { _id?: string; id?: string; senderName?: string; message?: string; createdAt?: string }
+        | undefined;
       const msgObj: StreamChatItem = {
-        id: `${Date.now()}`,
-        senderName: roomRef.current?.localParticipant?.name || 'You',
-        message: text,
-        createdAt: new Date().toISOString(),
+        id: saved?._id || saved?.id || `${Date.now()}`,
+        senderName: saved?.senderName || roomRef.current?.localParticipant?.name || 'You',
+        message: saved?.message || text,
+        createdAt: saved?.createdAt || new Date().toISOString(),
       };
-      setChatMessages((prev) => [...prev, msgObj]);
+      setChatMessages((prev) => (prev.some((m) => m.id === msgObj.id) ? prev : [...prev, msgObj]));
       setChatDraft('');
       if (roomRef.current?.localParticipant) {
         const encoded = new TextEncoder().encode(JSON.stringify({ type: 'chat', ...msgObj }));
@@ -645,6 +930,21 @@ export default function StreamingRoomPage() {
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
+              {isStreamHost && stream && stream.status !== 'ended' && stream.status !== 'cancelled' && (
+                <button
+                  type="button"
+                  onClick={() => setShowCohostPanel((prev) => !prev)}
+                  className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs font-medium transition ${
+                    showCohostPanel || cohosts.length > 0
+                      ? 'border-purple-300 bg-purple-50 text-purple-700 hover:bg-purple-100 dark:border-purple-700/70 dark:bg-purple-950/50 dark:text-purple-200'
+                      : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800'
+                  }`}
+                >
+                  <UserPlus className="h-3.5 w-3.5" />
+                  Co-Hosts{cohosts.length > 0 ? ` (${cohosts.length})` : ''}
+                </button>
+              )}
+
               <button
                 type="button"
                 onClick={copyShareUrl}
@@ -695,6 +995,18 @@ export default function StreamingRoomPage() {
           {error && (
             <div className="mt-4 rounded-lg border border-rose-200 bg-rose-50 px-3.5 py-2.5 text-xs text-rose-800 dark:border-rose-900/70 dark:bg-rose-950/50 dark:text-rose-200">
               {error}
+            </div>
+          )}
+
+          {vodNotice && (
+            <div className="mt-3 flex items-center justify-between gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3.5 py-2.5 text-xs text-emerald-800 dark:border-emerald-900/70 dark:bg-emerald-950/40 dark:text-emerald-200">
+              <span className="inline-flex items-center gap-1.5">
+                <Film className="h-3.5 w-3.5" />
+                {vodNotice}
+              </span>
+              <button type="button" onClick={() => setVodNotice(null)} className="opacity-70 hover:opacity-100">
+                <X className="h-3.5 w-3.5" />
+              </button>
             </div>
           )}
 
@@ -801,17 +1113,44 @@ export default function StreamingRoomPage() {
                           ))}
                         </div>
                       );
-                    })() : (
+                    })() : !lkConnected && stream.recordingUrl ? (
+                      <div className="space-y-2.5">
+                        <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-purple-500/30 bg-purple-950/30 px-3 py-2 text-xs text-purple-200">
+                          <span className="inline-flex items-center gap-1.5 font-semibold">
+                            <Film className="h-3.5 w-3.5 text-purple-400" />
+                            Recorded VOD Replay
+                          </span>
+                          <a
+                            href={stream.recordingUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-[11px] font-medium text-purple-300 underline hover:text-white"
+                          >
+                            Open full video
+                          </a>
+                        </div>
+                        <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-black ring-1 ring-white/10">
+                          <video
+                            src={stream.recordingUrl}
+                            controls
+                            playsInline
+                            className="h-full w-full object-contain"
+                          />
+                        </div>
+                      </div>
+                    ) : (
                       <div className="flex aspect-video flex-col items-center justify-center rounded-lg border border-zinc-800/90 bg-[#12151c] px-6 py-8 text-center">
                         <div className="flex h-11 w-11 items-center justify-center rounded-lg border border-zinc-700 bg-zinc-900 text-zinc-200">
                           <Radio className="h-5 w-5" />
                         </div>
                         <p className="mt-3.5 text-sm font-semibold text-zinc-100">
                           {lkConnected
-                            ? lkRole === 'host'
+                            ? canPublish
                               ? 'Studio connected · Camera muted'
                               : 'Connected · Waiting for host video feed'
-                            : 'Studio Green Room'}
+                            : stream.status === 'ended'
+                              ? 'Broadcast Ended'
+                              : 'Studio Green Room'}
                         </p>
                         <p className="mt-1 max-w-md text-xs text-zinc-400">
                           {stream.description ||
@@ -878,6 +1217,87 @@ export default function StreamingRoomPage() {
                       </div>
                     )}
                   </div>
+
+                  {/* Collapsible Co-Host Invites & Multi-Host Panel */}
+                  {showCohostPanel && isStreamHost && (
+                    <div className="border-t border-zinc-800 bg-[#12151e] px-4 py-3.5 text-xs text-zinc-200">
+                      <div className="flex items-center justify-between gap-2 border-b border-zinc-800/90 pb-2.5">
+                        <div className="flex items-center gap-2">
+                          <span className="flex h-6 w-6 items-center justify-center rounded-md bg-purple-600/25 text-purple-300">
+                            <UserPlus className="h-3.5 w-3.5" />
+                          </span>
+                          <div>
+                            <p className="font-semibold text-zinc-100">Invite Co-Hosts on Stage</p>
+                            <p className="text-[11px] text-zinc-400">
+                              Approved co-hosts receive camera, microphone &amp; screen-share publishing controls when they enter this room.
+                            </p>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setShowCohostPanel(false)}
+                          aria-label="Close co-host panel"
+                          className="rounded-md p-1 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100"
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+
+                      <form onSubmit={handleInviteCohost} className="mt-3 flex flex-wrap items-center gap-2">
+                        <input
+                          type="text"
+                          value={cohostUsername}
+                          onChange={(e) => setCohostUsername(e.target.value)}
+                          placeholder="Creator @username (e.g. alexcreator)"
+                          className="min-w-[200px] flex-1 rounded-md border border-zinc-700 bg-zinc-900 px-3 py-1.5 text-xs text-zinc-100 outline-none focus:border-purple-500"
+                        />
+                        <button
+                          type="submit"
+                          disabled={!cohostUsername.trim() || cohostBusy}
+                          className="inline-flex items-center gap-1.5 rounded-md bg-purple-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-purple-500 disabled:opacity-50"
+                        >
+                          {cohostBusy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <UserPlus className="h-3.5 w-3.5" />}
+                          Invite Co-Host
+                        </button>
+                      </form>
+
+                      {cohostNotice && (
+                        <p className="mt-2 text-[11px] text-emerald-400">{cohostNotice}</p>
+                      )}
+
+                      {cohosts.length > 0 ? (
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          {cohosts.map((c) => (
+                            <div
+                              key={c.userId}
+                              className="inline-flex items-center gap-2 rounded-lg border border-zinc-700 bg-zinc-900/90 px-2.5 py-1.5 text-xs"
+                            >
+                              <span className="h-2 w-2 rounded-full bg-emerald-400" />
+                              <span className="font-medium text-zinc-100">
+                                {c.displayName || (c.username ? `@${c.username}` : c.userId)}
+                              </span>
+                              {c.username && c.displayName && (
+                                <span className="text-[11px] text-zinc-400">@{c.username}</span>
+                              )}
+                              <button
+                                type="button"
+                                disabled={cohostBusy}
+                                onClick={() => void handleRemoveCohost(c.userId)}
+                                title="Remove co-host"
+                                className="ml-1 rounded p-0.5 text-zinc-400 hover:bg-zinc-800 hover:text-rose-400"
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="mt-2.5 text-[11px] text-zinc-500">
+                          No co-hosts invited yet. Share the invite link and add their @username above.
+                        </p>
+                      )}
+                    </div>
+                  )}
 
                   {/* Collapsible PlayStation / Console Gaming Mode & Device Deck */}
                   {showConsolePanel && (
@@ -1020,7 +1440,7 @@ export default function StreamingRoomPage() {
                             <p className="text-[11px] text-zinc-400">
                               Plug your PS5/PS4/Xbox HDMI into a USB capture card (Elgato, Cam Link, or UVC HDMI). Select it above and launch your dual-camera gameplay feed.
                             </p>
-                            {lkConnected && lkRole === 'host' ? (
+                            {lkConnected && canPublish ? (
                               <button
                                 type="button"
                                 disabled={consoleBusy}
@@ -1040,7 +1460,7 @@ export default function StreamingRoomPage() {
                               </button>
                             ) : (
                               <span className="text-[11px] font-medium text-purple-300">
-                                Join the Broadcast Room as Host to start Console Feed
+                                Join the Broadcast Room as Host or Co-Host to start Console Feed
                               </span>
                             )}
                           </div>
@@ -1058,7 +1478,7 @@ export default function StreamingRoomPage() {
                               Keep your camera &amp; mic enabled — HyperBuds automatically switches to full-screen gameplay with your Facecam docked in Picture-in-Picture!
                             </li>
                           </ol>
-                          {lkConnected && lkRole === 'host' && (
+                          {lkConnected && canPublish && (
                             <div className="pt-1">
                               <button
                                 type="button"
@@ -1078,7 +1498,7 @@ export default function StreamingRoomPage() {
                   {/* Docked Riverside-style Studio Control Deck */}
                   <div className="flex flex-wrap items-center justify-between gap-2 border-t border-zinc-800/90 bg-[#111318] px-4 py-3">
                     <div className="flex flex-wrap items-center gap-2">
-                      {lkConnected && lkRole === 'host' ? (
+                      {lkConnected && canPublish ? (
                         <>
                           <button
                             type="button"
@@ -1128,6 +1548,35 @@ export default function StreamingRoomPage() {
                             <Gamepad2 className="h-3.5 w-3.5" />
                             {consoleEnabled ? 'Console Live' : 'Console / PS5'}
                           </button>
+                          {isStreamHost && (
+                            <button
+                              type="button"
+                              disabled={vodUploading}
+                              onClick={() => (isRecordingVod ? stopVodRecording() : void startVodRecording())}
+                              className={`inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium transition disabled:opacity-50 ${
+                                isRecordingVod
+                                  ? 'border-rose-500/80 bg-rose-600/25 text-rose-200 hover:bg-rose-600/35'
+                                  : 'border-zinc-700 bg-zinc-800 text-zinc-200 hover:bg-zinc-700'
+                              }`}
+                            >
+                              {vodUploading ? (
+                                <>
+                                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                  Saving VOD...
+                                </>
+                              ) : isRecordingVod ? (
+                                <>
+                                  <Disc className="h-3.5 w-3.5 animate-pulse text-rose-400" />
+                                  Stop &amp; Save ({formatVodTimer(vodSeconds)})
+                                </>
+                              ) : (
+                                <>
+                                  <Disc className="h-3.5 w-3.5 text-rose-400" />
+                                  Record VOD
+                                </>
+                              )}
+                            </button>
+                          )}
                           {videoTiles.some((t) => t.isScreen || t.isConsole) && videoTiles.length > 1 && (
                             <button
                               type="button"
