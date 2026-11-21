@@ -65,7 +65,8 @@ export default function ReelsPage() {
   const [reels, setReels] = useState<ReelItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeIndex, setActiveIndex] = useState(0);
-  const [muted, setMuted] = useState(true);
+  const [muted, setMuted] = useState(false);
+  const userMutedRef = useRef(false);
   const [paused, setPaused] = useState(false);
   const [autoAdvance, setAutoAdvance] = useState(true);
   const [showComments, setShowComments] = useState(false);
@@ -81,12 +82,11 @@ export default function ReelsPage() {
 
   const loadReels = useCallback(async () => {
     setLoading(true);
-    try {
-      const [res, meRes, profileRes] = await Promise.all([
-        apiClient.get('/feed/posts?kind=reel&limit=30'),
-        apiClient.get('/users/me').catch(() => null),
-        apiClient.get('/profiles/me').catch(() => null),
-      ]);
+    // Load user metadata in the background so it never delays the first reel frame
+    void Promise.all([
+      apiClient.get('/users/me').catch(() => null),
+      apiClient.get('/profiles/me').catch(() => null),
+    ]).then(([meRes, profileRes]) => {
       const me = meRes?.data?.user ?? meRes?.data ?? null;
       const profile = profileRes?.data?.profile ?? profileRes?.data ?? null;
       const resolvedId = String(me?._id || me?.id || profile?.userId || '');
@@ -99,6 +99,10 @@ export default function ReelsPage() {
           avatar: me?.avatar || profile?.avatar,
         });
       }
+    });
+
+    try {
+      const res = await apiClient.get('/feed/posts?kind=reel&limit=15');
       const rawList: ReelItem[] = Array.isArray(res.data?.posts) ? res.data.posts : [];
       const targetId =
         typeof window !== 'undefined'
@@ -165,17 +169,19 @@ export default function ReelsPage() {
 
   const activeReel = reels[activeIndex] ?? null;
 
-  // Ensure every active reel reliably auto-plays on both mobile and desktop
+  // Ensure every active reel reliably auto-plays unmuted (respecting user mute toggle)
   useEffect(() => {
     const el = videoRef.current;
     if (!el || !activeReel?._id) return;
     setPaused(false);
     el.currentTime = 0;
+    el.muted = userMutedRef.current;
+    setMuted(userMutedRef.current);
     const attemptPlay = async () => {
       try {
         await el.play();
       } catch {
-        // Fallback to muted autoplay if browser blocks unmuted playback
+        // Fallback to muted autoplay only if browser blocks unmuted playback before user gesture
         el.muted = true;
         setMuted(true);
         await el.play().catch(() => {});
@@ -183,6 +189,19 @@ export default function ReelsPage() {
     };
     void attemptPlay();
   }, [activeReel?._id]);
+
+  const handleToggleMute = () => {
+    const next = !muted;
+    userMutedRef.current = next;
+    setMuted(next);
+    if (videoRef.current) {
+      videoRef.current.muted = next;
+      if (!next && videoRef.current.paused) {
+        void videoRef.current.play().catch(() => {});
+        setPaused(false);
+      }
+    }
+  };
 
   const togglePlayPause = () => {
     const el = videoRef.current;
@@ -555,7 +574,7 @@ export default function ReelsPage() {
                       </button>
                       <button
                         type="button"
-                        onClick={() => setMuted((m) => !m)}
+                        onClick={handleToggleMute}
                         className="flex h-9 w-9 items-center justify-center rounded-full bg-black/55 text-white backdrop-blur-md transition hover:bg-black/75"
                         aria-label={muted ? 'Unmute' : 'Mute'}
                       >
@@ -744,27 +763,23 @@ export default function ReelsPage() {
                 </div>
               </div>
 
-              {/* Mobile Prev / Next Quick Bar */}
-              {reels.length > 1 && (
-                <div className="flex w-full max-w-[400px] items-center justify-between gap-2 lg:hidden">
-                  <button
-                    type="button"
-                    disabled={activeIndex === 0}
-                    onClick={goPrev}
-                    className="inline-flex flex-1 items-center justify-center gap-1 rounded-xl border border-slate-200 bg-white py-2 text-xs font-medium text-slate-700 disabled:opacity-40 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200"
-                  >
-                    <ChevronUp className="h-4 w-4" /> Previous
-                  </button>
-                  <button
-                    type="button"
-                    disabled={activeIndex >= reels.length - 1}
-                    onClick={goNext}
-                    className="inline-flex flex-1 items-center justify-center gap-1 rounded-xl border border-slate-200 bg-white py-2 text-xs font-medium text-slate-700 disabled:opacity-40 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200"
-                  >
-                    Next <ChevronDown className="h-4 w-4" />
-                  </button>
-                </div>
-              )}
+              {/* Hidden next-reel preloader for instant 0ms swipe transitions */}
+              {(() => {
+                const nextReel = reels[activeIndex + 1];
+                const nextUrl = nextReel?.media?.[0]?.url;
+                if (!nextUrl) return null;
+                return (
+                  <video
+                    key={`preload-${nextReel._id}`}
+                    src={withVideoPreviewFragment(nextUrl)}
+                    preload="auto"
+                    muted
+                    playsInline
+                    aria-hidden="true"
+                    className="hidden"
+                  />
+                );
+              })()}
 
               {/* Comments Drawer / Side Panel */}
               {showComments && (

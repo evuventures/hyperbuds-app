@@ -24,6 +24,8 @@ import {
   ThumbsUp,
   Trash2,
   UserPlus,
+  Volume2,
+  VolumeX,
   X,
 } from 'lucide-react';
 import {
@@ -548,6 +550,8 @@ function FeedAutoPlayVideo({
   isRepost?: boolean;
 }) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const [muted, setMuted] = useState(false);
+  const userMutedRef = useRef(false);
 
   useEffect(() => {
     const el = videoRef.current;
@@ -556,8 +560,13 @@ function FeedAutoPlayVideo({
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            el.muted = true;
-            void el.play().catch(() => {});
+            el.muted = userMutedRef.current;
+            void el.play().catch(() => {
+              // Browser autoplay policy blocked unmuted playback before user gesture
+              el.muted = true;
+              setMuted(true);
+              void el.play().catch(() => {});
+            });
           } else {
             el.pause();
           }
@@ -568,6 +577,20 @@ function FeedAutoPlayVideo({
     observer.observe(el);
     return () => observer.disconnect();
   }, [src]);
+
+  const toggleMute = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const next = !muted;
+    userMutedRef.current = next;
+    setMuted(next);
+    if (videoRef.current) {
+      videoRef.current.muted = next;
+      if (!next && videoRef.current.paused) {
+        void videoRef.current.play().catch(() => {});
+      }
+    }
+  };
 
   return (
     <Link
@@ -581,12 +604,20 @@ function FeedAutoPlayVideo({
         src={src}
         poster={poster}
         autoPlay
-        muted
+        muted={muted}
         loop
         playsInline
-        preload="metadata"
+        preload="auto"
         className={`pointer-events-none block h-auto ${maxHeightClass} w-full object-cover sm:object-contain`}
       />
+      <button
+        type="button"
+        onClick={toggleMute}
+        aria-label={muted ? 'Unmute video' : 'Mute video'}
+        className="absolute bottom-3 left-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-black/65 text-white ring-1 ring-white/20 backdrop-blur-xs transition hover:bg-black/80"
+      >
+        {muted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+      </button>
       <span className="pointer-events-none absolute bottom-3 right-3 inline-flex items-center gap-1.5 rounded-full bg-black/65 px-2.5 py-1 text-[11px] font-semibold text-white ring-1 ring-white/20 backdrop-blur-xs">
         <Film className="h-3 w-3 text-purple-300" />
         Reels

@@ -44,7 +44,7 @@ export function deriveChromeSafeVideoUrl(mediaUrl: string): string {
     const [base, query] = clean.split('?');
     const transformed = base.replace(
       /\/video\/upload\//i,
-      '/video/upload/f_mp4,vc_h264,ac_aac,q_auto/',
+      '/video/upload/f_mp4,vc_h264,ac_aac,w_720,c_limit,q_auto:eco/',
     );
     const mp4Base = /\.(mov|mkv|avi|m4v|webm)$/i.test(transformed)
       ? transformed.replace(/\.(mov|mkv|avi|m4v|webm)$/i, '.mp4')
