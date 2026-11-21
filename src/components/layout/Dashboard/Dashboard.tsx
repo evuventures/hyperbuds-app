@@ -263,7 +263,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       const savedToken = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
 
       if (!savedToken && !token) {
-        router.push("/auth/signin");
+        const hasSeenSplash =
+          typeof window !== 'undefined' && localStorage.getItem('hb_splash_seen') === '1';
+        router.push(hasSeenSplash ? '/auth/signin' : '/welcome');
         return;
       }
       if (savedToken && !token) {

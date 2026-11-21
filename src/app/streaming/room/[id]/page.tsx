@@ -434,7 +434,7 @@ export default function StreamingRoomPage() {
       }
     } catch (err) {
       disconnectLiveKit();
-      setError((err as { message?: string })?.message || 'Unable to connect to LiveKit media room.');
+      setError((err as { message?: string })?.message || 'Unable to connect to the live studio room.');
     } finally {
       setLkConnecting(false);
     }

@@ -13,6 +13,7 @@ import {
   Flag,
   Heart,
   MessageSquare,
+  Play,
   Plus,
   Repeat,
   Send,
@@ -64,7 +65,8 @@ export default function ReelsPage() {
   const [reels, setReels] = useState<ReelItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeIndex, setActiveIndex] = useState(0);
-  const [muted, setMuted] = useState(false);
+  const [muted, setMuted] = useState(true);
+  const [paused, setPaused] = useState(false);
   const [autoAdvance, setAutoAdvance] = useState(true);
   const [showComments, setShowComments] = useState(false);
   const [commentText, setCommentText] = useState('');
@@ -162,6 +164,37 @@ export default function ReelsPage() {
   }, [goNext, goPrev]);
 
   const activeReel = reels[activeIndex] ?? null;
+
+  // Ensure every active reel reliably auto-plays on both mobile and desktop
+  useEffect(() => {
+    const el = videoRef.current;
+    if (!el || !activeReel?._id) return;
+    setPaused(false);
+    el.currentTime = 0;
+    const attemptPlay = async () => {
+      try {
+        await el.play();
+      } catch {
+        // Fallback to muted autoplay if browser blocks unmuted playback
+        el.muted = true;
+        setMuted(true);
+        await el.play().catch(() => {});
+      }
+    };
+    void attemptPlay();
+  }, [activeReel?._id]);
+
+  const togglePlayPause = () => {
+    const el = videoRef.current;
+    if (!el) return;
+    if (el.paused) {
+      void el.play().catch(() => {});
+      setPaused(false);
+    } else {
+      el.pause();
+      setPaused(true);
+    }
+  };
 
   const handleVideoEnded = useCallback(() => {
     if (!autoAdvance || reels.length <= 1) return;
@@ -345,7 +378,7 @@ export default function ReelsPage() {
   const handleReelCreated = (reel: FeedPostRecord) => {
     setReels((prev) => [reel as unknown as ReelItem, ...prev]);
     setActiveIndex(0);
-    setBanner({ type: 'success', text: 'Reel uploaded to Cloudinary and ready to watch.' });
+    setBanner({ type: 'success', text: 'Reel published and ready to watch.' });
   };
 
   const activeAuthorObj =
@@ -383,9 +416,10 @@ export default function ReelsPage() {
 
   return (
     <DashboardLayout>
-      <div className="min-h-full bg-[#fafafa] dark:bg-slate-950">
-        <div className="mx-auto max-w-5xl px-3 py-4 pb-20 sm:px-6 sm:py-6 lg:px-8">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-3.5 dark:border-slate-800">
+      <div className="min-h-full bg-black lg:bg-[#fafafa] dark:lg:bg-slate-950">
+        <div className="mx-auto max-w-5xl px-0 py-0 pb-0 lg:px-8 lg:py-6 lg:pb-20">
+          {/* Desktop Header (mobile uses sleek floating overlay directly over full-bleed reel) */}
+          <div className="hidden flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-3.5 dark:border-slate-800 lg:flex">
             <div>
               <p className="text-[11px] font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">
                 Vertical Video
@@ -421,7 +455,7 @@ export default function ReelsPage() {
 
           {banner && (
             <div
-              className={`mt-4 flex items-center justify-between rounded-lg border px-4 py-2.5 text-xs ${
+              className={`mx-3 mt-3 flex items-center justify-between rounded-lg border px-4 py-2.5 text-xs lg:mx-0 lg:mt-4 ${
                 banner.type === 'error'
                   ? 'border-rose-200 bg-rose-50 text-rose-800 dark:border-rose-900 dark:bg-rose-950/60 dark:text-rose-200'
                   : 'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/60 dark:text-emerald-200'
@@ -435,17 +469,17 @@ export default function ReelsPage() {
           )}
 
           {loading ? (
-            <div className="mt-6 flex justify-center">
-              <div className="h-[calc(100dvh-180px)] max-h-[660px] w-full max-w-[390px] animate-pulse rounded-2xl bg-slate-200 dark:bg-slate-800" />
+            <div className="flex justify-center lg:mt-6">
+              <div className="h-[calc(100dvh-56px)] w-full animate-pulse bg-slate-900 lg:h-[660px] lg:max-w-[372px] lg:rounded-2xl lg:bg-slate-200 dark:lg:bg-slate-800" />
             </div>
           ) : !activeReel ? (
-            <div className="mt-8 rounded-2xl border border-slate-200 bg-white p-10 text-center dark:border-slate-800 dark:bg-slate-900">
+            <div className="mx-4 mt-8 rounded-2xl border border-slate-200 bg-white p-10 text-center dark:border-slate-800 dark:bg-slate-900 lg:mx-0">
               <Film className="mx-auto h-10 w-10 text-slate-400" />
               <p className="mt-3 text-sm font-semibold text-slate-900 dark:text-white">
                 No reels published yet
               </p>
               <p className="mt-1 text-xs text-slate-500">
-                Upload a video directly to Cloudinary to start the Reels feed.
+                Upload a short vertical video to start the Reels feed.
               </p>
               <button
                 type="button"
@@ -457,13 +491,13 @@ export default function ReelsPage() {
               </button>
             </div>
           ) : (
-            <div className="mt-5 flex flex-col items-center justify-center gap-6 lg:flex-row lg:items-start">
+            <div className="flex flex-col items-center justify-center gap-6 lg:mt-5 lg:flex-row lg:items-start">
               {/* Reel Player + Desktop External Rail */}
               <div className="flex w-full justify-center lg:w-auto lg:items-end lg:gap-4">
                 <div
                   onTouchStart={handleTouchStart}
                   onTouchEnd={handleTouchEnd}
-                  className="relative flex h-[calc(100dvh-165px)] min-h-[500px] max-h-[700px] w-full max-w-[400px] items-center justify-center overflow-hidden rounded-2xl border border-slate-200 bg-black shadow-lg dark:border-slate-800 lg:h-[660px] lg:w-[372px]"
+                  className="relative flex h-[calc(100dvh-56px)] w-full items-center justify-center overflow-hidden bg-black lg:h-[660px] lg:w-[372px] lg:rounded-2xl lg:border lg:border-slate-200 lg:shadow-lg dark:lg:border-slate-800"
                 >
                   {activeMediaUrl ? (
                     <video
@@ -475,10 +509,10 @@ export default function ReelsPage() {
                       loop={!autoAdvance || reels.length <= 1}
                       muted={muted}
                       playsInline
-                      preload="metadata"
-                      controls
+                      preload="auto"
+                      onClick={togglePlayPause}
                       onEnded={handleVideoEnded}
-                      className="h-full w-full object-contain bg-black"
+                      className="h-full w-full cursor-pointer bg-black object-cover lg:object-contain"
                     />
                   ) : (
                     <div className="flex h-full w-full items-center justify-center p-6 text-center text-sm text-white">
@@ -486,19 +520,48 @@ export default function ReelsPage() {
                     </div>
                   )}
 
-                  {/* Top overlay controls: counter + mute */}
-                  <div className="pointer-events-none absolute top-3 right-3 left-3 z-20 flex items-center justify-between">
-                    <span className="rounded-full bg-black/55 px-2.5 py-1 text-[11px] font-medium text-white backdrop-blur-md tabular-nums">
-                      {activeIndex + 1} / {reels.length}
-                    </span>
+                  {/* Subtle centered Play indicator only when paused */}
+                  {paused && (
                     <button
                       type="button"
-                      onClick={() => setMuted((m) => !m)}
-                      className="pointer-events-auto flex h-9 w-9 items-center justify-center rounded-full bg-black/55 text-white backdrop-blur-md transition hover:bg-black/75"
-                      aria-label={muted ? 'Unmute' : 'Mute'}
+                      onClick={togglePlayPause}
+                      aria-label="Resume reel"
+                      className="absolute inset-0 z-10 flex items-center justify-center bg-black/20"
                     >
-                      {muted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+                      <span className="flex h-16 w-16 items-center justify-center rounded-full bg-black/60 text-white ring-1 ring-white/30 backdrop-blur-sm">
+                        <Play className="ml-1 h-7 w-7 fill-current" />
+                      </span>
                     </button>
+                  )}
+
+                  {/* Top overlay controls: counter + mobile upload + mute */}
+                  <div className="pointer-events-none absolute top-3 right-3 left-3 z-20 flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-bold tracking-tight text-white drop-shadow lg:hidden">
+                        Reels
+                      </span>
+                      <span className="rounded-full bg-black/55 px-2.5 py-1 text-[11px] font-medium text-white backdrop-blur-md tabular-nums">
+                        {activeIndex + 1} / {reels.length}
+                      </span>
+                    </div>
+                    <div className="pointer-events-auto flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setStudioOpen(true)}
+                        className="inline-flex h-9 items-center gap-1 rounded-full bg-black/55 px-3 text-xs font-semibold text-white backdrop-blur-md transition hover:bg-black/75 lg:hidden"
+                      >
+                        <Plus className="h-3.5 w-3.5" />
+                        Upload
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setMuted((m) => !m)}
+                        className="flex h-9 w-9 items-center justify-center rounded-full bg-black/55 text-white backdrop-blur-md transition hover:bg-black/75"
+                        aria-label={muted ? 'Unmute' : 'Mute'}
+                      >
+                        {muted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+                      </button>
+                    </div>
                   </div>
 
                   {/* Mobile Facebook-Reels-style right-edge action overlay directly ON the video */}

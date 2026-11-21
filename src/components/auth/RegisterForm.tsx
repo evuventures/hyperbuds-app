@@ -206,7 +206,7 @@ export default function RegisterForm() {
 
         <div className="mt-5 flex items-center justify-center gap-1.5 text-xs font-medium text-purple-300">
           <Sparkles className="h-3.5 w-3.5" />
-          <span>Unlock LiveKit Co-Streaming &amp; AI Creator Matching</span>
+          <span>Unlock Live Co-Streaming &amp; AI Creator Matching</span>
         </div>
 
         <p className="mt-5 text-center text-xs text-zinc-400">

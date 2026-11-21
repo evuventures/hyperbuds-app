@@ -22,7 +22,7 @@ const SHOWCASE_SLIDES: ShowcaseSlide[] = [
   {
     id: 'live-studio',
     tabLabel: 'Live Studio 4K',
-    badge: 'LiveKit WebRTC',
+    badge: 'Live Studio HD',
     headline: 'LIVE CO-STREAMING',
     subtitle: 'Broadcast multi-guest WebRTC sessions with studio audio and real-time chat.',
     mediaType: 'video',

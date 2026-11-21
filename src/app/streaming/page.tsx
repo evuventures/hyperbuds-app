@@ -697,7 +697,7 @@ export default function StreamingPage() {
       if (uploaded.durationSeconds && uploaded.durationSeconds > 0) {
         setEpAudioDurationSec(Math.round(uploaded.durationSeconds));
       }
-      setBanner({ type: 'success', text: 'Podcast audio track uploaded to Cloudinary!' });
+      setBanner({ type: 'success', text: 'Podcast audio track uploaded!' });
     } catch (err) {
       setBanner({
         type: 'error',

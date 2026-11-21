@@ -534,6 +534,67 @@ function MatchFeedVisualCard({
   );
 }
 
+function FeedAutoPlayVideo({
+  postId,
+  src,
+  poster,
+  maxHeightClass = 'max-h-[580px]',
+  isRepost = false,
+}: {
+  postId: string;
+  src: string;
+  poster?: string;
+  maxHeightClass?: string;
+  isRepost?: boolean;
+}) {
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+
+  useEffect(() => {
+    const el = videoRef.current;
+    if (!el || typeof IntersectionObserver === 'undefined') return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            el.muted = true;
+            void el.play().catch(() => {});
+          } else {
+            el.pause();
+          }
+        });
+      },
+      { threshold: 0.45 },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [src]);
+
+  return (
+    <Link
+      href={`/reels?id=${encodeURIComponent(postId)}`}
+      data-testid={isRepost ? 'repost-reel-card-link' : 'home-reel-card-link'}
+      aria-label="Open in Reels"
+      className="group relative block w-full overflow-hidden bg-black"
+    >
+      <video
+        ref={videoRef}
+        src={src}
+        poster={poster}
+        autoPlay
+        muted
+        loop
+        playsInline
+        preload="metadata"
+        className={`pointer-events-none block h-auto ${maxHeightClass} w-full object-cover sm:object-contain`}
+      />
+      <span className="pointer-events-none absolute bottom-3 right-3 inline-flex items-center gap-1.5 rounded-full bg-black/65 px-2.5 py-1 text-[11px] font-semibold text-white ring-1 ring-white/20 backdrop-blur-xs">
+        <Film className="h-3 w-3 text-purple-300" />
+        Reels
+      </span>
+    </Link>
+  );
+}
+
 export default function SocialFeedStream({
   currentUser,
   showSearchBar = true,
@@ -732,7 +793,7 @@ export default function SocialFeedStream({
     }
     setBanner({
       type: 'success',
-      text: 'Reel uploaded to Cloudinary and published.',
+      text: 'Reel published.',
       actionHref: `/reels?id=${encodeURIComponent(reel._id)}`,
       actionLabel: 'Watch in Reels',
     });
@@ -1233,7 +1294,7 @@ export default function SocialFeedStream({
       />
 
       {/* Feed Tabs & Search */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3 px-3 sm:px-0">
         <div
           role="tablist"
           aria-label="Feed filter"
@@ -1320,7 +1381,7 @@ export default function SocialFeedStream({
           </p>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="border-t border-slate-200 dark:border-slate-800">
           {posts.map((post) => {
             const authorObj = typeof post.author === 'object' && post.author ? post.author : null;
             const authorId =
@@ -1471,7 +1532,7 @@ export default function SocialFeedStream({
               <article
                 key={post._id}
                 id={post._id}
-                className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5 dark:border-slate-800 dark:bg-slate-900"
+                className="border-b border-slate-200 bg-white px-4 py-4 sm:px-5 dark:border-slate-800 dark:bg-slate-900"
               >
                 {isMatchCard && post.matchCard ? (
                   <>
@@ -1651,68 +1712,35 @@ export default function SocialFeedStream({
                           )}
 
                           {Array.isArray(orig.media) && orig.media.length > 0 && (
-                            <div className="mt-3 grid grid-cols-1 gap-2 overflow-hidden rounded-xl">
+                            <div className="-mx-3.5 mt-3 grid grid-cols-1 gap-1 overflow-hidden">
                               {orig.media.map((m, idx) => {
                                 if (m.type === 'video') {
                                   const posterUrl = deriveVideoPoster(
                                     m.url,
                                     m.thumbnailUrl || orig.thumbnailUrl,
                                   );
-                                  if (orig.kind === 'reel') {
-                                    return (
-                                      <Link
-                                        key={`${orig._id}-rm-${idx}`}
-                                        href={`/reels?id=${encodeURIComponent(orig._id)}`}
-                                        aria-label="Watch this reel in Reels"
-                                        className="group relative flex justify-center overflow-hidden rounded-xl border border-slate-200 bg-black dark:border-slate-800"
-                                      >
-                                        <video
-                                          src={withVideoPreviewFragment(m.url, posterUrl)}
-                                          poster={posterUrl}
-                                          muted
-                                          playsInline
-                                          preload="metadata"
-                                          className="pointer-events-none mx-auto block h-auto max-h-[540px] w-full object-contain transition duration-300 group-hover:scale-[1.01]"
-                                        />
-                                        <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/15 transition group-hover:bg-black/25">
-                                          <span className="flex h-14 w-14 items-center justify-center rounded-full bg-black/60 text-white shadow-lg ring-1 ring-white/30 backdrop-blur-xs transition group-hover:scale-105">
-                                            <Play className="ml-0.5 h-6 w-6 fill-current" />
-                                          </span>
-                                        </div>
-                                        <span className="pointer-events-none absolute bottom-3 right-3 inline-flex items-center gap-1.5 rounded-full bg-black/70 px-3 py-1 text-[11px] font-semibold text-white ring-1 ring-white/20 backdrop-blur-xs">
-                                          <Film className="h-3.5 w-3.5 text-purple-300" />
-                                          Watch in Reels
-                                        </span>
-                                      </Link>
-                                    );
-                                  }
                                   return (
-                                    <div
+                                    <FeedAutoPlayVideo
                                       key={`${orig._id}-rm-${idx}`}
-                                      className="flex justify-center overflow-hidden rounded-xl border border-slate-200 bg-black dark:border-slate-800"
-                                    >
-                                      <video
-                                        src={withVideoPreviewFragment(m.url, posterUrl)}
-                                        poster={posterUrl}
-                                        controls
-                                        playsInline
-                                        preload="metadata"
-                                        className="mx-auto block h-auto max-h-[540px] w-full object-contain"
-                                      />
-                                    </div>
+                                      postId={orig._id}
+                                      src={withVideoPreviewFragment(m.url, posterUrl)}
+                                      poster={posterUrl}
+                                      maxHeightClass="max-h-[540px]"
+                                      isRepost
+                                    />
                                   );
                                 }
                                 return (
                                   <div
                                     key={`${orig._id}-rm-${idx}`}
-                                    className="overflow-hidden rounded-xl border border-slate-200/80 bg-slate-100/70 dark:border-slate-800 dark:bg-slate-950"
+                                    className="w-full overflow-hidden bg-slate-100/70 dark:bg-slate-950"
                                   >
                                     {/* eslint-disable-next-line @next/next/no-img-element */}
                                     <img
                                       src={m.url}
                                       alt="Reposted media"
                                       loading="lazy"
-                                      className="mx-auto block h-auto max-h-[580px] w-full object-contain"
+                                      className="block h-auto max-h-[580px] w-full object-cover sm:object-contain"
                                     />
                                   </div>
                                 );
@@ -1800,66 +1828,31 @@ export default function SocialFeedStream({
                     )}
 
                     {Array.isArray(post.media) && post.media.length > 0 && (
-                      <div className="mt-3 grid grid-cols-1 gap-2 overflow-hidden rounded-xl">
+                      <div className="-mx-4 mt-3 grid grid-cols-1 gap-1 overflow-hidden sm:-mx-5">
                         {post.media.map((m, idx) => {
                           if (m.type === 'video') {
                             const posterUrl = deriveVideoPoster(m.url, m.thumbnailUrl || post.thumbnailUrl);
-                            if (post.kind === 'reel') {
-                              return (
-                                <Link
-                                  key={`${post._id}-m-${idx}`}
-                                  href={`/reels?id=${encodeURIComponent(post._id)}`}
-                                  data-testid="home-reel-card-link"
-                                  aria-label="Open in Reels player"
-                                  className="group relative flex justify-center overflow-hidden rounded-xl border border-slate-200 bg-black dark:border-slate-800"
-                                >
-                                  <video
-                                    src={withVideoPreviewFragment(m.url, posterUrl)}
-                                    poster={posterUrl}
-                                    muted
-                                    playsInline
-                                    preload="metadata"
-                                    className="pointer-events-none mx-auto block h-auto max-h-[580px] w-full object-contain transition duration-300 group-hover:scale-[1.01]"
-                                  />
-                                  <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/15 transition group-hover:bg-black/25">
-                                    <span className="flex h-14 w-14 items-center justify-center rounded-full bg-black/60 text-white shadow-lg ring-1 ring-white/30 backdrop-blur-xs transition group-hover:scale-105">
-                                      <Play className="ml-0.5 h-6 w-6 fill-current" />
-                                    </span>
-                                  </div>
-                                  <span className="pointer-events-none absolute bottom-3 right-3 inline-flex items-center gap-1.5 rounded-full bg-black/70 px-3 py-1 text-[11px] font-semibold text-white ring-1 ring-white/20 backdrop-blur-xs">
-                                    <Film className="h-3.5 w-3.5 text-purple-300" />
-                                    Watch in Reels
-                                  </span>
-                                </Link>
-                              );
-                            }
                             return (
-                              <div
+                              <FeedAutoPlayVideo
                                 key={`${post._id}-m-${idx}`}
-                                className="flex justify-center overflow-hidden rounded-xl border border-slate-200 bg-black dark:border-slate-800"
-                              >
-                                <video
-                                  src={withVideoPreviewFragment(m.url, posterUrl)}
-                                  poster={posterUrl}
-                                  controls
-                                  playsInline
-                                  preload="metadata"
-                                  className="mx-auto block h-auto max-h-[580px] w-full object-contain"
-                                />
-                              </div>
+                                postId={post._id}
+                                src={withVideoPreviewFragment(m.url, posterUrl)}
+                                poster={posterUrl}
+                                maxHeightClass="max-h-[620px]"
+                              />
                             );
                           }
                           return (
                             <div
                               key={`${post._id}-m-${idx}`}
-                              className="overflow-hidden rounded-xl border border-slate-200/80 bg-slate-100/70 dark:border-slate-800 dark:bg-slate-950"
+                              className="w-full overflow-hidden bg-slate-100/70 dark:bg-slate-950"
                             >
                               {/* eslint-disable-next-line @next/next/no-img-element */}
                               <img
                                 src={m.url}
                                 alt="Post attachment"
                                 loading="lazy"
-                                className="mx-auto block h-auto max-h-[640px] w-full object-contain"
+                                className="block h-auto max-h-[680px] w-full object-cover sm:object-contain"
                               />
                             </div>
                           );

@@ -50,11 +50,13 @@ const MainContent: React.FC = () => {
     <DashboardDataProvider>
       <div
         aria-label="Creator command dashboard"
-        className="min-h-full w-full bg-[var(--hb-canvas)] px-4 py-5 pb-20 transition-colors dark:bg-slate-950 sm:px-6 lg:py-6"
+        className="min-h-full w-full bg-[var(--hb-canvas)] px-0 py-3 pb-20 transition-colors dark:bg-slate-950 sm:px-6 sm:py-5 lg:py-6"
       >
-        <div className="mx-auto max-w-6xl space-y-6">
+        <div className="mx-auto max-w-6xl space-y-4 sm:space-y-6">
           {/* Dynamic Editorial Hero Header (replaces top story circles) */}
-          <DynamicHeroHeader />
+          <div className="px-3 sm:px-0">
+            <DynamicHeroHeader />
+          </div>
 
           {/* 2-Column Feed + Messages/Events Grid (single fixed AppSidebar on the left) */}
           <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12">

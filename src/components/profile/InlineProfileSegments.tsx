@@ -409,7 +409,7 @@ export function InlineProfileSegments({
 
               <label className="mt-4 inline-flex cursor-pointer items-center gap-2 rounded-full bg-purple-600 px-5 py-2.5 text-xs font-bold text-white shadow-md transition hover:bg-purple-700">
                 <UploadCloud className="h-4 w-4" />
-                {uploading ? 'Uploading to Cloudinary...' : 'Choose Photo (up to 15 MB)'}
+                {uploading ? 'Uploading photo...' : 'Choose Photo (up to 15 MB)'}
                 <input
                   type="file"
                   accept="image/*"

@@ -1151,7 +1151,7 @@ export default function HyperBudsMarketplaceStorefront() {
                       </span>
                       <span className="inline-flex items-center gap-1 rounded-full bg-[#6C5CE7]/10 px-2.5 py-0.5 text-[11px] font-semibold text-[#6C5CE7]">
                         <Truck className="h-3 w-3" />
-                        Global CJdropshipping Fulfillment
+                        Global Express Fulfillment
                       </span>
                     </div>
 
@@ -1748,7 +1748,7 @@ export default function HyperBudsMarketplaceStorefront() {
                         {formatPrice(unitPriceMinor, selectedProduct.currency)}
                       </span>
                       <span className="text-xs text-slate-500">
-                        Fulfilled via CJdropshipping · Tracked Shipping
+                        Global Fulfillment · Tracked Shipping
                       </span>
                     </div>
                   </div>

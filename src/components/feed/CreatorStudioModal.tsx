@@ -87,7 +87,7 @@ const MODE_CONFIG: Record<
 > = {
   post: {
     title: 'Create Post',
-    subtitle: 'Share an update, photo, or video uploaded to Cloudinary.',
+    subtitle: 'Share an update, photo, or video with your creator feed.',
     steps: ['Write & Upload', 'Audience & Tags', 'Preview & Publish'],
     badgeBg: 'bg-emerald-500/15 dark:bg-emerald-500/20',
     badgeText: 'text-emerald-600 dark:text-emerald-400',
@@ -96,7 +96,7 @@ const MODE_CONFIG: Record<
   },
   reel: {
     title: 'Create Reel',
-    subtitle: 'Upload a vertical 9:16 clip directly to Cloudinary.',
+    subtitle: 'Upload a vertical 9:16 clip for your Reels feed.',
     steps: ['Upload Video', 'Caption & Tags', 'Preview & Publish'],
     badgeBg: 'bg-rose-500/15 dark:bg-rose-500/20',
     badgeText: 'text-rose-600 dark:text-rose-400',
@@ -336,7 +336,7 @@ export function CreatorStudioModal({
       setError(
         err instanceof Error
           ? err.message
-          : 'Could not upload media to Cloudinary. Please try again.'
+          : 'Could not upload media. Please try again.'
       );
     } finally {
       setUploading(false);
@@ -371,7 +371,7 @@ export function CreatorStudioModal({
     setError(null);
     if (step === 1) {
       if (uploading) {
-        setError('Please wait for your Cloudinary media upload to finish.');
+        setError('Please wait for your media upload to finish.');
         return;
       }
       if (initialMode === 'post' && !caption.trim() && !uploadedMedia) {
@@ -379,7 +379,7 @@ export function CreatorStudioModal({
         return;
       }
       if (initialMode === 'reel' && (!uploadedMedia || uploadedMedia.type !== 'video')) {
-        setError('Please upload a vertical video file to Cloudinary first.');
+        setError('Please upload a vertical video file first.');
         return;
       }
       if (initialMode === 'livestream' && streamTitle.trim().length < 3) {
@@ -548,13 +548,13 @@ export function CreatorStudioModal({
 
             <p className="mt-3 text-sm font-semibold text-slate-900 dark:text-white">
               {isReel
-                ? 'Upload vertical video to Cloudinary'
+                ? 'Upload vertical video'
                 : 'Drag & drop photo or video to upload'}
             </p>
             <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
               {isReel
                 ? '9:16 portrait recommended · MP4, WebM, MOV up to 100 MB'
-                : 'Direct Cloudinary upload · JPG, PNG, WebP, GIF (15 MB) or MP4, WebM, MOV (100 MB)'}
+                : 'JPG, PNG, WebP, GIF (15 MB) or MP4, WebM, MOV (100 MB)'}
             </p>
 
             <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
@@ -577,7 +577,7 @@ export function CreatorStudioModal({
                 <Loader2 className="h-4 w-4 shrink-0 animate-spin text-indigo-600 dark:text-indigo-400" />
                 <div className="min-w-0">
                   <p className="truncate text-xs font-semibold text-slate-900 dark:text-white">
-                    Uploading to Cloudinary...
+                    Uploading media...
                   </p>
                   {selectedFileMeta && (
                     <p className="truncate text-[11px] text-slate-500 dark:text-slate-400">
@@ -605,7 +605,7 @@ export function CreatorStudioModal({
               <div className="flex min-w-0 items-center gap-2">
                 <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500" />
                 <span className="truncate text-xs font-semibold text-slate-800 dark:text-slate-200">
-                  Uploaded to Cloudinary
+                  Media uploaded
                 </span>
                 {selectedFileMeta && (
                   <span className="hidden truncate text-[11px] text-slate-500 sm:inline dark:text-slate-400">
@@ -860,7 +860,7 @@ export function CreatorStudioModal({
             </div>
             {uploadedMedia && (
               <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-medium text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300">
-                Cloudinary Ready
+                Media Ready
               </span>
             )}
           </div>
@@ -971,7 +971,7 @@ export function CreatorStudioModal({
           <dl className="space-y-2 text-xs">
             <div className="flex justify-between gap-2">
               <dt className="text-slate-500 dark:text-slate-400">Storage</dt>
-              <dd className="font-medium text-slate-900 dark:text-white">Cloudinary Video</dd>
+              <dd className="font-medium text-slate-900 dark:text-white">HD Video</dd>
             </div>
             <div className="flex justify-between gap-2">
               <dt className="text-slate-500 dark:text-slate-400">Aspect</dt>
