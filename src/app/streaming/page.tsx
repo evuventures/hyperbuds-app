@@ -78,15 +78,17 @@ interface PodcastEpisodeItem {
   thumbnailUrl?: string | null;
   audioUrl?: string | null;
   category?: string;
-  durationSeconds?: number;
+  durationSeconds?: number | null;
   playsCount?: number;
   likesCount?: number;
+  isLiked?: boolean;
   author?: {
     _id?: string;
     id?: string;
     displayName?: string;
     username?: string;
     avatar?: string;
+    followersCount?: number;
   };
   tracks?: Array<{ label?: string; speakerName?: string; url?: string; storageMb?: number }>;
   transcript?: string | { text?: string } | null;
@@ -624,7 +626,7 @@ export default function StreamingPage() {
       return {
         category: cat,
         title: cat,
-        count: count || idx + 3,
+        count,
         cover: PODCAST_FALLBACK_COVERS[idx % PODCAST_FALLBACK_COVERS.length],
       };
     });
@@ -640,14 +642,14 @@ export default function StreamingPage() {
       const name = ep.author?.displayName || ep.author?.username || 'HyperBuds Creator';
       const existing = map.get(uid);
       if (existing) {
-        existing.plays += Number(ep.playsCount ?? 12);
+        existing.plays += Number(ep.playsCount ?? 0);
       } else {
         map.set(uid, {
           id: uid,
           name,
           avatar: ep.author?.avatar || PODCAST_FALLBACK_COVERS[map.size % PODCAST_FALLBACK_COVERS.length],
-          plays: Math.max(120, Number(ep.playsCount ?? 0) * 10 + 480),
-          followers: 1928 - map.size * 140,
+          plays: Number(ep.playsCount ?? 0),
+          followers: Number(ep.author?.followersCount ?? 0),
         });
       }
     }
@@ -731,7 +733,7 @@ export default function StreamingPage() {
       <div
         className={`min-h-full transition-colors duration-300 ${
           studioMode === 'live'
-            ? 'bg-gradient-to-br from-[#2a231b] via-[#1b1615] to-[#110f14] text-white'
+            ? 'bg-gradient-to-br from-[#240B48] via-[#15072C] to-[#0A0318] text-white'
             : 'bg-[#F8F7FC] text-slate-900 dark:bg-slate-950 dark:text-white'
         }`}
       >
@@ -877,10 +879,10 @@ export default function StreamingPage() {
                 {/* LEFT COLUMN: 2 Stacked Glass Panels (New/Live + Continue Watching / Subscribed) */}
                 <aside className="flex flex-col gap-5 lg:col-span-3">
                   {/* Top Glass Panel: 🔥 Live & Upcoming */}
-                  <section className="rounded-[26px] border border-white/15 bg-white/[0.08] p-4 shadow-2xl backdrop-blur-xl">
+                  <section className="rounded-[26px] border border-purple-300/20 bg-purple-500/[0.08] p-4 shadow-2xl backdrop-blur-xl">
                     <div className="mb-3.5 flex items-center justify-between gap-2">
                       <h2 className="flex items-center gap-1.5 text-sm font-extrabold text-white">
-                        <Flame className="h-4 w-4 text-amber-400" />
+                        <Flame className="h-4 w-4 text-purple-300" />
                         Live & Upcoming
                       </h2>
                       <button
@@ -890,7 +892,7 @@ export default function StreamingPage() {
                             prev === 'today' ? 'popular' : prev === 'popular' ? 'live' : 'today',
                           )
                         }
-                        className="text-[11px] font-medium text-white/70 transition hover:text-white"
+                        className="text-[11px] font-medium text-purple-200/75 transition hover:text-white"
                       >
                         Sort by:{' '}
                         <span className="font-bold text-white capitalize">{sortBy} ↑↓</span>
@@ -900,11 +902,11 @@ export default function StreamingPage() {
                     {loading ? (
                       <div className="space-y-3">
                         {[1, 2].map((i) => (
-                          <div key={i} className="h-28 animate-pulse rounded-2xl bg-white/10" />
+                          <div key={i} className="h-28 animate-pulse rounded-2xl bg-purple-400/15" />
                         ))}
                       </div>
                     ) : leftUpcomingStreams.length === 0 ? (
-                      <div className="rounded-2xl border border-dashed border-white/20 p-5 text-center text-xs text-white/70">
+                      <div className="rounded-2xl border border-dashed border-purple-300/25 p-5 text-center text-xs text-purple-100/75">
                         No streams yet. Click <span className="font-bold text-white">+ New Stream</span>{' '}
                         with a custom thumbnail!
                       </div>
@@ -914,20 +916,20 @@ export default function StreamingPage() {
                           <div
                             key={stream._id}
                             onClick={() => setSelectedId(stream._id)}
-                            className="group relative h-28 w-full cursor-pointer overflow-hidden rounded-2xl border border-white/15"
+                            className="group relative h-28 w-full cursor-pointer overflow-hidden rounded-2xl border border-purple-300/20"
                           >
                             <img
                               src={resolveStreamThumbnail(stream, idx)}
                               alt={stream.title}
                               className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
                             />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
+                            <div className="absolute inset-0 bg-gradient-to-t from-[#0D041C]/95 via-[#180832]/40 to-transparent" />
                             <div className="absolute inset-x-3 bottom-2.5 flex items-end justify-between gap-2">
                               <div className="min-w-0">
                                 <p className="truncate text-xs font-bold text-white">
                                   {stream.title}
                                 </p>
-                                <p className="text-[10px] text-white/70">
+                                <p className="text-[10px] text-purple-200/80">
                                   {stream.status === 'live'
                                     ? `🔴 Live · ${formatCompactMetric(stream.viewsCount)} views`
                                     : `${stream.category || 'Stream'} · ${formatCompactMetric(stream.subscribersCount)} subs`}
@@ -940,7 +942,7 @@ export default function StreamingPage() {
                                   void handleWatchStream(stream);
                                 }}
                                 aria-label={`Play ${stream.title}`}
-                                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-white/30 bg-white/25 text-white backdrop-blur-md transition hover:scale-110 hover:bg-white hover:text-slate-950"
+                                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-purple-300/35 bg-purple-500/30 text-white backdrop-blur-md transition hover:scale-110 hover:bg-white hover:text-[#240B48]"
                               >
                                 <Play className="ml-0.5 h-3.5 w-3.5 fill-current" />
                               </button>
@@ -952,12 +954,12 @@ export default function StreamingPage() {
                   </section>
 
                   {/* Bottom Glass Panel: Subscribed & Continue Watching */}
-                  <section className="flex-1 rounded-[26px] border border-white/15 bg-white/[0.08] p-4 shadow-2xl backdrop-blur-xl">
+                  <section className="flex-1 rounded-[26px] border border-purple-300/20 bg-purple-500/[0.08] p-4 shadow-2xl backdrop-blur-xl">
                     <div className="mb-3 flex items-center justify-between">
                       <h2 className="text-sm font-extrabold text-white">
                         Subscribed & Watching
                       </h2>
-                      <span className="text-[11px] text-amber-300 font-semibold">
+                      <span className="text-[11px] text-purple-300 font-semibold">
                         Live Alerts
                       </span>
                     </div>
@@ -967,7 +969,7 @@ export default function StreamingPage() {
                         <div
                           key={`sub-${stream._id}`}
                           onClick={() => setSelectedId(stream._id)}
-                          className="flex cursor-pointer items-center justify-between gap-2.5 rounded-2xl border border-white/10 bg-white/[0.06] p-2 transition hover:bg-white/[0.14]"
+                          className="flex cursor-pointer items-center justify-between gap-2.5 rounded-2xl border border-purple-300/15 bg-purple-500/[0.08] p-2 transition hover:bg-purple-500/[0.18]"
                         >
                           <div className="flex min-w-0 items-center gap-2.5">
                             <img
@@ -979,7 +981,7 @@ export default function StreamingPage() {
                               <p className="truncate text-xs font-bold text-white">
                                 {stream.title}
                               </p>
-                              <p className="truncate text-[10px] text-white/65">
+                              <p className="truncate text-[10px] text-purple-200/75">
                                 {stream.host?.displayName || 'Creator'} ·{' '}
                                 {stream.isSubscribed ? '🔔 Subscribed' : `${formatCompactMetric(stream.viewsCount)} views`}
                               </p>
@@ -992,14 +994,14 @@ export default function StreamingPage() {
                               void handleWatchStream(stream);
                             }}
                             aria-label={`Watch ${stream.title}`}
-                            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-white/25 bg-white/20 text-white transition hover:bg-white hover:text-slate-950"
+                            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-purple-300/30 bg-purple-500/25 text-white transition hover:bg-white hover:text-[#240B48]"
                           >
                             <Play className="ml-0.5 h-3.5 w-3.5 fill-current" />
                           </button>
                         </div>
                       ))}
                       {subscribedOrRecentStreams.length === 0 && (
-                        <p className="py-4 text-center text-xs text-white/60">
+                        <p className="py-4 text-center text-xs text-purple-200/65">
                           Subscribe to any stream card to get instant alerts when it goes live.
                         </p>
                       )}
@@ -1007,10 +1009,10 @@ export default function StreamingPage() {
                   </section>
                 </aside>
 
-                {/* RIGHT COLUMN: Featured Hero Banner + 4-Column Reusable StreamCards Grid */}
+                {/* RIGHT COLUMN: Featured Hero Banner + 3-Column Spacious Reusable StreamCards Grid */}
                 <main className="flex flex-col gap-5 lg:col-span-9">
                   {/* Featured Hero Banner */}
-                  <section className="relative min-h-[300px] overflow-hidden rounded-[28px] border border-white/15 shadow-2xl sm:min-h-[340px]">
+                  <section className="relative min-h-[300px] overflow-hidden rounded-[28px] border border-purple-300/25 shadow-[0_24px_60px_rgba(20,6,42,0.75)] sm:min-h-[340px]">
                     <img
                       src={
                         featuredStream
@@ -1020,26 +1022,26 @@ export default function StreamingPage() {
                       alt={featuredStream?.title || 'HyperBuds Live Studio'}
                       className="absolute inset-0 h-full w-full object-cover"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/55 to-black/20" />
+                    <div className="absolute inset-0 bg-gradient-to-r from-[#110424]/95 via-[#1C0938]/65 to-[#240B48]/25" />
                     <div className="relative z-10 flex h-full min-h-[300px] flex-col justify-between p-6 sm:min-h-[340px] sm:p-8">
                       {/* Top badge */}
                       <div className="flex items-center justify-between gap-3">
-                        <span className="inline-flex items-center gap-1.5 rounded-full border border-white/25 bg-black/45 px-3.5 py-1 text-xs font-bold text-white backdrop-blur-md">
+                        <span className="inline-flex items-center gap-1.5 rounded-full border border-purple-300/35 bg-[#1B0836]/75 px-3.5 py-1 text-xs font-bold text-white backdrop-blur-md">
                           {featuredStream?.status === 'live' ? (
                             <>
-                              <span className="h-2 w-2 animate-ping rounded-full bg-red-500" />
+                              <span className="h-2 w-2 animate-ping rounded-full bg-rose-500" />
                               Live Now
                             </>
                           ) : (
                             <>
-                              <Flame className="h-3.5 w-3.5 text-amber-400" />
+                              <Flame className="h-3.5 w-3.5 text-purple-300" />
                               Now Trending
                             </>
                           )}
                         </span>
 
                         {quota && (
-                          <span className="hidden rounded-full border border-white/20 bg-black/40 px-3 py-1 text-[11px] font-medium text-white/85 backdrop-blur-md sm:inline-flex">
+                          <span className="hidden rounded-full border border-purple-300/25 bg-[#1B0836]/70 px-3 py-1 text-[11px] font-medium text-purple-100 backdrop-blur-md sm:inline-flex">
                             {quota.tierName} · Up to {quota.maxHosts} hosts · {quota.maxResolution}
                           </span>
                         )}
@@ -1048,13 +1050,13 @@ export default function StreamingPage() {
                       {/* Main Title, Category Pills, and Action Row */}
                       <div className="max-w-2xl">
                         <div className="mb-3 flex flex-wrap gap-2">
-                          <span className="rounded-full border border-white/25 bg-white/15 px-3 py-1 text-[11px] font-semibold text-white backdrop-blur-md">
+                          <span className="rounded-full border border-purple-300/35 bg-purple-500/25 px-3 py-1 text-[11px] font-semibold text-white backdrop-blur-md">
                             {featuredStream?.category || 'Live Studio'}
                           </span>
                           {featuredStream?.tags?.slice(0, 2).map((tag) => (
                             <span
                               key={tag}
-                              className="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[11px] font-medium text-white/90 backdrop-blur-md"
+                              className="rounded-full border border-purple-300/25 bg-purple-500/15 px-3 py-1 text-[11px] font-medium text-purple-100 backdrop-blur-md"
                             >
                               {tag}
                             </span>
@@ -1064,7 +1066,7 @@ export default function StreamingPage() {
                         <h1 className="text-2xl font-black tracking-tight text-white sm:text-4xl">
                           {featuredStream?.title || 'Create Your First Live Stream Card'}
                         </h1>
-                        <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-white/80 sm:text-sm">
+                        <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-purple-100/85 sm:text-sm">
                           {featuredStream?.description ||
                             'Upload a custom stream thumbnail, go live with dual cameras or OBS, and notify every stream subscriber automatically whenever you broadcast again.'}
                         </p>
@@ -1077,9 +1079,9 @@ export default function StreamingPage() {
                                 <button
                                   type="button"
                                   onClick={() => void handleWatchStream(featuredStream)}
-                                  className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-xs font-extrabold text-slate-950 shadow-xl transition hover:scale-[1.03]"
+                                  className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-xs font-extrabold text-[#240B48] shadow-xl transition hover:scale-[1.03]"
                                 >
-                                  <Play className="h-3.5 w-3.5 fill-slate-950" />
+                                  <Play className="h-3.5 w-3.5 fill-[#240B48]" />
                                   Watch
                                 </button>
                                 <button
@@ -1087,13 +1089,13 @@ export default function StreamingPage() {
                                   onClick={() => void handleSubscribeStream(featuredStream)}
                                   className={`inline-flex items-center gap-1.5 rounded-full border px-4 py-2.5 text-xs font-bold backdrop-blur-md transition ${
                                     featuredStream.isSubscribed
-                                      ? 'border-amber-300/70 bg-amber-400/25 text-amber-100'
-                                      : 'border-white/30 bg-white/15 text-white hover:bg-white/25'
+                                      ? 'border-purple-300/70 bg-gradient-to-r from-[#8B3DFF] to-[#A855F7] text-white shadow-lg'
+                                      : 'border-purple-300/35 bg-purple-500/20 text-white hover:bg-purple-500/35'
                                   }`}
                                 >
                                   {featuredStream.isSubscribed ? (
                                     <>
-                                      <BellRing className="h-3.5 w-3.5 text-amber-300" />
+                                      <BellRing className="h-3.5 w-3.5 text-white" />
                                       Subscribed ({formatCompactMetric(featuredStream.subscribersCount)})
                                     </>
                                   ) : (
@@ -1107,7 +1109,7 @@ export default function StreamingPage() {
                                   type="button"
                                   onClick={() => void handleShareStream(featuredStream)}
                                   aria-label="Share featured stream"
-                                  className="flex h-9 w-9 items-center justify-center rounded-full border border-white/30 bg-white/15 text-white backdrop-blur-md transition hover:bg-white/25"
+                                  className="flex h-9 w-9 items-center justify-center rounded-full border border-purple-300/35 bg-purple-500/20 text-white backdrop-blur-md transition hover:bg-purple-500/35"
                                 >
                                   <Share2 className="h-4 w-4" />
                                 </button>
@@ -1116,7 +1118,7 @@ export default function StreamingPage() {
                               <button
                                 type="button"
                                 onClick={openCreateStreamModal}
-                                className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-xs font-extrabold text-slate-950 shadow-xl"
+                                className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-xs font-extrabold text-[#240B48] shadow-xl"
                               >
                                 <Plus className="h-4 w-4" />
                                 Set Up First Stream
@@ -1132,7 +1134,7 @@ export default function StreamingPage() {
                                   setHeroIndex((i) => (i - 1 + heroStreams.length) % heroStreams.length)
                                 }
                                 aria-label="Previous featured stream"
-                                className="flex h-8 w-8 items-center justify-center rounded-full border border-white/25 bg-black/40 text-white backdrop-blur-md transition hover:bg-white/20"
+                                className="flex h-8 w-8 items-center justify-center rounded-full border border-purple-300/30 bg-[#1B0836]/70 text-white backdrop-blur-md transition hover:bg-purple-500/30"
                               >
                                 <ChevronLeft className="h-4 w-4" />
                               </button>
@@ -1140,7 +1142,7 @@ export default function StreamingPage() {
                                 type="button"
                                 onClick={() => setHeroIndex((i) => (i + 1) % heroStreams.length)}
                                 aria-label="Next featured stream"
-                                className="flex h-8 w-8 items-center justify-center rounded-full border border-white/25 bg-black/40 text-white backdrop-blur-md transition hover:bg-white/20"
+                                className="flex h-8 w-8 items-center justify-center rounded-full border border-purple-300/30 bg-[#1B0836]/70 text-white backdrop-blur-md transition hover:bg-purple-500/30"
                               >
                                 <ChevronRight className="h-4 w-4" />
                               </button>
@@ -1151,34 +1153,34 @@ export default function StreamingPage() {
                     </div>
                   </section>
 
-                  {/* 4-Column Reusable Portrait Stream Cards Grid */}
+                  {/* 3-Column Spacious Reusable Portrait Stream Cards Grid */}
                   <section>
                     {loading ? (
-                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                        {[1, 2, 3, 4].map((i) => (
+                      <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
+                        {[1, 2, 3].map((i) => (
                           <div
                             key={i}
-                            className="aspect-[3/4.25] animate-pulse rounded-[26px] bg-white/10"
+                            className="min-h-[440px] animate-pulse rounded-[28px] bg-purple-400/15"
                           />
                         ))}
                       </div>
                     ) : filteredStreams.length === 0 ? (
-                      <div className="rounded-[26px] border border-white/15 bg-white/[0.06] p-12 text-center backdrop-blur-md">
+                      <div className="rounded-[28px] border border-purple-300/20 bg-purple-500/[0.08] p-12 text-center backdrop-blur-md">
                         <p className="text-sm font-bold text-white">No stream cards match this filter</p>
-                        <p className="mt-1 text-xs text-white/65">
+                        <p className="mt-1 text-xs text-purple-200/75">
                           Create a reusable stream card with a custom thumbnail to start growing subscribers.
                         </p>
                         <button
                           type="button"
                           onClick={openCreateStreamModal}
-                          className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-white px-5 py-2 text-xs font-bold text-slate-950"
+                          className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-[#8B3DFF] to-[#A855F7] px-5 py-2 text-xs font-bold text-white shadow-lg"
                         >
                           <Plus className="h-4 w-4" />
                           Create Stream Card
                         </button>
                       </div>
                     ) : (
-                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                      <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
                         {filteredStreams.map((stream, idx) => {
                           const isOwner =
                             stream.userId === currentUserId ||
@@ -1531,15 +1533,26 @@ export default function StreamingPage() {
                                       setEpisodes((prev) =>
                                         prev.map((item) =>
                                           item._id === ep._id
-                                            ? { ...item, likesCount: res.data.likesCount }
+                                            ? {
+                                                ...item,
+                                                likesCount: res.data.likesCount,
+                                                isLiked:
+                                                  typeof res.data.liked === 'boolean'
+                                                    ? res.data.liked
+                                                    : !item.isLiked,
+                                              }
                                             : item,
                                         ),
                                       );
                                     }
                                   }}
-                                  className="inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs text-slate-500 hover:bg-purple-100 hover:text-purple-700 dark:hover:bg-purple-950"
+                                  className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold transition ${
+                                    ep.isLiked
+                                      ? 'bg-pink-100 text-pink-600 dark:bg-pink-950/60 dark:text-pink-300'
+                                      : 'text-slate-500 hover:bg-purple-100 hover:text-purple-700 dark:hover:bg-purple-950'
+                                  }`}
                                 >
-                                  <Heart className="h-3.5 w-3.5" />
+                                  <Heart className={`h-3.5 w-3.5 ${ep.isLiked ? 'fill-pink-500 text-pink-500' : ''}`} />
                                   {ep.likesCount ?? 0}
                                 </button>
                                 <button
@@ -1803,20 +1816,20 @@ export default function StreamingPage() {
          ================================================================ */}
       {streamModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
-          <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-[28px] border border-white/15 bg-[#1b171b] p-6 text-white shadow-2xl">
-            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+          <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-[28px] border border-purple-300/25 bg-[#16082A] p-6 text-white shadow-2xl">
+            <div className="flex items-center justify-between border-b border-purple-300/15 pb-3">
               <div>
                 <h2 className="text-base font-extrabold">
                   {editingStreamId ? 'Edit Stream Card & Thumbnail' : 'Create Reusable Stream Card'}
                 </h2>
-                <p className="text-xs text-white/65">
+                <p className="text-xs text-purple-200/75">
                   Upload a custom thumbnail so subscribers recognize your stream anytime you go live.
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setStreamModalOpen(false)}
-                className="rounded-full p-1.5 text-white/70 hover:bg-white/10"
+                className="rounded-full p-1.5 text-purple-200/80 hover:bg-purple-500/20"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -1824,11 +1837,11 @@ export default function StreamingPage() {
 
             <form onSubmit={handleSaveStreamModal} className="mt-4 space-y-4 text-xs">
               <div>
-                <label className="mb-1.5 block font-semibold text-white/85">
+                <label className="mb-1.5 block font-semibold text-purple-100">
                   Stream Thumbnail
                 </label>
                 <div className="flex items-center gap-3">
-                  <div className="relative h-24 w-20 shrink-0 overflow-hidden rounded-2xl border border-white/20 bg-white/5">
+                  <div className="relative h-24 w-20 shrink-0 overflow-hidden rounded-2xl border border-purple-300/30 bg-purple-500/10">
                     <img
                       src={streamThumbnailUrl || STREAM_FALLBACK_THUMBNAILS[0]}
                       alt="Stream thumbnail preview"
@@ -1836,7 +1849,7 @@ export default function StreamingPage() {
                     />
                   </div>
                   <div className="flex-1 space-y-2">
-                    <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-full bg-white px-3.5 py-2 text-xs font-bold text-slate-950 transition hover:bg-white/90">
+                    <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-full bg-gradient-to-r from-[#8B3DFF] to-[#A855F7] px-3.5 py-2 text-xs font-bold text-white shadow transition hover:opacity-95">
                       {thumbUploading ? (
                         <Loader2 className="h-3.5 w-3.5 animate-spin" />
                       ) : (
@@ -1859,7 +1872,7 @@ export default function StreamingPage() {
                       value={streamThumbnailUrl}
                       onChange={(e) => setStreamThumbnailUrl(e.target.value)}
                       placeholder="Or paste custom thumbnail URL..."
-                      className="w-full rounded-xl border border-white/15 bg-black/40 px-3 py-2 text-white outline-none focus:border-amber-300"
+                      className="w-full rounded-xl border border-purple-300/20 bg-black/40 px-3 py-2 text-white outline-none focus:border-purple-400"
                     />
                   </div>
                 </div>
@@ -1867,22 +1880,22 @@ export default function StreamingPage() {
 
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div>
-                  <label className="mb-1 block font-semibold text-white/85">Title *</label>
+                  <label className="mb-1 block font-semibold text-purple-100">Title *</label>
                   <input
                     type="text"
                     required
                     value={streamTitle}
                     onChange={(e) => setStreamTitle(e.target.value)}
                     placeholder="Spider-Verse Live Breakdown"
-                    className="w-full rounded-xl border border-white/15 bg-black/40 px-3 py-2 text-white outline-none focus:border-amber-300"
+                    className="w-full rounded-xl border border-purple-300/20 bg-black/40 px-3 py-2 text-white outline-none focus:border-purple-400"
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block font-semibold text-white/85">Category</label>
+                  <label className="mb-1 block font-semibold text-purple-100">Category</label>
                   <select
                     value={streamCategory}
                     onChange={(e) => setStreamCategory(e.target.value)}
-                    className="w-full rounded-xl border border-white/15 bg-black/40 px-3 py-2 text-white outline-none"
+                    className="w-full rounded-xl border border-purple-300/20 bg-black/40 px-3 py-2 text-white outline-none"
                   >
                     {STREAM_CATEGORIES.map((c) => (
                       <option key={c} value={c} className="bg-slate-900">
@@ -1894,13 +1907,13 @@ export default function StreamingPage() {
               </div>
 
               <div>
-                <label className="mb-1 block font-semibold text-white/85">Description</label>
+                <label className="mb-1 block font-semibold text-purple-100">Description</label>
                 <textarea
                   rows={2}
                   value={streamDesc}
                   onChange={(e) => setStreamDesc(e.target.value)}
                   placeholder="What is this stream about?"
-                  className="w-full rounded-xl border border-white/15 bg-black/40 px-3 py-2 text-white outline-none focus:border-amber-300"
+                  className="w-full rounded-xl border border-purple-300/20 bg-black/40 px-3 py-2 text-white outline-none focus:border-purple-400"
                 />
               </div>
 
@@ -1908,18 +1921,18 @@ export default function StreamingPage() {
                 <>
                   <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                     <div>
-                      <label className="mb-1 block font-semibold text-white/85">
+                      <label className="mb-1 block font-semibold text-purple-100">
                         Schedule Time (Optional)
                       </label>
                       <input
                         type="datetime-local"
                         value={streamScheduledAt}
                         onChange={(e) => setStreamScheduledAt(e.target.value)}
-                        className="w-full rounded-xl border border-white/15 bg-black/40 px-3 py-2 text-white outline-none"
+                        className="w-full rounded-xl border border-purple-300/20 bg-black/40 px-3 py-2 text-white outline-none"
                       />
                     </div>
                     <div>
-                      <label className="mb-1 block font-semibold text-white/85">
+                      <label className="mb-1 block font-semibold text-purple-100">
                         Tags (comma-separated)
                       </label>
                       <input
@@ -1927,12 +1940,12 @@ export default function StreamingPage() {
                         value={streamTagsInput}
                         onChange={(e) => setStreamTagsInput(e.target.value)}
                         placeholder="Animation, Collab"
-                        className="w-full rounded-xl border border-white/15 bg-black/40 px-3 py-2 text-white outline-none"
+                        className="w-full rounded-xl border border-purple-300/20 bg-black/40 px-3 py-2 text-white outline-none"
                       />
                     </div>
                   </div>
 
-                  <div className="space-y-2 rounded-2xl border border-white/10 bg-white/5 p-3">
+                  <div className="space-y-2 rounded-2xl border border-purple-300/15 bg-purple-500/10 p-3">
                     <label className="flex items-center gap-2">
                       <input
                         type="checkbox"
@@ -1953,7 +1966,7 @@ export default function StreamingPage() {
                       <span>Save VOD recording</span>
                     </label>
                     {streamRecordingEnabled && (
-                      <label className="flex items-center gap-2 text-amber-200">
+                      <label className="flex items-center gap-2 text-purple-200">
                         <input
                           type="checkbox"
                           checked={streamRecordingConsent}
@@ -1970,14 +1983,14 @@ export default function StreamingPage() {
                 <button
                   type="button"
                   onClick={() => setStreamModalOpen(false)}
-                  className="rounded-full border border-white/20 px-4 py-2 font-semibold text-white/80 hover:bg-white/10"
+                  className="rounded-full border border-purple-300/25 px-4 py-2 font-semibold text-purple-100 hover:bg-purple-500/20"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={streamSubmitting || thumbUploading}
-                  className="rounded-full bg-white px-5 py-2 font-extrabold text-slate-950 disabled:opacity-50"
+                  className="rounded-full bg-gradient-to-r from-[#8B3DFF] to-[#A855F7] px-5 py-2 font-extrabold text-white shadow-lg disabled:opacity-50"
                 >
                   {streamSubmitting
                     ? 'Saving...'

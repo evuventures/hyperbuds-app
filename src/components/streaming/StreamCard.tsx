@@ -126,11 +126,12 @@ export function StreamCard({
 
   return (
     <div
+      data-testid={`stream-card-${stream._id}`}
       onClick={() => onSelect?.(stream)}
-      className={`group relative flex aspect-[3/4.25] w-full cursor-pointer flex-col justify-between overflow-hidden rounded-[26px] border transition-all duration-300 ${
+      className={`group relative flex min-h-[440px] w-full cursor-pointer flex-col justify-between overflow-hidden rounded-[28px] border transition-all duration-300 ${
         isSelected
-          ? 'border-amber-300/80 ring-2 ring-amber-300/40 shadow-[0_20px_50px_rgba(0,0,0,0.55)]'
-          : 'border-white/15 hover:border-white/35 shadow-[0_16px_40px_rgba(0,0,0,0.45)]'
+          ? 'border-[#A855F7] ring-2 ring-[#8B3DFF]/50 shadow-[0_22px_55px_rgba(139,61,255,0.42)]'
+          : 'border-purple-300/20 hover:border-purple-400/45 shadow-[0_18px_45px_rgba(15,5,32,0.65)]'
       }`}
     >
       {/* Full-bleed background thumbnail */}
@@ -140,29 +141,29 @@ export function StreamCard({
         className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
       />
 
-      {/* Multi-stop cinematic dark gradient overlay */}
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/95 via-black/45 to-black/25" />
+      {/* HyperBuds brand deep-violet & black multi-stop gradient overlay for crisp text legibility */}
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#0D041C] via-[#170830]/75 to-black/30" />
 
       {/* Top row: status badge + host/thumbnail quick actions */}
-      <div className="relative z-10 flex items-center justify-between gap-2 p-3.5">
+      <div className="relative z-10 flex flex-wrap items-center justify-between gap-2 p-4 sm:p-5">
         <div className="flex items-center gap-1.5">
           {isLive ? (
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-red-600/95 px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wider text-white shadow-lg">
-              <span className="h-1.5 w-1.5 animate-ping rounded-full bg-white" />
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-rose-600 to-pink-600 px-3 py-1 text-[11px] font-extrabold uppercase tracking-wider text-white shadow-lg">
+              <span className="h-2 w-2 animate-ping rounded-full bg-white" />
               LIVE
               {Number(stream.viewersCurrent ?? 0) > 0 && (
-                <span className="ml-0.5 text-white/90">· {formatCompactMetric(stream.viewersCurrent)}</span>
+                <span className="ml-0.5 text-white/95">· {formatCompactMetric(stream.viewersCurrent)}</span>
               )}
             </span>
           ) : stream.status === 'scheduled' ? (
-            <span className="inline-flex items-center gap-1 rounded-full border border-white/25 bg-black/45 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-amber-200 backdrop-blur-md">
-              <Sparkles className="h-3 w-3 text-amber-300" />
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-purple-300/35 bg-[#1E0B3B]/80 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-purple-200 backdrop-blur-md">
+              <Sparkles className="h-3.5 w-3.5 text-purple-300" />
               Upcoming
             </span>
           ) : (
-            <span className="inline-flex items-center gap-1 rounded-full border border-white/20 bg-black/45 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-white/85 backdrop-blur-md">
-              <Radio className="h-3 w-3 text-emerald-300" />
-              Replay / Reusable
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-purple-300/30 bg-[#1E0B3B]/80 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-purple-100 backdrop-blur-md">
+              <Radio className="h-3.5 w-3.5 text-purple-300" />
+              Reusable Stream
             </span>
           )}
         </div>
@@ -173,7 +174,7 @@ export function StreamCard({
               type="button"
               onClick={() => onEditThumbnail(stream)}
               title="Change stream thumbnail"
-              className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-white/25 bg-black/45 text-white/90 backdrop-blur-md transition hover:bg-white/20"
+              className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-purple-300/30 bg-[#1E0B3B]/80 text-purple-100 backdrop-blur-md transition hover:bg-purple-600/40"
             >
               <ImageIcon className="h-3.5 w-3.5" />
             </button>
@@ -186,20 +187,20 @@ export function StreamCard({
                 ? 'Subscribed — you will be notified when this stream goes live again'
                 : 'Subscribe to get notified when this stream goes live'
             }
-            className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[10px] font-bold backdrop-blur-md transition ${
+            className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[11px] font-bold backdrop-blur-md transition ${
               stream.isSubscribed
-                ? 'border-amber-300/70 bg-amber-400/25 text-amber-100'
-                : 'border-white/25 bg-black/45 text-white/90 hover:bg-white/20'
+                ? 'border-purple-300/70 bg-gradient-to-r from-[#8B3DFF] to-[#A855F7] text-white shadow-md'
+                : 'border-purple-300/30 bg-[#1E0B3B]/80 text-purple-100 hover:bg-purple-600/35'
             }`}
           >
             {stream.isSubscribed ? (
               <>
-                <BellRing className="h-3 w-3 text-amber-300" />
+                <BellRing className="h-3.5 w-3.5 text-white" />
                 Subscribed
               </>
             ) : (
               <>
-                <Bell className="h-3 w-3" />
+                <Bell className="h-3.5 w-3.5" />
                 Notify Me
               </>
             )}
@@ -207,100 +208,100 @@ export function StreamCard({
         </div>
       </div>
 
-      {/* Bottom content block matching the reference card layout */}
-      <div className="relative z-10 flex flex-col justify-end p-4 pt-2">
-        {/* Frosted category pill + host name */}
-        <div className="mb-2 flex items-center justify-between gap-2">
-          <span className="inline-flex items-center rounded-full border border-white/20 bg-white/15 px-3 py-0.5 text-[11px] font-semibold text-white/95 backdrop-blur-md">
+      {/* Bottom content block with generous room for Title, Description, 4 Metrics, and Actions */}
+      <div className="relative z-10 flex flex-col justify-end p-5 pt-3">
+        {/* Frosted brand purple category pill + host name */}
+        <div className="mb-2.5 flex items-center justify-between gap-2">
+          <span className="inline-flex items-center rounded-full border border-purple-300/35 bg-purple-500/25 px-3 py-1 text-xs font-bold text-purple-100 backdrop-blur-md">
             {category}
           </span>
-          <span className="truncate text-[11px] font-medium text-white/75">
+          <span className="truncate text-xs font-semibold text-purple-200/90">
             {hostName}
           </span>
         </div>
 
-        {/* Stream Title */}
-        <h3 className="line-clamp-1 text-base font-extrabold tracking-tight text-white drop-shadow-sm sm:text-lg">
+        {/* Stream Title (2 full lines supported without clipping) */}
+        <h3 className="line-clamp-2 text-lg font-extrabold leading-snug tracking-tight text-white drop-shadow-sm sm:text-xl">
           {stream.title}
         </h3>
 
         {/* Stream Description */}
-        <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-white/75">
+        <p className="mt-1.5 line-clamp-2 text-xs leading-relaxed text-purple-100/80 sm:text-[13px]">
           {stream.description ||
             `Subscribe to ${hostName}'s "${stream.title}" stream to get notified every time it goes live.`}
         </p>
 
-        {/* 4 Required Live Metrics Bar: Total Likes, Total Subscribes, Total Shares, Total Views */}
+        {/* 4 Required Live Metrics Bar: Total Likes, Total Subscribers, Total Shares, Total Views */}
         <div
           onClick={(e) => e.stopPropagation()}
-          className="mt-3 grid grid-cols-4 gap-1 rounded-2xl border border-white/15 bg-black/45 px-2 py-1.5 text-[11px] text-white/90 backdrop-blur-md"
+          className="mt-4 grid grid-cols-4 gap-1.5 rounded-2xl border border-purple-300/25 bg-[#140729]/85 p-2 text-white backdrop-blur-md"
         >
           <button
             type="button"
             onClick={() => onLike(stream)}
             title="Total Likes for this stream"
-            className={`flex flex-col items-center justify-center rounded-xl py-1 transition hover:bg-white/10 ${
-              stream.isLiked ? 'text-rose-400 font-bold' : 'text-white/90'
+            className={`flex flex-col items-center justify-center rounded-xl py-1.5 px-1 transition hover:bg-purple-500/20 ${
+              stream.isLiked ? 'text-pink-400 font-extrabold' : 'text-white'
             }`}
           >
-            <div className="flex items-center gap-1">
-              <Heart className={`h-3.5 w-3.5 ${stream.isLiked ? 'fill-rose-500 text-rose-400' : ''}`} />
+            <div className="flex items-center gap-1 text-xs font-bold">
+              <Heart className={`h-3.5 w-3.5 shrink-0 ${stream.isLiked ? 'fill-pink-500 text-pink-400' : 'text-pink-300'}`} />
               <span>{formatCompactMetric(likesCount)}</span>
             </div>
-            <span className="text-[9px] text-white/60">Likes</span>
+            <span className="mt-0.5 text-[10px] font-medium text-purple-200/75">Likes</span>
           </button>
 
           <button
             type="button"
             onClick={() => onSubscribe(stream)}
             title="Total Subscribers notified when this stream is live"
-            className={`flex flex-col items-center justify-center rounded-xl py-1 transition hover:bg-white/10 ${
-              stream.isSubscribed ? 'text-amber-300 font-bold' : 'text-white/90'
+            className={`flex flex-col items-center justify-center rounded-xl py-1.5 px-1 transition hover:bg-purple-500/20 ${
+              stream.isSubscribed ? 'text-purple-300 font-extrabold' : 'text-white'
             }`}
           >
-            <div className="flex items-center gap-1">
-              <Bell className={`h-3.5 w-3.5 ${stream.isSubscribed ? 'fill-amber-300 text-amber-300' : ''}`} />
+            <div className="flex items-center gap-1 text-xs font-bold">
+              <Bell className={`h-3.5 w-3.5 shrink-0 ${stream.isSubscribed ? 'fill-purple-400 text-purple-300' : 'text-purple-300'}`} />
               <span>{formatCompactMetric(subscribersCount)}</span>
             </div>
-            <span className="text-[9px] text-white/60">Subscribes</span>
+            <span className="mt-0.5 text-[10px] font-medium text-purple-200/75">Subscribers</span>
           </button>
 
           <button
             type="button"
             onClick={() => onShare(stream)}
             title="Share stream link"
-            className="flex flex-col items-center justify-center rounded-xl py-1 text-white/90 transition hover:bg-white/10"
+            className="flex flex-col items-center justify-center rounded-xl py-1.5 px-1 text-white transition hover:bg-purple-500/20"
           >
-            <div className="flex items-center gap-1">
-              <Share2 className="h-3.5 w-3.5" />
+            <div className="flex items-center gap-1 text-xs font-bold">
+              <Share2 className="h-3.5 w-3.5 shrink-0 text-violet-300" />
               <span>{formatCompactMetric(sharesCount)}</span>
             </div>
-            <span className="text-[9px] text-white/60">Shares</span>
+            <span className="mt-0.5 text-[10px] font-medium text-purple-200/75">Shares</span>
           </button>
 
           <div
             title="Total Views for this stream"
-            className="flex flex-col items-center justify-center rounded-xl py-1 text-white/90"
+            className="flex flex-col items-center justify-center rounded-xl py-1.5 px-1 text-white"
           >
-            <div className="flex items-center gap-1">
-              <Eye className="h-3.5 w-3.5 text-sky-300" />
+            <div className="flex items-center gap-1 text-xs font-bold">
+              <Eye className="h-3.5 w-3.5 shrink-0 text-sky-300" />
               <span>{formatCompactMetric(viewsCount)}</span>
             </div>
-            <span className="text-[9px] text-white/60">Views</span>
+            <span className="mt-0.5 text-[10px] font-medium text-purple-200/75">Views</span>
           </div>
         </div>
 
-        {/* Bottom row: "See more..." / "Go Live Again" on left + White circular Play button on right */}
+        {/* Bottom row: "See more..." / "Go Live Again" on left + Circular Play button on right */}
         <div
           onClick={(e) => e.stopPropagation()}
-          className="mt-3 flex items-center justify-between gap-2"
+          className="mt-4 flex items-center justify-between gap-3"
         >
           {isOwner && !isLive && onGoLiveAgain ? (
             <button
               type="button"
               disabled={busyAction === `start-${stream._id}`}
               onClick={() => onGoLiveAgain(stream)}
-              className="inline-flex items-center gap-1.5 rounded-full bg-red-600/90 px-3 py-1.5 text-xs font-bold text-white shadow-md transition hover:bg-red-500 disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-[#8B3DFF] to-[#EC4899] px-4 py-2 text-xs font-extrabold text-white shadow-lg transition hover:opacity-95 disabled:opacity-50"
             >
               <Radio className="h-3.5 w-3.5" />
               {busyAction === `start-${stream._id}` ? 'Starting...' : 'Go Live Again'}
@@ -309,7 +310,7 @@ export function StreamCard({
             <button
               type="button"
               onClick={() => onSelect?.(stream)}
-              className="text-xs font-semibold text-white/85 transition hover:text-white"
+              className="text-xs font-bold text-purple-200 transition hover:text-white"
             >
               See more...
             </button>
@@ -318,10 +319,11 @@ export function StreamCard({
           <button
             type="button"
             onClick={() => onWatch(stream)}
+            aria-label={`Watch ${stream.title}`}
             title={isLive ? 'Watch live stream' : isOwner ? 'Launch studio room' : 'Open stream room'}
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-slate-950 shadow-xl transition-transform duration-200 hover:scale-110 active:scale-95"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white text-[#2A0948] shadow-[0_8px_25px_rgba(139,61,255,0.5)] transition-transform duration-200 hover:scale-110 active:scale-95"
           >
-            <Play className="ml-0.5 h-4 w-4 fill-slate-950 text-slate-950" />
+            <Play className="ml-0.5 h-4 w-4 fill-[#2A0948] text-[#2A0948]" />
           </button>
         </div>
       </div>

@@ -20,6 +20,7 @@ async function isolateStudioAnalyticsSettings(context: BrowserContext) {
   const streams = [
     {
       _id: 'stream-101',
+      userId,
       title: 'Weekly Product Teardown',
       description: 'Live UI and architecture review',
       status: 'scheduled',
@@ -32,6 +33,37 @@ async function isolateStudioAnalyticsSettings(context: BrowserContext) {
       chatEnabled: true,
       viewersCurrent: 0,
       viewersPeak: 0,
+      category: 'Design',
+      likesCount: 12,
+      subscribersCount: 8,
+      sharesCount: 4,
+      viewsCount: 95,
+      isLiked: false,
+      isSubscribed: false,
+    },
+  ];
+
+  const episodes = [
+    {
+      _id: 'ep-101',
+      userId,
+      title: 'Creator Economy Deep Dive',
+      status: 'ready',
+      recordingConsent: true,
+      maxDurationMinutes: 30,
+      storageMb: 18,
+      category: 'Creator Talk',
+      durationSeconds: 200,
+      playsCount: 42,
+      likesCount: 5,
+      isLiked: false,
+      author: {
+        _id: userId,
+        id: userId,
+        displayName: 'Alex Fixture',
+        username: 'alex_fixture',
+        followersCount: 14,
+      },
     },
   ];
 
@@ -56,12 +88,13 @@ async function isolateStudioAnalyticsSettings(context: BrowserContext) {
 
       if (/\/(users|auth)\/me$/.test(url.pathname) || url.pathname.endsWith('/profiles/me')) {
         data = { user, profile: user.profile };
-      } else if (url.pathname.endsWith('/streaming/streams') && method === 'GET') {
-        data = { streams, pagination: { page: 1, limit: 20, total: streams.length, pages: 1 } };
+      } else if ((url.pathname.endsWith('/streaming/streams') || url.pathname.endsWith('/streaming/discover')) && method === 'GET') {
+        data = { streams, total: streams.length, pagination: { page: 1, limit: 20, total: streams.length, pages: 1 } };
       } else if (url.pathname.endsWith('/streaming/streams') && method === 'POST') {
         const body = route.request().postDataJSON() as Record<string, unknown>;
         const created = {
           _id: `stream-${streams.length + 101}`,
+          userId,
           title: String(body.title ?? 'Untitled'),
           description: String(body.description ?? ''),
           status: 'scheduled',
@@ -74,6 +107,14 @@ async function isolateStudioAnalyticsSettings(context: BrowserContext) {
           chatEnabled: Boolean(body.chatEnabled ?? true),
           viewersCurrent: 0,
           viewersPeak: 0,
+          category: String(body.category || 'Live'),
+          thumbnailUrl: typeof body.thumbnailUrl === 'string' ? body.thumbnailUrl : null,
+          likesCount: 0,
+          subscribersCount: 0,
+          sharesCount: 0,
+          viewsCount: 0,
+          isLiked: false,
+          isSubscribed: false,
         };
         streams.unshift(created);
         data = { stream: created };
@@ -82,6 +123,32 @@ async function isolateStudioAnalyticsSettings(context: BrowserContext) {
         const target = streams.find((s) => s._id === id);
         if (target) target.status = 'live';
         data = { stream: target };
+      } else if (/\/streaming\/streams\/[^/]+\/subscribe$/.test(url.pathname) && method === 'POST') {
+        const id = url.pathname.split('/').slice(-2, -1)[0];
+        const target = streams.find((s) => s._id === id);
+        if (target) {
+          target.isSubscribed = !target.isSubscribed;
+          target.subscribersCount = (target.subscribersCount || 0) + (target.isSubscribed ? 1 : -1);
+        }
+        data = {
+          streamId: id,
+          subscribed: target?.isSubscribed ?? true,
+          subscribersCount: target?.subscribersCount ?? 1,
+        };
+      } else if (url.pathname.endsWith('/podcasts/episodes') && method === 'GET') {
+        data = { episodes };
+      } else if (/\/podcasts\/episodes\/[^/]+\/like$/.test(url.pathname) && method === 'POST') {
+        const id = url.pathname.split('/').slice(-2, -1)[0];
+        const ep = episodes.find((e) => e._id === id);
+        if (ep) {
+          ep.isLiked = !ep.isLiked;
+          ep.likesCount = (ep.likesCount || 0) + (ep.isLiked ? 1 : -1);
+        }
+        data = {
+          episodeId: id,
+          liked: ep?.isLiked ?? true,
+          likesCount: ep?.likesCount ?? 1,
+        };
       } else if (url.pathname.endsWith('/analytics/overview')) {
         data = {
           overview: {
@@ -156,15 +223,28 @@ test('streaming workspace schedules and starts a stream without overflow', async
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto('/streaming', { waitUntil: 'domcontentloaded' });
 
-  await expect(page.getByRole('heading', { name: 'Live Studio' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Live & Upcoming' })).toBeVisible();
   await expect(page.getByText('Weekly Product Teardown').first()).toBeVisible();
+  await expect(page.getByText('Subscribers').first()).toBeVisible();
 
-  await page.getByLabel('Title').fill('Design Critique Live');
-  await page.getByRole('button', { name: 'Create stream' }).click();
+  await page.getByRole('button', { name: 'New Stream' }).click();
+  await page.getByPlaceholder('Spider-Verse Live Breakdown').fill('Design Critique Live');
+  await page.getByRole('button', { name: 'Create Stream Card' }).click();
   await expect(page.getByText('Design Critique Live').first()).toBeVisible();
 
-  await page.getByRole('button', { name: 'Go live' }).first().click();
-  await expect(page.getByText('Stream is now live.')).toBeVisible();
+  await page.getByRole('button', { name: 'Go Live Again' }).first().click();
+  await expect(
+    page.getByText('Stream is LIVE! All stream subscribers have been notified.'),
+  ).toBeVisible();
+
+  // Switch to Podcasts hub and verify real counts + per-user like toggle
+  await page.getByRole('button', { name: 'Podcasts' }).click();
+  await expect(
+    page.getByRole('heading', { name: 'Listen to trending podcasts all the time' }),
+  ).toBeVisible();
+  await expect(page.getByText('Creator Economy Deep Dive').first()).toBeVisible();
+  await expect(page.getByText('14 Followers')).toBeVisible();
+  await expect(page.getByText('42 Plays')).toBeVisible();
 
   for (const width of [1440, 768, 390]) {
     await page.setViewportSize({ width, height: 900 });
