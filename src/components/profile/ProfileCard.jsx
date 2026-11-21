@@ -80,6 +80,7 @@ export default function UserProfileHeader({
   isFollowing = false,
   followLoading = false,
   followersCount = /** @type {number | null} */ (null),
+  followingCount = /** @type {number | null} */ (null),
   onToggleFollow = /** @type {(() => void) | undefined} */ (undefined),
 }) {
   const router = useRouter();
@@ -216,14 +217,35 @@ export default function UserProfileHeader({
     experience.length > 0 ||
     portfolioEntries.length > 0;
 
-  const followerDisplay =
+  const resolvedFollowersCount =
     typeof followersCount === "number"
-      ? followersCount.toLocaleString()
+      ? followersCount
+      : typeof user?.followersCount === "number"
+      ? user.followersCount
+      : typeof userData?.followersCount === "number"
+      ? userData.followersCount
+      : null;
+
+  const resolvedFollowingCount =
+    typeof followingCount === "number"
+      ? followingCount
+      : typeof user?.followingCount === "number"
+      ? user.followingCount
+      : typeof userData?.followingCount === "number"
+      ? userData.followingCount
+      : null;
+
+  const followerDisplay =
+    typeof resolvedFollowersCount === "number"
+      ? resolvedFollowersCount.toLocaleString()
       : platformLoading
       ? "..."
       : combinedMetrics.totalFollowers > 0
       ? combinedMetrics.totalFollowers.toLocaleString()
       : user.stats?.totalFollowers?.toLocaleString() ?? "0";
+
+  const followingDisplay =
+    typeof resolvedFollowingCount === "number" ? resolvedFollowingCount.toLocaleString() : "0";
 
   return (
     <div className="space-y-5">
@@ -292,19 +314,24 @@ export default function UserProfileHeader({
                 )}
               </div>
 
-              {/* Instagram-style Compact Stat Strip on Desktop */}
-              <div className="hidden lg:flex items-center gap-6 pb-1 pl-2 text-sm">
+              {/* Instagram-style Compact Stat Strip (Visible on Mobile & Desktop) */}
+              <div className="flex flex-wrap items-center gap-4 sm:gap-6 pb-1 sm:pl-2 text-xs sm:text-sm">
                 <div>
-                  <span className="font-bold text-slate-900 dark:text-white">{followerDisplay}</span>{" "}
+                  <span className="font-bold text-slate-900 dark:text-white tabular-nums">{followerDisplay}</span>{" "}
                   <span className="text-slate-500 dark:text-slate-400">followers</span>
                 </div>
                 <div className="h-3.5 w-px bg-slate-200 dark:bg-slate-800" />
                 <div>
+                  <span className="font-bold text-slate-900 dark:text-white tabular-nums">{followingDisplay}</span>{" "}
+                  <span className="text-slate-500 dark:text-slate-400">following</span>
+                </div>
+                <div className="hidden lg:block h-3.5 w-px bg-slate-200 dark:bg-slate-800" />
+                <div className="hidden lg:block">
                   <span className="font-bold text-slate-900 dark:text-white">{user.rizzScore ?? "—"}</span>{" "}
                   <span className="text-slate-500 dark:text-slate-400">rizz score</span>
                 </div>
-                <div className="h-3.5 w-px bg-slate-200 dark:bg-slate-800" />
-                <div>
+                <div className="hidden lg:block h-3.5 w-px bg-slate-200 dark:bg-slate-800" />
+                <div className="hidden lg:block">
                   <span className="font-bold text-slate-900 dark:text-white">{user.niche?.length || 0}</span>{" "}
                   <span className="text-slate-500 dark:text-slate-400">niches</span>
                 </div>

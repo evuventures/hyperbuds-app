@@ -3,6 +3,7 @@
 import DashboardLayout from "@/components/layout/Dashboard/Dashboard";
 import { useState, useEffect, useCallback } from "react";
 import apiClient from "@/lib/api/client";
+import notificationSocket from "@/lib/socket/notificationSocket";
 import UserProfileHeader from "@/components/profile/ProfileCard";
 import { InlineProfileSegments } from "@/components/profile/InlineProfileSegments";
 import { Button } from "@/components/ui/button";
@@ -44,6 +45,37 @@ export default function ProfilePage() {
   useEffect(() => {
     void loadProfile();
   }, [loadProfile, refreshTrigger]);
+
+  // Live real-time followers/following counter updates when someone follows or unfollows you
+  useEffect(() => {
+    const handleFollowUpdated = (payload) => {
+      if (!payload || typeof payload !== "object") return;
+      const myUserId = user?.profile?.userId || user?.userId || null;
+      if (myUserId && payload.userId && String(payload.userId) !== String(myUserId)) return;
+      setUser((prev) => {
+        if (!prev) return prev;
+        const nextFollowers =
+          typeof payload.followersCount === "number" ? payload.followersCount : prev.followersCount;
+        const nextFollowing =
+          typeof payload.followingCount === "number" ? payload.followingCount : prev.followingCount;
+        return {
+          ...prev,
+          followersCount: nextFollowers,
+          followingCount: nextFollowing,
+          profile: prev.profile
+            ? {
+                ...prev.profile,
+                followersCount: nextFollowers,
+                followingCount: nextFollowing,
+              }
+            : prev.profile,
+        };
+      });
+    };
+
+    notificationSocket.on("profile:follow-updated", handleFollowUpdated);
+    return () => notificationSocket.off("profile:follow-updated", handleFollowUpdated);
+  }, [user?.profile?.userId, user?.userId]);
 
   useEffect(() => {
     const handleStorageChange = (e) => {
@@ -107,6 +139,20 @@ export default function ProfilePage() {
               isDark={true}
               isLoading={isLoading}
               isOwnProfile={true}
+              followersCount={
+                typeof user?.followersCount === "number"
+                  ? user.followersCount
+                  : typeof user?.profile?.followersCount === "number"
+                  ? user.profile.followersCount
+                  : null
+              }
+              followingCount={
+                typeof user?.followingCount === "number"
+                  ? user.followingCount
+                  : typeof user?.profile?.followingCount === "number"
+                  ? user.profile.followingCount
+                  : null
+              }
             />
           </div>
         </div>

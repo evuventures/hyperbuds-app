@@ -113,7 +113,7 @@ export const useNotificationSocket = (options: UseNotificationSocketOptions = {}
             {
               id: id || undefined,
               duration: 5000,
-              icon: isDm ? '💬' : '🔔',
+              icon: isDm ? '💬' : raw.type === 'follow' ? '👤' : '🔔',
               style: { cursor: 'pointer', maxWidth: '380px', fontSize: '13px' },
             },
           );

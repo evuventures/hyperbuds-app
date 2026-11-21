@@ -90,6 +90,10 @@ class NotificationSocketService {
     this.socket.on("new-message", (data: unknown) => {
       this.localEmit("new-message", data);
     });
+
+    this.socket.on("profile:follow-updated", (data: unknown) => {
+      this.localEmit("profile:follow-updated", data);
+    });
   }
 
   public isConnected(): boolean {

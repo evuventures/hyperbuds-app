@@ -6,6 +6,7 @@ import toast from 'react-hot-toast';
 import { profileApi } from '@/lib/api/profile.api';
 import type { ProfileByUsernameResponse } from '@/lib/api/profile.api';
 import apiClient from '@/lib/api/client';
+import notificationSocket from '@/lib/socket/notificationSocket';
 import DashboardLayout from '@/components/layout/Dashboard/Dashboard';
 import UserProfileHeader from '@/components/profile/ProfileCard.jsx';
 import { FaSpinner } from 'react-icons/fa';
@@ -18,6 +19,7 @@ export default function ProfileByUsernamePage() {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [isFollowing, setIsFollowing] = useState(false);
   const [followersCount, setFollowersCount] = useState<number | null>(null);
+  const [followingCount, setFollowingCount] = useState<number | null>(null);
   const [followLoading, setFollowLoading] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -50,6 +52,7 @@ export default function ProfileByUsernamePage() {
           if (active && followRes) {
             setIsFollowing(Boolean(followRes.isFollowing));
             setFollowersCount(typeof followRes.followersCount === 'number' ? followRes.followersCount : null);
+            setFollowingCount(typeof followRes.followingCount === 'number' ? followRes.followingCount : null);
           }
         }
       } catch (err) {
@@ -155,6 +158,9 @@ export default function ProfileByUsernamePage() {
       if (typeof result.followersCount === 'number') {
         setFollowersCount(result.followersCount);
       }
+      if (typeof result.followingCount === 'number') {
+        setFollowingCount(result.followingCount);
+      }
       toast.success(
         result.isFollowing
           ? `Following @${profile.username}`
@@ -176,6 +182,20 @@ export default function ProfileByUsernamePage() {
     console.error('User ID not found for profile:', profile);
   };
 
+  useEffect(() => {
+    const targetId = String(profile?.userId || profile?.id || profile?._id || '');
+    if (!targetId) return;
+    const onFollowUpdated = (payload?: unknown) => {
+      if (!payload || typeof payload !== 'object') return;
+      const p = payload as { userId?: string; followersCount?: number; followingCount?: number };
+      if (p.userId && String(p.userId) !== targetId) return;
+      if (typeof p.followersCount === 'number') setFollowersCount(p.followersCount);
+      if (typeof p.followingCount === 'number') setFollowingCount(p.followingCount);
+    };
+    notificationSocket.on('profile:follow-updated', onFollowUpdated);
+    return () => notificationSocket.off('profile:follow-updated', onFollowUpdated);
+  }, [profile?.userId, profile?.id, profile?._id]);
+
   return (
     <DashboardLayout>
       <div className="mx-auto px-4 py-6 pb-24 max-w-6xl">
@@ -188,6 +208,7 @@ export default function ProfileByUsernamePage() {
           isFollowing={isFollowing}
           followLoading={followLoading}
           followersCount={followersCount}
+          followingCount={followingCount}
           onToggleFollow={isOwnProfile ? undefined : handleToggleFollow}
         />
       </div>
