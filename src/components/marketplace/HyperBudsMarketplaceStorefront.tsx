@@ -250,6 +250,7 @@ export default function HyperBudsMarketplaceStorefront() {
   const [postalCode, setPostalCode] = useState('');
   const [jurisdictionCheck, setJurisdictionCheck] = useState<JurisdictionCheck | null>(null);
   const [checkingOut, setCheckingOut] = useState(false);
+  const [paystackCurrency, setPaystackCurrency] = useState<'USD' | 'NGN'>('USD');
 
   // Return / Dispute state
   const [actionOrderId, setActionOrderId] = useState<string | null>(null);
@@ -359,6 +360,29 @@ export default function HyperBudsMarketplaceStorefront() {
 
   useEffect(() => {
     void loadStoreData();
+  }, [loadStoreData]);
+
+  // Verify Paystack redirect callback after gear order checkout
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    const ref = params.get('paystack_ref') || params.get('reference') || params.get('trxref');
+    if (!ref) return;
+    apiClient
+      .get(`/payments/paystack/verify/${encodeURIComponent(ref)}`)
+      .then((res) => {
+        if (res.data?.verified) {
+          toast.success(`Paystack payment confirmed (${ref})! Your order is marked paid.`);
+          setView('orders');
+          void loadStoreData();
+        }
+      })
+      .catch(() => {
+        toast.error('Unable to verify Paystack payment.');
+      })
+      .finally(() => {
+        window.history.replaceState({}, '', window.location.pathname);
+      });
   }, [loadStoreData]);
 
   useEffect(() => {
@@ -528,6 +552,22 @@ export default function HyperBudsMarketplaceStorefront() {
         },
         { headers: { 'Idempotency-Key': idemKey } },
       );
+      const firstOrderId = res.data?.orders?.[0]?._id || res.data?.orders?.[0]?.id;
+      if (firstOrderId) {
+        try {
+          const ps = await apiClient.post('/payments/paystack/initialize', {
+            purpose: 'gear_order',
+            orderId: firstOrderId,
+            currency: paystackCurrency,
+          });
+          if (ps.data?.authorizationUrl) {
+            window.location.href = ps.data.authorizationUrl;
+            return;
+          }
+        } catch {
+          // If Paystack key isn't active yet, keep the placed order visible in Orders tab
+        }
+      }
       toast.success(
         `Order placed (${formatPrice(res.data?.summary?.netTotalMinor ?? netTotalMinor, cart.currency)}).`,
       );
@@ -1565,15 +1605,38 @@ export default function HyperBudsMarketplaceStorefront() {
                     <span className="tabular-nums">{formatPrice(netTotalMinor, cart.currency)}</span>
                   </div>
                 </div>
+                <div className="mb-3 flex items-center justify-between text-xs">
+                  <span className="font-semibold text-slate-600 dark:text-slate-300">
+                    Paystack Currency
+                  </span>
+                  <div className="inline-flex rounded-full border border-slate-200 bg-slate-50 p-0.5 dark:border-slate-700 dark:bg-slate-950">
+                    {(['USD', 'NGN'] as const).map((cur) => (
+                      <button
+                        key={cur}
+                        type="button"
+                        onClick={() => setPaystackCurrency(cur)}
+                        className={`rounded-full px-2.5 py-0.5 text-[11px] font-bold transition ${
+                          paystackCurrency === cur
+                            ? 'bg-[#0BA4DB] text-white'
+                            : 'text-slate-600 dark:text-slate-300'
+                        }`}
+                      >
+                        {cur}
+                      </button>
+                    ))}
+                  </div>
+                </div>
                 <button
                   type="submit"
                   form="hb-cart-checkout-form"
                   disabled={
                     checkingOut || (jurisdictionCheck !== null && !jurisdictionCheck.allowed)
                   }
-                  className="mt-4 w-full rounded-full bg-[#6C5CE7] py-2.5 text-xs font-bold text-white shadow-[0_6px_18px_rgba(108,92,231,0.35)] transition hover:bg-[#5b4bd6] disabled:opacity-40"
+                  className="mt-2 w-full rounded-full bg-[#6C5CE7] py-2.5 text-xs font-bold text-white shadow-[0_6px_18px_rgba(108,92,231,0.35)] transition hover:bg-[#5b4bd6] disabled:opacity-40"
                 >
-                  {checkingOut ? 'Placing order...' : `Checkout · ${formatPrice(netTotalMinor, cart.currency)}`}
+                  {checkingOut
+                    ? 'Redirecting to Paystack...'
+                    : `Pay with Paystack (${paystackCurrency}) · ${formatPrice(netTotalMinor, cart.currency)}`}
                 </button>
               </div>
             )}
