@@ -30,6 +30,10 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#ffffff" },
     { media: "(prefers-color-scheme: dark)", color: "#0b0b0e" },
@@ -59,6 +63,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                   document.documentElement.classList.add('dark');
                 }
               }
+              // Prevent iOS Safari pinch-zoom gestures
+              document.addEventListener('gesturestart', function(e) { e.preventDefault(); }, { passive: false });
+              document.addEventListener('gesturechange', function(e) { e.preventDefault(); }, { passive: false });
+              document.addEventListener('gestureend', function(e) { e.preventDefault(); }, { passive: false });
             `,
           }}
         />

@@ -14,6 +14,23 @@
   --foreground: #ededed;
 }
 
+/* Lock app scale on mobile: disable pinch-zoom, double-tap zoom, and iOS input auto-zoom */
+html,
+body {
+  touch-action: pan-x pan-y;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  overscroll-behavior-x: none;
+}
+
+@media (max-width: 768px) {
+  input,
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}
+
 /* Modern Custom Scrollbar Styles */
 .custom-scrollbar {
   scrollbar-width: thin;
