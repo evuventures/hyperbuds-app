@@ -29,6 +29,8 @@ import {
 } from '@/components/feed/CreatorStudioModal';
 import type { FeedPostRecord } from '@/lib/api/feed.api';
 import { deriveVideoPoster, withVideoPreviewFragment } from '@/lib/utils/mediaThumbnail';
+import { formatCompactCount } from '@/lib/utils/formatCount';
+import { markReelsSeenNow } from '@/hooks/useNavBadges';
 
 interface ReelComment {
   _id: string;
@@ -163,6 +165,7 @@ export default function ReelsPage() {
   }, []);
 
   useEffect(() => {
+    markReelsSeenNow();
     void loadReels();
   }, [loadReels]);
 
@@ -702,7 +705,7 @@ export default function ReelsPage() {
                       >
                         <Heart className={`h-5 w-5 ${isActiveLiked ? 'fill-current' : ''}`} />
                       </span>
-                      <span className="text-[11px] font-semibold tabular-nums">{likeCount}</span>
+                      <span className="text-[11px] font-semibold tabular-nums">{formatCompactCount(likeCount)}</span>
                     </button>
 
                     <button
@@ -714,7 +717,7 @@ export default function ReelsPage() {
                       <span className="flex h-11 w-11 items-center justify-center rounded-full bg-black/45 text-white backdrop-blur-md active:scale-95">
                         <MessageSquare className="h-5 w-5" />
                       </span>
-                      <span className="text-[11px] font-semibold tabular-nums">{commentCount}</span>
+                      <span className="text-[11px] font-semibold tabular-nums">{formatCompactCount(commentCount)}</span>
                     </button>
 
                     <button

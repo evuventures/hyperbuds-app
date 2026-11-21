@@ -14,6 +14,7 @@ import { getCurrentUser, User } from '@/lib/api/auth.api';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { setToken, setUser as setUserAction } from '@/store/slices/authSlice';
 import { useAuth } from '@/hooks/auth/useAuth';
+import { useNavBadges } from '@/hooks/useNavBadges';
 import Image from 'next/image';
 import { MotionConfig } from 'framer-motion';
 
@@ -231,6 +232,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     toggleSidebarCollapse,
     toggleSidebarOpen,
   } = useSidebar();
+  const { unseenReelsCount, unreadMessagesCount } = useNavBadges();
 
   useEffect(() => {
     if (!sidebarOpen || window.matchMedia('(min-width: 1024px)').matches) return;
@@ -376,6 +378,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               {MOBILE_QUICK_NAV.map((item) => {
                 const active = item.match(pathname || '/');
                 const Icon = item.icon;
+                const badgeCount =
+                  item.href === '/dashboard'
+                    ? unseenReelsCount
+                    : item.href === '/messages'
+                      ? unreadMessagesCount
+                      : 0;
                 return (
                   <Link
                     key={item.href}
@@ -391,6 +399,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   >
                     <Icon className="h-[18px] w-[18px] shrink-0" />
                     {active && <span>{item.label}</span>}
+                    {badgeCount > 0 && (
+                      <span className="absolute -top-1 -right-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-bold leading-none text-white ring-2 ring-white dark:ring-slate-900">
+                        {badgeCount > 99 ? '99+' : badgeCount}
+                      </span>
+                    )}
                   </Link>
                 );
               })}

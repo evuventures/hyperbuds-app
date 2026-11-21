@@ -28,6 +28,8 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { useAuth } from '@/hooks/auth/useAuth';
+import { useNavBadges } from '@/hooks/useNavBadges';
+import { formatCompactCount } from '@/lib/utils/formatCount';
 import { useSidebarAppearance, type SidebarAppearance } from '@/hooks/useSidebarAppearance';
 
 interface NavItem {
@@ -52,10 +54,8 @@ export const NAV_SECTIONS: Array<{ title: string; items: NavItem[] }> = [
     title: 'Business',
     items: [
       { label: 'Startup & Talent Hub', href: '/startup-talent', icon: BriefcaseBusiness, match: (p) => p.startsWith('/startup-talent') },
-      { label: 'Marketplace', href: '/marketplace', icon: ShoppingBag, match: (p) => p === '/marketplace' || (p.startsWith('/marketplace/') && !p.startsWith('/marketplace/gear')) },
-      { label: 'Gear Hub', href: '/marketplace/gear', icon: Package, match: (p) => p.startsWith('/marketplace/gear') },
+      { label: 'Marketplace', href: '/marketplace', icon: ShoppingBag, match: (p) => p === '/marketplace' || p.startsWith('/marketplace/') },
       { label: 'Sponsorships', href: '/sponsorships', icon: Megaphone, match: (p) => p.startsWith('/sponsorships') },
-      { label: 'Analytics', href: '/analytics', icon: BarChart3, match: (p) => p.startsWith('/analytics') },
       { label: 'Moderation & Copyright', href: '/moderation', icon: ShieldAlert, match: (p) => p.startsWith('/moderation') },
     ],
   },
@@ -225,6 +225,7 @@ export function AppSidebar({
   const pathname = usePathname() || '/';
   const router = useRouter();
   const { logout, user: authUser } = useAuth();
+  const { unseenReelsCount, unreadMessagesCount } = useNavBadges();
   const { appearance, setAppearance } = useSidebarAppearance();
   const t = THEMES[appearance];
 
@@ -288,6 +289,12 @@ export function AppSidebar({
               {NAV_SECTIONS.flatMap((s) => s.items).map((item) => {
                 const active = item.match(pathname);
                 const Icon = item.icon;
+                const badgeCount =
+                  item.href === '/dashboard'
+                    ? unseenReelsCount
+                    : item.href === '/messages'
+                      ? unreadMessagesCount
+                      : 0;
                 return (
                   <li key={item.href}>
                     <Link
@@ -296,9 +303,14 @@ export function AppSidebar({
                       title={item.label}
                       aria-label={item.label}
                       aria-current={active ? 'page' : undefined}
-                      className={`hb-nav-link flex h-10 items-center justify-center rounded-xl transition ${active ? t.active : t.link}`}
+                      className={`hb-nav-link relative flex h-10 items-center justify-center rounded-xl transition ${active ? t.active : t.link}`}
                     >
                       <Icon className="h-[18px] w-[18px]" />
+                      {badgeCount > 0 && (
+                        <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[9px] font-bold leading-none text-white">
+                          {badgeCount > 99 ? '99+' : badgeCount}
+                        </span>
+                      )}
                     </Link>
                   </li>
                 );
@@ -411,6 +423,12 @@ export function AppSidebar({
                   {section.items.map((item) => {
                     const active = item.match(pathname);
                     const Icon = item.icon;
+                    const badgeCount =
+                      item.href === '/dashboard'
+                        ? unseenReelsCount
+                        : item.href === '/messages'
+                          ? unreadMessagesCount
+                          : 0;
                     return (
                       <li key={item.href}>
                         <Link
@@ -419,8 +437,15 @@ export function AppSidebar({
                           aria-current={active ? 'page' : undefined}
                           className={`hb-nav-link flex flex-row items-center gap-2.5 rounded-xl px-2.5 py-2 text-[13px] font-medium leading-none transition ${active ? t.active : t.link}`}
                         >
-                          <Icon className="h-[17px] w-[17px] shrink-0" />
-                          <span className="truncate">{item.label}</span>
+                          <span className="relative flex items-center justify-center">
+                            <Icon className="h-[17px] w-[17px] shrink-0" />
+                          </span>
+                          <span className="flex-1 truncate">{item.label}</span>
+                          {badgeCount > 0 && (
+                            <span className="ml-auto inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-rose-500 px-1.5 text-[10px] font-bold leading-none text-white">
+                              {badgeCount > 99 ? '99+' : formatCompactCount(badgeCount)}
+                            </span>
+                          )}
                         </Link>
                       </li>
                     );

@@ -5,7 +5,11 @@ import { useState, useEffect, useCallback } from "react";
 import apiClient from "@/lib/api/client";
 import notificationSocket from "@/lib/socket/notificationSocket";
 import UserProfileHeader from "@/components/profile/ProfileCard";
-import { InlineProfileSegments } from "@/components/profile/InlineProfileSegments";
+import {
+  ProfileEditorModals,
+  ProfilePostsPaginated,
+} from "@/components/profile/ProfileModalsAndPosts";
+import { CreatorStudioModal } from "@/components/feed/CreatorStudioModal";
 import { Button } from "@/components/ui/button";
 
 export default function ProfilePage() {
@@ -13,6 +17,10 @@ export default function ProfilePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [activeModal, setActiveModal] = useState(null);
+  const [studioOpen, setStudioOpen] = useState(false);
+  const [showPosts, setShowPosts] = useState(true);
+  const [postsRefreshKey, setPostsRefreshKey] = useState(0);
 
   const loadProfile = useCallback(async () => {
     try {
@@ -96,6 +104,16 @@ export default function ProfilePage() {
     }
   }, []);
 
+  const profileObj = user?.profile ?? null;
+  const myUserId = profileObj?.userId || user?.userId || "";
+
+  const handleTogglePosts = () => {
+    setShowPosts(true);
+    setTimeout(() => {
+      document.getElementById("my-posts")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 60);
+  };
+
   if (error) {
     return (
       <DashboardLayout>
@@ -125,37 +143,75 @@ export default function ProfilePage() {
   return (
     <DashboardLayout>
       <div className="min-h-full bg-gray-50 dark:bg-slate-900">
-        <div className="p-4 pb-16 space-y-6 lg:p-6 lg:pb-34">
+        <div className="p-4 pb-20 space-y-6 lg:p-6 lg:pb-34">
           <div className="mx-auto max-w-6xl space-y-5">
-            {!isLoading && (
-              <InlineProfileSegments
-                profile={user?.profile ?? null}
-                completion={user?.completion ?? null}
-                onProfileUpdated={loadProfile}
-              />
-            )}
             <UserProfileHeader
               userData={user}
               isDark={true}
               isLoading={isLoading}
               isOwnProfile={true}
+              onEditProfile={() => setActiveModal("edit")}
+              onEditPhoto={() => setActiveModal("photo")}
+              onEditNiches={() => setActiveModal("niches")}
+              onEditSocial={() => setActiveModal("social")}
+              onCreatePost={() => setStudioOpen(true)}
+              onShowPosts={handleTogglePosts}
               followersCount={
                 typeof user?.followersCount === "number"
                   ? user.followersCount
-                  : typeof user?.profile?.followersCount === "number"
-                  ? user.profile.followersCount
+                  : typeof profileObj?.followersCount === "number"
+                  ? profileObj.followersCount
                   : null
               }
               followingCount={
                 typeof user?.followingCount === "number"
                   ? user.followingCount
-                  : typeof user?.profile?.followingCount === "number"
-                  ? user.profile.followingCount
+                  : typeof profileObj?.followingCount === "number"
+                  ? profileObj.followingCount
                   : null
               }
             />
+
+            {!isLoading && showPosts && myUserId && (
+              <ProfilePostsPaginated
+                authorId={myUserId}
+                refreshKey={postsRefreshKey}
+                onCreatePost={() => setStudioOpen(true)}
+              />
+            )}
           </div>
         </div>
+
+        <ProfileEditorModals
+          activeModal={activeModal}
+          onClose={() => setActiveModal(null)}
+          profile={profileObj}
+          onSaved={loadProfile}
+        />
+
+        <CreatorStudioModal
+          open={studioOpen}
+          onOpenChange={setStudioOpen}
+          initialMode="post"
+          currentUser={
+            profileObj
+              ? {
+                  id: myUserId,
+                  displayName: profileObj.displayName || profileObj.username,
+                  username: profileObj.username,
+                  avatar: profileObj.avatar,
+                }
+              : undefined
+          }
+          onPostCreated={() => {
+            setPostsRefreshKey((k) => k + 1);
+            setShowPosts(true);
+          }}
+          onReelCreated={() => {
+            setPostsRefreshKey((k) => k + 1);
+            setShowPosts(true);
+          }}
+        />
       </div>
     </DashboardLayout>
   );

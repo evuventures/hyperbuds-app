@@ -29,9 +29,13 @@ import {
   Globe,
   Building2,
   LayoutGrid,
+  Plus,
+  BarChart3,
+  FileText,
 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
+import { formatCompactCount } from "@/lib/utils/formatCount";
 
 const LoadingSkeleton = () => (
   <div className="space-y-5">
@@ -74,9 +78,14 @@ export default function UserProfileHeader({
   userData,
   isLoading = false,
   isOwnProfile = false,
-  onEditProfile,
+  onEditProfile = /** @type {(() => void) | undefined} */ (undefined),
+  onEditPhoto = /** @type {(() => void) | undefined} */ (undefined),
+  onEditNiches = /** @type {(() => void) | undefined} */ (undefined),
+  onEditSocial = /** @type {(() => void) | undefined} */ (undefined),
+  onCreatePost = /** @type {(() => void) | undefined} */ (undefined),
+  onShowPosts = /** @type {(() => void) | undefined} */ (undefined),
   onConnect = /** @type {((id: string) => void) | undefined} */ (undefined),
-  onMessage,
+  onMessage = /** @type {((id: string) => void) | undefined} */ (undefined),
   isFollowing = false,
   followLoading = false,
   followersCount = /** @type {number | null} */ (null),
@@ -237,15 +246,15 @@ export default function UserProfileHeader({
 
   const followerDisplay =
     typeof resolvedFollowersCount === "number"
-      ? resolvedFollowersCount.toLocaleString()
+      ? formatCompactCount(resolvedFollowersCount)
       : platformLoading
       ? "..."
       : combinedMetrics.totalFollowers > 0
-      ? combinedMetrics.totalFollowers.toLocaleString()
-      : user.stats?.totalFollowers?.toLocaleString() ?? "0";
+      ? formatCompactCount(combinedMetrics.totalFollowers)
+      : formatCompactCount(user.stats?.totalFollowers ?? 0);
 
   const followingDisplay =
-    typeof resolvedFollowingCount === "number" ? resolvedFollowingCount.toLocaleString() : "0";
+    typeof resolvedFollowingCount === "number" ? formatCompactCount(resolvedFollowingCount) : "0";
 
   return (
     <div className="space-y-5">
@@ -307,11 +316,21 @@ export default function UserProfileHeader({
                   </div>
                 )}
 
-                {user.status === "online" && (
+                {isOwnProfile && onEditPhoto ? (
+                  <button
+                    type="button"
+                    onClick={onEditPhoto}
+                    title="Update profile picture"
+                    aria-label="Update profile picture"
+                    className="flex absolute -right-1.5 -bottom-1.5 justify-center items-center w-8 h-8 rounded-full bg-purple-600 text-white shadow-md ring-2 ring-white transition hover:bg-purple-500 active:scale-95 dark:ring-slate-900"
+                  >
+                    <Plus size={16} strokeWidth={2.5} />
+                  </button>
+                ) : user.status === "online" ? (
                   <div className="flex absolute -right-1 -bottom-1 justify-center items-center w-6 h-6 bg-emerald-500 rounded-full border-2 border-white dark:border-slate-900">
                     <Activity size={11} className="text-white" />
                   </div>
-                )}
+                ) : null}
               </div>
 
               {/* Instagram-style Compact Stat Strip (Visible on Mobile & Desktop) */}
@@ -353,22 +372,42 @@ export default function UserProfileHeader({
 
               {isOwnProfile ? (
                 <>
-                  <Link
-                    href="/profile/edit"
-                    onClick={onEditProfile}
+                  <button
+                    type="button"
+                    onClick={() => (onEditProfile ? onEditProfile() : router.push("/profile/edit"))}
                     className="inline-flex gap-1.5 items-center px-3.5 py-2 text-xs sm:text-sm font-medium text-slate-700 bg-white rounded-xl border border-slate-200 transition-colors hover:bg-slate-50 dark:bg-slate-800 dark:text-slate-200 dark:border-slate-700 dark:hover:bg-slate-700"
                     title="Edit Profile"
                   >
                     <Pencil size={14} />
                     <span>Edit Profile</span>
-                  </Link>
+                  </button>
                   <Link
-                    href="/ai-matches"
-                    className="inline-flex gap-1.5 items-center px-4 py-2 text-xs sm:text-sm font-semibold text-white bg-indigo-600 rounded-xl transition-colors hover:bg-indigo-500"
+                    href="/analytics"
+                    className="inline-flex gap-1.5 items-center px-3.5 py-2 text-xs sm:text-sm font-semibold text-purple-700 bg-purple-50 rounded-xl border border-purple-200 transition-colors hover:bg-purple-100 dark:bg-purple-950/50 dark:text-purple-200 dark:border-purple-800"
                   >
-                    <Heart size={14} />
-                    <span>Get Match</span>
+                    <BarChart3 size={14} />
+                    <span>Analytics</span>
                   </Link>
+                  {onShowPosts && (
+                    <button
+                      type="button"
+                      onClick={onShowPosts}
+                      className="inline-flex gap-1.5 items-center px-3.5 py-2 text-xs sm:text-sm font-medium text-slate-700 bg-white rounded-xl border border-slate-200 transition-colors hover:bg-slate-50 dark:bg-slate-800 dark:text-slate-200 dark:border-slate-700 dark:hover:bg-slate-700"
+                    >
+                      <FileText size={14} />
+                      <span>My Posts</span>
+                    </button>
+                  )}
+                  {onCreatePost && (
+                    <button
+                      type="button"
+                      onClick={onCreatePost}
+                      className="inline-flex gap-1.5 items-center px-4 py-2 text-xs sm:text-sm font-semibold text-white bg-purple-600 rounded-xl transition-colors hover:bg-purple-500"
+                    >
+                      <Plus size={14} />
+                      <span>Create Post</span>
+                    </button>
+                  )}
                 </>
               ) : (
                 <>
@@ -582,12 +621,13 @@ export default function UserProfileHeader({
                   </div>
                 </div>
                 {isOwnProfile && (
-                  <Link
-                    href="/profile/edit"
+                  <button
+                    type="button"
+                    onClick={() => (onEditProfile ? onEditProfile() : router.push("/profile/edit"))}
                     className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline"
                   >
                     Update talent details →
-                  </Link>
+                  </button>
                 )}
               </div>
 
@@ -669,7 +709,7 @@ export default function UserProfileHeader({
           )}
 
           {/* Content Specializations (Niches) */}
-          {user.niche && user.niche.length > 0 && (
+          {((user.niche && user.niche.length > 0) || isOwnProfile) && (
             <section className="p-5 bg-white rounded-2xl border border-slate-200 shadow-xs dark:bg-slate-900 dark:border-slate-800">
               <h2 className="flex gap-2 items-center mb-3 text-sm sm:text-base font-bold text-slate-900 dark:text-slate-100">
                 <div className="p-1.5 rounded-lg bg-purple-50 text-purple-600 dark:bg-purple-950/60 dark:text-purple-400">
@@ -677,8 +717,8 @@ export default function UserProfileHeader({
                 </div>
                 Content Specializations
               </h2>
-              <div className="flex flex-wrap gap-2">
-                {user.niche.map((tag, index) => (
+              <div className="flex flex-wrap items-center gap-2">
+                {(user.niche || []).map((tag, index) => (
                   <span
                     key={index}
                     className="px-3 py-1 text-xs font-semibold text-indigo-700 bg-indigo-50 rounded-lg border border-indigo-200 dark:bg-indigo-950/50 dark:text-indigo-300 dark:border-indigo-800/70"
@@ -686,6 +726,17 @@ export default function UserProfileHeader({
                     #{tag}
                   </span>
                 ))}
+                {isOwnProfile && onEditNiches && (
+                  <button
+                    type="button"
+                    onClick={onEditNiches}
+                    title="Add content niches"
+                    aria-label="Add content niches"
+                    className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-purple-300 bg-purple-50 text-purple-700 transition hover:bg-purple-600 hover:text-white dark:border-purple-700 dark:bg-purple-950/50 dark:text-purple-300 dark:hover:bg-purple-600 dark:hover:text-white"
+                  >
+                    <Plus size={14} strokeWidth={2.5} />
+                  </button>
+                )}
               </div>
             </section>
           )}
@@ -749,12 +800,13 @@ export default function UserProfileHeader({
                 Social Media
               </h2>
               {isOwnProfile && hasSocialLinks && (
-                <Link
-                  href="/profile/edit"
+                <button
+                  type="button"
+                  onClick={() => (onEditSocial ? onEditSocial() : router.push("/profile/edit"))}
                   className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline"
                 >
                   Manage channels →
-                </Link>
+                </button>
               )}
             </div>
 
@@ -785,6 +837,20 @@ export default function UserProfileHeader({
                     </a>
                   );
                 })}
+                {isOwnProfile && onEditSocial && (
+                  <button
+                    type="button"
+                    onClick={onEditSocial}
+                    title="Add social media link"
+                    aria-label="Add social media link"
+                    className="flex gap-2.5 items-center justify-center p-3.5 rounded-xl border border-dashed border-purple-300 bg-purple-50/40 text-purple-700 transition hover:bg-purple-50 dark:border-purple-700/70 dark:bg-purple-950/20 dark:text-purple-300 dark:hover:bg-purple-950/40"
+                  >
+                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-purple-600 text-white">
+                      <Plus size={16} strokeWidth={2.5} />
+                    </span>
+                    <span className="text-xs font-semibold">Add Social Link</span>
+                  </button>
+                )}
               </div>
             ) : (
               <div className="flex flex-col gap-3 items-center px-6 py-8 text-center rounded-xl border border-dashed border-slate-200 bg-slate-50/50 dark:border-slate-700 dark:bg-slate-800/30">
@@ -799,13 +865,14 @@ export default function UserProfileHeader({
                   </p>
                 </div>
                 {isOwnProfile && (
-                  <Link
-                    href="/profile/edit"
-                    className="inline-flex gap-1.5 items-center px-4 py-2 text-xs font-semibold text-white bg-indigo-600 rounded-xl hover:bg-indigo-500"
+                  <button
+                    type="button"
+                    onClick={() => (onEditSocial ? onEditSocial() : router.push("/profile/edit"))}
+                    className="inline-flex gap-1.5 items-center px-4 py-2 text-xs font-semibold text-white bg-purple-600 rounded-full hover:bg-purple-500"
                   >
-                    <Pencil size={14} />
+                    <Plus size={14} strokeWidth={2.5} />
                     Add social links
-                  </Link>
+                  </button>
                 )}
               </div>
             )}

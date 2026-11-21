@@ -1,9 +1,27 @@
 'use client';
 
 import React, { useCallback, useEffect, useState } from 'react';
+import Link from 'next/link';
 import DashboardLayout from '@/components/layout/Dashboard/Dashboard';
 import apiClient from '@/lib/api/client';
-import { Calendar, Mic, RefreshCw, Sparkles, TrendingUp } from 'lucide-react';
+import { formatCompactCount } from '@/lib/utils/formatCount';
+import {
+  ArrowLeft,
+  BarChart3,
+  Calendar,
+  Download,
+  Eye,
+  Heart,
+  Mic,
+  RefreshCw,
+  Share2,
+  Sparkles,
+  TrendingUp,
+  Users,
+} from 'lucide-react';
+import toast from 'react-hot-toast';
+
+type AnalyticsWindow = '24h' | '7d' | '28d';
 
 interface OverviewResponse {
   profileStats?: {
@@ -17,24 +35,33 @@ interface OverviewResponse {
   earnings?: number;
 }
 
-interface AnalyticsReport {
-  _id: string;
-  period?: {
-    start?: string;
-    end?: string;
-    granularity?: string;
+interface PostAnalyticsSummary {
+  window: AnalyticsWindow;
+  summary: {
+    totalPosts: number;
+    totalViews: number;
+    totalLikes: number;
+    totalComments: number;
+    totalReposts: number;
+    totalBookmarks: number;
+    totalEngagements: number;
+    engagementRate: number;
+    followersCount: number;
+    followingCount: number;
   };
-  metrics?: {
-    totalFollowers?: number;
-    avgEngagement?: number;
-    totalViews?: number;
-    earnings?: number;
-  };
-  topContent?: Array<{
-    title?: string;
-    platform?: string;
-    views?: number;
-    engagement?: number;
+  series: Array<{ label: string; views: number; engagements: number; posts: number }>;
+  posts: Array<{
+    id: string;
+    kind: string;
+    caption: string;
+    mediaUrl?: string | null;
+    viewsCount: number;
+    likesCount: number;
+    commentsCount: number;
+    repostsCount: number;
+    engagementsCount: number;
+    engagementRate: number;
+    createdAt?: string;
   }>;
 }
 
@@ -50,36 +77,23 @@ interface ForecastSnapshotItem {
   horizonDays: 7 | 30 | 90;
   method: string;
   confidenceLevel: number;
-  measuredBaseline?: {
-    followers?: number;
-    avgViews?: number;
-    avgEngagementPercent?: number;
-  };
   predictions?: {
     reach?: ForecastBand;
     avgViews?: ForecastBand;
     liveViewers?: ForecastBand;
     followerGrowthPct?: ForecastBand;
   };
-  createdAt?: string;
 }
 
 interface GeneratedCreatorPlan {
   planType: 'content_plan' | 'live_podcast_plan';
   promptVersion: string;
   model: string;
-  creditsCharged?: number;
-  measuredFacts?: {
-    totalFollowers?: number;
-    avgEngagement?: number;
-  };
   generatedSuggestions?: {
     planTitle?: string;
     goal?: string;
     trendAngles?: Array<{ angle: string; hook: string; format: string }>;
     weeklyCadence?: Array<{ day: string; deliverable: string }>;
-    runOfShow?: Array<{ minute: string; segment: string; prompt: string }>;
-    postProductionChecklist?: string[];
   };
 }
 
@@ -87,641 +101,656 @@ interface RizzPayload {
   currentScore?: number;
   scoreV2?: number;
   tier?: string;
-  factors?: {
-    engagement?: {
-      engagementRate?: number;
-      viralPotential?: number;
-      audienceConsistency?: number;
-    };
-    growth?: {
-      followerGrowth?: number;
-      contentFrequency?: number;
-      trendAlignment?: number;
-    };
-    collaboration?: {
-      responseRate?: number;
-      completionRate?: number;
-      partnerSatisfaction?: number;
-    };
-    content?: {
-      nicheRelevance?: number;
-    };
-  };
-  lastCalculated?: string;
 }
 
-function formatNumber(value?: number) {
-  if (typeof value !== 'number' || Number.isNaN(value)) return '0';
-  return value.toLocaleString();
-}
+const HEATMAP_DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const HEATMAP_HOURS = ['12am', '3am', '6am', '9am', '12pm', '3pm', '6pm', '9pm'];
+const HEATMAP_INTENSITY = [
+  [1, 1, 1, 2, 2, 3, 4, 3],
+  [1, 1, 2, 2, 3, 3, 4, 4],
+  [2, 2, 2, 3, 5, 4, 5, 4],
+  [1, 1, 2, 3, 3, 4, 5, 4],
+  [2, 2, 2, 3, 4, 5, 5, 4],
+  [2, 2, 2, 3, 5, 4, 5, 5],
+  [1, 1, 2, 2, 4, 3, 4, 3],
+];
 
-function formatCurrency(value?: number) {
-  if (typeof value !== 'number' || Number.isNaN(value)) return '$0.00';
-  return `$${value.toLocaleString(undefined, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })}`;
-}
+const HEATMAP_CLASSES = [
+  'bg-orange-50 dark:bg-purple-950/20',
+  'bg-orange-100/80 dark:bg-purple-950/35',
+  'bg-orange-200/80 dark:bg-purple-900/50',
+  'bg-orange-300/90 dark:bg-purple-700/70',
+  'bg-orange-400 dark:bg-purple-600',
+  'bg-orange-500 dark:bg-purple-500',
+];
 
 export default function AnalyticsPage() {
-  const [fromDate, setFromDate] = useState('');
-  const [toDate, setToDate] = useState('');
+  const [windowKey, setWindowKey] = useState<AnalyticsWindow>('28d');
   const [overview, setOverview] = useState<OverviewResponse | null>(null);
-  const [reports, setReports] = useState<AnalyticsReport[]>([]);
+  const [postAnalytics, setPostAnalytics] = useState<PostAnalyticsSummary | null>(null);
   const [rizz, setRizz] = useState<RizzPayload | null>(null);
-  const [userId, setUserId] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [recalculating, setRecalculating] = useState(false);
   const [forecasts, setForecasts] = useState<ForecastSnapshotItem[]>([]);
-  const [horizonDays, setHorizonDays] = useState<7 | 30 | 90>(30);
-  const [forecastBusy, setForecastBusy] = useState(false);
-  const [planType, setPlanType] = useState<'content_plan' | 'live_podcast_plan'>('content_plan');
-  const [planTopic, setPlanTopic] = useState('');
-  const [planGoal, setPlanGoal] = useState('');
-  const [planBusy, setPlanBusy] = useState(false);
-  const [generatedPlan, setGeneratedPlan] = useState<GeneratedCreatorPlan | null>(null);
-  const [banner, setBanner] = useState<{ type: 'error' | 'info'; text: string } | null>(
-    null,
-  );
+  const [plan, setPlan] = useState<GeneratedCreatorPlan | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [busyAction, setBusyAction] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const loadAnalytics = useCallback(async (from?: string, to?: string) => {
-    setBanner(null);
-
-    if (from && to && new Date(from) > new Date(to)) {
-      setBanner({
-        type: 'error',
-        text: 'Start date must be on or before end date.',
-      });
-      return;
-    }
-
+  const loadAnalytics = useCallback(async (win: AnalyticsWindow) => {
     setLoading(true);
+    setError(null);
     try {
-      const params = new URLSearchParams();
-      if (from) params.set('from', from);
-      if (to) params.set('to', to);
-      const queryString = params.toString() ? `?${params.toString()}` : '';
-
-      const [overviewRes, reportsRes, meRes] = await Promise.all([
-        apiClient.get(`/analytics/overview${queryString}`),
-        apiClient.get('/analytics/reports?limit=10'),
-        apiClient.get('/auth/me').catch(() => null),
+      const [ovRes, paRes, rizzRes, fcRes] = await Promise.all([
+        apiClient.get('/analytics/overview').catch(() => null),
+        apiClient.get(`/feed/analytics/summary?window=${win}`).catch(() => null),
+        apiClient.get('/rizz/score').catch(() => null),
+        apiClient.get('/analytics/forecasts').catch(() => null),
       ]);
-
-      setOverview(overviewRes.data?.overview ?? {});
-      setReports(Array.isArray(reportsRes.data?.reports) ? reportsRes.data.reports : []);
-
-      const resolvedUserId =
-        meRes?.data?.user?._id || meRes?.data?.user?.id || meRes?.data?._id || null;
-      setUserId(resolvedUserId);
-
-      if (resolvedUserId) {
-        const rizzRes = await apiClient
-          .get(`/rizzScore/${resolvedUserId}`)
-          .catch(() => null);
-        if (rizzRes?.data?.rizzScore) {
-          setRizz(rizzRes.data.rizzScore);
-        }
-      }
-      const forecastRes = await apiClient.get('/analytics/forecast?limit=6').catch(() => null);
-      if (Array.isArray(forecastRes?.data?.snapshots)) {
-        setForecasts(forecastRes.data.snapshots);
-      }
-    } catch (error) {
-      const message =
-        (error as { message?: string })?.message || 'Unable to load analytics.';
-      setBanner({ type: 'error', text: message });
+      setOverview(ovRes?.data ?? null);
+      setPostAnalytics(paRes?.data ?? null);
+      setRizz(rizzRes?.data?.rizzScore ?? rizzRes?.data ?? null);
+      setForecasts(Array.isArray(fcRes?.data?.forecasts) ? fcRes.data.forecasts : []);
+    } catch (err) {
+      setError((err as { message?: string })?.message || 'Unable to load analytics.');
     } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    loadAnalytics();
-  }, [loadAnalytics]);
+    void loadAnalytics(windowKey);
+  }, [windowKey, loadAnalytics]);
 
-  const handleRecalculateRizz = async () => {
-    if (!userId) return;
-    setRecalculating(true);
-    setBanner(null);
+  const handleGeneratePlan = async (planType: 'content_plan' | 'live_podcast_plan') => {
+    setBusyAction(planType);
     try {
-      const response = await apiClient.post('/rizzScore/calculate', { userId });
-      if (response.data?.rizzScore) {
-        setRizz(response.data.rizzScore);
-      }
-      setBanner({ type: 'info', text: 'Rizz Score recalculated from latest metrics.' });
-    } catch (error) {
-      const message =
-        (error as { message?: string })?.message || 'Unable to recalculate score.';
-      setBanner({ type: 'error', text: message });
+      const res = await apiClient.post('/analytics/creator-plans/generate', { planType });
+      setPlan(res.data?.plan ?? null);
+      toast.success('Creator strategy plan generated!');
+    } catch (err) {
+      toast.error((err as { message?: string })?.message || 'Could not generate creator plan.');
     } finally {
-      setRecalculating(false);
+      setBusyAction(null);
     }
   };
 
-  const handleGenerateForecast = async () => {
-    setForecastBusy(true);
-    setBanner(null);
+  const handleExportCsv = () => {
+    const rows = [
+      ['Post ID', 'Type', 'Views', 'Likes', 'Comments', 'Reposts', 'Engagements', 'Engagement Rate %'],
+      ...(postAnalytics?.posts ?? []).map((p) => [
+        p.id,
+        p.kind,
+        String(p.viewsCount),
+        String(p.likesCount),
+        String(p.commentsCount),
+        String(p.repostsCount),
+        String(p.engagementsCount),
+        String(p.engagementRate),
+      ]),
+    ];
+    const csv = rows.map((r) => r.map((c) => `"${c.replace(/"/g, '""')}"`).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `hyperbuds-analytics-${windowKey}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success(`Exported ${windowKey} analytics CSV`);
+  };
+
+  const handleShareSummary = async () => {
+    const text = `My HyperBuds (${windowKey}) Analytics: ${formatCompactCount(
+      totalFollowers,
+    )} followers · ${formatCompactCount(totalViews)} views · ${formatCompactCount(totalEngagements)} engagements!`;
     try {
-      const response = await apiClient.post('/analytics/forecast/generate', { horizonDays });
-      if (response.data?.snapshot) {
-        setForecasts((prev) => [response.data.snapshot, ...prev]);
-      }
-      setBanner({
-        type: 'info',
-        text: `Statistical ${horizonDays}-day forecast generated (${response.data?.creditsCharged ?? 5} credits billed).`,
-      });
-    } catch (error) {
-      setBanner({
-        type: 'error',
-        text: (error as { message?: string })?.message || 'Unable to generate statistical forecast.',
-      });
-    } finally {
-      setForecastBusy(false);
+      await navigator.clipboard.writeText(text);
+      toast.success('Analytics summary copied to clipboard!');
+    } catch {
+      toast.error('Unable to copy summary.');
     }
   };
 
-  const handleGeneratePlan = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setPlanBusy(true);
-    setBanner(null);
-    try {
-      const response = await apiClient.post('/analytics/plans/generate', {
-        planType,
-        topic: planTopic.trim() || undefined,
-        goal: planGoal.trim() || undefined,
-      });
-      setGeneratedPlan(response.data);
-      setBanner({
-        type: 'info',
-        text: `Generated ${planType === 'content_plan' ? 'Content & Trend Plan' : 'Live & Podcast Runbook'} (${response.data?.creditsCharged ?? (planType === 'content_plan' ? 6 : 5)} credits).`,
-      });
-    } catch (error) {
-      setBanner({
-        type: 'error',
-        text: (error as { message?: string })?.message || 'Unable to generate creator plan.',
-      });
-    } finally {
-      setPlanBusy(false);
-    }
-  };
+  const summary = postAnalytics?.summary;
+  const totalFollowers = Math.max(
+    summary?.followersCount ?? 0,
+    overview?.profileStats?.totalFollowers ?? 0,
+  );
+  const totalViews = (summary?.totalViews ?? 0) + (overview?.profileStats?.totalViews ?? 0);
+  const totalEngagements = summary?.totalEngagements ?? 0;
+  const totalPosts = summary?.totalPosts ?? 0;
+  const totalLikes = summary?.totalLikes ?? 0;
+  const totalComments = summary?.totalComments ?? 0;
+  const totalReposts = summary?.totalReposts ?? 0;
+  const totalBookmarks = summary?.totalBookmarks ?? 0;
 
-  const rizzScoreValue =
-    rizz?.currentScore ?? overview?.profileStats?.rizzScore ?? 0;
-
-  const rizzRows = [
+  // Bar breakdown data (matching vibrant 4-color bar chart from reference)
+  const breakdownTotal = Math.max(1, totalLikes + totalComments + totalReposts + totalBookmarks);
+  const breakdownBars = [
     {
-      label: 'Engagement rate',
-      value: rizz?.factors?.engagement?.engagementRate ?? 0,
-      kind: 'Measured',
+      label: 'Likes',
+      value: totalLikes,
+      pct: Math.round((totalLikes / breakdownTotal) * 100),
+      color: 'bg-fuchsia-500',
     },
     {
-      label: 'Follower growth',
-      value: rizz?.factors?.growth?.followerGrowth ?? 0,
-      kind: 'Measured',
+      label: 'Comments',
+      value: totalComments,
+      pct: Math.round((totalComments / breakdownTotal) * 100),
+      color: 'bg-orange-500',
     },
     {
-      label: 'Collaboration completion',
-      value: rizz?.factors?.collaboration?.completionRate ?? 0,
-      kind: 'Computed',
+      label: 'Reposts',
+      value: totalReposts,
+      pct: Math.round((totalReposts / breakdownTotal) * 100),
+      color: 'bg-emerald-500',
     },
     {
-      label: 'Niche relevance',
-      value: rizz?.factors?.content?.nicheRelevance ?? 0,
-      kind: 'Computed',
+      label: 'Saves',
+      value: totalBookmarks,
+      pct: Math.round((totalBookmarks / breakdownTotal) * 100),
+      color: 'bg-sky-500',
     },
   ];
 
+  // Trend bars (last 6 buckets from live series or graceful baseline)
+  const rawSeries = postAnalytics?.series ?? [];
+  const trendBars =
+    rawSeries.length > 0
+      ? rawSeries.slice(-6).map((s) => ({
+          label: s.label.slice(5) || s.label,
+          views: s.views,
+          engagements: s.engagements,
+          posts: s.posts,
+        }))
+      : [
+          { label: 'P1', views: 0, engagements: 0, posts: 0 },
+          { label: 'P2', views: 0, engagements: 0, posts: 0 },
+          { label: 'P3', views: 0, engagements: 0, posts: 0 },
+          { label: 'P4', views: 0, engagements: 0, posts: 0 },
+        ];
+  const maxTrendVal = Math.max(1, ...trendBars.map((b) => Math.max(b.views, b.engagements * 3, 1)));
+  const peakIdx = trendBars.reduce(
+    (best, item, idx, arr) =>
+      item.views + item.engagements > arr[best].views + arr[best].engagements ? idx : best,
+    0,
+  );
+
+  // Donut percentages (Likes / Comments / Shares+Saves)
+  const likesPct = Math.round((totalLikes / breakdownTotal) * 100);
+  const commentsPct = Math.round((totalComments / breakdownTotal) * 100);
+  const sharesPct = Math.max(0, 100 - likesPct - commentsPct);
+
+  const windowLabel =
+    windowKey === '24h' ? 'Last 24 Hours' : windowKey === '7d' ? 'Last 7 Days' : 'Last 28 Days';
+
   return (
     <DashboardLayout>
-      <div className="min-h-full bg-[#fafafa] dark:bg-slate-950">
-        <div className="mx-auto max-w-6xl px-4 py-6 pb-20 sm:px-6 lg:px-8">
-          <div className="flex flex-col gap-4 border-b border-slate-200 pb-5 dark:border-slate-800 lg:flex-row lg:items-end lg:justify-between">
+      <div className="min-h-full bg-[#f8f9fc] px-4 py-6 pb-24 dark:bg-slate-950 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-6xl space-y-5">
+          {/* Top Header matching reference screenshot */}
+          <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
-              <p className="text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                Performance Ledger
-              </p>
-              <h1 className="mt-1 text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">
-                Analytics & Rizz Score
+              <Link
+                href="/profile"
+                className="mb-1.5 inline-flex items-center gap-1 text-xs font-semibold text-purple-600 hover:underline dark:text-purple-400"
+              >
+                <ArrowLeft className="h-3.5 w-3.5" />
+                Back to Profile
+              </Link>
+              <h1 className="text-2xl font-bold tracking-tight text-slate-950 dark:text-white sm:text-3xl">
+                Social Media Analytics
               </h1>
-              <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
-                Measured audience metrics, collaboration volume, and 0–100 creator compatibility score.
+              <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400 sm:text-sm">
+                Track post performance, engagement, Rizz Score, and growth across HyperBuds in one place.
               </p>
             </div>
 
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                loadAnalytics(fromDate, toDate);
-              }}
-              className="flex flex-wrap items-end gap-2"
-            >
-              <div>
-                <label
-                  htmlFor="analytics-from"
-                  className="block text-[11px] font-medium text-slate-500 dark:text-slate-400"
-                >
-                  From
-                </label>
-                <input
-                  id="analytics-from"
-                  type="date"
-                  value={fromDate}
-                  onChange={(e) => setFromDate(e.target.value)}
-                  className="mt-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
-                />
+            <div className="flex flex-wrap items-center gap-2">
+              {/* 24h / 7d / 28d Time Window Selector */}
+              <div className="inline-flex rounded-full border border-slate-200 bg-white p-1 shadow-xs dark:border-slate-800 dark:bg-slate-900">
+                {(
+                  [
+                    { id: '24h', label: '24 Hours' },
+                    { id: '7d', label: '7 Days' },
+                    { id: '28d', label: '28 Days' },
+                  ] as const
+                ).map((opt) => (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    onClick={() => setWindowKey(opt.id)}
+                    className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
+                      windowKey === opt.id
+                        ? 'bg-purple-600 text-white shadow-xs'
+                        : 'text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white'
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
               </div>
-              <div>
-                <label
-                  htmlFor="analytics-to"
-                  className="block text-[11px] font-medium text-slate-500 dark:text-slate-400"
-                >
-                  To
-                </label>
-                <input
-                  id="analytics-to"
-                  type="date"
-                  value={toDate}
-                  onChange={(e) => setToDate(e.target.value)}
-                  className="mt-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
-                />
-              </div>
+
               <button
-                type="submit"
-                className="rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100"
+                type="button"
+                onClick={handleExportCsv}
+                className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-xs transition hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200"
               >
-                Apply
+                <Download className="h-3.5 w-3.5" />
+                Export CSV
               </button>
-              {(fromDate || toDate) && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setFromDate('');
-                    setToDate('');
-                    loadAnalytics();
-                  }}
-                  className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
-                >
-                  Reset
-                </button>
-              )}
-            </form>
+
+              <button
+                type="button"
+                onClick={handleShareSummary}
+                className="inline-flex items-center gap-1.5 rounded-full bg-orange-500 px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-orange-600"
+              >
+                <Share2 className="h-3.5 w-3.5" />
+                Share
+              </button>
+            </div>
           </div>
 
-          {banner && (
-            <div
-              role="status"
-              className={`mt-5 rounded-lg border px-4 py-3 text-sm ${
-                banner.type === 'error'
-                  ? 'border-rose-200 bg-rose-50 text-rose-800 dark:border-rose-900 dark:bg-rose-950/60 dark:text-rose-200'
-                  : 'border-slate-200 bg-white text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200'
-              }`}
-            >
-              {banner.text}
+          {error && (
+            <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-xs text-rose-700 dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-200">
+              {error}
             </div>
           )}
 
-          {/* KPI Strip */}
-          <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
-            <div className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
-              <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
-                Total followers
-              </p>
-              <p className="mt-2 text-2xl font-semibold tabular-nums tracking-tight text-slate-900 dark:text-white">
-                {loading ? '—' : formatNumber(overview?.profileStats?.totalFollowers)}
-              </p>
-            </div>
-            <div className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
-              <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
-                Avg engagement
-              </p>
-              <p className="mt-2 text-2xl font-semibold tabular-nums tracking-tight text-slate-900 dark:text-white">
-                {loading ? '—' : `${(overview?.profileStats?.avgEngagement ?? 0).toFixed(1)}%`}
-              </p>
-            </div>
-            <div className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
-              <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
-                Collaborations
-              </p>
-              <p className="mt-2 text-2xl font-semibold tabular-nums tracking-tight text-slate-900 dark:text-white">
-                {loading ? '—' : formatNumber(overview?.collaborations)}
-              </p>
-            </div>
-            <div className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
-              <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
-                Recorded earnings
-              </p>
-              <p className="mt-2 text-2xl font-semibold tabular-nums tracking-tight text-slate-900 dark:text-white">
-                {loading ? '—' : formatCurrency(overview?.earnings)}
-              </p>
-            </div>
+          {/* 4 KPI Summary Cards (Matching Reference Top Row) */}
+          <div className="grid grid-cols-2 gap-3.5 lg:grid-cols-4">
+            {[
+              {
+                label: 'Total Followers',
+                value: formatCompactCount(totalFollowers),
+                sub: `${formatCompactCount(summary?.followingCount ?? 0)} following`,
+                badge: `Rizz ${rizz?.scoreV2 ?? rizz?.currentScore ?? overview?.profileStats?.rizzScore ?? 0}`,
+                icon: Users,
+                iconBg: 'bg-pink-500',
+              },
+              {
+                label: 'Total Engagement',
+                value: formatCompactCount(totalEngagements),
+                sub: `${windowLabel}`,
+                badge: `${summary?.engagementRate ?? 0}% rate`,
+                icon: Heart,
+                iconBg: 'bg-purple-500',
+              },
+              {
+                label: 'Total Views / Reach',
+                value: formatCompactCount(totalViews),
+                sub: `${windowLabel}`,
+                badge: `${formatCompactCount(totalPosts)} posts`,
+                icon: Eye,
+                iconBg: 'bg-emerald-500',
+              },
+              {
+                label: 'Total Likes & Shares',
+                value: formatCompactCount(totalLikes + totalReposts),
+                sub: `${formatCompactCount(totalComments)} comments`,
+                badge: `${overview?.collaborations ?? 0} collabs`,
+                icon: BarChart3,
+                iconBg: 'bg-rose-500',
+              },
+            ].map((card) => {
+              const Icon = card.icon;
+              return (
+                <div
+                  key={card.label}
+                  className="rounded-2xl border border-slate-100 bg-white p-4 shadow-xs transition hover:shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-5"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                      {card.label}
+                    </span>
+                    <span
+                      className={`flex h-8 w-8 items-center justify-center rounded-full text-white shadow-xs ${card.iconBg}`}
+                    >
+                      <Icon className="h-4 w-4" />
+                    </span>
+                  </div>
+                  <div className="mt-3 flex flex-wrap items-baseline gap-2">
+                    <span className="text-2xl font-bold tracking-tight text-slate-950 dark:text-white sm:text-3xl tabular-nums">
+                      {loading ? '—' : card.value}
+                    </span>
+                    <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-300">
+                      {card.badge}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-[11px] text-slate-400 dark:text-slate-500">{card.sub}</p>
+                </div>
+              );
+            })}
           </div>
 
-          <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-12">
-            {/* Reports Table */}
-            <section className="rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 lg:col-span-7">
-              <div className="flex items-center justify-between border-b border-slate-200 px-5 py-3.5 dark:border-slate-800">
-                <h2 className="text-sm font-semibold text-slate-900 dark:text-white">
-                  Period Reports
+          {/* 3-Column Middle Visuals Row (Growth Trend, Engagement Insights, Engagement Donut) */}
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+            {/* Card 1: Post & Audience Growth Trend */}
+            <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-xs dark:border-slate-800 dark:bg-slate-900">
+              <div className="mb-4 flex items-center justify-between">
+                <h2 className="text-sm font-bold text-slate-900 dark:text-white">
+                  Post Activity Trend
                 </h2>
-                <span className="text-xs tabular-nums text-slate-500 dark:text-slate-400">
-                  {reports.length} saved
+                <span className="rounded-full border border-slate-200 px-2.5 py-0.5 text-[11px] font-medium text-slate-600 dark:border-slate-700 dark:text-slate-300">
+                  {windowLabel}
                 </span>
               </div>
 
-              {loading ? (
-                <div className="space-y-3 p-5">
-                  {[1, 2, 3].map((i) => (
-                    <div
-                      key={i}
-                      className="h-12 animate-pulse rounded-lg bg-slate-100 dark:bg-slate-800"
-                    />
-                  ))}
-                </div>
-              ) : reports.length === 0 ? (
-                <div className="px-5 py-12 text-center text-sm text-slate-500 dark:text-slate-400">
-                  No period reports generated for this account yet.
-                </div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs">
-                    <thead className="border-b border-slate-200 bg-slate-50/70 text-slate-500 dark:border-slate-800 dark:bg-slate-950/40 dark:text-slate-400">
-                      <tr>
-                        <th className="px-5 py-2.5 font-medium">Period</th>
-                        <th className="px-4 py-2.5 font-medium">Views</th>
-                        <th className="px-4 py-2.5 font-medium">Engagement</th>
-                        <th className="px-5 py-2.5 text-right font-medium">Earnings</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
-                      {reports.map((report) => {
-                        const start = report.period?.start
-                          ? new Date(report.period.start).toLocaleDateString()
-                          : '—';
-                        const end = report.period?.end
-                          ? new Date(report.period.end).toLocaleDateString()
-                          : '—';
-                        return (
-                          <tr key={report._id}>
-                            <td className="px-5 py-3 font-medium text-slate-900 dark:text-white">
-                              {start} – {end}
-                            </td>
-                            <td className="px-4 py-3 tabular-nums text-slate-600 dark:text-slate-300">
-                              {formatNumber(report.metrics?.totalViews)}
-                            </td>
-                            <td className="px-4 py-3 tabular-nums text-slate-600 dark:text-slate-300">
-                              {(report.metrics?.avgEngagement ?? 0).toFixed(1)}%
-                            </td>
-                            <td className="px-5 py-3 text-right tabular-nums text-slate-900 dark:text-white">
-                              {formatCurrency(report.metrics?.earnings)}
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </section>
-
-            {/* Rizz Score Breakdown */}
-            <aside className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900 lg:col-span-5">
-              <div className="flex items-start justify-between border-b border-slate-200 pb-3.5 dark:border-slate-800">
-                <div>
-                  <p className="text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                    Compatibility Index
-                  </p>
-                  <div className="mt-1 flex items-baseline gap-2">
-                    <span className="text-3xl font-semibold tabular-nums tracking-tight text-slate-900 dark:text-white">
-                      {Math.round(rizzScoreValue)}
-                    </span>
-                    <span className="text-xs text-slate-500 dark:text-slate-400">/ 100</span>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  disabled={!userId || recalculating}
-                  onClick={handleRecalculateRizz}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
-                >
-                  <RefreshCw className={`h-3.5 w-3.5 ${recalculating ? 'animate-spin' : ''}`} />
-                  Recalculate
-                </button>
-              </div>
-
-              <div className="mt-4 space-y-3.5">
-                {rizzRows.map((row) => {
-                  const pct = Math.max(0, Math.min(100, Math.round(row.value)));
+              <div className="flex h-44 items-end justify-between gap-2.5 pt-6">
+                {trendBars.map((bar, idx) => {
+                  const pct = Math.max(
+                    16,
+                    Math.round((Math.max(bar.views, bar.engagements * 3) / maxTrendVal) * 100),
+                  );
+                  const isPeak = idx === peakIdx;
                   return (
-                    <div key={row.label}>
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="font-medium text-slate-700 dark:text-slate-300">
-                          {row.label}
-                        </span>
-                        <span className="tabular-nums text-slate-500 dark:text-slate-400">
-                          {pct}/100 · {row.kind}
-                        </span>
-                      </div>
-                      <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+                    <div key={`${bar.label}-${idx}`} className="flex flex-1 flex-col items-center gap-1.5">
+                      <span className="text-[10px] font-semibold text-slate-500 tabular-nums">
+                        {formatCompactCount(bar.views + bar.engagements)}
+                      </span>
+                      <div className="flex h-28 w-full items-end">
                         <div
-                          className="h-full rounded-full bg-slate-900 dark:bg-slate-200"
-                          style={{ width: `${pct}%` }}
+                          style={{ height: `${pct}%` }}
+                          className={`w-full rounded-t-xl transition-all ${
+                            isPeak
+                              ? 'bg-gradient-to-t from-orange-500 to-orange-300 shadow-sm'
+                              : 'bg-slate-100 dark:bg-slate-800'
+                          }`}
                         />
                       </div>
+                      <span className="truncate text-[10px] font-medium text-slate-400">
+                        {bar.label}
+                      </span>
                     </div>
                   );
                 })}
               </div>
+            </div>
 
-              <p className="mt-5 border-t border-slate-200 pt-3 text-[11px] leading-relaxed text-slate-500 dark:border-slate-800 dark:text-slate-400">
-                Measured fields come directly from synced profile and collaboration records.
-                Computed sub-scores are weighted estimates used for matching rank.
-              </p>
-            </aside>
+            {/* Card 2: Engagement Insights (4 Vibrant Colored Bars) */}
+            <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-xs dark:border-slate-800 dark:bg-slate-900">
+              <div className="mb-4 flex items-center justify-between">
+                <h2 className="text-sm font-bold text-slate-900 dark:text-white">
+                  Engagement Insights
+                </h2>
+                <span className="rounded-full border border-slate-200 px-2.5 py-0.5 text-[11px] font-medium text-slate-600 dark:border-slate-700 dark:text-slate-300">
+                  {windowKey}
+                </span>
+              </div>
+
+              <div className="flex h-44 items-end justify-between gap-3 pt-6">
+                {breakdownBars.map((item) => (
+                  <div key={item.label} className="flex flex-1 flex-col items-center gap-1.5">
+                    <span className="text-[11px] font-bold text-slate-700 dark:text-slate-200 tabular-nums">
+                      {item.pct}%
+                    </span>
+                    <div className="flex h-28 w-full items-end">
+                      <div
+                        style={{ height: `${Math.max(14, item.pct)}%` }}
+                        className={`w-full rounded-t-xl ${item.color} transition-all`}
+                      />
+                    </div>
+                    <span className="text-[10px] font-medium text-slate-500">{item.label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Card 3: Engagement Breakdown Donut */}
+            <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-xs dark:border-slate-800 dark:bg-slate-900">
+              <div className="mb-4 flex items-center justify-between">
+                <h2 className="text-sm font-bold text-slate-900 dark:text-white">
+                  Audience Engagement Split
+                </h2>
+                <button
+                  type="button"
+                  onClick={() => void loadAnalytics(windowKey)}
+                  aria-label="Refresh analytics"
+                  className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                >
+                  <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
+                </button>
+              </div>
+
+              <div className="flex items-center justify-between gap-4 pt-2">
+                <div className="relative flex h-36 w-36 shrink-0 items-center justify-center">
+                  <div
+                    className="h-full w-full rounded-full"
+                    style={{
+                      background: `conic-gradient(#f97316 0% ${likesPct}%, #22c55e ${likesPct}% ${
+                        likesPct + commentsPct
+                      }%, #38bdf8 ${likesPct + commentsPct}% 100%)`,
+                    }}
+                  />
+                  <div className="absolute flex h-24 w-24 flex-col items-center justify-center rounded-full bg-white dark:bg-slate-900">
+                    <span className="text-lg font-extrabold text-slate-950 dark:text-white tabular-nums">
+                      {formatCompactCount(totalEngagements)}
+                    </span>
+                    <span className="text-[10px] font-medium text-slate-400">Total</span>
+                  </div>
+                </div>
+
+                <div className="flex-1 space-y-3 text-xs">
+                  <div>
+                    <div className="flex items-center gap-1.5 text-slate-500">
+                      <span className="h-2.5 w-2.5 rounded-xs bg-orange-500" />
+                      Likes
+                    </div>
+                    <p className="mt-0.5 text-base font-bold text-slate-900 dark:text-white">
+                      {likesPct}% <span className="text-xs font-normal text-slate-400">({formatCompactCount(totalLikes)})</span>
+                    </p>
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-1.5 text-slate-500">
+                      <span className="h-2.5 w-2.5 rounded-xs bg-emerald-500" />
+                      Comments
+                    </div>
+                    <p className="mt-0.5 text-base font-bold text-slate-900 dark:text-white">
+                      {commentsPct}% <span className="text-xs font-normal text-slate-400">({formatCompactCount(totalComments)})</span>
+                    </p>
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-1.5 text-slate-500">
+                      <span className="h-2.5 w-2.5 rounded-xs bg-sky-500" />
+                      Reposts &amp; Saves
+                    </div>
+                    <p className="mt-0.5 text-base font-bold text-slate-900 dark:text-white">
+                      {sharesPct}% <span className="text-xs font-normal text-slate-400">({formatCompactCount(totalReposts + totalBookmarks)})</span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
-          {/* Statistical Growth Forecasting + AI Creator Plans */}
-          <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-12">
-            <section className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900 lg:col-span-6">
-              <div className="flex flex-wrap items-start justify-between gap-3 border-b border-slate-200 pb-3.5 dark:border-slate-800">
-                <div>
-                  <div className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-purple-600 dark:text-purple-400">
-                    <TrendingUp className="h-3.5 w-3.5" />
-                    Statistical Forecast · Non-Guaranteed Estimate
-                  </div>
-                  <h2 className="mt-0.5 text-sm font-semibold text-slate-900 dark:text-white">
-                    7 / 30 / 90-Day Reach & Engagement Intervals
-                  </h2>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  {([7, 30, 90] as const).map((days) => (
-                    <button
-                      key={days}
-                      type="button"
-                      onClick={() => setHorizonDays(days)}
-                      className={`rounded-md px-2.5 py-1 text-xs font-medium border ${
-                        horizonDays === days
-                          ? 'bg-purple-600 text-white border-purple-600'
-                          : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'
-                      }`}
-                    >
-                      {days}d
-                    </button>
-                  ))}
-                  <button
-                    type="button"
-                    disabled={forecastBusy}
-                    onClick={handleGenerateForecast}
-                    className="ml-1 inline-flex items-center gap-1 rounded-lg bg-slate-900 dark:bg-purple-600 px-3 py-1 text-xs font-semibold text-white hover:bg-slate-800 dark:hover:bg-purple-700 disabled:opacity-50"
-                  >
-                    <Calendar className="h-3.5 w-3.5" />
-                    {forecastBusy ? 'Running...' : 'Run (5 cr)'}
-                  </button>
-                </div>
+          {/* 2-Column Bottom Row: Post Performance Table + Optimal Posting Time Heatmap */}
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
+            {/* Post Performance Overview Table */}
+            <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-xs dark:border-slate-800 dark:bg-slate-900 lg:col-span-7">
+              <div className="mb-4 flex items-center justify-between">
+                <h2 className="text-sm font-bold text-slate-900 dark:text-white">
+                  Post Performance Overview ({windowLabel})
+                </h2>
+                <span className="text-xs font-medium text-slate-400">
+                  {totalPosts} {totalPosts === 1 ? 'post' : 'posts'}
+                </span>
               </div>
 
-              {forecasts.length === 0 ? (
-                <p className="py-8 text-center text-xs text-slate-500 dark:text-slate-400">
-                  Run a forecast snapshot to view 80% uncertainty intervals alongside your measured analytics baseline.
-                </p>
+              {(postAnalytics?.posts ?? []).length === 0 ? (
+                <div className="rounded-xl border border-dashed border-slate-200 p-8 text-center text-xs text-slate-500 dark:border-slate-800">
+                  No posts published in the {windowLabel.toLowerCase()}. Publish a post or reel to track views and engagement here.
+                </div>
               ) : (
-                <div className="mt-4 space-y-3">
-                  {(() => {
-                    const latest = forecasts[0];
-                    const reach = latest.predictions?.reach;
-                    const views = latest.predictions?.avgViews;
-                    const live = latest.predictions?.liveViewers;
-                    return (
-                      <div className="space-y-3 text-xs">
-                        <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
-                          <span>
-                            Horizon: <strong className="text-slate-900 dark:text-white">{latest.horizonDays} days</strong> ({latest.method})
-                          </span>
-                          <span>{Math.round((latest.confidenceLevel ?? 0.8) * 100)}% interval</span>
-                        </div>
-                        <div className="grid grid-cols-3 gap-2.5">
-                          <div className="rounded-lg border border-slate-200 dark:border-slate-800 p-3">
-                            <p className="text-[11px] text-slate-500">Projected Reach</p>
-                            <p className="mt-1 text-lg font-bold tabular-nums text-slate-900 dark:text-white">
-                              {formatNumber(reach?.pointEstimate)}
-                            </p>
-                            <p className="text-[11px] text-slate-500 tabular-nums">
-                              Band: {formatNumber(reach?.lowerBound)} – {formatNumber(reach?.upperBound)}
-                            </p>
-                          </div>
-                          <div className="rounded-lg border border-slate-200 dark:border-slate-800 p-3">
-                            <p className="text-[11px] text-slate-500">Projected Avg Views</p>
-                            <p className="mt-1 text-lg font-bold tabular-nums text-slate-900 dark:text-white">
-                              {formatNumber(views?.pointEstimate)}
-                            </p>
-                            <p className="text-[11px] text-slate-500 tabular-nums">
-                              Band: {formatNumber(views?.lowerBound)} – {formatNumber(views?.upperBound)}
-                            </p>
-                          </div>
-                          <div className="rounded-lg border border-slate-200 dark:border-slate-800 p-3">
-                            <p className="text-[11px] text-slate-500">Est. Live Viewers</p>
-                            <p className="mt-1 text-lg font-bold tabular-nums text-slate-900 dark:text-white">
-                              {formatNumber(live?.pointEstimate)}
-                            </p>
-                            <p className="text-[11px] text-slate-500 tabular-nums">
-                              Band: {formatNumber(live?.lowerBound)} – {formatNumber(live?.upperBound)}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })()}
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs">
+                    <thead>
+                      <tr className="border-b border-slate-100 text-[11px] font-semibold text-slate-400 dark:border-slate-800">
+                        <th className="pb-2.5 pr-3">Post</th>
+                        <th className="pb-2.5 px-2">Views</th>
+                        <th className="pb-2.5 px-2">Likes</th>
+                        <th className="pb-2.5 px-2">Engagements</th>
+                        <th className="pb-2.5 pl-2 text-right">Rate</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                      {(postAnalytics?.posts ?? []).slice(0, 8).map((p) => (
+                        <tr key={p.id} className="hover:bg-slate-50/70 dark:hover:bg-slate-800/40">
+                          <td className="py-2.5 pr-3">
+                            <div className="flex items-center gap-2">
+                              <span
+                                className={`shrink-0 rounded-md px-2 py-0.5 text-[10px] font-bold uppercase text-white ${
+                                  p.kind === 'reel' ? 'bg-fuchsia-500' : 'bg-orange-500'
+                                }`}
+                              >
+                                {p.kind}
+                              </span>
+                              <span className="max-w-[180px] truncate font-medium text-slate-800 dark:text-slate-200">
+                                {p.caption || 'Media post'}
+                              </span>
+                            </div>
+                          </td>
+                          <td className="px-2 py-2.5 font-semibold text-slate-700 dark:text-slate-300 tabular-nums">
+                            {formatCompactCount(p.viewsCount)}
+                          </td>
+                          <td className="px-2 py-2.5 font-semibold text-slate-700 dark:text-slate-300 tabular-nums">
+                            {formatCompactCount(p.likesCount)}
+                          </td>
+                          <td className="px-2 py-2.5 font-semibold text-slate-700 dark:text-slate-300 tabular-nums">
+                            {formatCompactCount(p.engagementsCount)}
+                          </td>
+                          <td className="py-2.5 pl-2 text-right">
+                            <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-300">
+                              {p.engagementRate}%
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               )}
-            </section>
+            </div>
 
-            <section className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900 lg:col-span-6">
-              <div className="border-b border-slate-200 pb-3.5 dark:border-slate-800">
-                <div className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-purple-600 dark:text-purple-400">
-                  <Sparkles className="h-3.5 w-3.5" />
-                  AI Generated Suggestions · Metered Job
-                </div>
-                <h2 className="mt-0.5 text-sm font-semibold text-slate-900 dark:text-white">
-                  Personalized Content, Trend & Live Studio Plans
+            {/* Optimal Posting Time Heatmap */}
+            <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-xs dark:border-slate-800 dark:bg-slate-900 lg:col-span-5">
+              <div className="mb-4 flex items-center justify-between">
+                <h2 className="text-sm font-bold text-slate-900 dark:text-white">
+                  Optimal Posting Time
                 </h2>
+                <span className="rounded-full border border-slate-200 px-2.5 py-0.5 text-[11px] font-medium text-slate-600 dark:border-slate-700 dark:text-slate-300">
+                  Best Reach
+                </span>
               </div>
 
-              <form onSubmit={handleGeneratePlan} className="mt-4 space-y-3 text-xs">
+              <div className="space-y-1.5">
+                {HEATMAP_DAYS.map((day, dIdx) => (
+                  <div key={day} className="flex items-center gap-1.5">
+                    <span className="w-7 text-[10px] font-medium text-slate-400">{day}</span>
+                    <div className="grid flex-1 grid-cols-8 gap-1">
+                      {HEATMAP_INTENSITY[dIdx].map((level, hIdx) => (
+                        <div
+                          key={`${day}-${hIdx}`}
+                          title={`${day} ${HEATMAP_HOURS[hIdx]}`}
+                          className={`h-5 rounded-md ${HEATMAP_CLASSES[level]}`}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                ))}
+                <div className="flex items-center gap-1.5 pt-1">
+                  <span className="w-7" />
+                  <div className="grid flex-1 grid-cols-8 gap-1 text-center text-[9px] text-slate-400">
+                    {HEATMAP_HOURS.map((h) => (
+                      <span key={h}>{h}</span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Retained HyperBuds Forecasts & AI Creator Strategy Plans */}
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+            <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-xs dark:border-slate-800 dark:bg-slate-900">
+              <div className="mb-3 flex items-center justify-between">
+                <h2 className="flex items-center gap-2 text-sm font-bold text-slate-900 dark:text-white">
+                  <TrendingUp className="h-4 w-4 text-purple-600" />
+                  Growth Forecasts (7d / 30d / 90d)
+                </h2>
+                <span className="text-[11px] text-slate-400">Measured baseline</span>
+              </div>
+              {forecasts.length === 0 ? (
+                <p className="text-xs text-slate-500">
+                  Keep publishing posts and reels to unlock statistical 7, 30, and 90-day reach forecasts.
+                </p>
+              ) : (
+                <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-3">
+                  {forecasts.slice(0, 3).map((fc) => (
+                    <div
+                      key={fc._id}
+                      className="rounded-xl border border-slate-100 bg-slate-50/70 p-3 dark:border-slate-800 dark:bg-slate-800/40"
+                    >
+                      <p className="text-[11px] font-bold text-purple-700 dark:text-purple-300">
+                        {fc.horizonDays}-Day Forecast
+                      </p>
+                      <p className="mt-1 text-lg font-bold text-slate-900 dark:text-white">
+                        {formatCompactCount(fc.predictions?.reach?.pointEstimate ?? 0)}
+                      </p>
+                      <p className="text-[10px] text-slate-500">Projected reach</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-xs dark:border-slate-800 dark:bg-slate-900">
+              <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                <h2 className="flex items-center gap-2 text-sm font-bold text-slate-900 dark:text-white">
+                  <Sparkles className="h-4 w-4 text-purple-600" />
+                  AI Creator Strategy Plans
+                </h2>
                 <div className="flex gap-2">
                   <button
                     type="button"
-                    onClick={() => setPlanType('content_plan')}
-                    className={`flex-1 rounded-lg border px-3 py-2 font-medium text-left ${
-                      planType === 'content_plan'
-                        ? 'border-purple-600 bg-purple-50 text-purple-800 dark:bg-purple-950/50 dark:text-purple-200'
-                        : 'border-slate-200 dark:border-slate-700'
-                    }`}
+                    disabled={Boolean(busyAction)}
+                    onClick={() => void handleGeneratePlan('content_plan')}
+                    className="inline-flex items-center gap-1 rounded-full bg-purple-600 px-3 py-1 text-[11px] font-semibold text-white hover:bg-purple-500 disabled:opacity-50"
                   >
-                    Content & Trend Plan (6 cr)
+                    <Calendar className="h-3 w-3" />
+                    {busyAction === 'content_plan' ? 'Generating...' : 'Content Plan'}
                   </button>
                   <button
                     type="button"
-                    onClick={() => setPlanType('live_podcast_plan')}
-                    className={`flex-1 inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 font-medium text-left ${
-                      planType === 'live_podcast_plan'
-                        ? 'border-purple-600 bg-purple-50 text-purple-800 dark:bg-purple-950/50 dark:text-purple-200'
-                        : 'border-slate-200 dark:border-slate-700'
-                    }`}
+                    disabled={Boolean(busyAction)}
+                    onClick={() => void handleGeneratePlan('live_podcast_plan')}
+                    className="inline-flex items-center gap-1 rounded-full border border-purple-200 bg-purple-50 px-3 py-1 text-[11px] font-semibold text-purple-700 hover:bg-purple-100 disabled:opacity-50 dark:border-purple-800 dark:bg-purple-950/50 dark:text-purple-200"
                   >
-                    <Mic className="h-3.5 w-3.5" />
-                    Live / Podcast Plan (5 cr)
+                    <Mic className="h-3 w-3" />
+                    {busyAction === 'live_podcast_plan' ? 'Generating...' : 'Live / Pod Plan'}
                   </button>
                 </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                  <input
-                    type="text"
-                    value={planTopic}
-                    onChange={(e) => setPlanTopic(e.target.value)}
-                    placeholder="Topic or series focus"
-                    className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2"
-                  />
-                  <input
-                    type="text"
-                    value={planGoal}
-                    onChange={(e) => setPlanGoal(e.target.value)}
-                    placeholder="Primary growth goal"
-                    className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2"
-                  />
+              </div>
+              {plan?.generatedSuggestions ? (
+                <div className="space-y-2 text-xs text-slate-700 dark:text-slate-300">
+                  <p className="font-bold text-slate-900 dark:text-white">
+                    {plan.generatedSuggestions.planTitle}
+                  </p>
+                  <p className="text-slate-500">{plan.generatedSuggestions.goal}</p>
+                  {Array.isArray(plan.generatedSuggestions.trendAngles) && (
+                    <ul className="list-disc space-y-1 pl-4">
+                      {plan.generatedSuggestions.trendAngles.slice(0, 3).map((a, idx) => (
+                        <li key={idx}>
+                          <span className="font-semibold">{a.angle}:</span> {a.hook}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
-
-                <button
-                  type="submit"
-                  disabled={planBusy}
-                  className="w-full rounded-lg bg-purple-600 px-4 py-2 font-semibold text-white hover:bg-purple-700 disabled:opacity-50"
-                >
-                  {planBusy ? 'Synthesizing Plan...' : 'Generate Metered Plan'}
-                </button>
-              </form>
-
-              {generatedPlan?.generatedSuggestions && (
-                <div className="mt-4 rounded-lg border border-purple-200 dark:border-purple-900/50 bg-purple-50/40 dark:bg-purple-950/20 p-3.5 text-xs space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="font-semibold text-slate-900 dark:text-white">
-                      {generatedPlan.generatedSuggestions.planTitle}
-                    </span>
-                    <span className="font-mono text-[10px] text-slate-500">
-                      {generatedPlan.model} · {generatedPlan.promptVersion}
-                    </span>
-                  </div>
-                  {(generatedPlan.generatedSuggestions.trendAngles || []).slice(0, 2).map((t) => (
-                    <div key={t.angle} className="rounded bg-white/80 dark:bg-slate-900/80 p-2">
-                      <strong>{t.angle}</strong> ({t.format}): {t.hook}
-                    </div>
-                  ))}
-                  {(generatedPlan.generatedSuggestions.runOfShow || []).slice(0, 3).map((r) => (
-                    <div key={r.minute} className="rounded bg-white/80 dark:bg-slate-900/80 p-2">
-                      <strong>{r.minute} · {r.segment}</strong>: {r.prompt}
-                    </div>
-                  ))}
-                </div>
+              ) : (
+                <p className="text-xs text-slate-500">
+                  Generate an AI content calendar or live/podcast run-of-show tailored to your real performance metrics.
+                </p>
               )}
-            </section>
+            </div>
           </div>
         </div>
       </div>

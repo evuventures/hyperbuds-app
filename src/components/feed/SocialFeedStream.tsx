@@ -26,8 +26,11 @@ import {
   UserPlus,
   Volume2,
   VolumeX,
+  BarChart3,
+  Eye,
   X,
 } from 'lucide-react';
+import { formatCompactCount } from '@/lib/utils/formatCount';
 import {
   CreatorStudioModal,
   type CreatorStudioMode,
@@ -180,6 +183,7 @@ export interface FeedPost {
   comments?: FeedComment[];
   likesCount?: number;
   commentsCount?: number;
+  viewsCount?: number;
   isLiked?: boolean;
   isBookmarked?: boolean;
   createdAt?: string;
@@ -656,6 +660,8 @@ export default function SocialFeedStream({
 
   // Comment, repost & match-card action state
   const [openComments, setOpenComments] = useState<Record<string, boolean>>({});
+  const [openAnalytics, setOpenAnalytics] = useState<Record<string, boolean>>({});
+  const viewedPostsRef = useRef<Set<string>>(new Set());
   const [commentDrafts, setCommentDrafts] = useState<Record<string, string>>({});
   const [replyingTo, setReplyingTo] = useState<Record<string, { commentId: string; authorName: string } | null>>({});
   const [replyDrafts, setReplyDrafts] = useState<Record<string, string>>({});
@@ -1906,39 +1912,103 @@ export default function SocialFeedStream({
                   </>
                 )}
 
-                {/* Facebook-style Engagement Summary Strip */}
-                {(likesTotal > 0 || commentsTotal > 0 || repostsTotal > 0) && (
-                  <div className="mt-3 flex items-center justify-between gap-2 text-xs text-slate-500 dark:text-slate-400">
-                    <div className="flex items-center gap-1.5">
-                      {likesTotal > 0 && (
-                        <>
-                          <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-white">
-                            <Heart className="h-2.5 w-2.5 fill-current" />
-                          </span>
-                          <span className="tabular-nums">{likesTotal}</span>
-                        </>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-3">
-                      {commentsTotal > 0 && (
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setOpenComments((prev) => ({ ...prev, [post._id]: !prev[post._id] }))
-                          }
-                          className="hover:underline"
-                        >
-                          {commentsTotal} {commentsTotal === 1 ? 'comment' : 'comments'}
-                        </button>
-                      )}
-                      {repostsTotal > 0 && (
-                        <span>
-                          {repostsTotal} {repostsTotal === 1 ? 'repost' : 'reposts'}
+                {/* Facebook-style Engagement & Post Insights Summary Strip */}
+                <div className="mt-3 flex items-center justify-between gap-2 text-xs text-slate-500 dark:text-slate-400">
+                  <div className="flex items-center gap-2">
+                    {likesTotal > 0 && (
+                      <span className="inline-flex items-center gap-1.5">
+                        <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-white">
+                          <Heart className="h-2.5 w-2.5 fill-current" />
                         </span>
-                      )}
-                    </div>
+                        <span className="tabular-nums">{formatCompactCount(likesTotal)}</span>
+                      </span>
+                    )}
+                    <span className="inline-flex items-center gap-1 tabular-nums">
+                      <Eye className="h-3.5 w-3.5" />
+                      {formatCompactCount(post.viewsCount ?? 0)}
+                    </span>
                   </div>
-                )}
+                  <div className="flex items-center gap-3">
+                    {commentsTotal > 0 && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setOpenComments((prev) => ({ ...prev, [post._id]: !prev[post._id] }))
+                        }
+                        className="hover:underline"
+                      >
+                        {formatCompactCount(commentsTotal)} {commentsTotal === 1 ? 'comment' : 'comments'}
+                      </button>
+                    )}
+                    {repostsTotal > 0 && (
+                      <span>
+                        {formatCompactCount(repostsTotal)} {repostsTotal === 1 ? 'repost' : 'reposts'}
+                      </span>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const nextOpen = !openAnalytics[post._id];
+                        setOpenAnalytics((prev) => ({ ...prev, [post._id]: nextOpen }));
+                        if (nextOpen && !viewedPostsRef.current.has(post._id)) {
+                          viewedPostsRef.current.add(post._id);
+                          apiClient
+                            .post(`/feed/posts/${post._id}/view`)
+                            .then((res) => {
+                              const vc = res.data?.viewsCount;
+                              if (typeof vc === 'number') {
+                                setPosts((prev) =>
+                                  prev.map((item) =>
+                                    item._id === post._id ? { ...item, viewsCount: vc } : item,
+                                  ),
+                                );
+                              }
+                            })
+                            .catch(() => {});
+                        }
+                      }}
+                      className="inline-flex items-center gap-1 font-medium text-purple-600 hover:underline dark:text-purple-400"
+                      title="View post analytics"
+                    >
+                      <BarChart3 className="h-3.5 w-3.5" />
+                      <span>Insights</span>
+                    </button>
+                  </div>
+                </div>
+
+                {openAnalytics[post._id] && (() => {
+                  const views = Number(post.viewsCount ?? 0);
+                  const engagements = likesTotal + commentsTotal + repostsTotal;
+                  const rate = views > 0 ? ((engagements / views) * 100).toFixed(1) : engagements > 0 ? '100' : '0';
+                  return (
+                    <div className="mt-2.5 grid grid-cols-4 gap-2 rounded-xl border border-purple-100 bg-purple-50/50 p-2.5 text-center dark:border-purple-900/40 dark:bg-purple-950/20">
+                      <div>
+                        <p className="text-[10px] font-medium uppercase text-slate-500">Views</p>
+                        <p className="text-sm font-bold text-slate-900 dark:text-white tabular-nums">
+                          {formatCompactCount(views)}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-medium uppercase text-slate-500">Likes</p>
+                        <p className="text-sm font-bold text-rose-600 dark:text-rose-400 tabular-nums">
+                          {formatCompactCount(likesTotal)}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-medium uppercase text-slate-500">Engagements</p>
+                        <p className="text-sm font-bold text-purple-700 dark:text-purple-300 tabular-nums">
+                          {formatCompactCount(engagements)}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-medium uppercase text-slate-500">Rate</p>
+                        <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400 tabular-nums">
+                          {rate}%
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })()}
 
                 {/* Facebook-style Full-Width Action Bar + Instagram Repost */}
                 <div className="mt-3 flex items-center justify-between gap-1 border-y border-slate-100 py-1 dark:border-slate-800">
