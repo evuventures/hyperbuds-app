@@ -33,26 +33,29 @@ export function useNavBadges() {
       apiClient.get('/messaging/conversations').catch(() => null),
     ]);
 
-    // 1. Unseen Reels count
-    const reels: Array<{ createdAt?: string }> = Array.isArray(reelsRes?.data?.posts)
-      ? reelsRes.data.posts
-      : [];
-    const lastSeenRaw = localStorage.getItem(LAST_SEEN_REELS_KEY);
-    if (!lastSeenRaw) {
-      // First visit: show badge if there are recent reels from the last 24h
-      const cutoff = Date.now() - 24 * 60 * 60 * 1000;
-      const recent = reels.filter((r) => {
-        const ts = r.createdAt ? new Date(r.createdAt).getTime() : 0;
-        return ts > cutoff;
-      }).length;
-      setUnseenReelsCount(recent);
+    // 1. Unseen Reels count (never show stale count on first visit or while already on Home/Reels)
+    const isOnHomeOrReels =
+      pathname === '/' || pathname === '/dashboard' || pathname?.startsWith('/reels');
+    if (isOnHomeOrReels) {
+      markReelsSeenNow();
+      setUnseenReelsCount(0);
     } else {
-      const lastSeenTs = new Date(lastSeenRaw).getTime();
-      const newer = reels.filter((r) => {
-        const ts = r.createdAt ? new Date(r.createdAt).getTime() : 0;
-        return ts > lastSeenTs;
-      }).length;
-      setUnseenReelsCount(newer);
+      const reels: Array<{ createdAt?: string }> = Array.isArray(reelsRes?.data?.posts)
+        ? reelsRes.data.posts
+        : [];
+      const lastSeenRaw = localStorage.getItem(LAST_SEEN_REELS_KEY);
+      if (!lastSeenRaw) {
+        // Initialize baseline on first load so old reels do not show a phantom unread count
+        markReelsSeenNow();
+        setUnseenReelsCount(0);
+      } else {
+        const lastSeenTs = new Date(lastSeenRaw).getTime();
+        const newer = reels.filter((r) => {
+          const ts = r.createdAt ? new Date(r.createdAt).getTime() : 0;
+          return ts > lastSeenTs;
+        }).length;
+        setUnseenReelsCount(newer);
+      }
     }
 
     // 2. Unread DM count
@@ -63,10 +66,10 @@ export function useNavBadges() {
         : [];
     const totalUnread = convos.reduce((sum, c) => sum + Math.max(0, Number(c?.unreadCount ?? 0)), 0);
     setUnreadMessagesCount(totalUnread);
-  }, []);
+  }, [pathname]);
 
   useEffect(() => {
-    if (pathname?.startsWith('/reels')) {
+    if (pathname === '/' || pathname === '/dashboard' || pathname?.startsWith('/reels')) {
       markReelsSeenNow();
       setUnseenReelsCount(0);
     }

@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { Header } from '@/components/layout/Header/Header';
 import { AppSidebar } from '../Sidebar/AppSidebar';
-import { Menu, X, Moon, Sun, Bell, House, Newspaper, Film, MessageCircle, type LucideIcon } from 'lucide-react';
+import { Menu, X, Moon, Sun, Bell, House, Heart, ShoppingBag, MessageCircle, type LucideIcon } from 'lucide-react';
 import { ThemeProvider, useTheme } from '@/context/Theme';
 import { useSidebar } from '@/context/SidebarContext';
 
@@ -147,8 +147,8 @@ const MOBILE_QUICK_NAV: Array<{
   match: (path: string) => boolean;
 }> = [
   { label: 'Home', href: '/dashboard', icon: House, match: (p) => p === '/' || p === '/dashboard' },
-  { label: 'Posts', href: '/feed', icon: Newspaper, match: (p) => p.startsWith('/feed') },
-  { label: 'Reels', href: '/reels', icon: Film, match: (p) => p.startsWith('/reels') },
+  { label: 'Matching', href: '/ai-matches', icon: Heart, match: (p) => p.startsWith('/ai-matches') || p.startsWith('/matching') },
+  { label: 'Marketplace', href: '/marketplace', icon: ShoppingBag, match: (p) => p.startsWith('/marketplace') },
   { label: 'Messages', href: '/messages', icon: MessageCircle, match: (p) => p.startsWith('/messages') },
 ];
 

@@ -174,7 +174,7 @@ interface AuthUserShape {
   };
 }
 
-const MOBILE_PRIMARY_PILL_HREFS = new Set(['/dashboard', '/feed', '/reels', '/messages']);
+const MOBILE_PRIMARY_PILL_HREFS = new Set(['/dashboard', '/ai-matches', '/marketplace', '/messages']);
 
 interface AppSidebarProps {
   collapsed?: boolean;
