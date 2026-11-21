@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import apiClient from "@/lib/api/client";
+import { uploadFeedMediaToCloudinary } from "@/lib/api/feed.api";
 import Compressor from 'compressorjs';
 
 interface ApiError {
@@ -154,8 +155,8 @@ export const useProfileForm = () => {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file && file.type.startsWith("image/")) {
-      if (file.size > 5 * 1024 * 1024) {
-        setError("Image must be smaller than 5MB");
+      if (file.size > 15 * 1024 * 1024) {
+        setError("Image must be smaller than 15MB");
         return;
       }
       setSelectedFile(file);
@@ -240,10 +241,11 @@ export const useProfileForm = () => {
     try {
       let finalAvatarUrl = formData.avatarUrl;
 
-      // Only upload if a file is actually selected
+      // Upload avatar directly to Cloudinary so we never send large base64 strings in JSON
       if (selectedFile) {
         setMessage("Uploading profile picture...");
-        finalAvatarUrl = await getSelectedFileBase64();
+        const uploaded = await uploadFeedMediaToCloudinary(selectedFile, { kind: "post" });
+        finalAvatarUrl = uploaded.url;
       }
 
       setMessage("Saving your profile...");

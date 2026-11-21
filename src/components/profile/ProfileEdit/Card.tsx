@@ -382,23 +382,14 @@ export default function EditProfilePage() {
 
     try {
       const { profileApi } = await import("@/lib/api/profile.api");
+      const { uploadFeedMediaToCloudinary } = await import("@/lib/api/feed.api");
 
-      // Step 1: Convert file to base64 data URL
-      const avatarUrl = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => {
-          if (typeof reader.result === "string") {
-            resolve(reader.result);
-          } else {
-            reject(new Error("Failed to read file as base64 string"));
-          }
-        };
-        reader.onerror = () => reject(reader.error);
-        reader.readAsDataURL(file);
-      });
+      // Step 1: Upload image directly to Cloudinary (never send base64 in JSON)
       setMessage("Uploading image...");
+      const uploaded = await uploadFeedMediaToCloudinary(file, { kind: "post" });
+      const avatarUrl = uploaded.url;
 
-      // Step 2: Send URL to backend to save in profile
+      // Step 2: Send Cloudinary URL to backend to save in profile
       setMessage("Saving to profile...");
       await profileApi.updateAvatar(avatarUrl);
 
