@@ -34,8 +34,10 @@ export interface UserResponse {
 /**
  * Authenticate with Google OAuth authorization code
  */
-export async function googleAuth(code: string): Promise<GoogleAuthResponse> {
-  const response = await apiClient.get<GoogleAuthResponse>(`/auth/google?code=${code}`);
+export async function googleAuth(code: string, redirectUri?: string): Promise<GoogleAuthResponse> {
+  const params = new URLSearchParams({ code });
+  if (redirectUri) params.set('redirectUri', redirectUri);
+  const response = await apiClient.get<GoogleAuthResponse>(`/auth/google?${params.toString()}`);
   return response.data;
 }
 

@@ -65,6 +65,9 @@ export default function ReelsPage() {
   const [reels, setReels] = useState<ReelItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const loadingMoreRef = useRef(false);
   const [muted, setMuted] = useState(false);
   const userMutedRef = useRef(false);
   const [paused, setPaused] = useState(false);
@@ -78,7 +81,14 @@ export default function ReelsPage() {
   const [studioOpen, setStudioOpen] = useState(false);
 
   const touchStartYRef = useRef<number | null>(null);
+  const lastWheelAtRef = useRef<number>(0);
   const videoRef = useRef<HTMLVideoElement | null>(null);
+
+  const isVideoPost = (p: ReelItem & { kind?: string }) =>
+    p.kind === 'reel' || (Array.isArray(p.media) && p.media.some((m) => m.type === 'video' && m.url));
+
+  const getReelVideoMedia = (r: ReelItem | null | undefined) =>
+    r?.media?.find((m) => m.type === 'video' && m.url) ?? r?.media?.[0];
 
   const loadReels = useCallback(async () => {
     setLoading(true);
@@ -102,29 +112,46 @@ export default function ReelsPage() {
     });
 
     try {
-      const res = await apiClient.get('/feed/posts?kind=reel&limit=15');
-      const rawList: ReelItem[] = Array.isArray(res.data?.posts) ? res.data.posts : [];
+      // Fetch both dedicated reels and all video posts so every single reel/video is shown
+      const [reelsRes, allRes] = await Promise.all([
+        apiClient.get('/feed/posts?kind=reel&limit=50&page=1').catch(() => null),
+        apiClient.get('/feed/posts?limit=50&page=1').catch(() => null),
+      ]);
+      const reelPosts: ReelItem[] = Array.isArray(reelsRes?.data?.posts) ? reelsRes.data.posts : [];
+      const allPosts: ReelItem[] = Array.isArray(allRes?.data?.posts) ? allRes.data.posts : [];
+
+      const seen = new Set<string>();
+      const combined: ReelItem[] = [];
+      for (const item of [...reelPosts, ...allPosts]) {
+        if (!item?._id || seen.has(item._id)) continue;
+        if (!isVideoPost(item as ReelItem & { kind?: string })) continue;
+        seen.add(item._id);
+        combined.push(item);
+      }
+
       const targetId =
         typeof window !== 'undefined'
           ? new URLSearchParams(window.location.search).get('id')?.trim() || ''
           : '';
-      let ordered = rawList;
+      let ordered = combined;
       if (targetId) {
-        const hit = rawList.find((r) => r._id === targetId);
+        const hit = combined.find((r) => r._id === targetId);
         if (hit) {
-          ordered = [hit, ...rawList.filter((r) => r._id !== targetId)];
+          ordered = [hit, ...combined.filter((r) => r._id !== targetId)];
         } else {
           const singleRes = await apiClient
             .get(`/feed/public/posts/${encodeURIComponent(targetId)}`)
             .catch(() => null);
           const singlePost = singleRes?.data?.post as ReelItem | undefined;
           if (singlePost && singlePost._id) {
-            ordered = [singlePost, ...rawList.filter((r) => r._id !== singlePost._id)];
+            ordered = [singlePost, ...combined.filter((r) => r._id !== singlePost._id)];
           }
         }
       }
       setReels(ordered);
       setActiveIndex(0);
+      setPage(1);
+      setHasMore(allPosts.length >= 50 || reelPosts.length >= 50);
     } catch (err) {
       setBanner({
         type: 'error',
@@ -139,13 +166,86 @@ export default function ReelsPage() {
     void loadReels();
   }, [loadReels]);
 
+  // Silently load additional pages when scrolling close to the end
+  useEffect(() => {
+    if (!hasMore || loading || loadingMoreRef.current || reels.length === 0) return;
+    if (activeIndex < reels.length - 4) return;
+    loadingMoreRef.current = true;
+    const nextPage = page + 1;
+    void apiClient
+      .get(`/feed/posts?limit=50&page=${nextPage}`)
+      .then((res) => {
+        const batch: ReelItem[] = Array.isArray(res.data?.posts) ? res.data.posts : [];
+        if (batch.length < 50) setHasMore(false);
+        const videoBatch = batch.filter((p) => isVideoPost(p as ReelItem & { kind?: string }));
+        if (videoBatch.length > 0) {
+          setReels((prev) => {
+            const existing = new Set(prev.map((r) => r._id));
+            const fresh = videoBatch.filter((r) => r._id && !existing.has(r._id));
+            return fresh.length > 0 ? [...prev, ...fresh] : prev;
+          });
+        }
+        setPage(nextPage);
+      })
+      .catch(() => setHasMore(false))
+      .finally(() => {
+        loadingMoreRef.current = false;
+      });
+  }, [activeIndex, reels.length, hasMore, loading, page]);
+
+  // Synchronously swap source & play on the SAME persistent <video> element inside user gestures
+  // so mobile Safari & Chrome never re-mute or pause on scroll/swipe!
+  const switchToReel = useCallback(
+    (targetIdx: number) => {
+      if (reels.length === 0) return;
+      const clamped = Math.max(0, Math.min(reels.length - 1, targetIdx));
+      if (clamped === activeIndex) return;
+      setActiveIndex(clamped);
+      setPaused(false);
+
+      const nextReel = reels[clamped];
+      const nextMedia = getReelVideoMedia(nextReel);
+      const nextRawUrl = nextMedia?.url || '';
+      const el = videoRef.current;
+      if (el && nextRawUrl) {
+        const nextPoster = deriveVideoPoster(nextRawUrl, nextMedia?.thumbnailUrl || nextReel?.thumbnailUrl);
+        const nextSrc = withVideoPreviewFragment(nextRawUrl, nextPoster);
+        el.src = nextSrc;
+        if (nextPoster) el.poster = nextPoster;
+        el.currentTime = 0;
+        el.muted = userMutedRef.current;
+        setMuted(userMutedRef.current);
+        el.load();
+        void el.play().catch(() => {
+          el.muted = true;
+          setMuted(true);
+          void el.play().catch(() => {});
+        });
+      }
+    },
+    [reels, activeIndex],
+  );
+
   const goNext = useCallback(() => {
-    setActiveIndex((idx) => (reels.length > 0 ? Math.min(reels.length - 1, idx + 1) : 0));
-  }, [reels.length]);
+    switchToReel(activeIndex + 1);
+  }, [switchToReel, activeIndex]);
 
   const goPrev = useCallback(() => {
-    setActiveIndex((idx) => Math.max(0, idx - 1));
-  }, []);
+    switchToReel(activeIndex - 1);
+  }, [switchToReel, activeIndex]);
+
+  const handleWheel = useCallback(
+    (e: React.WheelEvent) => {
+      if (showComments) return;
+      const now = Date.now();
+      if (now - lastWheelAtRef.current < 450) return;
+      if (Math.abs(e.deltaY) < 28) return;
+      lastWheelAtRef.current = now;
+      if (e.deltaY > 0) goNext();
+      else goPrev();
+    },
+    [goNext, goPrev, showComments],
+  );
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -169,19 +269,20 @@ export default function ReelsPage() {
 
   const activeReel = reels[activeIndex] ?? null;
 
-  // Ensure every active reel reliably auto-plays unmuted (respecting user mute toggle)
+  // Auto-play the initial reel on first load (subsequent swipes play synchronously inside switchToReel)
+  const initializedVideoRef = useRef<string>('');
   useEffect(() => {
     const el = videoRef.current;
     if (!el || !activeReel?._id) return;
+    if (initializedVideoRef.current === activeReel._id) return;
+    initializedVideoRef.current = activeReel._id;
     setPaused(false);
-    el.currentTime = 0;
     el.muted = userMutedRef.current;
     setMuted(userMutedRef.current);
     const attemptPlay = async () => {
       try {
         await el.play();
       } catch {
-        // Fallback to muted autoplay only if browser blocks unmuted playback before user gesture
         el.muted = true;
         setMuted(true);
         await el.play().catch(() => {});
@@ -217,8 +318,9 @@ export default function ReelsPage() {
 
   const handleVideoEnded = useCallback(() => {
     if (!autoAdvance || reels.length <= 1) return;
-    setActiveIndex((idx) => (idx + 1 < reels.length ? idx + 1 : 0));
-  }, [autoAdvance, reels.length]);
+    const nextIdx = activeIndex + 1 < reels.length ? activeIndex + 1 : 0;
+    switchToReel(nextIdx);
+  }, [autoAdvance, reels.length, activeIndex, switchToReel]);
 
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartYRef.current = e.touches[0]?.clientY ?? null;
@@ -410,7 +512,7 @@ export default function ReelsPage() {
     activeAuthorObj?.username ||
     'Creator';
   const activeAuthorUsername = activeAuthorObj?.username || '';
-  const activeMedia = activeReel?.media?.[0];
+  const activeMedia = getReelVideoMedia(activeReel);
   const activeMediaUrl = activeMedia?.url || '';
   const activePoster = activeMediaUrl
     ? deriveVideoPoster(activeMediaUrl, activeMedia?.thumbnailUrl || activeReel?.thumbnailUrl)
@@ -516,12 +618,12 @@ export default function ReelsPage() {
                 <div
                   onTouchStart={handleTouchStart}
                   onTouchEnd={handleTouchEnd}
+                  onWheel={handleWheel}
                   className="relative flex h-[calc(100dvh-56px)] w-full items-center justify-center overflow-hidden bg-black lg:h-[660px] lg:w-[372px] lg:rounded-2xl lg:border lg:border-slate-200 lg:shadow-lg dark:lg:border-slate-800"
                 >
                   {activeMediaUrl ? (
                     <video
                       ref={videoRef}
-                      key={activeReel._id}
                       src={withVideoPreviewFragment(activeMediaUrl, activePoster)}
                       poster={activePoster}
                       autoPlay
@@ -766,7 +868,7 @@ export default function ReelsPage() {
               {/* Hidden next-reel preloader for instant 0ms swipe transitions */}
               {(() => {
                 const nextReel = reels[activeIndex + 1];
-                const nextUrl = nextReel?.media?.[0]?.url;
+                const nextUrl = getReelVideoMedia(nextReel)?.url;
                 if (!nextUrl) return null;
                 return (
                   <video

@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback } from 'react'
+import toast from 'react-hot-toast'
 import { googleAuth } from '@/lib/api/auth.api'
 import { BASE_URL } from '@/config/baseUrl'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
@@ -74,7 +75,11 @@ export function useAuth() {
     dispatch(setError(null))
 
     try {
-      const data = await googleAuth(code)
+      const currentOrigin = typeof window !== 'undefined' ? window.location.origin : '';
+      const redirectUri =
+        process.env.NEXT_PUBLIC_GOOGLE_REDIRECT_URI ||
+        (currentOrigin ? `${currentOrigin}/auth/google-callback` : undefined);
+      const data = await googleAuth(code, redirectUri)
       console.log("Google Login Data: ", data) // Debug log
       if (data.accessToken) {
         localStorage.setItem('accessToken', data.accessToken)
@@ -146,20 +151,36 @@ export function useAuth() {
 
   // Inside your useAuth hook in useAuth.ts
 
-  const initiateGoogleLogin = () => {
+  const initiateGoogleLogin = async () => {
     // Store redirect destination
     const currentPath = typeof window !== "undefined" ? window.location.pathname : "/dashboard";
     sessionStorage.setItem("authRedirect", currentPath);
 
-    // Configuration
-    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
-    const baseUrl = typeof window !== "undefined" ? window.location.origin : "http://localhost:3000";
-    const redirectUri = process.env.NEXT_PUBLIC_GOOGLE_REDIRECT_URI || `${baseUrl}/auth/google-callback`;
-    console.log("Initiating Google Login - Client ID:", clientId, "Redirect URI:", redirectUri); // Debug log
+    const baseUrl = typeof window !== "undefined" ? window.location.origin : "https://app.hyperbuds.cloud";
+    let clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "";
+    let redirectUri = process.env.NEXT_PUBLIC_GOOGLE_REDIRECT_URI || `${baseUrl}/auth/google-callback`;
+
+    if (!clientId) {
+      try {
+        const res = await fetch(`${BASE_URL}/api/v1/auth/google/config`);
+        const cfg = (await res.json()) as { clientId?: string | null; redirectUri?: string | null };
+        if (cfg.clientId) clientId = cfg.clientId;
+        if (cfg.redirectUri && !process.env.NEXT_PUBLIC_GOOGLE_REDIRECT_URI) {
+          redirectUri = `${baseUrl}/auth/google-callback`;
+        }
+      } catch {
+        // Fallback below
+      }
+    }
+
+    if (!clientId) {
+      toast.error("Google sign-in is temporarily unavailable. Please sign in with email.");
+      return;
+    }
+
     const scope = "email profile";
     const responseType = "code";
-
-    const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=${responseType}&scope=${scope}&access_type=offline&prompt=consent`;
+    const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${encodeURIComponent(clientId)}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=${responseType}&scope=${encodeURIComponent(scope)}&access_type=offline&prompt=select_account`;
 
     window.location.href = googleAuthUrl;
   };
