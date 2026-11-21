@@ -96,23 +96,64 @@ export const useNotificationSocket = (options: UseNotificationSocketOptions = {}
         const headline = raw.title || 'New notification';
         const body = raw.message || raw.content || '';
         const actionUrl = raw.actionUrl || '/notifications';
-        toast(
-          `${headline}${body && body !== headline ? ` — ${body.slice(0, 90)}` : ''}`,
-          {
-            id: id || undefined,
-            duration: 4500,
-            icon: '🔔',
-            style: { cursor: 'pointer', maxWidth: '380px', fontSize: '13px' },
-          },
-        );
-        if (actionUrl && typeof window !== 'undefined' && raw.type === 'stream_live') {
-          // Stream live notifications also keep router ready
+        const isDm = raw.type === 'new_message';
+        const dmConvoId =
+          raw.data && typeof raw.data === 'object'
+            ? String((raw.data as Record<string, unknown>).conversationId || '')
+            : '';
+        const alreadyInThisDm =
+          isDm &&
+          dmConvoId &&
+          typeof window !== 'undefined' &&
+          window.location.pathname.startsWith(`/messages/${dmConvoId}`);
+
+        if (!alreadyInThisDm) {
+          toast(
+            `${headline}${body && body !== headline ? ` — ${body.slice(0, 90)}` : ''}`,
+            {
+              id: id || undefined,
+              duration: 5000,
+              icon: isDm ? '💬' : '🔔',
+              style: { cursor: 'pointer', maxWidth: '380px', fontSize: '13px' },
+            },
+          );
+        }
+        if (actionUrl && typeof window !== 'undefined' && (raw.type === 'stream_live' || isDm)) {
           void router.prefetch?.(actionUrl);
         }
       }
 
+      if (raw.type === 'new_message') {
+        queryClient.invalidateQueries({ queryKey: ['conversations'] });
+        queryClient.invalidateQueries({ queryKey: ['messages'] });
+      }
+
       triggerBrowserNotification(raw);
       onNewNotification?.(raw as unknown as Notification);
+    };
+
+    const handleRealtimeDm = (payload?: unknown) => {
+      queryClient.invalidateQueries({ queryKey: ['conversations'] });
+      queryClient.invalidateQueries({ queryKey: ['messages'] });
+      if (!payload || typeof payload !== 'object') return;
+      const p = payload as {
+        conversationId?: string;
+        message?: {
+          _id?: string;
+          id?: string;
+          content?: string;
+          sender?: { displayName?: string; username?: string; _id?: string; id?: string } | string;
+        };
+      };
+      const msg = p.message;
+      const msgId = String(msg?._id || msg?.id || '');
+      if (!msg || !msgId) return;
+      // Fallback toast only if notification:new hasn't already displayed this message
+      const dedupKey = `dm:${msgId}`;
+      if (recentNotificationIds.has(dedupKey)) return;
+      recentNotificationIds.add(dedupKey);
+      setTimeout(() => recentNotificationIds.delete(dedupKey), 10000);
+      void refetchUnreadCount();
     };
 
     const handleUpdatedNotification = () => {
@@ -134,12 +175,14 @@ export const useNotificationSocket = (options: UseNotificationSocketOptions = {}
     notificationSocket.on('notification:updated', handleUpdatedNotification);
     notificationSocket.on('notification:deleted', handleDeletedNotification);
     notificationSocket.on('notifications:read-all', handleReadAll);
+    notificationSocket.on('new-message', handleRealtimeDm);
 
     return () => {
       notificationSocket.off('notification:new', handleNewNotification);
       notificationSocket.off('notification:updated', handleUpdatedNotification);
       notificationSocket.off('notification:deleted', handleDeletedNotification);
       notificationSocket.off('notifications:read-all', handleReadAll);
+      notificationSocket.off('new-message', handleRealtimeDm);
     };
   }, [enabled, showToast, queryClient, refetchUnreadCount, onNewNotification, router]);
 

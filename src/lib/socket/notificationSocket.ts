@@ -31,16 +31,28 @@ const SOCKET_URL = process.env.NEXT_PUBLIC_API_URL ?? BASE_URL;
 
 class NotificationSocketService {
   private socket: Socket | null = null;
+  private activeToken: string | null = null;
   private maxReconnectAttempts = 10;
   private listeners: Map<string, Set<(data?: unknown) => void>> = new Map();
 
   connect(token?: string): Socket {
-    if (this.socket?.connected) return this.socket;
     const resolvedToken = token ?? getAccessToken();
     if (!resolvedToken) throw new Error("Missing access token.");
 
+    if (this.socket && this.activeToken === resolvedToken) {
+      if (!this.socket.connected) {
+        this.socket.connect();
+      }
+      return this.socket;
+    }
+
+    this.activeToken = resolvedToken;
+
     if (this.socket) {
       this.socket.auth = { token: resolvedToken };
+      if (this.socket.connected) {
+        this.socket.disconnect();
+      }
       this.socket.connect();
       return this.socket;
     }
@@ -101,7 +113,7 @@ class NotificationSocketService {
     if (this.socket) {
       this.socket.disconnect();
       this.socket = null;
-      this.listeners.clear();
+      this.activeToken = null;
     }
   }
 }

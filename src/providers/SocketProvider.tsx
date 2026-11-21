@@ -2,8 +2,8 @@
 
 import React, { useEffect } from "react";
 import notificationSocket from "@/lib/socket/notificationSocket";
-import toast from "react-hot-toast";
 import { useAppSelector } from "@/store/hooks";
+import { getAccessToken } from "@/store/authSelectors";
 
 function NotificationSocketProvider({
   token,
@@ -13,23 +13,21 @@ function NotificationSocketProvider({
   children: React.ReactNode;
 }) {
   useEffect(() => {
-    if (!token) {
+    const resolvedToken =
+      token ||
+      getAccessToken() ||
+      (typeof window !== "undefined" ? window.localStorage.getItem("accessToken") : null);
+
+    if (!resolvedToken) {
       notificationSocket.disconnect();
       return;
     }
 
-    // always reconnect when token changes
-    notificationSocket.disconnect();
-
-    notificationSocket.connect(token);
-
-    const handler = (n: any) => {
-      console.log("🔔 Notification received:", n);
-      toast.success("A new notification has arrived!");
-    };
-
-    notificationSocket.on("notification:new", handler);
-    return () => notificationSocket.off("notification:new", handler);
+    try {
+      notificationSocket.connect(resolvedToken);
+    } catch {
+      // Non-fatal: will connect once auth token is available
+    }
   }, [token]);
 
   return <>{children}</>;
