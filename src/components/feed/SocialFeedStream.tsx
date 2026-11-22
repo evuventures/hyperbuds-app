@@ -530,10 +530,10 @@ function MatchFeedVisualCard({
         </button>
 
         <Link
-          href="/ai-matches"
+          href={isViewerParticipant ? '/challenges' : '/ai-matches'}
           className="inline-flex w-full items-center justify-center rounded-full border-2 border-[#6D12E8]/65 bg-white/80 px-6 py-2.5 text-sm font-bold text-[#5B12C8] backdrop-blur-xs transition hover:border-[#6D12E8] hover:bg-white"
         >
-          Keep Exploring
+          {isViewerParticipant ? '✨ Start Grow Together Challenge' : 'Keep Exploring'}
         </Link>
       </div>
     </div>
