@@ -28,6 +28,13 @@ interface RankedAiMatch {
   profileUrl: string;
   niches: string[];
   compatibilityScore: number;
+  detailedAnalysis?: string;
+  projectedGrowth?: {
+    estimatedReachLift: string;
+    estimatedEngagementBoost: string;
+    estimatedNewFollowers: string;
+    bestFormat: string;
+  };
   matchReasons: string[];
   collabIdea: string;
   outreachPitch: string;
@@ -328,7 +335,49 @@ export function AiMatchStudioPanel({ mode }: { mode: 'external' | 'prompt' }) {
                     </span>
                   </div>
 
-                  {m.bio && <p className="line-clamp-2 text-xs text-slate-300">{m.bio}</p>}
+                  {m.bio && <p className="line-clamp-2 text-xs text-slate-400">{m.bio}</p>}
+
+                  {m.detailedAnalysis && (
+                    <div className="rounded-xl border border-white/10 bg-white/[0.04] p-3 text-xs leading-relaxed text-slate-200">
+                      <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-purple-300">
+                        Why You’re a Fit
+                      </p>
+                      <p>{m.detailedAnalysis}</p>
+                    </div>
+                  )}
+
+                  {m.projectedGrowth && (
+                    <div className="rounded-xl border border-emerald-500/25 bg-emerald-950/30 p-3 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-300">
+                          Projected Collab Growth
+                        </span>
+                        <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 text-[9px] font-semibold text-emerald-200">
+                          AI Estimate
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-1.5 text-[11px]">
+                        <div className="rounded-lg bg-black/25 px-2.5 py-1.5">
+                          <p className="text-[9px] text-slate-400">Reach Lift</p>
+                          <p className="font-bold text-emerald-300">{m.projectedGrowth.estimatedReachLift}</p>
+                        </div>
+                        <div className="rounded-lg bg-black/25 px-2.5 py-1.5">
+                          <p className="text-[9px] text-slate-400">Engagement</p>
+                          <p className="font-bold text-emerald-300">{m.projectedGrowth.estimatedEngagementBoost}</p>
+                        </div>
+                        <div className="rounded-lg bg-black/25 px-2.5 py-1.5">
+                          <p className="text-[9px] text-slate-400">Est. New Followers</p>
+                          <p className="font-bold text-white">{m.projectedGrowth.estimatedNewFollowers}</p>
+                        </div>
+                        <div className="rounded-lg bg-black/25 px-2.5 py-1.5">
+                          <p className="text-[9px] text-slate-400">Best Format</p>
+                          <p className="truncate font-bold text-purple-200" title={m.projectedGrowth.bestFormat}>
+                            {m.projectedGrowth.bestFormat}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
                   <ul className="space-y-1 text-[11px] text-slate-200">
                     {m.matchReasons.map((r, rIdx) => (
