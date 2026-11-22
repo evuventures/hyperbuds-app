@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft, Globe2, Loader2, RefreshCw, ShieldCheck, Sparkles } from "lucide-react";
 import DashboardLayout from "@/components/layout/Dashboard/Dashboard";
 import { CardGridSkeleton } from "@/components/ui/AppSkeletons";
+import { AiMatchStudioPanel } from "@/components/matching/AiMatchStudioPanel";
 import { Button } from "@/components/ui/button";
 import MatchHistoryGallery from "@/components/matching/MatchHistoryGallery";
 import { useMatching } from "@/hooks/features/useMatching";
@@ -153,7 +154,7 @@ const AIMatchesPage: React.FC = () => {
   const [displayMatches, setDisplayMatches] = useState<MatchSuggestion[]>([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isEnriching, setIsEnriching] = useState(false);
-  const [activeTab, setActiveTab] = useState<'matches' | 'external'>('matches');
+  const [activeTab, setActiveTab] = useState<'matches' | 'external' | 'prompt'>('matches');
   const [externalCreators, setExternalCreators] = useState<ExternalCreatorCard[]>([]);
   const [provenance, setProvenance] = useState<string>('local_heuristic_fallback');
   const [externalLoading, setExternalLoading] = useState(false);
@@ -379,7 +380,16 @@ const AIMatchesPage: React.FC = () => {
                     }`}
                   >
                     <Globe2 className="h-3.5 w-3.5" />
-                    External Claim Index
+                    External AI Match
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('prompt')}
+                    className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 font-medium transition ${
+                      activeTab === 'prompt' ? 'bg-amber-500 text-slate-950 font-bold' : 'text-amber-200 hover:text-white'
+                    }`}
+                  >
+                    ✨ Prompt Match ($10)
                   </button>
                 </div>
               </div>
@@ -387,8 +397,11 @@ const AIMatchesPage: React.FC = () => {
 
             {activeTab === 'matches' ? (
               content
+            ) : activeTab === 'prompt' ? (
+              <AiMatchStudioPanel mode="prompt" />
             ) : (
-              <div className="space-y-5">
+              <div className="space-y-6">
+                <AiMatchStudioPanel mode="external" />
                 <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/15 bg-white/[0.04] p-4 text-xs backdrop-blur-xl">
                   <div className="flex items-center gap-2 text-slate-200">
                     <ShieldCheck className="h-4 w-4 text-emerald-400" />
