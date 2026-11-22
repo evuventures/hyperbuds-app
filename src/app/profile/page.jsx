@@ -10,6 +10,7 @@ import {
   ProfilePostsPaginated,
 } from "@/components/profile/ProfileModalsAndPosts";
 import { CreatorStudioModal } from "@/components/feed/CreatorStudioModal";
+import ReferralInviteCard from "@/components/referrals/ReferralInviteCard";
 import { Button } from "@/components/ui/button";
 
 export default function ProfilePage() {
@@ -171,6 +172,8 @@ export default function ProfilePage() {
                   : null
               }
             />
+
+            {!isLoading && myUserId && <ReferralInviteCard />}
 
             {!isLoading && showPosts && myUserId && (
               <ProfilePostsPaginated

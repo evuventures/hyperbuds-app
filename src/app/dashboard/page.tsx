@@ -8,6 +8,7 @@ import Trending from '@/components/dashboard/Trending';
 import Recommendations from '@/components/dashboard/Recommendations';
 import ActivityFeed from '@/components/dashboard/ActivityFeeds';
 import FinishSettingUp, { useProfileCompletion } from '@/components/dashboard/FinishSettingUp';
+import ReferralInviteCard from '@/components/referrals/ReferralInviteCard';
 import { DashboardDataProvider } from '@/context/DashboardDataContext';
 import apiClient from '@/lib/api/client';
 
@@ -73,9 +74,11 @@ const MainContent: React.FC = () => {
               </div>
             </main>
 
-            {/* Desktop Static Right Rail: Messages + Events + Activity (pinned while center feed scrolls) */}
+            {/* Desktop Static Right Rail: Messages + Events + Invite Leaderboard + Activity */}
             <aside className="hidden space-y-4 lg:sticky lg:top-5 lg:col-span-4 lg:block lg:max-h-[calc(100dvh-88px)] lg:overflow-y-auto hb-scroll-hidden">
               {showSetup && <FinishSettingUp />}
+
+              <ReferralInviteCard compact />
 
               <MessagesAndEventsPanel currentUserId={userSummary.id} />
 

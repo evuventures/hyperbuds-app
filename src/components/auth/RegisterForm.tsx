@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Eye, EyeOff, Loader2, Lock, Mail, Sparkles } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Eye, EyeOff, Gift, Loader2, Lock, Mail, Sparkles } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/auth/useAuth';
 import AuthSplitShowcase from './AuthSplitShowcase';
@@ -40,6 +40,17 @@ export default function RegisterForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showVerificationModal, setShowVerificationModal] = useState(false);
+  const [referralCode, setReferralCode] = useState<string>('');
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    const ref = (params.get('ref') || params.get('referral') || '').trim();
+    if (ref) {
+      setReferralCode(ref);
+      window.localStorage.setItem('hb_pending_ref', ref);
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -87,6 +98,14 @@ export default function RegisterForm() {
       >
         {/* Prominent white Google button */}
         <div className="mt-7 space-y-2.5">
+          {referralCode && (
+            <div className="flex items-center gap-2 rounded-xl border border-purple-500/40 bg-purple-600/20 px-3.5 py-2.5 text-xs font-medium text-purple-100">
+              <Gift className="h-4 w-4 shrink-0 text-amber-300" />
+              <span>
+                Creator Invite Active (<strong className="text-white">{referralCode}</strong>) — Sign up &amp; verify to unlock <strong>+15 Bonus Credits</strong>!
+              </span>
+            </div>
+          )}
           <button
             type="button"
             onClick={initiateGoogleLogin}
