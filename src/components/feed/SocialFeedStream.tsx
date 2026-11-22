@@ -6,6 +6,8 @@ import apiClient from '@/lib/api/client';
 import {
   Bookmark,
   Check,
+  ChevronLeft,
+  ChevronRight,
   Copy,
   Film,
   Flag,
@@ -292,6 +294,110 @@ function renderCaptionWithHashtags(
     }
     return <React.Fragment key={i}>{part}</React.Fragment>;
   });
+}
+
+function PostMediaCarousel({
+  postId,
+  media,
+  fallbackThumbnail,
+}: {
+  postId: string;
+  media: FeedMedia[];
+  fallbackThumbnail?: string | null;
+}) {
+  const [index, setIndex] = useState(0);
+  const touchStartXRef = useRef<number | null>(null);
+  const total = media.length;
+  const safeIdx = Math.min(index, Math.max(0, total - 1));
+  const current = media[safeIdx];
+
+  const prev = () => setIndex((i) => Math.max(0, i - 1));
+  const next = () => setIndex((i) => Math.min(total - 1, i + 1));
+
+  if (!current) return null;
+
+  return (
+    <div
+      className="relative -mx-4 mt-3 overflow-hidden bg-slate-100/70 select-none dark:bg-slate-950 sm:-mx-5"
+      onTouchStart={(e) => {
+        touchStartXRef.current = e.touches[0]?.clientX ?? null;
+      }}
+      onTouchEnd={(e) => {
+        const startX = touchStartXRef.current;
+        const endX = e.changedTouches[0]?.clientX ?? null;
+        touchStartXRef.current = null;
+        if (startX === null || endX === null) return;
+        const dx = endX - startX;
+        if (dx <= -40 && safeIdx < total - 1) next();
+        else if (dx >= 40 && safeIdx > 0) prev();
+      }}
+    >
+      {current.type === 'video' ? (
+        <FeedAutoPlayVideo
+          key={`${postId}-carousel-${safeIdx}`}
+          postId={postId}
+          src={withVideoPreviewFragment(
+            current.url,
+            deriveVideoPoster(current.url, current.thumbnailUrl || fallbackThumbnail),
+          )}
+          poster={deriveVideoPoster(current.url, current.thumbnailUrl || fallbackThumbnail)}
+          maxHeightClass="max-h-[620px]"
+        />
+      ) : (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={current.url}
+          alt={`Photo ${safeIdx + 1} of ${total}`}
+          loading="lazy"
+          className="block h-auto max-h-[680px] w-full object-cover sm:object-contain"
+        />
+      )}
+
+      {/* Top-right Instagram-style slide counter */}
+      <span className="pointer-events-none absolute right-3 top-3 rounded-full bg-black/65 px-2.5 py-0.5 text-[11px] font-bold text-white backdrop-blur-xs tabular-nums">
+        {safeIdx + 1} / {total}
+      </span>
+
+      {/* Left / Right navigation arrows */}
+      {safeIdx > 0 && (
+        <button
+          type="button"
+          onClick={prev}
+          aria-label="Previous photo"
+          className="absolute left-2.5 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-black/55 text-white shadow-md backdrop-blur-xs transition hover:bg-black/75"
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </button>
+      )}
+      {safeIdx < total - 1 && (
+        <button
+          type="button"
+          onClick={next}
+          aria-label="Next photo"
+          className="absolute right-2.5 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-black/55 text-white shadow-md backdrop-blur-xs transition hover:bg-black/75"
+        >
+          <ChevronRight className="h-4 w-4" />
+        </button>
+      )}
+
+      {/* Bottom Instagram-style dot indicators */}
+      <div className="flex items-center justify-center gap-1.5 bg-white/90 py-2 dark:bg-slate-900/90">
+        {media.map((_, i) => (
+          <button
+            key={i}
+            type="button"
+            onClick={() => setIndex(i)}
+            aria-label={`Go to photo ${i + 1}`}
+            className={`h-1.5 rounded-full transition-all ${
+              i === safeIdx
+                ? 'w-4 bg-purple-600 dark:bg-purple-400'
+                : 'w-1.5 bg-slate-300 hover:bg-slate-400 dark:bg-slate-700'
+            }`}
+          />
+        ))}
+      </div>
+    </div>
+  );
 }
 
 function MatchCardPortrait({
@@ -1646,11 +1752,13 @@ export default function SocialFeedStream({
                       <button
                         type="button"
                         onClick={() => void handleToggleCommentLike(post._id, c._id)}
-                        className={`font-semibold transition hover:underline ${
-                          cLiked ? 'text-blue-600 dark:text-blue-400' : 'text-slate-600 dark:text-slate-400'
+                        className={`inline-flex items-center gap-1 font-semibold transition hover:underline ${
+                          cLiked ? 'text-rose-600 dark:text-rose-400' : 'text-slate-600 dark:text-slate-400'
                         }`}
                       >
-                        Like
+                        <Heart className={`h-3 w-3 ${cLiked ? 'fill-current' : ''}`} />
+                        <span>{cLiked ? 'Liked' : 'Like'}</span>
+                        {cLikesCount > 0 && <span className="tabular-nums">({cLikesCount})</span>}
                       </button>
                       {!isReply && (
                         <button
@@ -1996,7 +2104,13 @@ export default function SocialFeedStream({
                       </div>
                     )}
 
-                    {Array.isArray(post.media) && post.media.length > 0 && (
+                    {Array.isArray(post.media) && post.media.length > 1 ? (
+                      <PostMediaCarousel
+                        postId={post._id}
+                        media={post.media}
+                        fallbackThumbnail={post.thumbnailUrl}
+                      />
+                    ) : Array.isArray(post.media) && post.media.length === 1 ? (
                       <div className="-mx-4 mt-3 grid grid-cols-1 gap-1 overflow-hidden sm:-mx-5">
                         {post.media.map((m, idx) => {
                           if (m.type === 'video') {
@@ -2027,7 +2141,7 @@ export default function SocialFeedStream({
                           );
                         })}
                       </div>
-                    )}
+                    ) : null}
 
                     {Array.isArray(post.tags) && post.tags.length > 0 && (
                       <div className="mt-3 flex flex-wrap gap-1.5">

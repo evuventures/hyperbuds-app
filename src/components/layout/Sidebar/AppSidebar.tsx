@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import {
+  Award,
   BarChart3,
   BriefcaseBusiness,
   CheckCircle2,
@@ -46,8 +47,8 @@ export const NAV_SECTIONS: Array<{ title: string; items: NavItem[] }> = [
     title: 'Main',
     items: [
       { label: 'Home', href: '/dashboard', icon: House, match: (p) => p === '/' || p === '/dashboard' },
-      { label: 'Profile', href: '/profile', icon: User2, match: (p) => p.startsWith('/profile') },
       { label: 'Matching', href: '/ai-matches', icon: Heart, match: (p) => p.startsWith('/ai-matches') || p.startsWith('/matching') },
+      { label: 'Leaderboard', href: '/leaderboard', icon: Award, match: (p) => p.startsWith('/leaderboard') },
       { label: 'Challenges', href: '/challenges', icon: Trophy, match: (p) => p.startsWith('/challenges') },
       { label: 'Groups', href: '/groups', icon: Users, match: (p) => p.startsWith('/groups') },
       { label: 'Collaborations', href: '/collaborations', icon: Layers, match: (p) => p.startsWith('/collaborations') },

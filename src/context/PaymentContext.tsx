@@ -51,15 +51,15 @@ function paymentReducer(state: PaymentState, action: PaymentAction): PaymentStat
       case 'SET_ERROR':
          return { ...state, error: action.payload, isLoading: false };
       case 'SET_PAYMENT_INTENT':
-         return { ...state, paymentIntent: action.payload, error: null };
+         return { ...state, paymentIntent: action.payload, error: null, isLoading: false };
       case 'SET_PAYMENT_METHODS':
-         return { ...state, paymentMethods: action.payload };
+         return { ...state, paymentMethods: action.payload, isLoading: false };
       case 'SET_SELECTED_PAYMENT_METHOD':
          return { ...state, selectedPaymentMethod: action.payload };
       case 'SET_SUBSCRIPTION':
-         return { ...state, subscription: action.payload };
+         return { ...state, subscription: action.payload, isLoading: false };
       case 'SET_EARNINGS':
-         return { ...state, earnings: action.payload };
+         return { ...state, earnings: action.payload, isLoading: false };
       case 'CLEAR_PAYMENT_INTENT':
          return { ...state, paymentIntent: null };
       case 'RESET_STATE':

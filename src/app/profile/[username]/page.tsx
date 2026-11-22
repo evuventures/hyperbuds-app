@@ -15,7 +15,8 @@ import { FaSpinner } from 'react-icons/fa';
 export default function ProfileByUsernamePage() {
   const params = useParams();
   const router = useRouter();
-  const username = params.username as string;
+  const rawUsername = params.username as string;
+  const username = rawUsername ? decodeURIComponent(rawUsername).replace(/^@+/, '').trim() : '';
   const [profile, setProfile] = useState<ProfileByUsernameResponse | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [isFollowing, setIsFollowing] = useState(false);
@@ -71,6 +72,21 @@ export default function ProfileByUsernamePage() {
       active = false;
     };
   }, [username]);
+
+  // Keep hook unconditionally above all early returns (React Rules of Hooks)
+  useEffect(() => {
+    const targetId = String(profile?.userId || profile?.id || profile?._id || '');
+    if (!targetId) return;
+    const onFollowUpdated = (payload?: unknown) => {
+      if (!payload || typeof payload !== 'object') return;
+      const p = payload as { userId?: string; followersCount?: number; followingCount?: number };
+      if (p.userId && String(p.userId) !== targetId) return;
+      if (typeof p.followersCount === 'number') setFollowersCount(p.followersCount);
+      if (typeof p.followingCount === 'number') setFollowingCount(p.followingCount);
+    };
+    notificationSocket.on('profile:follow-updated', onFollowUpdated);
+    return () => notificationSocket.off('profile:follow-updated', onFollowUpdated);
+  }, [profile?.userId, profile?.id, profile?._id]);
 
   if (isLoading) {
     return (
@@ -177,20 +193,6 @@ export default function ProfileByUsernamePage() {
     }
     console.error('User ID not found for profile:', profile);
   };
-
-  useEffect(() => {
-    const targetId = String(profile?.userId || profile?.id || profile?._id || '');
-    if (!targetId) return;
-    const onFollowUpdated = (payload?: unknown) => {
-      if (!payload || typeof payload !== 'object') return;
-      const p = payload as { userId?: string; followersCount?: number; followingCount?: number };
-      if (p.userId && String(p.userId) !== targetId) return;
-      if (typeof p.followersCount === 'number') setFollowersCount(p.followersCount);
-      if (typeof p.followingCount === 'number') setFollowingCount(p.followingCount);
-    };
-    notificationSocket.on('profile:follow-updated', onFollowUpdated);
-    return () => notificationSocket.off('profile:follow-updated', onFollowUpdated);
-  }, [profile?.userId, profile?.id, profile?._id]);
 
   return (
     <DashboardLayout>

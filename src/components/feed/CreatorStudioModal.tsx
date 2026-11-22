@@ -223,6 +223,7 @@ export function CreatorStudioModal({
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadedMedia, setUploadedMedia] = useState<UploadedFeedMedia | null>(null);
+  const [uploadedMediaList, setUploadedMediaList] = useState<UploadedFeedMedia[]>([]);
   const [isDragging, setIsDragging] = useState(false);
 
   // Live Stream Setup state
@@ -259,6 +260,7 @@ export function CreatorStudioModal({
     setUploading(false);
     setUploadProgress(0);
     setUploadedMedia(null);
+    setUploadedMediaList([]);
     setIsDragging(false);
     setStreamTitle('');
     setStreamDescription('');
@@ -287,7 +289,7 @@ export function CreatorStudioModal({
   const canProceedStep1 = useMemo(() => {
     if (uploading) return false;
     if (initialMode === 'post') {
-      return caption.trim().length > 0 || uploadedMedia !== null;
+      return caption.trim().length > 0 || uploadedMedia !== null || uploadedMediaList.length > 0;
     }
     if (initialMode === 'reel') {
       return uploadedMedia !== null && uploadedMedia.type === 'video';
@@ -324,21 +326,46 @@ export function CreatorStudioModal({
     setCustomTagInput('');
   };
 
-  const handleUploadFile = async (file: File) => {
+  const handleUploadFiles = async (files: File[]) => {
+    if (files.length === 0) return;
     setError(null);
-    setSelectedFileMeta({ name: file.name, size: file.size });
+    const isMultiPost = initialMode === 'post';
+    const remainingSlots = isMultiPost ? Math.max(0, 10 - uploadedMediaList.length) : 1;
+    const batch = isMultiPost ? files.slice(0, remainingSlots) : [files[0]];
+    if (batch.length === 0) {
+      setError('You can attach up to 10 photos/videos per post.');
+      return;
+    }
+
     setUploading(true);
     setUploadProgress(10);
-
     try {
-      const uploaded = await uploadFeedMediaToCloudinary(file, {
-        kind: initialMode === 'reel' ? 'reel' : 'post',
-        onProgress: (pct) => setUploadProgress(pct),
-      });
-      setUploadedMedia(uploaded);
+      const newlyUploaded: UploadedFeedMedia[] = [];
+      for (let i = 0; i < batch.length; i += 1) {
+        const file = batch[i];
+        setSelectedFileMeta({ name: file.name, size: file.size });
+        const uploaded = await uploadFeedMediaToCloudinary(file, {
+          kind: initialMode === 'reel' ? 'reel' : 'post',
+          onProgress: (pct) => {
+            const overall = Math.round(((i + pct / 100) / batch.length) * 100);
+            setUploadProgress(overall);
+          },
+        });
+        newlyUploaded.push(uploaded);
+      }
+
+      if (isMultiPost) {
+        setUploadedMediaList((prev) => {
+          const next = [...prev, ...newlyUploaded].slice(0, 10);
+          setUploadedMedia(next[0] ?? null);
+          return next;
+        });
+      } else {
+        setUploadedMedia(newlyUploaded[0] ?? null);
+        setUploadedMediaList(newlyUploaded.slice(0, 1));
+      }
       setUploadProgress(100);
     } catch (err) {
-      setUploadedMedia(null);
       setError(
         err instanceof Error
           ? err.message
@@ -350,10 +377,10 @@ export function CreatorStudioModal({
   };
 
   const handleFileInputChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+    const files = Array.from(e.target.files ?? []);
     e.target.value = '';
-    if (!file) return;
-    await handleUploadFile(file);
+    if (files.length === 0) return;
+    await handleUploadFiles(files);
   };
 
   const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
@@ -361,13 +388,23 @@ export function CreatorStudioModal({
     e.stopPropagation();
     setIsDragging(false);
     if (uploading) return;
-    const file = e.dataTransfer.files?.[0];
-    if (!file) return;
-    await handleUploadFile(file);
+    const files = Array.from(e.dataTransfer.files ?? []);
+    if (files.length === 0) return;
+    await handleUploadFiles(files);
   };
 
-  const handleRemoveMedia = () => {
+  const handleRemoveMedia = (index?: number) => {
+    if (typeof index === 'number') {
+      setUploadedMediaList((prev) => {
+        const next = prev.filter((_, i) => i !== index);
+        setUploadedMedia(next[0] ?? null);
+        return next;
+      });
+      setError(null);
+      return;
+    }
     setUploadedMedia(null);
+    setUploadedMediaList([]);
     setSelectedFileMeta(null);
     setUploadProgress(0);
     setError(null);
@@ -420,22 +457,22 @@ export function CreatorStudioModal({
 
     try {
       if (initialMode === 'post' || initialMode === 'reel') {
+        const mediaItems =
+          uploadedMediaList.length > 0
+            ? uploadedMediaList
+            : uploadedMedia
+              ? [uploadedMedia]
+              : [];
         const post = await createFeedPost({
           kind: initialMode,
           body: caption.trim(),
-          media: uploadedMedia
-            ? [
-                {
-                  type: uploadedMedia.type,
-                  url: uploadedMedia.url,
-                  publicId: uploadedMedia.publicId,
-                  aspectRatio:
-                    uploadedMedia.aspectRatio ??
-                    (initialMode === 'reel' ? '9:16' : undefined),
-                  durationSeconds: uploadedMedia.durationSeconds,
-                },
-              ]
-            : [],
+          media: mediaItems.map((m) => ({
+            type: m.type,
+            url: m.url,
+            publicId: m.publicId,
+            aspectRatio: m.aspectRatio ?? (initialMode === 'reel' ? '9:16' : undefined),
+            durationSeconds: m.durationSeconds,
+          })),
           tags,
           visibility,
           externalPromoUrl: externalPromoUrl.trim() || undefined,
@@ -524,6 +561,7 @@ export function CreatorStudioModal({
           id={fileInputId}
           data-testid="creator-media-input"
           type="file"
+          multiple={initialMode === 'post'}
           accept={accept}
           onChange={handleFileInputChange}
           className="sr-only"
@@ -612,34 +650,56 @@ export function CreatorStudioModal({
               <div className="flex min-w-0 items-center gap-2">
                 <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500" />
                 <span className="truncate text-xs font-semibold text-slate-800 dark:text-slate-200">
-                  Media uploaded
+                  {uploadedMediaList.length > 1
+                    ? `${uploadedMediaList.length} photos/videos ready (Carousel)`
+                    : 'Media uploaded'}
                 </span>
-                {selectedFileMeta && (
-                  <span className="hidden truncate text-[11px] text-slate-500 sm:inline dark:text-slate-400">
-                    · {selectedFileMeta.name}
-                  </span>
-                )}
               </div>
               <div className="flex items-center gap-1.5">
+                {initialMode === 'post' && uploadedMediaList.length < 10 && (
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="inline-flex items-center gap-1 rounded-lg border border-purple-200 bg-purple-50 px-2.5 py-1 text-[11px] font-semibold text-purple-700 hover:bg-purple-100 dark:border-purple-800 dark:bg-purple-950/40 dark:text-purple-300"
+                  >
+                    <Plus className="h-3 w-3" />
+                    Add More ({uploadedMediaList.length}/10)
+                  </button>
+                )}
                 <button
                   type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1 text-[11px] font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
-                >
-                  <RefreshCw className="h-3 w-3" />
-                  Replace
-                </button>
-                <button
-                  type="button"
-                  onClick={handleRemoveMedia}
+                  onClick={() => handleRemoveMedia()}
                   aria-label="Remove uploaded media"
                   className="inline-flex items-center gap-1 rounded-lg border border-rose-200 px-2.5 py-1 text-[11px] font-medium text-rose-600 hover:bg-rose-50 dark:border-rose-900/60 dark:text-rose-400 dark:hover:bg-rose-950/40"
                 >
                   <Trash2 className="h-3 w-3" />
-                  Remove
+                  Clear
                 </button>
               </div>
             </div>
+
+            {uploadedMediaList.length > 1 && (
+              <div className="flex gap-2 overflow-x-auto border-b border-slate-200 bg-slate-50 p-2.5 dark:border-slate-800 dark:bg-slate-900/60">
+                {uploadedMediaList.map((item, idx) => (
+                  <div key={`${item.url}-${idx}`} className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg border border-slate-300 dark:border-slate-700">
+                    {item.type === 'video' ? (
+                      <video src={item.url} className="h-full w-full object-cover" />
+                    ) : (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={item.url} alt={`Slide ${idx + 1}`} className="h-full w-full object-cover" />
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveMedia(idx)}
+                      aria-label={`Remove media ${idx + 1}`}
+                      className="absolute right-0.5 top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-black/70 text-white hover:bg-rose-600"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
 
             <div className="flex justify-center bg-slate-900/95 p-3">
               {uploadedMedia.type === 'video' ? (
