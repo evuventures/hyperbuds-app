@@ -44,7 +44,7 @@ const EXAMPLE_PROMPTS = [
 export function AiMatchStudioPanel({ mode }: { mode: 'external' | 'prompt' }) {
   // External AI Match state
   const [extQuery, setExtQuery] = useState('');
-  const [extPlatform, setExtPlatform] = useState<'all' | 'podcast' | 'bluesky' | 'youtube'>('all');
+  const [extPlatform, setExtPlatform] = useState<'all' | 'tiktok' | 'podcast' | 'bluesky' | 'youtube'>('all');
 
   // Custom Prompt Match ($10 / 500 credits) state
   const [customPrompt, setCustomPrompt] = useState('');
@@ -154,7 +154,7 @@ export function AiMatchStudioPanel({ mode }: { mode: 'external' | 'prompt' }) {
                 External AI Creator Match
               </h2>
               <p className="mt-0.5 text-xs text-slate-300">
-                Discovers real public creators from Apple Podcasts, Bluesky, and YouTube, ranks the best fits with AI, and writes a 1-click invite pitch with your referral link.
+                Discovers real public creators from TikTok, YouTube, Apple Podcasts, and Bluesky, ranks the best fits with AI, and writes a 1-click invite pitch with your referral link.
               </p>
             </div>
             <span className="rounded-full bg-amber-400/15 px-3 py-1 text-xs font-bold text-amber-200 ring-1 ring-amber-400/30">
@@ -167,7 +167,7 @@ export function AiMatchStudioPanel({ mode }: { mode: 'external' | 'prompt' }) {
               type="text"
               value={extQuery}
               onChange={(e) => setExtQuery(e.target.value)}
-              placeholder="Niche or topic (leave blank to use your profile niches, e.g. AI tech, Afrobeats, Fitness)"
+              placeholder="Niche, topic, or paste a TikTok video URL (e.g. Afrobeats, AI tech, Comedy)"
               className="sm:col-span-6 rounded-xl border border-white/15 bg-black/30 px-3.5 py-2.5 text-xs text-white placeholder:text-slate-400 focus:border-purple-400 focus:outline-none"
             />
             <select
@@ -175,10 +175,11 @@ export function AiMatchStudioPanel({ mode }: { mode: 'external' | 'prompt' }) {
               onChange={(e) => setExtPlatform(e.target.value as any)}
               className="sm:col-span-3 rounded-xl border border-white/15 bg-black/30 px-3 py-2.5 text-xs text-white focus:border-purple-400 focus:outline-none"
             >
-              <option value="all">All Free Sources</option>
+              <option value="all">All Sources (TikTok + YT + Podcasts + Bluesky)</option>
+              <option value="tiktok">TikTok Creators</option>
+              <option value="youtube">YouTube Channels</option>
               <option value="podcast">Apple Podcasts</option>
               <option value="bluesky">Bluesky Creators</option>
-              <option value="youtube">YouTube Channels</option>
             </select>
             <button
               type="submit"
@@ -243,7 +244,7 @@ export function AiMatchStudioPanel({ mode }: { mode: 'external' | 'prompt' }) {
                 onChange={(e) => setIncludeExternal(e.target.checked)}
                 className="h-4 w-4 rounded border-white/20 bg-black/40 text-purple-600"
               />
-              Include external creators (Podcasts, Bluesky, YouTube)
+              Include external creators (TikTok, YouTube, Podcasts, Bluesky)
             </label>
 
             <button
