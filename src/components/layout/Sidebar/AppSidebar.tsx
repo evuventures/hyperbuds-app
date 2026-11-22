@@ -25,6 +25,7 @@ import {
   ShoppingBag,
   Trophy,
   User2,
+  Users,
   Wallet,
   type LucideIcon,
 } from 'lucide-react';
@@ -48,6 +49,7 @@ export const NAV_SECTIONS: Array<{ title: string; items: NavItem[] }> = [
       { label: 'Profile', href: '/profile', icon: User2, match: (p) => p.startsWith('/profile') },
       { label: 'Matching', href: '/ai-matches', icon: Heart, match: (p) => p.startsWith('/ai-matches') || p.startsWith('/matching') },
       { label: 'Challenges', href: '/challenges', icon: Trophy, match: (p) => p.startsWith('/challenges') },
+      { label: 'Groups', href: '/groups', icon: Users, match: (p) => p.startsWith('/groups') },
       { label: 'Collaborations', href: '/collaborations', icon: Layers, match: (p) => p.startsWith('/collaborations') },
       { label: 'Live Studio', href: '/streaming', icon: Radio, match: (p) => p.startsWith('/streaming') },
     ],

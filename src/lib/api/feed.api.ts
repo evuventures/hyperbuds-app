@@ -22,12 +22,20 @@ export interface FeedPostMediaInput {
   durationSeconds?: number;
 }
 
+export interface FeedPromoLink {
+  platform: string;
+  url: string;
+  label: string;
+  clicksCount: number;
+}
+
 export interface CreateFeedPostRequest {
   kind: FeedPostKind;
   body: string;
   media?: FeedPostMediaInput[];
   tags?: string[];
   visibility?: FeedVisibility;
+  externalPromoUrl?: string;
 }
 
 export interface FeedAuthor {
@@ -60,6 +68,7 @@ export interface FeedPostRecord {
   bookmarksCount: number;
   isLiked?: boolean;
   isBookmarked?: boolean;
+  promoLink?: FeedPromoLink | null;
   createdAt: string;
   author?: FeedAuthor;
   authorId?: string | FeedAuthor;
@@ -218,14 +227,14 @@ export async function uploadFeedMediaToCloudinary(
     );
 
     if (!response.data?.media?.url) {
-      throw new Error('Cloudinary upload completed without a media URL.');
+      throw new Error('Media upload completed without a URL.');
     }
 
     options?.onProgress?.(100);
     return response.data.media;
   } catch (err) {
     throw new Error(
-      extractApiErrorMessage(err, 'Failed to upload media to Cloudinary. Please try again.')
+      extractApiErrorMessage(err, 'Failed to upload media. Please try again.')
     );
   }
 }
@@ -258,6 +267,7 @@ export async function createFeedPost(
       bookmarksCount: typeof raw.bookmarksCount === 'number' ? raw.bookmarksCount : 0,
       isLiked: raw.isLiked,
       isBookmarked: raw.isBookmarked,
+      promoLink: raw.promoLink ?? null,
       createdAt: raw.createdAt ?? new Date().toISOString(),
       author: raw.author,
       authorId: raw.authorId,

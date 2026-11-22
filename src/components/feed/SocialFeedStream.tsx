@@ -27,7 +27,10 @@ import {
   Volume2,
   VolumeX,
   BarChart3,
+  ExternalLink,
   Eye,
+  Flame,
+  Hash,
   X,
 } from 'lucide-react';
 import { formatCompactCount } from '@/lib/utils/formatCount';
@@ -184,6 +187,12 @@ export interface FeedPost {
   likesCount?: number;
   commentsCount?: number;
   viewsCount?: number;
+  promoLink?: {
+    platform: string;
+    url: string;
+    label: string;
+    clicksCount: number;
+  } | null;
   isLiked?: boolean;
   isBookmarked?: boolean;
   createdAt?: string;
@@ -246,7 +255,7 @@ const FEED_TABS: Array<{ id: FeedTab; label: string }> = [
   { id: 'saved', label: 'Saved' },
 ];
 
-function buildFeedQuery(tab: FeedTab, search: string, pageNum: number): string {
+function buildFeedQuery(tab: FeedTab, search: string, pageNum: number, activeTag?: string): string {
   const params = new URLSearchParams({
     limit: String(FEED_PAGE_SIZE),
     page: String(pageNum),
@@ -254,7 +263,34 @@ function buildFeedQuery(tab: FeedTab, search: string, pageNum: number): string {
   if (tab === 'post' || tab === 'reel' || tab === 'match') params.set('kind', tab);
   if (tab === 'saved') params.set('saved', 'true');
   if (search.trim()) params.set('q', search.trim());
+  if (activeTag && activeTag.trim()) params.set('tag', activeTag.replace(/^#/, '').trim());
   return params.toString();
+}
+
+function renderCaptionWithHashtags(
+  text: string,
+  onSelectTag: (tag: string) => void,
+): React.ReactNode {
+  const parts = text.split(/(#[a-zA-Z0-9_]{2,32})/g);
+  return parts.map((part, i) => {
+    if (/^#[a-zA-Z0-9_]{2,32}$/.test(part)) {
+      const clean = part.slice(1).toLowerCase();
+      return (
+        <button
+          key={`${clean}-${i}`}
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onSelectTag(clean);
+          }}
+          className="inline font-semibold text-purple-600 hover:underline dark:text-purple-400"
+        >
+          {part}
+        </button>
+      );
+    }
+    return <React.Fragment key={i}>{part}</React.Fragment>;
+  });
 }
 
 function MatchCardPortrait({
@@ -672,9 +708,28 @@ export default function SocialFeedStream({
   const [shareCopied, setShareCopied] = useState(false);
   const [followBothBusy, setFollowBothBusy] = useState<Record<string, boolean>>({});
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [activeTag, setActiveTag] = useState<string>('');
+  const [trendingWindow, setTrendingWindow] = useState<'24h' | '7d'>('7d');
+  const [trendingTags, setTrendingTags] = useState<
+    Array<{ tag: string; postsCount: number; viewsCount: number; engagementsCount: number }>
+  >([]);
 
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const loadingMoreRef = useRef(false);
+
+  useEffect(() => {
+    let active = true;
+    apiClient
+      .get(`/feed/trending-tags?window=${trendingWindow}&limit=8`)
+      .then((res) => {
+        if (!active) return;
+        setTrendingTags(Array.isArray(res.data?.tags) ? res.data.tags : []);
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, [trendingWindow]);
 
   useEffect(() => {
     if (currentUser?.id) setCurrentUserId(currentUser.id);
@@ -685,7 +740,7 @@ export default function SocialFeedStream({
     setLoadError(null);
     setPage(1);
     setHasMore(false);
-    const query = buildFeedQuery(tab, search, 1);
+    const query = buildFeedQuery(tab, search, 1, activeTag);
 
     const fetchFeedOnce = async () => {
       const [meRes, feedRes] = await Promise.all([
@@ -754,7 +809,7 @@ export default function SocialFeedStream({
     } finally {
       setLoading(false);
     }
-  }, [tab, search, currentUser, onPostCountChange]);
+  }, [tab, search, activeTag, currentUser, onPostCountChange]);
 
   const loadMore = useCallback(async () => {
     if (loading || loadingMoreRef.current || !hasMore) return;
@@ -762,7 +817,7 @@ export default function SocialFeedStream({
     setLoadingMore(true);
     const nextPage = page + 1;
     try {
-      const query = buildFeedQuery(tab, search, nextPage);
+      const query = buildFeedQuery(tab, search, nextPage, activeTag);
       const feedRes = await apiClient.get(`/feed/posts?${query}`);
       const incoming: FeedPost[] = Array.isArray(feedRes.data?.posts) ? feedRes.data.posts : [];
       const totalPages = Number(feedRes.data?.pagination?.pages ?? nextPage);
@@ -1330,6 +1385,64 @@ export default function SocialFeedStream({
         onStreamCreated={handleStreamCreated}
       />
 
+      {/* Twitter/X-Style Trending Hashtags Bar */}
+      {(trendingTags.length > 0 || activeTag) && (
+        <div className="px-3 sm:px-0">
+          <div className="rounded-2xl border border-slate-200 bg-white px-3.5 py-2.5 shadow-xs dark:border-slate-800 dark:bg-slate-900">
+            <div className="mb-2 flex items-center justify-between gap-2">
+              <span className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-900 dark:text-white">
+                <Flame className="h-3.5 w-3.5 text-purple-600 dark:text-purple-400" />
+                Trending on HyperBuds
+              </span>
+              <div className="inline-flex rounded-full bg-slate-100 p-0.5 text-[10px] font-semibold dark:bg-slate-800">
+                {(['24h', '7d'] as const).map((w) => (
+                  <button
+                    key={w}
+                    type="button"
+                    onClick={() => setTrendingWindow(w)}
+                    className={`rounded-full px-2 py-0.5 transition ${
+                      trendingWindow === w
+                        ? 'bg-purple-600 text-white'
+                        : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
+                    }`}
+                  >
+                    {w === '24h' ? '24h' : '7d'}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 hb-scroll-hidden">
+              {activeTag && (
+                <button
+                  type="button"
+                  onClick={() => setActiveTag('')}
+                  className="inline-flex shrink-0 items-center gap-1 rounded-full bg-purple-600 px-2.5 py-1 text-[11px] font-semibold text-white"
+                >
+                  #{activeTag}
+                  <X className="h-3 w-3" />
+                </button>
+              )}
+              {trendingTags
+                .filter((item) => item.tag.toLowerCase() !== activeTag.toLowerCase())
+                .map((item) => (
+                  <button
+                    key={item.tag}
+                    type="button"
+                    onClick={() => setActiveTag(item.tag)}
+                    className="inline-flex shrink-0 items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-semibold text-slate-700 transition hover:border-purple-300 hover:bg-purple-50 hover:text-purple-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:border-purple-600 dark:hover:text-purple-300"
+                  >
+                    <Hash className="h-3 w-3 text-purple-500" />
+                    {item.tag}
+                    <span className="text-[10px] font-normal text-slate-400">
+                      {formatCompactCount(item.postsCount)}
+                    </span>
+                  </button>
+                ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Feed Tabs & Search */}
       <div className="flex flex-wrap items-center justify-between gap-3 px-3 sm:px-0">
         <div
@@ -1860,8 +1973,30 @@ export default function SocialFeedStream({
 
                     {post.body && (
                       <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-slate-800 dark:text-slate-200">
-                        {post.body}
+                        {renderCaptionWithHashtags(post.body, (tag) => setActiveTag(tag))}
                       </p>
+                    )}
+
+                    {post.promoLink?.url && (
+                      <div className="mt-2.5">
+                        <a
+                          href={post.promoLink.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={() => {
+                            void apiClient.post(`/feed/posts/${post._id}/promo-click`).catch(() => {});
+                          }}
+                          className="inline-flex items-center gap-2 rounded-xl border border-purple-200 bg-purple-50/80 px-3.5 py-2 text-xs font-bold text-purple-700 transition hover:bg-purple-100 dark:border-purple-800/70 dark:bg-purple-950/40 dark:text-purple-300 dark:hover:bg-purple-950/70"
+                        >
+                          <ExternalLink className="h-3.5 w-3.5" />
+                          <span>{post.promoLink.label || 'Watch Full Post'}</span>
+                          {post.promoLink.clicksCount > 0 && (
+                            <span className="rounded-full bg-purple-200/70 px-1.5 py-0.5 text-[10px] dark:bg-purple-900">
+                              {formatCompactCount(post.promoLink.clicksCount)}
+                            </span>
+                          )}
+                        </a>
+                      </div>
                     )}
 
                     {Array.isArray(post.media) && post.media.length > 0 && (
@@ -1899,14 +2034,24 @@ export default function SocialFeedStream({
 
                     {Array.isArray(post.tags) && post.tags.length > 0 && (
                       <div className="mt-3 flex flex-wrap gap-1.5">
-                        {post.tags.map((tag) => (
-                          <span
-                            key={tag}
-                            className="rounded-md border border-slate-200 bg-slate-50 px-2 py-0.5 text-[11px] font-medium text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
-                          >
-                            #{tag}
-                          </span>
-                        ))}
+                        {post.tags.map((tag) => {
+                          const clean = tag.replace(/^#/, '').toLowerCase();
+                          const isSelected = activeTag.toLowerCase() === clean;
+                          return (
+                            <button
+                              key={tag}
+                              type="button"
+                              onClick={() => setActiveTag(isSelected ? '' : clean)}
+                              className={`rounded-md border px-2 py-0.5 text-[11px] font-medium transition ${
+                                isSelected
+                                  ? 'border-purple-600 bg-purple-600 text-white'
+                                  : 'border-slate-200 bg-slate-50 text-purple-700 hover:border-purple-300 hover:bg-purple-50 dark:border-slate-700 dark:bg-slate-800 dark:text-purple-300'
+                              }`}
+                            >
+                              #{clean}
+                            </button>
+                          );
+                        })}
                       </div>
                     )}
                   </>

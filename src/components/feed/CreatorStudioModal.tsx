@@ -211,6 +211,9 @@ export function CreatorStudioModal({
   const [visibility, setVisibility] = useState<FeedVisibility>('public');
   const [tags, setTags] = useState<string[]>([]);
   const [customTagInput, setCustomTagInput] = useState('');
+  const [externalPromoUrl, setExternalPromoUrl] = useState('');
+  const [publishedPost, setPublishedPost] = useState<FeedPostRecord | null>(null);
+  const [copiedShareKit, setCopiedShareKit] = useState<'caption' | 'link' | null>(null);
 
   // Cloudinary Upload state
   const [selectedFileMeta, setSelectedFileMeta] = useState<{
@@ -249,6 +252,9 @@ export function CreatorStudioModal({
     setVisibility('public');
     setTags([]);
     setCustomTagInput('');
+    setExternalPromoUrl('');
+    setPublishedPost(null);
+    setCopiedShareKit(null);
     setSelectedFileMeta(null);
     setUploading(false);
     setUploadProgress(0);
@@ -432,6 +438,7 @@ export function CreatorStudioModal({
             : [],
           tags,
           visibility,
+          externalPromoUrl: externalPromoUrl.trim() || undefined,
         });
 
         if (initialMode === 'reel') {
@@ -439,7 +446,7 @@ export function CreatorStudioModal({
         } else {
           onPostCreated?.(post);
         }
-        onOpenChange(false);
+        setPublishedPost(post);
         return;
       }
 
@@ -733,6 +740,25 @@ export function CreatorStudioModal({
               </button>
             </span>
           ))}
+        </div>
+      )}
+
+      {(initialMode === 'post' || initialMode === 'reel') && (
+        <div className="mt-3 space-y-1.5 rounded-xl border border-purple-200/70 bg-purple-50/40 p-3 dark:border-purple-900/50 dark:bg-purple-950/20">
+          <label className="flex items-center gap-1.5 text-xs font-semibold text-purple-900 dark:text-purple-200">
+            <ExternalLink className="h-3.5 w-3.5 text-purple-600 dark:text-purple-400" />
+            Promote External Post (Optional — Cross-Platform Growth)
+          </label>
+          <input
+            type="url"
+            value={externalPromoUrl}
+            onChange={(e) => setExternalPromoUrl(e.target.value)}
+            placeholder="https://youtube.com/... or TikTok / Instagram / X / Twitch link"
+            className="w-full rounded-xl border border-purple-200 bg-white px-3 py-2 text-xs text-slate-900 outline-none focus:border-purple-500 dark:border-purple-800 dark:bg-slate-900 dark:text-white"
+          />
+          <p className="text-[11px] text-slate-500 dark:text-slate-400">
+            Adds a clean native button (e.g. &ldquo;Watch on YouTube ↗&rdquo;) below your post to send HyperBuds viewers straight to your other platforms.
+          </p>
         </div>
       )}
     </div>
@@ -1456,13 +1482,86 @@ export function CreatorStudioModal({
         )}
 
         <div className="py-1">
-          {initialMode === 'post' && renderPostBody()}
-          {initialMode === 'reel' && renderReelBody()}
-          {initialMode === 'livestream' && renderLiveStreamBody()}
+          {publishedPost ? (
+            <div className="space-y-4">
+              <div className="rounded-2xl border border-emerald-200 bg-emerald-50/70 p-4 dark:border-emerald-900/60 dark:bg-emerald-950/30">
+                <div className="flex items-start gap-3">
+                  <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                  <div>
+                    <p className="text-sm font-bold text-slate-900 dark:text-white">
+                      Published to HyperBuds! Boost your reach everywhere:
+                    </p>
+                    <p className="mt-0.5 text-xs text-slate-600 dark:text-slate-300">
+                      Use this One-Tap Cross-Post Kit to share your caption, #hashtags, and HyperBuds link across your other platforms.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const tagStr = (publishedPost.tags ?? []).map((t) => `#${t.replace(/^#/, '')}`).join(' ');
+                    const fullText = [publishedPost.body, tagStr].filter(Boolean).join('\n\n');
+                    void navigator.clipboard?.writeText(fullText);
+                    setCopiedShareKit('caption');
+                    setTimeout(() => setCopiedShareKit(null), 1800);
+                  }}
+                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-xs font-semibold text-slate-800 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                >
+                  {copiedShareKit === 'caption' ? <Check className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4 text-purple-600" />}
+                  {copiedShareKit === 'caption' ? 'Copied Caption & Tags!' : 'Copy Caption + #Hashtags'}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    const postUrl = `${typeof window !== 'undefined' ? window.location.origin : 'https://app.hyperbuds.cloud'}/post/${encodeURIComponent(publishedPost._id)}`;
+                    void navigator.clipboard?.writeText(postUrl);
+                    setCopiedShareKit('link');
+                    setTimeout(() => setCopiedShareKit(null), 1800);
+                  }}
+                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-xs font-semibold text-slate-800 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                >
+                  {copiedShareKit === 'link' ? <Check className="h-4 w-4 text-emerald-600" /> : <ExternalLink className="h-4 w-4 text-purple-600" />}
+                  {copiedShareKit === 'link' ? 'Copied Post Link!' : 'Copy HyperBuds Link'}
+                </button>
+
+                <a
+                  href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(
+                    `${(publishedPost.body || 'Check out my new post on HyperBuds!').slice(0, 200)}`,
+                  )}&url=${encodeURIComponent(`https://app.hyperbuds.cloud/post/${publishedPost._id}`)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-3 py-2.5 text-xs font-semibold text-white hover:bg-slate-800 dark:bg-white dark:text-slate-900"
+                >
+                  Share to X (Twitter) ↗
+                </a>
+
+                <a
+                  href={`https://wa.me/?text=${encodeURIComponent(
+                    `${(publishedPost.body || 'Check out my new post on HyperBuds!').slice(0, 160)} https://app.hyperbuds.cloud/post/${publishedPost._id}`,
+                  )}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-3 py-2.5 text-xs font-semibold text-white hover:bg-emerald-500"
+                >
+                  Share to WhatsApp ↗
+                </a>
+              </div>
+            </div>
+          ) : (
+            <>
+              {initialMode === 'post' && renderPostBody()}
+              {initialMode === 'reel' && renderReelBody()}
+              {initialMode === 'livestream' && renderLiveStreamBody()}
+            </>
+          )}
         </div>
 
         <DialogFooter className="mt-2 flex-row items-center justify-between gap-2 border-t border-slate-100 pt-4 dark:border-slate-800">
-          {createdStream ? (
+          {createdStream || publishedPost ? (
             <button
               type="button"
               onClick={() => onOpenChange(false)}

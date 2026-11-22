@@ -132,9 +132,15 @@ export default function ChallengesPage() {
           `🎉 Duo Challenge Completed! You & your match earned +${rewardCredits} Credits & +${rewardRizzBoost} Rizz Score!`,
           { duration: 6000 },
         );
+      } else {
+        toast.success('Step verified & completed!');
       }
     } catch (err) {
-      toast.error((err as { message?: string })?.message || 'Could not update milestone.');
+      const msg =
+        (err as { response?: { data?: { message?: string } }; message?: string })?.response?.data?.message ||
+        (err as { message?: string })?.message ||
+        'Complete this action on HyperBuds first, then tap Verify & Complete.';
+      toast.error(msg, { duration: 6000 });
     } finally {
       setTogglingKey(null);
     }
@@ -418,10 +424,10 @@ export default function ChallengesPage() {
                                     className={`rounded-full px-2 py-0.5 ${
                                       mineDone
                                         ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300'
-                                        : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'
+                                        : 'bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300'
                                     }`}
                                   >
-                                    You {mineDone ? '✓' : '·'}
+                                    {mineDone ? 'Verified ✓' : 'Verify & Complete'}
                                   </span>
                                   <span
                                     className={`rounded-full px-2 py-0.5 ${
