@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { RefreshCw, Users, Zap } from "lucide-react";
 import { useRouter } from "next/navigation";
 import DashboardLayout from "@/components/layout/Dashboard/Dashboard";
+import { CardGridSkeleton } from "@/components/ui/AppSkeletons";
 import CollaborationList from "@/components/collaboration/CollaborationList";
 import { collaborationApi } from "@/lib/api/collaboration.api";
 import type { Collaboration } from "@/types/collaboration.types";
@@ -604,13 +605,7 @@ const CollaborationsPage: React.FC = () => {
 
             <div className="p-5">
               {isLoading ? (
-                <div className="flex flex-col justify-center items-center py-12 sm:py-16">
-                  <div className="mb-4 w-12 h-12 text-purple-600 animate-spin sm:w-16 sm:h-16">
-                    <RefreshCw className="w-full h-full" />
-                  </div>
-                  <p className="text-base font-medium text-gray-600 sm:text-lg dark:text-gray-400">Loading collaborations...</p>
-                  <p className="mt-2 text-xs text-gray-500 sm:text-sm dark:text-gray-500">Syncing your workspace</p>
-                </div>
+                <CardGridSkeleton count={4} columns={2} />
               ) : error ? (
                 <div className="flex flex-col justify-center items-center py-12 sm:py-16">
                   <div className="p-5 mb-4 bg-red-50 rounded-xl sm:p-6 dark:bg-red-900/20">

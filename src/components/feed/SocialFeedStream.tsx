@@ -34,6 +34,7 @@ import {
   X,
 } from 'lucide-react';
 import { formatCompactCount } from '@/lib/utils/formatCount';
+import { FeedPostSkeleton } from '@/components/ui/AppSkeletons';
 import {
   CreatorStudioModal,
   type CreatorStudioMode,
@@ -1489,12 +1490,8 @@ export default function SocialFeedStream({
       {/* Posts List */}
       {loading ? (
         <div className="space-y-4">
-          {[1, 2].map((i) => (
-            <div
-              key={i}
-              className="h-40 animate-pulse rounded-2xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900"
-            />
-          ))}
+          <FeedPostSkeleton />
+          <FeedPostSkeleton />
         </div>
       ) : loadError && posts.length === 0 ? (
         <div className="rounded-2xl border border-rose-200 bg-white p-8 text-center dark:border-rose-900/50 dark:bg-slate-900">
@@ -2422,10 +2419,7 @@ export default function SocialFeedStream({
           {/* Endless Facebook-style scroll sentinel */}
           <div ref={sentinelRef} data-testid="feed-scroll-sentinel" className="pt-2">
             {loadingMore ? (
-              <div className="flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white py-4 text-xs font-medium text-slate-600 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300">
-                <Loader2 className="h-4 w-4 animate-spin text-purple-600" />
-                Loading more posts & reels...
-              </div>
+              <FeedPostSkeleton compact />
             ) : hasMore ? (
               <div className="flex justify-center">
                 <button

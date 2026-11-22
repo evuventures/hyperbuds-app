@@ -1,8 +1,9 @@
-// app/loading.tsx
+import { PageShellSkeleton } from '@/components/ui/AppSkeletons';
+
 export default function Loading() {
   return (
-    <div className="flex justify-center items-center p-10">
-      <p>Loading…</p>
+    <div className="min-h-screen bg-[#f8f9fc] dark:bg-slate-950">
+      <PageShellSkeleton />
     </div>
   );
 }

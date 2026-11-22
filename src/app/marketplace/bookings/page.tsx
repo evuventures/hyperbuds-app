@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { marketplaceApi } from "@/lib/api/marketplace.api";
 import { X, ChevronRight, Loader2, ShoppingBag, Package, Search, Store, AlertCircle, Layers } from "lucide-react";
 import DashboardLayout from "@/components/layout/Dashboard/Dashboard";
+import { CardGridSkeleton } from "@/components/ui/AppSkeletons";
 import Link from "next/link";
 import { Booking, BookingStatus, MarketplaceService } from "@/types/marketplace.types";
 
@@ -111,13 +112,7 @@ export const BookingsList = () => {
           {/* Bookings List */}
           <div className="space-y-3">
             {isLoading ? (
-              <div
-                role="status"
-                className="flex flex-col items-center gap-3 rounded-2xl border border-slate-200 bg-white py-20 dark:border-slate-800 dark:bg-slate-900"
-              >
-                <Loader2 className="animate-spin text-indigo-600" size={28} />
-                <p className="text-xs text-slate-500">Loading bookings…</p>
-              </div>
+              <CardGridSkeleton count={3} columns={1} />
             ) : !data?.bookings?.length ? (
               <div className="rounded-2xl border border-dashed border-slate-300 bg-white py-20 text-center dark:border-slate-800 dark:bg-slate-900">
                 {role === "buyer" ? (

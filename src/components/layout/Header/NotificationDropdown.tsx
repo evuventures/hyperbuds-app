@@ -7,6 +7,7 @@ import { Bell, CheckCheck, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNotifications, useMarkAllNotificationsAsRead, useUnreadNotificationCount } from '@/hooks/features/useNotifications';
 import { NotificationItem } from '@/components/features/notifications/NotificationItem';
+import { NotificationListSkeleton } from '@/components/ui/AppSkeletons';
 import { Loader2 } from 'lucide-react';
 
 interface NotificationDropdownProps {
@@ -103,10 +104,7 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
           {/* Notifications List */}
           <div className="overflow-y-auto max-h-96 notification-scrollbar">
             {isLoading ? (
-              <div className="flex flex-col items-center justify-center py-8">
-                <Loader2 className="w-8 h-8 text-purple-500 animate-spin" />
-                <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">Loading notifications...</p>
-              </div>
+              <NotificationListSkeleton count={4} />
             ) : error ? (
               <div className="px-4 py-8 text-center">
                 <Bell className="mx-auto mb-3 w-12 h-12 text-gray-300 dark:text-gray-600" />

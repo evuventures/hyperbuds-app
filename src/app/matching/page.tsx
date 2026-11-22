@@ -8,6 +8,7 @@ import { motion } from "framer-motion";
 import { BASE_URL } from "@/config/baseUrl";
 import type { MatchSuggestion, CreatorProfile } from "@/types/matching.types";
 import { getAccessToken } from "@/store/authSelectors";
+import { CardGridSkeleton } from "@/components/ui/AppSkeletons";
 import { Button } from "@/components/ui/button";
 //import PreferencesForm from "@/components/matching/PreferencesForm";
 //import MatchCard from "@/components/matching/MatchCard";
@@ -470,10 +471,8 @@ export default function MatchmakerPage() {
                   </Button>
                 </div>
               ) : !dataLoaded ? (
-                <div className="flex flex-col justify-center items-center py-12 sm:py-16">
-                  <Loader2 className="mb-4 w-12 h-12 text-purple-600 animate-spin sm:w-16 sm:h-16 dark:text-purple-400" />
-                  <p className="text-base font-medium text-gray-600 sm:text-lg dark:text-gray-400">Loading matches...</p>
-                  <p className="mt-2 text-xs text-gray-500 sm:text-sm dark:text-gray-500">Analyzing compatibility</p>
+                <div className="py-4">
+                  <CardGridSkeleton count={4} columns={2} />
                 </div>
               ) : matches.length === 0 ? (
                 <div className="flex flex-col justify-center items-center py-12 sm:py-16">

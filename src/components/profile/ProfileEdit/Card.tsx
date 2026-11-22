@@ -772,20 +772,12 @@ export default function EditProfilePage() {
 
         {/* Loading State */}
         {isLoadingProfile ? (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="flex justify-center items-center py-12"
-          >
-            <div className="flex flex-col gap-4 items-center">
-              <motion.div
-                animate={{ rotate: 360 }}
-                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                className="w-8 h-8 rounded-full border-4 border-purple-500 border-t-transparent"
-              />
-              <p className="text-gray-600 dark:text-gray-400">Loading profile data...</p>
-            </div>
-          </motion.div>
+          <div role="status" aria-label="Loading profile" className="space-y-4 py-6">
+            <div className="mx-auto h-24 w-24 animate-pulse rounded-full bg-slate-200 dark:bg-slate-800" />
+            <div className="h-10 w-full animate-pulse rounded-xl bg-slate-200 dark:bg-slate-800" />
+            <div className="h-24 w-full animate-pulse rounded-xl bg-slate-200 dark:bg-slate-800" />
+            <div className="h-10 w-1/2 animate-pulse rounded-xl bg-slate-200 dark:bg-slate-800" />
+          </div>
         ) : (
           /* Form Content with Staggered Animations */
           <motion.div

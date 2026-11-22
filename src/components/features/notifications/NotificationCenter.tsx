@@ -6,6 +6,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Bell, CheckCheck, Loader2, ChevronDown, ChevronUp } from 'lucide-react';
 import { useNotifications, useMarkAllNotificationsAsRead } from '@/hooks/features/useNotifications';
 import { NotificationItem } from './NotificationItem';
+import { NotificationListSkeleton } from '@/components/ui/AppSkeletons';
 import { useNotificationSocket } from '@/hooks/features/useNotificationSocket';
 import { groupNotifications } from '@/utils/notificationGrouping';
 import PushNotificationControl from '@/components/pwa/PushNotificationControl';
@@ -197,10 +198,7 @@ export const NotificationCenter: React.FC = () => {
          {/* Content */}
          <div className="flex-1 overflow-y-auto">
             {isLoading && notifications.length === 0 ? (
-               <div className="flex flex-col items-center justify-center py-16">
-                  <Loader2 className="w-12 h-12 text-purple-500 animate-spin" />
-                  <p className="mt-4 text-gray-500 dark:text-gray-400">Loading notifications...</p>
-               </div>
+               <NotificationListSkeleton count={6} />
             ) : error ? (
                <div className="flex flex-col items-center justify-center py-16">
                   <Bell className="w-16 h-16 mb-4 text-gray-300 dark:text-gray-600" />

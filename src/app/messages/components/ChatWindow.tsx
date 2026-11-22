@@ -5,6 +5,7 @@ import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { setMessages, setActiveConversation, markMessagesAsRead } from '@/store/slices/chatSlice';
 import { messagingAPI } from '@/lib/api/messaging.api';
 import { MessageBubble } from './MessageBubble';
+import { MessageListSkeleton } from '@/components/ui/AppSkeletons';
 import { MessageInput } from './MessageInput';
 import { ChatHeader } from './ChatHeader';
 import { format, isToday, isYesterday } from 'date-fns';
@@ -129,7 +130,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ conversationId }) => {
           className="flex-1 overflow-y-auto p-6 space-y-6 scroll-smooth
                      scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-800 scrollbar-track-transparent"
         >
-          {loading&&<p role="status" className="text-sm text-muted-foreground">Loading messages…</p>}
+          {loading && <MessageListSkeleton />}
           {error&&<div role="alert" className="text-sm text-red-700 dark:text-red-300"><p>{error}</p><button className="mt-2 underline" onClick={()=>setRetry(v=>v+1)}>Retry messages</button></div>}
           {!loading&&!error&&!sortedMessages.length&&<p className="text-sm text-muted-foreground">No messages yet. Start the conversation below.</p>}
           {sortedMessages.map((msg, index) => {

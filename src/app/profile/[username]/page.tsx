@@ -8,6 +8,7 @@ import type { ProfileByUsernameResponse } from '@/lib/api/profile.api';
 import apiClient from '@/lib/api/client';
 import notificationSocket from '@/lib/socket/notificationSocket';
 import DashboardLayout from '@/components/layout/Dashboard/Dashboard';
+import { ProfileSkeleton } from '@/components/ui/AppSkeletons';
 import UserProfileHeader from '@/components/profile/ProfileCard.jsx';
 import { FaSpinner } from 'react-icons/fa';
 
@@ -74,12 +75,7 @@ export default function ProfileByUsernamePage() {
   if (isLoading) {
     return (
       <DashboardLayout>
-        <div className="flex justify-center items-center min-h-[60vh]">
-          <div className="text-center">
-            <FaSpinner className="animate-spin mx-auto h-7 w-7 text-indigo-600 mb-3" />
-            <p className="text-sm text-slate-600 dark:text-slate-400">Loading profile...</p>
-          </div>
-        </div>
+        <ProfileSkeleton />
       </DashboardLayout>
     );
   }

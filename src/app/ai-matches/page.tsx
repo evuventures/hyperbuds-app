@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Globe2, Loader2, RefreshCw, ShieldCheck, Sparkles } from "lucide-react";
 import DashboardLayout from "@/components/layout/Dashboard/Dashboard";
+import { CardGridSkeleton } from "@/components/ui/AppSkeletons";
 import { Button } from "@/components/ui/button";
 import MatchHistoryGallery from "@/components/matching/MatchHistoryGallery";
 import { useMatching } from "@/hooks/features/useMatching";
@@ -270,17 +271,7 @@ const AIMatchesPage: React.FC = () => {
 
   let content: React.ReactNode;
   if (isPageLoading) {
-    content = (
-      <div className="flex min-h-90 flex-col items-center justify-center rounded-3xl border border-white/10 bg-white/[0.04] p-8 text-center backdrop-blur-xl">
-        <Loader2 className="mb-4 h-12 w-12 animate-spin text-indigo-400" />
-        <p role="status" className="text-lg font-semibold text-white">
-          Loading your top matches...
-        </p>
-        <p className="mt-2 text-sm text-slate-400">
-          Gathering compatibility signals and bios.
-        </p>
-      </div>
-    );
+    content = <CardGridSkeleton count={6} columns={3} darkSurface />;
   } else if (error) {
     content = (
       <div className="rounded-3xl border border-rose-500/25 bg-[#1b121c]/80 p-8 shadow-[0_24px_80px_-36px_rgba(239,68,68,0.4)] backdrop-blur-xl">
@@ -430,7 +421,7 @@ const AIMatchesPage: React.FC = () => {
                 )}
 
                 {externalLoading ? (
-                  <div className="py-12 text-center text-sm text-slate-400">Loading external creator directory...</div>
+                  <CardGridSkeleton count={3} columns={3} darkSurface />
                 ) : externalCreators.length === 0 ? (
                   <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-8 text-center text-sm text-slate-300">
                     No indexed external creators match your current filters yet.

@@ -5,6 +5,7 @@ import {FounderOfferActions, OfferActions, PitchPublication} from '@/components/
 import Link from 'next/link';
 import {ArrowRight,BriefcaseBusiness,Building2,Search,Plus,RefreshCw,Layers,Sparkles,ShieldAlert,CheckCircle2,GitCompareArrows} from 'lucide-react';
 import DashboardLayout from '@/components/layout/Dashboard/Dashboard';
+import { CardGridSkeleton } from '@/components/ui/AppSkeletons';
 import {useAppSelector} from '@/store/hooks';
 import {hubApi, type Pitch, type PitchDraft, type HubOffer} from '@/lib/api/hub.api';
 const control='rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm font-medium text-slate-900 transition hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800';
@@ -93,7 +94,7 @@ export default function StartupTalentPage(){
   {/* Search Filter Bar */}
   {tab==='discover'&&<form onSubmit={e=>{e.preventDefault();setOffset(0);setQuery(search.trim());}} className="flex gap-2.5"><label className="relative min-w-0 flex-1"><span className="sr-only">Search pitches</span><Search size={16} aria-hidden="true" className="absolute left-3.5 top-3 text-slate-400"/><input className={`${control} w-full pl-9`} placeholder="Search ideas, categories, and open startup roles…" value={search} maxLength={100} onChange={e=>setSearch(e.target.value)}/></label><button className={action}>Search</button></form>}
 
-  {loading?<p role="status" className="rounded-xl border border-slate-200 bg-white p-8 text-sm text-slate-600 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300">Loading your workspace…</p>:error?<div role="alert" className="rounded-xl border border-red-200 bg-white p-6 text-red-700 dark:border-red-900 dark:bg-slate-900 dark:text-red-300"><p>{error}</p><button className={`${control} mt-4`} onClick={()=>setRevision(v=>v+1)}><RefreshCw size={16} className="mr-2 inline"/>Try again</button></div>:tab==='offers'?<section aria-label={founder?'Team pipeline':'My opportunities'} className="space-y-4">
+  {loading?<CardGridSkeleton count={4} columns={2} />:error?<div role="alert" className="rounded-xl border border-red-200 bg-white p-6 text-red-700 dark:border-red-900 dark:bg-slate-900 dark:text-red-300"><p>{error}</p><button className={`${control} mt-4`} onClick={()=>setRevision(v=>v+1)}><RefreshCw size={16} className="mr-2 inline"/>Try again</button></div>:tab==='offers'?<section aria-label={founder?'Team pipeline':'My opportunities'} className="space-y-4">
    {offers.length===0?<Empty title={founder?'No invitations sent yet':'No opportunities yet'} text={founder?'Invitations you send will appear here with their current status.':'Your invitations will appear here when a founder reaches out.'}/>:offers.map((offer,idx)=><article key={offer.id} className="overflow-hidden rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
     {/* Linear Issue Header Bar */}
     <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-slate-50/70 px-5 py-3.5 dark:border-slate-800 dark:bg-slate-800/40">

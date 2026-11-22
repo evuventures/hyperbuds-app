@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { ArrowLeft, RefreshCw, Zap, TrendingUp, Users, MessageCircle, Calendar, Star, Trophy, ShieldCheck } from "lucide-react";
 import DashboardLayout from "@/components/layout/Dashboard/Dashboard";
+import { ProfileSkeleton } from "@/components/ui/AppSkeletons";
 import RizzScoreDisplay from "@/components/profile/RizzScoreDisplay";
 import { useRizzScore } from "@/hooks/useRizzScore";
 import apiClient from "@/lib/api/client";
@@ -268,18 +269,7 @@ const RizzScorePage: React.FC = () => {
                transition={{ duration: 0.6, ease: "easeOut", delay: 0.2 }}
             >
                {/* Loading State - Only show when we don't have data yet */}
-               {loading && !rizzScore && (
-                  <div className="flex flex-col justify-center items-center py-20">
-                     <motion.div
-                        className="w-16 h-16 rounded-full border-4 border-purple-200 animate-spin border-t-purple-600"
-                        animate={{ rotate: 360 }}
-                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                     />
-                     <p className="mt-4 text-lg text-gray-600 dark:text-gray-400">
-                        Loading your Rizz Score...
-                     </p>
-                  </div>
-               )}
+               {loading && !rizzScore && <ProfileSkeleton />}
 
                {/* Error State - Only show when we don't have data */}
                {error && !rizzScore && (

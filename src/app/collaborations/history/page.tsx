@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import DashboardLayout from "@/components/layout/Dashboard/Dashboard";
+import { CardGridSkeleton } from "@/components/ui/AppSkeletons";
 import CollaborationList from "@/components/collaboration/CollaborationList";
 import { collaborationApi } from "@/lib/api/collaboration.api";
 import type { Collaboration } from "@/types/collaboration.types";
@@ -53,15 +54,7 @@ export default function CollaborationHistoryPage() {
 
           <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900">
               {isLoading ? (
-                <div className="flex flex-col justify-center items-center py-12 sm:py-16">
-                  <div className="mb-4 w-12 h-12 text-purple-600 animate-spin sm:w-16 sm:h-16">
-                    <svg className="w-full h-full" viewBox="0 0 24 24" fill="none">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
-                    </svg>
-                  </div>
-                  <p className="text-base font-medium text-gray-600 sm:text-lg dark:text-gray-400">Loading collaboration history...</p>
-                </div>
+                <CardGridSkeleton count={4} columns={2} />
               ) : error ? (
                 <div className="flex flex-col justify-center items-center py-12 sm:py-16">
                   <div className="p-5 mb-4 bg-red-50 rounded-xl sm:p-6 dark:bg-red-900/20">
