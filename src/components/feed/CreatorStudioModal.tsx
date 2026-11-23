@@ -51,6 +51,7 @@ import {
   uploadFeedMediaToCloudinary,
 } from '@/lib/api/feed.api';
 import { streamingApi } from '@/lib/api/streaming.api';
+import { MentionAutocomplete } from './MentionAutocomplete';
 import type { Stream } from '@/types/streaming.types';
 
 export type CreatorStudioMode = 'post' | 'reel' | 'livestream';
@@ -889,7 +890,7 @@ export function CreatorStudioModal({
             </div>
           </div>
 
-          <div>
+          <div className="relative">
             <label htmlFor={captionInputId} className="sr-only">
               Post caption
             </label>
@@ -899,9 +900,10 @@ export function CreatorStudioModal({
               rows={4}
               value={caption}
               onChange={(e) => setCaption(e.target.value)}
-              placeholder={`What's on your mind, ${creatorName.split(' ')[0]}?`}
+              placeholder={`What's on your mind, ${creatorName.split(' ')[0]}? Tip: type @ to tag creators, @groups, or @followers`}
               className="w-full resize-none rounded-2xl border border-slate-200 bg-slate-50/60 p-3.5 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:border-slate-400 focus:bg-white dark:border-slate-700 dark:bg-slate-800/70 dark:text-white dark:focus:bg-slate-900"
             />
+            <MentionAutocomplete text={caption} onSelect={setCaption} />
           </div>
 
           {renderCloudinaryUploadPanel()}

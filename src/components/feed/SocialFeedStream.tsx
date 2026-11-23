@@ -42,6 +42,7 @@ import {
   type CreatorStudioMode,
   type CreatorStudioUserSummary,
 } from './CreatorStudioModal';
+import { MentionAutocomplete } from './MentionAutocomplete';
 import type { FeedPostRecord } from '@/lib/api/feed.api';
 import type { Stream } from '@/types/streaming.types';
 import { deriveVideoPoster, withVideoPreviewFragment } from '@/lib/utils/mediaThumbnail';
@@ -274,13 +275,13 @@ function renderCaptionWithHashtags(
   text: string,
   onSelectTag: (tag: string) => void,
 ): React.ReactNode {
-  const parts = text.split(/(#[a-zA-Z0-9_]{2,32})/g);
+  const parts = text.split(/(#[a-zA-Z0-9_]{2,32}|@[a-zA-Z0-9_.-]{2,40})/g);
   return parts.map((part, i) => {
     if (/^#[a-zA-Z0-9_]{2,32}$/.test(part)) {
       const clean = part.slice(1).toLowerCase();
       return (
         <button
-          key={`${clean}-${i}`}
+          key={`tag-${clean}-${i}`}
           type="button"
           onClick={(e) => {
             e.stopPropagation();
@@ -290,6 +291,35 @@ function renderCaptionWithHashtags(
         >
           {part}
         </button>
+      );
+    }
+    if (/^@[a-zA-Z0-9_.-]{2,40}$/.test(part)) {
+      const clean = part.slice(1).replace(/[.,!?;:]+$/, '');
+      const lower = clean.toLowerCase();
+      if (lower === 'followers' || lower === 'everyone') {
+        return (
+          <span
+            key={`mention-special-${i}`}
+            className="inline-block rounded-md bg-purple-100 px-1.5 py-0.5 text-xs font-bold text-purple-700 dark:bg-purple-950/60 dark:text-purple-300"
+          >
+            @{lower}
+          </span>
+        );
+      }
+      // Group slugs contain a hyphen + 6-char suffix (e.g. lagos-pod-a1b2c3); route to /groups, otherwise /profile/<username>
+      const isGroupSlug = /-[a-f0-9]{6}$/i.test(clean);
+      const href = isGroupSlug
+        ? `/groups?id=${encodeURIComponent(clean)}`
+        : `/profile/${encodeURIComponent(clean)}`;
+      return (
+        <Link
+          key={`mention-${clean}-${i}`}
+          href={href}
+          onClick={(e) => e.stopPropagation()}
+          className="inline font-semibold text-purple-600 hover:underline dark:text-purple-400"
+        >
+          @{clean}
+        </Link>
       );
     }
     return <React.Fragment key={i}>{part}</React.Fragment>;
@@ -1731,7 +1761,7 @@ export default function SocialFeedStream({
                         </p>
                       )}
                       <p className="mt-0.5 whitespace-pre-wrap break-words text-[14px] leading-snug text-slate-800 dark:text-slate-100">
-                        {c.text}
+                        {renderCaptionWithHashtags(c.text, (tag) => setActiveTag(tag))}
                       </p>
 
                       {cLikesCount > 0 && (
@@ -2509,9 +2539,16 @@ export default function SocialFeedStream({
                               void handleAddComment(post._id);
                             }
                           }}
-                          placeholder="Write a comment..."
+                          placeholder="Write a comment... (type @ to mention)"
                           aria-label="Write a comment"
                           className="w-full rounded-full bg-[#F0F2F5] py-2 pl-4 pr-10 text-[14px] text-slate-900 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500/40 dark:bg-slate-800 dark:text-white dark:placeholder:text-slate-400"
+                        />
+                        <MentionAutocomplete
+                          placement="top"
+                          text={commentDrafts[post._id] || ''}
+                          onSelect={(nextVal) =>
+                            setCommentDrafts((prev) => ({ ...prev, [post._id]: nextVal }))
+                          }
                         />
                         <button
                           type="button"
