@@ -3,6 +3,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import DashboardLayout from '@/components/layout/Dashboard/Dashboard';
+import { GameChallengesArena } from '@/components/challenges/GameChallengesArena';
 import apiClient from '@/lib/api/client';
 import toast from 'react-hot-toast';
 import {
@@ -10,6 +11,7 @@ import {
   CheckCircle2,
   Circle,
   Flame,
+  Gamepad2,
   Loader2,
   MessageCircle,
   Sparkles,
@@ -61,7 +63,7 @@ interface CommunityChallengeItem {
 }
 
 export default function ChallengesPage() {
-  const [tab, setTab] = useState<'duo' | 'community'>('duo');
+  const [tab, setTab] = useState<'games' | 'duo' | 'community'>('games');
   const [duoChallenges, setDuoChallenges] = useState<DuoChallengeItem[]>([]);
   const [suggestedPartners, setSuggestedPartners] = useState<PartnerSummary[]>([]);
   const [communityChallenges, setCommunityChallenges] = useState<CommunityChallengeItem[]>([]);
@@ -175,7 +177,19 @@ export default function ChallengesPage() {
             </div>
 
             {/* Tabs */}
-            <div className="mt-6 inline-flex rounded-full bg-black/25 p-1">
+            <div className="mt-6 inline-flex flex-wrap rounded-full bg-black/25 p-1">
+              <button
+                type="button"
+                onClick={() => setTab('games')}
+                className={`inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-semibold transition ${
+                  tab === 'games'
+                    ? 'bg-white text-purple-900 shadow-xs'
+                    : 'text-purple-100 hover:text-white'
+                }`}
+              >
+                <Gamepad2 className="h-3.5 w-3.5" />
+                AI Games (Lagos Life &amp; More)
+              </button>
               <button
                 type="button"
                 onClick={() => setTab('duo')}
@@ -203,7 +217,9 @@ export default function ChallengesPage() {
             </div>
           </div>
 
-          {loading ? (
+          {tab === 'games' ? (
+            <GameChallengesArena />
+          ) : loading ? (
             <div className="space-y-4">
               {[1, 2].map((i) => (
                 <div
