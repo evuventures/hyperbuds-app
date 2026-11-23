@@ -7,6 +7,18 @@ import DashboardLayout from '@/components/layout/Dashboard/Dashboard';
 import apiClient from '@/lib/api/client';
 import { uploadStudioMediaToCloudinary } from '@/lib/api/feed.api';
 import { useAuth } from '@/hooks/auth/useAuth';
+import toast from 'react-hot-toast';
+import {
+  StageOverlays,
+  type FloatingReaction,
+  type StudioOverlayState,
+} from '@/components/streaming/studio/StageOverlays';
+import { GreenRoomPreview } from '@/components/streaming/studio/GreenRoomPreview';
+import {
+  LiveChatPanel,
+  type StreamPollItem,
+} from '@/components/streaming/studio/LiveChatPanel';
+import { StudioControlsDrawer } from '@/components/streaming/studio/StudioControlsDrawer';
 import { io, type Socket } from 'socket.io-client';
 import { BASE_URL } from '@/config/baseUrl';
 import { getAccessToken } from '@/store/authSelectors';
@@ -24,6 +36,7 @@ import {
 } from 'livekit-client';
 import {
   ArrowLeft,
+  BarChart2,
   Check,
   CheckCircle2,
   Circle,
@@ -32,6 +45,7 @@ import {
   Film,
   Gamepad2,
   Hash,
+  Layers,
   LayoutGrid,
   Loader2,
   LogOut,
@@ -47,6 +61,7 @@ import {
   SlidersHorizontal,
   Square,
   Trash2,
+  Type,
   UserPlus,
   Users,
   Video,
@@ -111,6 +126,7 @@ function isCaptureCardLabel(label: string): boolean {
 
 interface StreamChatItem {
   id: string;
+  userId?: string;
   senderName: string;
   message: string;
   createdAt?: string;
@@ -245,6 +261,139 @@ export default function StreamingRoomPage() {
   const [chatDraft, setChatDraft] = useState('');
   const [sendingChat, setSendingChat] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
+
+  // Phase 1 Broadcast Studio state (overlays, polls, reactions, backstage stage queue)
+  const [studioState, setStudioState] = useState<StudioOverlayState>({
+    lowerThirdText: '',
+    lowerThirdSubtext: '',
+    lowerThirdVisible: false,
+    pinnedMessage: null,
+    layoutMode: 'pip',
+    stageUserIds: [],
+    slowModeSeconds: 0,
+  });
+  const [activePoll, setActivePoll] = useState<StreamPollItem | null>(null);
+  const [floatingReactions, setFloatingReactions] = useState<FloatingReaction[]>([]);
+  const [activeStudioDrawer, setActiveStudioDrawer] = useState<'overlays' | 'poll' | 'backstage' | null>(null);
+  const [connectionQuality, setConnectionQuality] = useState<'good' | 'fair' | 'reconnecting'>('good');
+
+  const spawnFloatingReaction = useCallback((emoji: string, id?: string) => {
+    const rid = id || `${Date.now()}-${Math.random()}`;
+    const offsetX = 12 + Math.floor(Math.random() * 68);
+    setFloatingReactions((prev) => [...prev.slice(-18), { id: rid, emoji, offsetX }]);
+    window.setTimeout(() => {
+      setFloatingReactions((prev) => prev.filter((r) => r.id !== rid));
+    }, 2500);
+  }, []);
+
+  const handleUpdateStudioState = useCallback(
+    async (patch: Partial<StudioOverlayState>) => {
+      if (!streamId) return;
+      try {
+        const res = await apiClient.put(`/streaming/streams/${streamId}/studio-state`, patch);
+        if (res.data?.studioState) {
+          setStudioState((prev) => ({ ...prev, ...res.data.studioState }));
+        }
+      } catch (err) {
+        toast.error((err as { message?: string })?.message || 'Could not update studio overlays');
+      }
+    },
+    [streamId],
+  );
+
+  const handleSendReaction = useCallback(
+    async (emoji: string) => {
+      if (!streamId) return;
+      spawnFloatingReaction(emoji);
+      await apiClient.post(`/streaming/streams/${streamId}/reactions`, { emoji }).catch(() => null);
+    },
+    [streamId, spawnFloatingReaction],
+  );
+
+  const handleCreatePoll = useCallback(
+    async (question: string, options: string[]) => {
+      if (!streamId) return;
+      try {
+        const res = await apiClient.post(`/streaming/streams/${streamId}/polls`, { question, options });
+        if (res.data?.poll) setActivePoll(res.data.poll);
+        toast.success('Live poll launched!');
+      } catch (err) {
+        toast.error((err as { message?: string })?.message || 'Could not create poll');
+      }
+    },
+    [streamId],
+  );
+
+  const handleVotePoll = useCallback(
+    async (pollId: string, optionIndex: number) => {
+      if (!streamId) return;
+      try {
+        const res = await apiClient.post(`/streaming/streams/${streamId}/polls/${pollId}/vote`, { optionIndex });
+        if (res.data?.poll) setActivePoll(res.data.poll);
+      } catch (err) {
+        toast.error((err as { message?: string })?.message || 'Could not vote');
+      }
+    },
+    [streamId],
+  );
+
+  const handleClosePoll = useCallback(
+    async (pollId: string) => {
+      if (!streamId) return;
+      await apiClient.put(`/streaming/streams/${streamId}/polls/${pollId}/close`).catch(() => null);
+      setActivePoll(null);
+    },
+    [streamId],
+  );
+
+  const handleSendSuperChat = useCallback(
+    async (amountCredits: number, message: string) => {
+      if (!streamId) return;
+      try {
+        await apiClient.post(`/streaming/streams/${streamId}/super-chat`, { amountCredits, message });
+        toast.success(`Sent ${amountCredits} cr Super Chat!`);
+      } catch (err) {
+        const msg =
+          (err as { response?: { data?: { message?: string } }; message?: string })?.response?.data?.message ||
+          (err as { message?: string })?.message ||
+          'Could not send Super Chat';
+        toast.error(msg);
+      }
+    },
+    [streamId],
+  );
+
+  const handleDeleteChatMessage = useCallback(
+    async (messageId: string) => {
+      if (!streamId) return;
+      await apiClient.delete(`/streaming/streams/${streamId}/chat/${messageId}`).catch(() => null);
+      setChatMessages((prev) => prev.filter((m) => m.id !== messageId));
+    },
+    [streamId],
+  );
+
+  const handleMuteChatUser = useCallback(
+    async (targetUserId: string) => {
+      if (!streamId) return;
+      await apiClient
+        .post(`/streaming/streams/${streamId}/moderate-chat`, { action: 'mute', targetUserId })
+        .catch(() => null);
+      toast.success('User muted in stream chat.');
+    },
+    [streamId],
+  );
+
+  const handleToggleSlowMode = useCallback(
+    async (seconds: number) => {
+      if (!streamId) return;
+      await apiClient
+        .post(`/streaming/streams/${streamId}/moderate-chat`, { action: 'slow_mode', slowModeSeconds: seconds })
+        .catch(() => null);
+      setStudioState((prev) => ({ ...prev, slowModeSeconds: seconds }));
+      toast.success(seconds > 0 ? `Slow mode set to ${seconds}s.` : 'Slow mode turned off.');
+    },
+    [streamId],
+  );
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
@@ -518,6 +667,7 @@ export default function StreamingRoomPage() {
             (payload: {
               _id?: string;
               id?: string;
+              userId?: string;
               senderName?: string;
               message?: string;
               createdAt?: string;
@@ -530,6 +680,7 @@ export default function StreamingRoomPage() {
                   ...prev,
                   {
                     id: msgId,
+                    userId: payload.userId,
                     senderName: payload.senderName || 'Viewer',
                     message: payload.message || '',
                     createdAt: payload.createdAt || new Date().toISOString(),
@@ -538,7 +689,59 @@ export default function StreamingRoomPage() {
               });
             },
           );
+          streamSocket.on('stream:chat-deleted', (payload: { messageId?: string }) => {
+            if (!active || !payload?.messageId) return;
+            setChatMessages((prev) => prev.filter((m) => m.id !== payload.messageId));
+          });
+          streamSocket.on('stream:studio-state', (payload: Partial<StudioOverlayState>) => {
+            if (!active || !payload) return;
+            setStudioState((prev) => ({ ...prev, ...payload }));
+            if (payload.layoutMode === 'pip' || payload.layoutMode === 'grid') {
+              setLayoutMode(payload.layoutMode);
+            }
+          });
+          streamSocket.on('stream:reaction', (payload: { id?: string; emoji?: string }) => {
+            if (!active || !payload?.emoji) return;
+            spawnFloatingReaction(payload.emoji, payload.id);
+          });
+          streamSocket.on('stream:poll', (payload: StreamPollItem) => {
+            if (!active || !payload?.id) return;
+            setActivePoll((prev) => ({
+              ...payload,
+              viewerVote: prev?.id === payload.id ? prev.viewerVote : null,
+            }));
+          });
+          streamSocket.on('stream:poll-closed', () => {
+            if (!active) return;
+            setActivePoll(null);
+          });
+          streamSocket.on('stream:moderation', (payload: { action?: string; slowModeSeconds?: number }) => {
+            if (!active || !payload) return;
+            if (payload.action === 'slow_mode' && typeof payload.slowModeSeconds === 'number') {
+              setStudioState((prev) => ({ ...prev, slowModeSeconds: payload.slowModeSeconds! }));
+            }
+          });
+          streamSocket.on('disconnect', () => {
+            if (active) setConnectionQuality('reconnecting');
+          });
+          streamSocket.on('connect', () => {
+            if (active) setConnectionQuality('good');
+          });
         }
+
+        // Load initial studio overlays & active poll
+        void Promise.all([
+          apiClient.get(`/streaming/streams/${streamId}/studio-state`).catch(() => null),
+          apiClient.get(`/streaming/streams/${streamId}/polls`).catch(() => null),
+        ]).then(([stRes, pollRes]) => {
+          if (!active) return;
+          if (stRes?.data?.studioState) {
+            setStudioState((prev) => ({ ...prev, ...stRes.data.studioState }));
+          }
+          const pollsList: StreamPollItem[] = Array.isArray(pollRes?.data?.polls) ? pollRes.data.polls : [];
+          const livePoll = pollsList.find((p) => p.status === 'active') ?? null;
+          setActivePoll(livePoll);
+        });
       } catch (err) {
         if (active) {
           setError((err as { message?: string })?.message || 'Unable to load stream room.');
@@ -1076,13 +1279,33 @@ export default function StreamingRoomPage() {
               {/* Main Studio Workspace: Riverside Stage + Discord Chat */}
               <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
                 {/* Broadcast Stage */}
-                <section className="flex flex-col overflow-hidden rounded-xl border border-slate-200 bg-[#0d1015] dark:border-zinc-800 lg:col-span-8">
-                  <div className="flex-1 p-3 sm:p-4">
+                <section className="flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-[#0d1015] dark:border-zinc-800 lg:col-span-8">
+                  <div className="relative flex-1 p-3 sm:p-4">
+                    {lkConnected && (
+                      <StageOverlays
+                        studioState={studioState}
+                        reactions={floatingReactions}
+                        connectionQuality={connectionQuality}
+                        isHost={isStreamHost}
+                        onDismissPinned={() => void handleUpdateStudioState({ pinnedMessage: null })}
+                      />
+                    )}
                     {videoTiles.length > 0 ? (() => {
-                      const primaryStageTile = videoTiles.find((t) => t.isConsole || t.isScreen) ?? null;
+                      // Respect host Backstage stage queue for remote co-hosts when configured
+                      const visibleTiles =
+                        studioState.stageUserIds.length > 0
+                          ? videoTiles.filter(
+                              (t) =>
+                                t.isLocal ||
+                                t.identity === stream.userId ||
+                                studioState.stageUserIds.includes(t.identity),
+                            )
+                          : videoTiles;
+                      const stageTiles = visibleTiles.length > 0 ? visibleTiles : videoTiles;
+                      const primaryStageTile = stageTiles.find((t) => t.isConsole || t.isScreen) ?? null;
                       const cameraTiles = primaryStageTile
-                        ? videoTiles.filter((t) => t.id !== primaryStageTile.id)
-                        : videoTiles;
+                        ? stageTiles.filter((t) => t.id !== primaryStageTile.id)
+                        : stageTiles;
                       const usePipLayout = Boolean(
                         layoutMode === 'pip' && primaryStageTile && cameraTiles.length > 0,
                       );
@@ -1091,7 +1314,7 @@ export default function StreamingRoomPage() {
                         return (
                           <div className="relative" data-testid="gaming-pip-stage">
                             <VideoTrackView tile={primaryStageTile} />
-                            <div className="pointer-events-auto absolute bottom-3 right-3 z-20 flex flex-col gap-2">
+                            <div className="pointer-events-auto absolute bottom-3 right-3 z-10 flex flex-col gap-2">
                               {cameraTiles.map((camTile) => (
                                 <div key={camTile.id} className="w-32 sm:w-44 md:w-52">
                                   <VideoTrackView tile={camTile} compact />
@@ -1105,15 +1328,28 @@ export default function StreamingRoomPage() {
                       return (
                         <div
                           className={`grid gap-3 ${
-                            videoTiles.length > 1 ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1'
+                            stageTiles.length > 1 ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1'
                           }`}
                         >
-                          {videoTiles.map((tile) => (
+                          {stageTiles.map((tile) => (
                             <VideoTrackView key={tile.id} tile={tile} />
                           ))}
                         </div>
                       );
-                    })() : !lkConnected && stream.recordingUrl ? (
+                    })() : !lkConnected && isStreamHost && stream.status !== 'ended' && stream.status !== 'cancelled' ? (
+                      <GreenRoomPreview
+                        streamTitle={stream.title}
+                        roleLabel="Host"
+                        videoDevices={videoDevices}
+                        audioDevices={audioDevices}
+                        selectedCamId={selectedCamId}
+                        selectedMicId={selectedMicId}
+                        onSelectCam={setSelectedCamId}
+                        onSelectMic={setSelectedMicId}
+                        onEnterStudio={() => void connectLiveKit()}
+                        connecting={lkConnecting}
+                      />
+                    ) : !lkConnected && stream.recordingUrl ? (
                       <div className="space-y-2.5">
                         <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-purple-500/30 bg-purple-950/30 px-3 py-2 text-xs text-purple-200">
                           <span className="inline-flex items-center gap-1.5 font-semibold">
@@ -1549,33 +1785,75 @@ export default function StreamingRoomPage() {
                             {consoleEnabled ? 'Console Live' : 'Console / PS5'}
                           </button>
                           {isStreamHost && (
-                            <button
-                              type="button"
-                              disabled={vodUploading}
-                              onClick={() => (isRecordingVod ? stopVodRecording() : void startVodRecording())}
-                              className={`inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium transition disabled:opacity-50 ${
-                                isRecordingVod
-                                  ? 'border-rose-500/80 bg-rose-600/25 text-rose-200 hover:bg-rose-600/35'
-                                  : 'border-zinc-700 bg-zinc-800 text-zinc-200 hover:bg-zinc-700'
-                              }`}
-                            >
-                              {vodUploading ? (
-                                <>
-                                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                                  Saving VOD...
-                                </>
-                              ) : isRecordingVod ? (
-                                <>
-                                  <Disc className="h-3.5 w-3.5 animate-pulse text-rose-400" />
-                                  Stop &amp; Save ({formatVodTimer(vodSeconds)})
-                                </>
-                              ) : (
-                                <>
-                                  <Disc className="h-3.5 w-3.5 text-rose-400" />
-                                  Record VOD
-                                </>
-                              )}
-                            </button>
+                            <>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setActiveStudioDrawer((p) => (p === 'overlays' ? null : 'overlays'))
+                                }
+                                className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs font-medium transition ${
+                                  activeStudioDrawer === 'overlays' || studioState.lowerThirdVisible
+                                    ? 'border-purple-500/80 bg-purple-600/25 text-purple-200'
+                                    : 'border-zinc-700 bg-zinc-800 text-zinc-200 hover:bg-zinc-700'
+                                }`}
+                              >
+                                <Type className="h-3.5 w-3.5" />
+                                Overlays
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setActiveStudioDrawer((p) => (p === 'poll' ? null : 'poll'))}
+                                className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs font-medium transition ${
+                                  activeStudioDrawer === 'poll' || activePoll?.status === 'active'
+                                    ? 'border-purple-500/80 bg-purple-600/25 text-purple-200'
+                                    : 'border-zinc-700 bg-zinc-800 text-zinc-200 hover:bg-zinc-700'
+                                }`}
+                              >
+                                <BarChart2 className="h-3.5 w-3.5" />
+                                Poll
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setActiveStudioDrawer((p) => (p === 'backstage' ? null : 'backstage'))
+                                }
+                                className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs font-medium transition ${
+                                  activeStudioDrawer === 'backstage'
+                                    ? 'border-purple-500/80 bg-purple-600/25 text-purple-200'
+                                    : 'border-zinc-700 bg-zinc-800 text-zinc-200 hover:bg-zinc-700'
+                                }`}
+                              >
+                                <Layers className="h-3.5 w-3.5" />
+                                Backstage
+                              </button>
+                              <button
+                                type="button"
+                                disabled={vodUploading}
+                                onClick={() => (isRecordingVod ? stopVodRecording() : void startVodRecording())}
+                                className={`inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium transition disabled:opacity-50 ${
+                                  isRecordingVod
+                                    ? 'border-rose-500/80 bg-rose-600/25 text-rose-200 hover:bg-rose-600/35'
+                                    : 'border-zinc-700 bg-zinc-800 text-zinc-200 hover:bg-zinc-700'
+                                }`}
+                              >
+                                {vodUploading ? (
+                                  <>
+                                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                    Saving VOD...
+                                  </>
+                                ) : isRecordingVod ? (
+                                  <>
+                                    <Disc className="h-3.5 w-3.5 animate-pulse text-rose-400" />
+                                    Stop &amp; Save ({formatVodTimer(vodSeconds)})
+                                  </>
+                                ) : (
+                                  <>
+                                    <Disc className="h-3.5 w-3.5 text-rose-400" />
+                                    Record VOD
+                                  </>
+                                )}
+                              </button>
+                            </>
                           )}
                           {videoTiles.some((t) => t.isScreen || t.isConsole) && videoTiles.length > 1 && (
                             <button
@@ -1639,74 +1917,57 @@ export default function StreamingRoomPage() {
                       </button>
                     )}
                   </div>
+
+                  {/* Host Broadcast Drawers: Overlays / Polls / Backstage Stage Queue */}
+                  {isStreamHost && activeStudioDrawer && (
+                    <div className="border-t border-zinc-800 p-3">
+                      <StudioControlsDrawer
+                        activePanel={activeStudioDrawer}
+                        onClose={() => setActiveStudioDrawer(null)}
+                        studioState={studioState}
+                        cohosts={cohosts}
+                        onUpdateStudioState={handleUpdateStudioState}
+                        onCreatePoll={handleCreatePoll}
+                      />
+                    </div>
+                  )}
                 </section>
 
-                {/* Discord-style Separated Live Chat Sidebar */}
-                <aside className="flex h-[500px] flex-col overflow-hidden rounded-xl border border-slate-200 bg-white dark:border-zinc-800 dark:bg-[#111318] lg:col-span-4 lg:h-auto lg:min-h-[520px]">
-                  <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3 dark:border-zinc-800">
-                    <div className="flex items-center gap-1.5">
-                      <Hash className="h-4 w-4 text-slate-400 dark:text-zinc-500" />
-                      <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-900 dark:text-zinc-100">
-                        live-chat
-                      </h2>
-                    </div>
-                    <span className="rounded bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-600 dark:bg-zinc-800 dark:text-zinc-400">
-                      {chatMessages.length} msgs
-                    </span>
-                  </div>
-
-                  <div className="flex-1 divide-y divide-slate-100 overflow-y-auto px-4 py-2 text-xs dark:divide-zinc-800/60">
-                    {chatMessages.length === 0 ? (
-                      <div className="flex h-full flex-col items-center justify-center py-12 text-center text-slate-400 dark:text-zinc-500">
-                        <Hash className="mb-2 h-6 w-6 opacity-50" />
-                        <p className="font-medium">Welcome to #live-chat</p>
-                        <p className="mt-0.5 text-[11px]">Messages sync in real time with everyone in the room.</p>
-                      </div>
-                    ) : (
-                      chatMessages.map((msg) => (
-                        <div key={msg.id} className="py-2.5">
-                          <div className="flex items-baseline justify-between gap-2">
-                            <span className="font-semibold text-slate-900 dark:text-zinc-100">
-                              {msg.senderName}
-                            </span>
-                            {msg.createdAt && (
-                              <span className="text-[10px] tabular-nums text-slate-400 dark:text-zinc-500">
-                                {formatChatTime(msg.createdAt)}
-                              </span>
-                            )}
-                          </div>
-                          <p className="mt-0.5 leading-relaxed text-slate-700 dark:text-zinc-300">
-                            {msg.message}
-                          </p>
-                        </div>
-                      ))
-                    )}
-                    <div ref={chatEndRef} />
-                  </div>
-
-                  {stream.chatEnabled !== false && (
-                    <form
-                      onSubmit={handleSendChat}
-                      className="flex items-center gap-2 border-t border-slate-200 bg-slate-50/70 p-3 dark:border-zinc-800 dark:bg-[#0d1015]"
-                    >
-                      <input
-                        type="text"
-                        value={chatDraft}
-                        onChange={(e) => setChatDraft(e.target.value)}
-                        placeholder="Message #live-chat"
-                        className="flex-1 rounded-md border border-slate-200 bg-white px-3 py-2 text-xs text-slate-900 outline-none focus:border-slate-400 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:focus:border-zinc-500"
-                      />
-                      <button
-                        type="submit"
-                        disabled={!chatDraft.trim() || sendingChat}
-                        className="flex h-8 w-8 items-center justify-center rounded-md bg-slate-900 text-white hover:bg-slate-800 disabled:opacity-40 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200"
-                        aria-label="Send message"
-                      >
-                        <Send className="h-3.5 w-3.5" />
-                      </button>
-                    </form>
-                  )}
-                </aside>
+                {/* Phase 1 Upgraded Live Chat, Polls, Reactions & Super Chats */}
+                <div className="lg:col-span-4">
+                  <LiveChatPanel
+                    messages={chatMessages}
+                    activePoll={activePoll}
+                    slowModeSeconds={studioState.slowModeSeconds}
+                    isHost={isStreamHost}
+                    chatDraft={chatDraft}
+                    sendingChat={sendingChat}
+                    onChatDraftChange={setChatDraft}
+                    onSendChat={handleSendChat}
+                    onSendReaction={(emoji) => void handleSendReaction(emoji)}
+                    onSendSuperChat={handleSendSuperChat}
+                    onVotePoll={(pollId, idx) => void handleVotePoll(pollId, idx)}
+                    onClosePoll={(pollId) => void handleClosePoll(pollId)}
+                    onPinMessage={(msg, sc) => {
+                      const cleanText = sc
+                        ? msg.message.replace(/^\[SUPERCHAT:\d+:\w+\]\s*/, '')
+                        : msg.message;
+                      void handleUpdateStudioState({
+                        pinnedMessage: {
+                          id: msg.id,
+                          senderName: msg.senderName,
+                          message: cleanText,
+                          amountCredits: sc?.amount,
+                          tier: sc?.tier,
+                        },
+                      });
+                    }}
+                    onDeleteMessage={(id) => void handleDeleteChatMessage(id)}
+                    onMuteUser={(uid) => void handleMuteChatUser(uid)}
+                    onToggleSlowMode={(secs) => void handleToggleSlowMode(secs)}
+                    chatEndRef={chatEndRef}
+                  />
+                </div>
               </div>
             </div>
           ) : null}
