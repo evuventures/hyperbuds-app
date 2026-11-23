@@ -19,6 +19,7 @@ import {
   type StreamPollItem,
 } from '@/components/streaming/studio/LiveChatPanel';
 import { StudioControlsDrawer } from '@/components/streaming/studio/StudioControlsDrawer';
+import { BroadcastInfraDrawer } from '@/components/streaming/studio/BroadcastInfraDrawer';
 import { io, type Socket } from 'socket.io-client';
 import { BASE_URL } from '@/config/baseUrl';
 import { getAccessToken } from '@/store/authSelectors';
@@ -37,6 +38,7 @@ import {
 import {
   ArrowLeft,
   BarChart2,
+  Cast,
   Check,
   CheckCircle2,
   Circle,
@@ -274,7 +276,7 @@ export default function StreamingRoomPage() {
   });
   const [activePoll, setActivePoll] = useState<StreamPollItem | null>(null);
   const [floatingReactions, setFloatingReactions] = useState<FloatingReaction[]>([]);
-  const [activeStudioDrawer, setActiveStudioDrawer] = useState<'overlays' | 'poll' | 'backstage' | null>(null);
+  const [activeStudioDrawer, setActiveStudioDrawer] = useState<'overlays' | 'poll' | 'backstage' | 'infra' | null>(null);
   const [connectionQuality, setConnectionQuality] = useState<'good' | 'fair' | 'reconnecting'>('good');
 
   const spawnFloatingReaction = useCallback((emoji: string, id?: string) => {
@@ -719,6 +721,21 @@ export default function StreamingRoomPage() {
             if (!active || !payload) return;
             if (payload.action === 'slow_mode' && typeof payload.slowModeSeconds === 'number') {
               setStudioState((prev) => ({ ...prev, slowModeSeconds: payload.slowModeSeconds! }));
+            }
+          });
+          streamSocket.on('stream:status', (payload: { streamId?: string; status?: StreamDetail['status'] }) => {
+            if (!active || payload?.streamId !== streamId || !payload.status) return;
+            setStream((prev) => (prev ? { ...prev, status: payload.status! } : prev));
+          });
+          streamSocket.on('stream:ingress-status', (payload: { status?: string }) => {
+            if (!active || !payload?.status) return;
+            toast.success(payload.status === 'active' ? 'OBS / RTMP feed connected!' : 'OBS / RTMP feed disconnected.');
+          });
+          streamSocket.on('stream:egress', (payload: { kind?: string; status?: string; outputUrl?: string }) => {
+            if (!active || !payload?.status) return;
+            if (payload.kind === 'vod_recording' && payload.outputUrl) {
+              setStream((prev) => (prev ? { ...prev, recordingUrl: payload.outputUrl! } : prev));
+              toast.success('Cloud VOD recording is ready!');
             }
           });
           streamSocket.on('disconnect', () => {
@@ -1828,6 +1845,20 @@ export default function StreamingRoomPage() {
                               </button>
                               <button
                                 type="button"
+                                onClick={() =>
+                                  setActiveStudioDrawer((p) => (p === 'infra' ? null : 'infra'))
+                                }
+                                className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs font-medium transition ${
+                                  activeStudioDrawer === 'infra'
+                                    ? 'border-purple-500/80 bg-purple-600/25 text-purple-200'
+                                    : 'border-zinc-700 bg-zinc-800 text-zinc-200 hover:bg-zinc-700'
+                                }`}
+                              >
+                                <Cast className="h-3.5 w-3.5" />
+                                OBS &amp; Restream
+                              </button>
+                              <button
+                                type="button"
                                 disabled={vodUploading}
                                 onClick={() => (isRecordingVod ? stopVodRecording() : void startVodRecording())}
                                 className={`inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium transition disabled:opacity-50 ${
@@ -1918,17 +1949,24 @@ export default function StreamingRoomPage() {
                     )}
                   </div>
 
-                  {/* Host Broadcast Drawers: Overlays / Polls / Backstage Stage Queue */}
+                  {/* Host Broadcast Drawers: Overlays / Polls / Backstage / OBS & Multi-Stream */}
                   {isStreamHost && activeStudioDrawer && (
                     <div className="border-t border-zinc-800 p-3">
-                      <StudioControlsDrawer
-                        activePanel={activeStudioDrawer}
-                        onClose={() => setActiveStudioDrawer(null)}
-                        studioState={studioState}
-                        cohosts={cohosts}
-                        onUpdateStudioState={handleUpdateStudioState}
-                        onCreatePoll={handleCreatePoll}
-                      />
+                      {activeStudioDrawer === 'infra' && streamId ? (
+                        <BroadcastInfraDrawer
+                          streamId={streamId}
+                          onClose={() => setActiveStudioDrawer(null)}
+                        />
+                      ) : activeStudioDrawer !== 'infra' ? (
+                        <StudioControlsDrawer
+                          activePanel={activeStudioDrawer}
+                          onClose={() => setActiveStudioDrawer(null)}
+                          studioState={studioState}
+                          cohosts={cohosts}
+                          onUpdateStudioState={handleUpdateStudioState}
+                          onCreatePoll={handleCreatePoll}
+                        />
+                      ) : null}
                     </div>
                   )}
                 </section>
