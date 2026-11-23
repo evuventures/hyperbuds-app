@@ -3,6 +3,11 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import apiClient from '@/lib/api/client';
+import { useAuth } from '@/hooks/auth/useAuth';
+import {
+  ChallengeShareCardModal,
+  type ShareableGameSummary,
+} from './ChallengeShareCardModal';
 import toast from 'react-hot-toast';
 import {
   Check,
@@ -15,7 +20,9 @@ import {
   Hash,
   Loader2,
   Radio,
+  Share2,
   Sparkles,
+  Users,
   Zap,
 } from 'lucide-react';
 
@@ -59,10 +66,24 @@ interface RegionOption {
 }
 
 export function GameChallengesArena() {
+  const { user } = useAuth();
   const [region, setRegion] = useState('NG');
   const [selectedMode, setSelectedMode] = useState('lagos_life');
   const [difficulty, setDifficulty] = useState<'chill' | 'hustle' | 'boss'>('hustle');
   const [customTheme, setCustomTheme] = useState('');
+
+  const [dailyDrop, setDailyDrop] = useState<{
+    title: string;
+    premise: string;
+    hashtag: string;
+    rewardCredits: number;
+    rewardRizzBoost: number;
+    participantsCount: number;
+    region: string;
+  } | null>(null);
+  const [dailyJoinedId, setDailyJoinedId] = useState<string | null>(null);
+  const [joiningDaily, setJoiningDaily] = useState(false);
+  const [shareGame, setShareGame] = useState<ShareableGameSummary | null>(null);
 
   const [catalog, setCatalog] = useState<GameCatalogItem[]>([]);
   const [regions, setRegions] = useState<RegionOption[]>([]);
@@ -77,18 +98,42 @@ export function GameChallengesArena() {
   const loadGames = useCallback(async (targetRegion: string) => {
     setLoading(true);
     try {
-      const res = await apiClient.get(`/challenges/games?region=${encodeURIComponent(targetRegion)}`);
+      const [res, dailyRes] = await Promise.all([
+        apiClient.get(`/challenges/games?region=${encodeURIComponent(targetRegion)}`),
+        apiClient.get(`/challenges/daily?region=${encodeURIComponent(targetRegion)}`).catch(() => null),
+      ]);
       setGames(Array.isArray(res.data?.gameChallenges) ? res.data.gameChallenges : []);
       setCatalog(Array.isArray(res.data?.catalog) ? res.data.catalog : []);
       setRegions(Array.isArray(res.data?.regions) ? res.data.regions : []);
       setTrendingTags(Array.isArray(res.data?.trending?.tags) ? res.data.trending.tags : []);
       setTrendSource(String(res.data?.trending?.source || ''));
+      if (dailyRes?.data?.daily) setDailyDrop(dailyRes.data.daily);
+      setDailyJoinedId(dailyRes?.data?.joinedChallengeId ?? null);
     } catch {
       setGames([]);
     } finally {
       setLoading(false);
     }
   }, []);
+
+  const handleJoinDailyDrop = async () => {
+    setJoiningDaily(true);
+    try {
+      const res = await apiClient.post('/challenges/daily/join', { region });
+      if (res.data?.gameChallenge) {
+        setDailyJoinedId(res.data.gameChallenge.id);
+        if (!res.data?.alreadyJoined) {
+          setGames((prev) => [res.data.gameChallenge, ...prev]);
+          setDailyDrop((prev) => (prev ? { ...prev, participantsCount: prev.participantsCount + 1 } : prev));
+        }
+        toast.success("Joined today's featured drop!");
+      }
+    } catch {
+      toast.error('Could not join daily drop.');
+    } finally {
+      setJoiningDaily(false);
+    }
+  };
 
   useEffect(() => {
     void loadGames(region);
@@ -166,6 +211,45 @@ export function GameChallengesArena() {
 
   return (
     <div className="space-y-6">
+      {/* Daily Featured Drop Banner (Shared Cultural Moment) */}
+      {dailyDrop && (
+        <div className="rounded-2xl border border-purple-200 bg-purple-50/60 p-4 dark:border-purple-900/50 dark:bg-purple-950/25">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-2 text-[11px] font-semibold">
+                <span className="inline-flex items-center gap-1 rounded-full bg-purple-600 px-2.5 py-0.5 text-white">
+                  <Flame className="h-3 w-3" />
+                  Today&apos;s Featured Drop · {dailyDrop.region}
+                </span>
+                <span className="inline-flex items-center gap-1 text-slate-600 dark:text-slate-300">
+                  <Users className="h-3 w-3" />
+                  {dailyDrop.participantsCount} creators playing
+                </span>
+                <span className="text-emerald-700 dark:text-emerald-400">
+                  +{dailyDrop.rewardCredits} cr · +{dailyDrop.rewardRizzBoost} Rizz
+                </span>
+              </div>
+              <h3 className="mt-1.5 text-sm font-bold text-slate-900 dark:text-white">
+                {dailyDrop.title}
+              </h3>
+              <p className="mt-0.5 text-xs text-slate-600 dark:text-slate-300">{dailyDrop.premise}</p>
+            </div>
+            <button
+              type="button"
+              disabled={joiningDaily || Boolean(dailyJoinedId)}
+              onClick={() => void handleJoinDailyDrop()}
+              className={`shrink-0 rounded-xl px-4 py-2 text-xs font-bold transition ${
+                dailyJoinedId
+                  ? 'bg-emerald-600 text-white'
+                  : 'bg-slate-900 text-white hover:bg-slate-800 dark:bg-white dark:text-slate-900'
+              }`}
+            >
+              {dailyJoinedId ? 'Joined Today ✓' : joiningDaily ? 'Joining…' : 'Join Today’s Drop'}
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Live Regional & Global Trending Hashtags Bar */}
       <div className="rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -359,6 +443,31 @@ export function GameChallengesArena() {
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
+                      onClick={() =>
+                        setShareGame({
+                          id: game.id,
+                          gameMode: game.gameMode,
+                          region: game.region,
+                          title: game.title,
+                          premise: game.premise,
+                          hashtag: game.hashtag,
+                          trendingTags: game.trendingTags || [game.hashtag],
+                          completedRounds: doneCount,
+                          totalRounds: game.rounds.length,
+                          rewardCredits: game.rewardCredits,
+                          rewardRizzBoost: game.rewardRizzBoost,
+                          username:
+                            user?.username ||
+                            (user as { profile?: { username?: string } } | null)?.profile?.username,
+                        })
+                      }
+                      className="inline-flex items-center gap-1 rounded-lg bg-purple-600 px-2.5 py-1.5 text-[11px] font-semibold text-white hover:bg-purple-500"
+                    >
+                      <Share2 className="h-3 w-3" />
+                      Share Card
+                    </button>
+                    <button
+                      type="button"
                       onClick={() => handleCopyTags(game)}
                       className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1.5 text-[11px] font-semibold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200"
                     >
@@ -464,6 +573,8 @@ export function GameChallengesArena() {
           })}
         </div>
       )}
+
+      <ChallengeShareCardModal game={shareGame} onClose={() => setShareGame(null)} />
     </div>
   );
 }

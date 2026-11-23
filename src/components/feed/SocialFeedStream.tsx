@@ -47,6 +47,7 @@ import type { FeedPostRecord } from '@/lib/api/feed.api';
 import type { Stream } from '@/types/streaming.types';
 import { deriveVideoPoster, withVideoPreviewFragment } from '@/lib/utils/mediaThumbnail';
 import { markHomeSeenNow } from '@/hooks/useNavBadges';
+import { DailyDropAndStartCard } from '@/components/challenges/DailyDropAndStartCard';
 
 function LiveStreamActionIcon() {
   return (
@@ -1599,6 +1600,11 @@ export default function SocialFeedStream({
           </div>
         </div>
       )}
+
+      {/* Daily Featured Drop + 60-Second First-Win Guide */}
+      <div className="px-3 sm:px-0">
+        <DailyDropAndStartCard />
+      </div>
 
       {/* Feed Tabs & Search */}
       <div className="flex flex-wrap items-center justify-between gap-3 px-3 sm:px-0">
