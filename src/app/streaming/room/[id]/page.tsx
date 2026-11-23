@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/layout/Dashboard/Dashboard';
 import apiClient from '@/lib/api/client';
 import { uploadStudioMediaToCloudinary } from '@/lib/api/feed.api';
@@ -24,6 +24,7 @@ import {
   PendingCohostCard,
   type PendingCohostRequest,
 } from '@/components/streaming/studio/PendingCohostCard';
+import { ViewerReelsLiveStage } from '@/components/streaming/studio/ViewerReelsLiveStage';
 import { io, type Socket } from 'socket.io-client';
 import { BASE_URL } from '@/config/baseUrl';
 import { getAccessToken } from '@/store/authSelectors';
@@ -209,6 +210,7 @@ function VideoTrackView({
 
 export default function StreamingRoomPage() {
   const params = useParams<{ id: string }>();
+  const router = useRouter();
   const streamId = params?.id;
   const { user } = useAuth();
 
@@ -317,10 +319,12 @@ export default function StreamingRoomPage() {
   );
 
   const handleSendReaction = useCallback(
-    async (emoji: string) => {
+    async (emoji: string, stickerLabel?: string) => {
       if (!streamId) return;
       spawnFloatingReaction(emoji);
-      await apiClient.post(`/streaming/streams/${streamId}/reactions`, { emoji }).catch(() => null);
+      await apiClient
+        .post(`/streaming/streams/${streamId}/reactions`, { emoji, stickerLabel })
+        .catch(() => null);
     },
     [streamId, spawnFloatingReaction],
   );
@@ -1248,6 +1252,76 @@ export default function StreamingRoomPage() {
     setTimeout(() => setCopiedLink(false), 1800);
   };
 
+  // Auto-connect viewers directly into the live watch feed
+  const viewerAutoJoinedRef = useRef(false);
+  useEffect(() => {
+    if (
+      !loading &&
+      stream?.status === 'live' &&
+      !isStreamHost &&
+      !canPublish &&
+      !lkConnected &&
+      !lkConnecting &&
+      !viewerAutoJoinedRef.current
+    ) {
+      viewerAutoJoinedRef.current = true;
+      void connectLiveKit();
+    }
+  }, [loading, stream?.status, isStreamHost, canPublish, lkConnected, lkConnecting, connectLiveKit]);
+
+  // Viewers get a dedicated TikTok/IG Reels-style vertical live watch experience
+  if (!loading && stream && !isStreamHost && !canPublish) {
+    const primaryViewerTile =
+      videoTiles.find((t) => t.isConsole || t.isScreen) ?? videoTiles[0] ?? null;
+    return (
+      <DashboardLayout>
+        <div ref={audioContainerRef} className="hidden" aria-hidden="true" />
+        <ViewerReelsLiveStage
+          streamTitle={stream.title}
+          streamStatus={stream.status}
+          recordingUrl={stream.recordingUrl}
+          viewerCount={lkConnected ? participantCount : stream.viewersCurrent ?? 0}
+          lkConnected={lkConnected}
+          lkConnecting={lkConnecting}
+          primaryTile={primaryViewerTile}
+          studioState={studioState}
+          reactions={floatingReactions}
+          messages={chatMessages}
+          activePoll={activePoll}
+          chatDraft={chatDraft}
+          sendingChat={sendingChat}
+          muted={stageVolume === 0}
+          cohostRequestStatus={viewerRequestStatus}
+          onBack={() => {
+            disconnectLiveKit();
+            if (typeof window !== 'undefined' && window.history.length > 1) {
+              router.back();
+            } else {
+              router.push('/reels');
+            }
+          }}
+          onToggleMute={() => setStageVolume((v) => (v === 0 ? 85 : 0))}
+          onJoinWatch={() => void connectLiveKit()}
+          onChatDraftChange={setChatDraft}
+          onSendChat={handleSendChat}
+          onSendSticker={(emoji, label) => {
+            void handleSendReaction(emoji, label);
+          }}
+          onSendSuperChat={handleSendSuperChat}
+          onVotePoll={(pollId, idx) => void handleVotePoll(pollId, idx)}
+          onRequestCohost={() => void handleRequestToCohost()}
+          onShare={() => {
+            if (typeof window === 'undefined') return;
+            void navigator.clipboard
+              .writeText(`${window.location.origin}/streaming/room/${streamId}`)
+              .then(() => toast.success('Stream link copied!'))
+              .catch(() => null);
+          }}
+        />
+      </DashboardLayout>
+    );
+  }
+
   return (
     <DashboardLayout>
       <div className="min-h-full bg-[#f8f9fb] dark:bg-[#090b0f]">
@@ -1257,13 +1331,20 @@ export default function StreamingRoomPage() {
           {/* Linear-style Compact Top Navigation & Studio Header */}
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-3.5 dark:border-zinc-800/90">
             <div className="flex items-center gap-3">
-              <Link
-                href="/streaming"
-                className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"
+              <button
+                type="button"
+                onClick={() => {
+                  if (typeof window !== 'undefined' && window.history.length > 1) {
+                    router.back();
+                  } else {
+                    router.push('/streaming');
+                  }
+                }}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-800 transition hover:bg-slate-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
               >
                 <ArrowLeft className="h-3.5 w-3.5" />
-                Studio
-              </Link>
+                Back
+              </button>
               <span className="text-slate-300 dark:text-zinc-700">/</span>
               <span className="truncate text-xs font-medium text-slate-600 dark:text-zinc-400">
                 {stream?.title || 'Broadcast Room'}
@@ -2027,9 +2108,17 @@ export default function StreamingRoomPage() {
                           )}
                           <button
                             type="button"
-                            onClick={disconnectLiveKit}
-                            title="Leave stream room"
-                            className="flex h-11 w-11 items-center justify-center rounded-full bg-rose-500 text-white shadow-lg shadow-rose-500/30 transition hover:bg-rose-400"
+                            disabled={busy}
+                            onClick={() => {
+                              if (isStreamHost && stream?.status === 'live') {
+                                if (isRecordingVod) stopVodRecording();
+                                void handleAction('end').finally(() => disconnectLiveKit());
+                              } else {
+                                disconnectLiveKit();
+                              }
+                            }}
+                            title={isStreamHost && stream?.status === 'live' ? 'End Live Broadcast' : 'Leave Studio'}
+                            className="flex h-11 w-11 items-center justify-center rounded-full bg-rose-500 text-white shadow-lg shadow-rose-500/30 transition hover:bg-rose-400 disabled:opacity-50"
                           >
                             <PhoneOff className="h-5 w-5" />
                           </button>
