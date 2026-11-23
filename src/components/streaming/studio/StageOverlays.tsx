@@ -44,24 +44,13 @@ export function StageOverlays({
 }: StageOverlaysProps) {
   return (
     <div className="pointer-events-none absolute inset-0 z-20 overflow-hidden">
-      {/* Top-right subtle broadcast health pill */}
-      <div className="absolute right-3 top-3 flex items-center gap-1.5 rounded-full bg-black/65 px-2.5 py-1 text-[11px] font-medium text-zinc-100 ring-1 ring-white/15 backdrop-blur-md">
-        {connectionQuality === 'reconnecting' ? (
-          <>
-            <WifiOff className="h-3 w-3 text-rose-400" />
-            <span className="text-rose-300">Reconnecting…</span>
-          </>
-        ) : (
-          <>
-            <Wifi
-              className={`h-3 w-3 ${
-                connectionQuality === 'good' ? 'text-emerald-400' : 'text-amber-400'
-              }`}
-            />
-            <span>{connectionQuality === 'good' ? 'HD · Stable' : 'Fair signal'}</span>
-          </>
-        )}
-      </div>
+      {/* Reconnecting alert only when connection drops */}
+      {connectionQuality === 'reconnecting' && (
+        <div className="absolute left-1/2 top-3 flex -translate-x-1/2 items-center gap-1.5 rounded-full bg-rose-950/90 px-3 py-1 text-[11px] font-semibold text-rose-200 ring-1 ring-rose-500/40 backdrop-blur-md">
+          <WifiOff className="h-3 w-3 text-rose-400" />
+          <span>Reconnecting…</span>
+        </div>
+      )}
 
       {/* Floating Emoji Reactions */}
       <div className="absolute bottom-6 right-4 h-64 w-24 overflow-visible">

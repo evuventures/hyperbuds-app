@@ -1514,7 +1514,7 @@ export default function StreamingRoomPage() {
                       </div>
                     )}
 
-                    <div className="relative p-2 sm:p-3">
+                    <div className="relative">
                       {lkConnected && (
                         <StageOverlays
                           studioState={studioState}
@@ -1965,223 +1965,36 @@ export default function StreamingRoomPage() {
                     </div>
                   )}
 
-                  {/* Docked Riverside-style Studio Control Deck */}
-                  <div className="flex flex-wrap items-center justify-between gap-2 border-t border-zinc-800/90 bg-[#111318] px-4 py-3">
-                    <div className="flex flex-wrap items-center gap-2">
-                      {lkConnected && canPublish ? (
-                        <>
-                          <button
-                            type="button"
-                            onClick={toggleMic}
-                            className={`inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium transition ${
-                              micEnabled
-                                ? 'border-zinc-700 bg-zinc-800 text-zinc-100 hover:bg-zinc-700'
-                                : 'border-rose-700/70 bg-rose-600/20 text-rose-300 hover:bg-rose-600/30'
-                            }`}
-                          >
-                            {micEnabled ? <Mic className="h-3.5 w-3.5" /> : <MicOff className="h-3.5 w-3.5" />}
-                            {micEnabled ? 'Mic' : 'Muted'}
-                          </button>
-                          <button
-                            type="button"
-                            onClick={toggleCamera}
-                            className={`inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium transition ${
-                              camEnabled
-                                ? 'border-zinc-700 bg-zinc-800 text-zinc-100 hover:bg-zinc-700'
-                                : 'border-rose-700/70 bg-rose-600/20 text-rose-300 hover:bg-rose-600/30'
-                            }`}
-                          >
-                            {camEnabled ? <Video className="h-3.5 w-3.5" /> : <VideoOff className="h-3.5 w-3.5" />}
-                            {camEnabled ? 'Camera' : 'Cam Off'}
-                          </button>
-                          <button
-                            type="button"
-                            onClick={toggleScreen}
-                            className={`inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium transition ${
-                              screenEnabled
-                                ? 'border-emerald-600/60 bg-emerald-600/20 text-emerald-300 hover:bg-emerald-600/30'
-                                : 'border-zinc-700 bg-zinc-800 text-zinc-200 hover:bg-zinc-700'
-                            }`}
-                          >
-                            <MonitorUp className="h-3.5 w-3.5" />
-                            {screenEnabled ? 'Sharing screen' : 'Share screen'}
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setShowConsolePanel((prev) => !prev)}
-                            className={`inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium transition ${
-                              consoleEnabled || showConsolePanel
-                                ? 'border-purple-500/70 bg-purple-600/25 text-purple-200 hover:bg-purple-600/35'
-                                : 'border-zinc-700 bg-zinc-800 text-zinc-200 hover:bg-zinc-700'
-                            }`}
-                          >
-                            <Gamepad2 className="h-3.5 w-3.5" />
-                            {consoleEnabled ? 'Console Live' : 'Console / PS5'}
-                          </button>
-                          {isStreamHost && (
-                            <>
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  setActiveStudioDrawer((p) => (p === 'overlays' ? null : 'overlays'))
-                                }
-                                className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs font-medium transition ${
-                                  activeStudioDrawer === 'overlays' || studioState.lowerThirdVisible
-                                    ? 'border-purple-500/80 bg-purple-600/25 text-purple-200'
-                                    : 'border-zinc-700 bg-zinc-800 text-zinc-200 hover:bg-zinc-700'
-                                }`}
-                              >
-                                <Type className="h-3.5 w-3.5" />
-                                Overlays
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => setActiveStudioDrawer((p) => (p === 'poll' ? null : 'poll'))}
-                                className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs font-medium transition ${
-                                  activeStudioDrawer === 'poll' || activePoll?.status === 'active'
-                                    ? 'border-purple-500/80 bg-purple-600/25 text-purple-200'
-                                    : 'border-zinc-700 bg-zinc-800 text-zinc-200 hover:bg-zinc-700'
-                                }`}
-                              >
-                                <BarChart2 className="h-3.5 w-3.5" />
-                                Poll
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  setActiveStudioDrawer((p) => (p === 'backstage' ? null : 'backstage'))
-                                }
-                                className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs font-medium transition ${
-                                  activeStudioDrawer === 'backstage'
-                                    ? 'border-purple-500/80 bg-purple-600/25 text-purple-200'
-                                    : 'border-zinc-700 bg-zinc-800 text-zinc-200 hover:bg-zinc-700'
-                                }`}
-                              >
-                                <Layers className="h-3.5 w-3.5" />
-                                Backstage
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  setActiveStudioDrawer((p) => (p === 'infra' ? null : 'infra'))
-                                }
-                                className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs font-medium transition ${
-                                  activeStudioDrawer === 'infra'
-                                    ? 'border-purple-500/80 bg-purple-600/25 text-purple-200'
-                                    : 'border-zinc-700 bg-zinc-800 text-zinc-200 hover:bg-zinc-700'
-                                }`}
-                              >
-                                <Cast className="h-3.5 w-3.5" />
-                                OBS &amp; Restream
-                              </button>
-                              <button
-                                type="button"
-                                disabled={vodUploading}
-                                onClick={() => (isRecordingVod ? stopVodRecording() : void startVodRecording())}
-                                className={`inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium transition disabled:opacity-50 ${
-                                  isRecordingVod
-                                    ? 'border-rose-500/80 bg-rose-600/25 text-rose-200 hover:bg-rose-600/35'
-                                    : 'border-zinc-700 bg-zinc-800 text-zinc-200 hover:bg-zinc-700'
-                                }`}
-                              >
-                                {vodUploading ? (
-                                  <>
-                                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                                    Saving VOD...
-                                  </>
-                                ) : isRecordingVod ? (
-                                  <>
-                                    <Disc className="h-3.5 w-3.5 animate-pulse text-rose-400" />
-                                    Stop &amp; Save ({formatVodTimer(vodSeconds)})
-                                  </>
-                                ) : (
-                                  <>
-                                    <Disc className="h-3.5 w-3.5 text-rose-400" />
-                                    Record VOD
-                                  </>
-                                )}
-                              </button>
-                            </>
-                          )}
-                          {videoTiles.some((t) => t.isScreen || t.isConsole) && videoTiles.length > 1 && (
-                            <button
-                              type="button"
-                              onClick={() => setLayoutMode((prev) => (prev === 'pip' ? 'grid' : 'pip'))}
-                              title="Switch between Gaming PiP overlay and side-by-side grid"
-                              className="inline-flex items-center gap-1.5 rounded-md border border-zinc-700 bg-zinc-800 px-2.5 py-1.5 text-xs font-medium text-zinc-200 hover:bg-zinc-700"
-                            >
-                              {layoutMode === 'pip' ? (
-                                <>
-                                  <PictureInPicture2 className="h-3.5 w-3.5 text-purple-400" />
-                                  PiP Gaming
-                                </>
-                              ) : (
-                                <>
-                                  <LayoutGrid className="h-3.5 w-3.5 text-zinc-300" />
-                                  Grid
-                                </>
-                              )}
-                            </button>
-                          )}
-                        </>
-                      ) : (
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="text-[11px] text-zinc-500">
-                            {lkConnected
-                              ? 'Viewer mode · Subscribed to host tracks'
-                              : 'Click Join Broadcast Room to connect audio & video'}
-                          </span>
-                          {videoTiles.some((t) => t.isScreen || t.isConsole) && videoTiles.length > 1 && (
-                            <button
-                              type="button"
-                              onClick={() => setLayoutMode((prev) => (prev === 'pip' ? 'grid' : 'pip'))}
-                              className="inline-flex items-center gap-1 rounded-md border border-zinc-700 bg-zinc-800 px-2 py-1 text-[11px] font-medium text-zinc-200 hover:bg-zinc-700"
-                            >
-                              {layoutMode === 'pip' ? (
-                                <>
-                                  <PictureInPicture2 className="h-3 w-3 text-purple-400" />
-                                  PiP
-                                </>
-                              ) : (
-                                <>
-                                  <LayoutGrid className="h-3 w-3" />
-                                  Grid
-                                </>
-                              )}
-                            </button>
-                          )}
-                        </div>
-                      )}
+                  {/* Clean Single Studio Control Bar (below video — never overlays video frame) */}
+                  <div className="flex flex-wrap items-center justify-between gap-3 border-t border-white/10 bg-[#12151e] px-4 py-3">
+                    {/* Left: Volume Slider */}
+                    <div className="hidden items-center gap-2 sm:flex">
+                      <button
+                        type="button"
+                        onClick={() => setStageVolume((v) => (v === 0 ? 85 : 0))}
+                        aria-label="Toggle volume"
+                        className="text-zinc-300 hover:text-white"
+                      >
+                        {stageVolume === 0 ? (
+                          <VolumeX className="h-4 w-4 text-rose-400" />
+                        ) : (
+                          <Volume2 className="h-4 w-4 text-purple-400" />
+                        )}
+                      </button>
+                      <input
+                        type="range"
+                        min={0}
+                        max={100}
+                        value={stageVolume}
+                        onChange={(e) => setStageVolume(Number(e.target.value))}
+                        className="h-1 w-20 cursor-pointer accent-purple-500"
+                      />
                     </div>
 
-                    {lkConnected && (
-                      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-white/10 bg-black/55 px-4 py-2.5 backdrop-blur-md">
-                        {/* Bottom-Left Volume Slider (matches reference) */}
-                        <div className="hidden items-center gap-2 sm:flex">
-                          <button
-                            type="button"
-                            onClick={() => setStageVolume((v) => (v === 0 ? 85 : 0))}
-                            aria-label="Toggle volume"
-                            className="text-zinc-300 hover:text-white"
-                          >
-                            {stageVolume === 0 ? (
-                              <VolumeX className="h-4 w-4 text-rose-400" />
-                            ) : (
-                              <Volume2 className="h-4 w-4 text-purple-400" />
-                            )}
-                          </button>
-                          <input
-                            type="range"
-                            min={0}
-                            max={100}
-                            value={stageVolume}
-                            onChange={(e) => setStageVolume(Number(e.target.value))}
-                            className="h-1 w-20 cursor-pointer accent-purple-500"
-                          />
-                        </div>
-
-                        {/* Center Floating Circular Call Controls (matches reference) */}
-                        <div className="mx-auto flex items-center gap-2.5">
+                    {/* Center: Circular Broadcast Call Controls */}
+                    <div className="mx-auto flex items-center gap-2.5">
+                      {lkConnected ? (
+                        <>
                           {isStreamHost && (
                             <button
                               type="button"
@@ -2248,20 +2061,106 @@ export default function StreamingRoomPage() {
                               <MonitorUp className="h-4 w-4" />
                             </button>
                           )}
-                        </div>
+                        </>
+                      ) : (
+                        <span className="text-xs text-zinc-400">
+                          {stream.status === 'ended'
+                            ? 'Broadcast ended'
+                            : 'Preview your setup above, then enter the live studio'}
+                        </span>
+                      )}
+                    </div>
 
-                        {/* Bottom-Right Signal Indicator */}
-                        <div className="hidden items-center gap-1.5 text-[11px] font-medium text-zinc-300 sm:flex">
+                    {/* Right: Signal Indicator */}
+                    <div className="hidden items-center gap-1.5 text-[11px] font-medium text-zinc-300 sm:flex">
+                      {lkConnected ? (
+                        <>
                           <Wifi className="h-3.5 w-3.5 text-emerald-400" />
                           <span>HD Live</span>
-                        </div>
-                      </div>
-                    )}
+                        </>
+                      ) : (
+                        <>
+                          <WifiOff className="h-3.5 w-3.5 text-zinc-500" />
+                          <span className="text-zinc-500">Standby</span>
+                        </>
+                      )}
+                    </div>
                   </div>
                   </div>
 
-                  {/* Bottom Studio Participant & Action Bar (exact reference bottom dock in HyperBuds theme) */}
+                  {/* Bottom Studio Tools, Participants & Add Co-Host Bar (matches reference bottom bar) */}
                   <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/10 bg-[#141720] px-4 py-3">
+                    {/* Left: Compact Studio Tool Icons */}
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => setLayoutMode((prev) => (prev === 'pip' ? 'grid' : 'pip'))}
+                        title={layoutMode === 'pip' ? 'Switch to Grid layout' : 'Switch to PiP layout'}
+                        className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/[0.06] text-zinc-300 transition hover:bg-white/15 hover:text-white"
+                      >
+                        {layoutMode === 'pip' ? (
+                          <PictureInPicture2 className="h-4 w-4 text-purple-400" />
+                        ) : (
+                          <LayoutGrid className="h-4 w-4" />
+                        )}
+                      </button>
+                      {canPublish && (
+                        <button
+                          type="button"
+                          onClick={() => setShowConsolePanel((p) => !p)}
+                          title="Console / Capture Card"
+                          className={`flex h-8 w-8 items-center justify-center rounded-lg transition ${
+                            consoleEnabled || showConsolePanel
+                              ? 'bg-purple-600 text-white'
+                              : 'bg-white/[0.06] text-zinc-300 hover:bg-white/15 hover:text-white'
+                          }`}
+                        >
+                          <Gamepad2 className="h-4 w-4" />
+                        </button>
+                      )}
+                      {isStreamHost && (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => setActiveStudioDrawer((p) => (p === 'poll' ? null : 'poll'))}
+                            title="Launch Live Poll"
+                            className={`flex h-8 w-8 items-center justify-center rounded-lg transition ${
+                              activeStudioDrawer === 'poll' || activePoll?.status === 'active'
+                                ? 'bg-purple-600 text-white'
+                                : 'bg-white/[0.06] text-zinc-300 hover:bg-white/15 hover:text-white'
+                            }`}
+                          >
+                            <BarChart2 className="h-4 w-4" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setActiveStudioDrawer((p) => (p === 'backstage' ? null : 'backstage'))}
+                            title="Backstage Stage Queue"
+                            className={`flex h-8 w-8 items-center justify-center rounded-lg transition ${
+                              activeStudioDrawer === 'backstage'
+                                ? 'bg-purple-600 text-white'
+                                : 'bg-white/[0.06] text-zinc-300 hover:bg-white/15 hover:text-white'
+                            }`}
+                          >
+                            <Layers className="h-4 w-4" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setActiveStudioDrawer((p) => (p === 'infra' ? null : 'infra'))}
+                            title="OBS RTMP & Multi-Stream"
+                            className={`flex h-8 w-8 items-center justify-center rounded-lg transition ${
+                              activeStudioDrawer === 'infra'
+                                ? 'bg-purple-600 text-white'
+                                : 'bg-white/[0.06] text-zinc-300 hover:bg-white/15 hover:text-white'
+                            }`}
+                          >
+                            <Cast className="h-4 w-4" />
+                          </button>
+                        </>
+                      )}
+                    </div>
+
+                    {/* Center: Participants count + Avatar Stack */}
                     <div className="flex items-center gap-2.5 text-xs text-zinc-300">
                       <Users className="h-4 w-4 text-purple-400" />
                       <span className="font-semibold text-white">
@@ -2287,6 +2186,7 @@ export default function StreamingRoomPage() {
                       )}
                     </div>
 
+                    {/* Right: Add Co-Host (Host) or Request to Co-Host (Viewer) */}
                     <div className="flex items-center gap-2">
                       {isStreamHost ? (
                         <button
