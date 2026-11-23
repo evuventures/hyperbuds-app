@@ -31,7 +31,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { useAuth } from '@/hooks/auth/useAuth';
-import { useNavBadges } from '@/hooks/useNavBadges';
+import { useNavBadges, triggerHomeRefresh } from '@/hooks/useNavBadges';
 import { formatCompactCount } from '@/lib/utils/formatCount';
 import { useSidebarAppearance, type SidebarAppearance } from '@/hooks/useSidebarAppearance';
 
@@ -230,7 +230,7 @@ export function AppSidebar({
   const pathname = usePathname() || '/';
   const router = useRouter();
   const { logout, user: authUser } = useAuth();
-  const { unseenReelsCount, unreadMessagesCount } = useNavBadges();
+  const { unseenPostsCount, unreadMessagesCount } = useNavBadges();
   const { appearance, setAppearance } = useSidebarAppearance();
   const t = THEMES[appearance];
 
@@ -296,7 +296,7 @@ export function AppSidebar({
                 const Icon = item.icon;
                 const badgeCount =
                   item.href === '/dashboard'
-                    ? unseenReelsCount
+                    ? unseenPostsCount
                     : item.href === '/messages'
                       ? unreadMessagesCount
                       : 0;
@@ -304,7 +304,13 @@ export function AppSidebar({
                   <li key={item.href}>
                     <Link
                       href={item.href}
-                      onClick={onNavigate}
+                      onClick={(e) => {
+                        if (item.href === '/dashboard' && active) {
+                          e.preventDefault();
+                          triggerHomeRefresh();
+                        }
+                        onNavigate?.();
+                      }}
                       title={item.label}
                       aria-label={item.label}
                       aria-current={active ? 'page' : undefined}
@@ -430,7 +436,7 @@ export function AppSidebar({
                     const Icon = item.icon;
                     const badgeCount =
                       item.href === '/dashboard'
-                        ? unseenReelsCount
+                        ? unseenPostsCount
                         : item.href === '/messages'
                           ? unreadMessagesCount
                           : 0;
@@ -438,7 +444,13 @@ export function AppSidebar({
                       <li key={item.href}>
                         <Link
                           href={item.href}
-                          onClick={onNavigate}
+                          onClick={(e) => {
+                            if (item.href === '/dashboard' && active) {
+                              e.preventDefault();
+                              triggerHomeRefresh();
+                            }
+                            onNavigate?.();
+                          }}
                           aria-current={active ? 'page' : undefined}
                           className={`hb-nav-link flex flex-row items-center gap-2.5 rounded-xl px-2.5 py-2 text-[13px] font-medium leading-none transition ${active ? t.active : t.link}`}
                         >

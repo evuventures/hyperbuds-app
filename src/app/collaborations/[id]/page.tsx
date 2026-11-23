@@ -129,7 +129,8 @@ export default function CollaborationPage({ params }: CollaborationPageProps) {
       ),
     [collaboration, currentUserId]
   );
-  const isInvitedCollaborator = myCollaboratorEntry?.status === "invited";
+  const isInvitedCollaborator =
+    myCollaboratorEntry?.status === "invited" || myCollaboratorEntry?.status === "pending";
   const isAcceptedCollaborator = myCollaboratorEntry?.status === "accepted";
   const canManageDeliverables = isOwner || isAcceptedCollaborator;
 

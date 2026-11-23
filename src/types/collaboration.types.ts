@@ -19,7 +19,7 @@ export type CollaborationType =
   | "other";
 
 export type CollaboratorRole = "co-creator" | "featured" | "guest";
-export type CollaboratorStatus = "invited" | "accepted" | "declined" | "removed";
+export type CollaboratorStatus = "pending" | "invited" | "accepted" | "declined" | "removed";
 
 export interface UserReference {
   _id: string;

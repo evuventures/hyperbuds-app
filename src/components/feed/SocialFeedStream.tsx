@@ -46,6 +46,7 @@ import { MentionAutocomplete } from './MentionAutocomplete';
 import type { FeedPostRecord } from '@/lib/api/feed.api';
 import type { Stream } from '@/types/streaming.types';
 import { deriveVideoPoster, withVideoPreviewFragment } from '@/lib/utils/mediaThumbnail';
+import { markHomeSeenNow } from '@/hooks/useNavBadges';
 
 function LiveStreamActionIcon() {
   return (
@@ -936,6 +937,9 @@ export default function SocialFeedStream({
       setPage(1);
       setHasMore(1 < totalPages);
       onPostCountChange?.(nextPosts.length);
+      if (tab === 'all' && !search.trim() && !activeTag) {
+        markHomeSeenNow();
+      }
     } catch (err) {
       const message = (err as { message?: string })?.message || 'Unable to load social feed.';
       setLoadError(message);
@@ -978,6 +982,22 @@ export default function SocialFeedStream({
 
   useEffect(() => {
     loadFeed();
+  }, [loadFeed]);
+
+  // Clicking the Home icon while already on Home smoothly scrolls to top and refreshes the feed
+  useEffect(() => {
+    const onHomeRefresh = () => {
+      const mainEl = document.getElementById('main-content');
+      if (mainEl) {
+        mainEl.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      setTab('all');
+      setActiveTag('');
+      void loadFeed();
+    };
+    window.addEventListener('hb:home-refresh', onHomeRefresh);
+    return () => window.removeEventListener('hb:home-refresh', onHomeRefresh);
   }, [loadFeed]);
 
   useEffect(() => {

@@ -14,7 +14,7 @@ import { getCurrentUser, User } from '@/lib/api/auth.api';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { setToken, setUser as setUserAction } from '@/store/slices/authSlice';
 import { useAuth } from '@/hooks/auth/useAuth';
-import { useNavBadges } from '@/hooks/useNavBadges';
+import { useNavBadges, triggerHomeRefresh } from '@/hooks/useNavBadges';
 import Image from 'next/image';
 import { MotionConfig } from 'framer-motion';
 
@@ -232,7 +232,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     toggleSidebarCollapse,
     toggleSidebarOpen,
   } = useSidebar();
-  const { unseenReelsCount, unreadMessagesCount } = useNavBadges();
+  const { unseenPostsCount, unreadMessagesCount } = useNavBadges();
 
   useEffect(() => {
     if (!sidebarOpen || window.matchMedia('(min-width: 1024px)').matches) return;
@@ -380,7 +380,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 const Icon = item.icon;
                 const badgeCount =
                   item.href === '/dashboard'
-                    ? unseenReelsCount
+                    ? unseenPostsCount
                     : item.href === '/messages'
                       ? unreadMessagesCount
                       : 0;
@@ -388,7 +388,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   <Link
                     key={item.href}
                     href={item.href}
-                    onClick={() => setSidebarOpen(false)}
+                    onClick={(e) => {
+                      if (item.href === '/dashboard' && active) {
+                        e.preventDefault();
+                        triggerHomeRefresh();
+                      }
+                      setSidebarOpen(false);
+                    }}
                     aria-label={item.label}
                     aria-current={active ? 'page' : undefined}
                     className={`relative flex items-center justify-center gap-1.5 rounded-full transition-all duration-200 ${

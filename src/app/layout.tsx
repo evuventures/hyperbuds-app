@@ -9,6 +9,7 @@ import { SocketProvider } from "../providers/SocketProvider";
 import { ReduxProvider } from "../providers/ReduxProvider";
 import { AuthBootstrap } from "../providers/AuthBootstrap";
 import PwaRegistrar from "../components/pwa/PwaRegistrar";
+import PwaPreloader from "../components/pwa/PwaPreloader";
 
 export const metadata: Metadata = {
   title: "Hyperbuds – Collaborative AI Platform for Seamless Teamwork",
@@ -83,6 +84,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                 </AuthBootstrap>
                 <Toaster position="top-right" />
                 <PwaRegistrar />
+                <PwaPreloader />
               </SidebarProvider>
             </ThemeProvider>
           </QueryProvider>

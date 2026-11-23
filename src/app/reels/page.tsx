@@ -67,9 +67,10 @@ export default function ReelsPage() {
   const [reels, setReels] = useState<ReelItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeIndex, setActiveIndex] = useState(0);
-  const [page, setPage] = useState(1);
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(true);
   const loadingMoreRef = useRef(false);
+  const markedSeenIdsRef = useRef<Set<string>>(new Set());
   const [muted, setMuted] = useState(false);
   const userMutedRef = useRef(false);
   const [paused, setPaused] = useState(false);
@@ -114,17 +115,18 @@ export default function ReelsPage() {
     });
 
     try {
-      // Fetch both dedicated reels and all video posts so every single reel/video is shown
-      const [reelsRes, allRes] = await Promise.all([
-        apiClient.get('/feed/posts?kind=reel&limit=50&page=1').catch(() => null),
-        apiClient.get('/feed/posts?limit=50&page=1').catch(() => null),
-      ]);
+      // Dedicated server-side Reels cursor pagination with unseen-first ranking
+      const reelsRes = await apiClient.get('/feed/reels?limit=15&unseenFirst=true');
       const reelPosts: ReelItem[] = Array.isArray(reelsRes?.data?.posts) ? reelsRes.data.posts : [];
-      const allPosts: ReelItem[] = Array.isArray(allRes?.data?.posts) ? allRes.data.posts : [];
+      const initialCursor: string | null =
+        typeof reelsRes?.data?.nextCursor === 'string' && reelsRes.data.nextCursor
+          ? reelsRes.data.nextCursor
+          : null;
+      const initialHasMore = Boolean(reelsRes?.data?.hasMore && initialCursor);
 
       const seen = new Set<string>();
       const combined: ReelItem[] = [];
-      for (const item of [...reelPosts, ...allPosts]) {
+      for (const item of reelPosts) {
         if (!item?._id || seen.has(item._id)) continue;
         if (!isVideoPost(item as ReelItem & { kind?: string })) continue;
         seen.add(item._id);
@@ -152,8 +154,8 @@ export default function ReelsPage() {
       }
       setReels(ordered);
       setActiveIndex(0);
-      setPage(1);
-      setHasMore(allPosts.length >= 50 || reelPosts.length >= 50);
+      setNextCursor(initialCursor);
+      setHasMore(initialHasMore);
     } catch (err) {
       setBanner({
         type: 'error',
@@ -169,17 +171,21 @@ export default function ReelsPage() {
     void loadReels();
   }, [loadReels]);
 
-  // Silently load additional pages when scrolling close to the end
+  // Silently fetch next cursor batch when scrolling within 4 reels of the end
   useEffect(() => {
-    if (!hasMore || loading || loadingMoreRef.current || reels.length === 0) return;
+    if (!hasMore || !nextCursor || loading || loadingMoreRef.current || reels.length === 0) return;
     if (activeIndex < reels.length - 4) return;
     loadingMoreRef.current = true;
-    const nextPage = page + 1;
+    const cursorToFetch = nextCursor;
     void apiClient
-      .get(`/feed/posts?limit=50&page=${nextPage}`)
+      .get(`/feed/reels?limit=15&unseenFirst=true&cursor=${encodeURIComponent(cursorToFetch)}`)
       .then((res) => {
         const batch: ReelItem[] = Array.isArray(res.data?.posts) ? res.data.posts : [];
-        if (batch.length < 50) setHasMore(false);
+        const cursorOut: string | null =
+          typeof res.data?.nextCursor === 'string' && res.data.nextCursor
+            ? res.data.nextCursor
+            : null;
+        const more = Boolean(res.data?.hasMore && cursorOut);
         const videoBatch = batch.filter((p) => isVideoPost(p as ReelItem & { kind?: string }));
         if (videoBatch.length > 0) {
           setReels((prev) => {
@@ -188,13 +194,14 @@ export default function ReelsPage() {
             return fresh.length > 0 ? [...prev, ...fresh] : prev;
           });
         }
-        setPage(nextPage);
+        setNextCursor(cursorOut);
+        setHasMore(more);
       })
       .catch(() => setHasMore(false))
       .finally(() => {
         loadingMoreRef.current = false;
       });
-  }, [activeIndex, reels.length, hasMore, loading, page]);
+  }, [activeIndex, reels.length, hasMore, nextCursor, loading]);
 
   // Synchronously swap source & play on the SAME persistent <video> element inside user gestures
   // so mobile Safari & Chrome never re-mute or pause on scroll/swipe!
@@ -271,6 +278,18 @@ export default function ReelsPage() {
   }, [goNext, goPrev]);
 
   const activeReel = reels[activeIndex] ?? null;
+
+  // Mark reel as seen after 1.5s of playback so unseen-first ranking deprioritizes already-watched reels
+  useEffect(() => {
+    const reelId = activeReel?._id;
+    if (!reelId || markedSeenIdsRef.current.has(reelId)) return;
+    const timer = window.setTimeout(() => {
+      if (markedSeenIdsRef.current.has(reelId)) return;
+      markedSeenIdsRef.current.add(reelId);
+      void apiClient.post('/feed/seen', { postId: reelId }).catch(() => null);
+    }, 1500);
+    return () => window.clearTimeout(timer);
+  }, [activeReel?._id]);
 
   // Auto-play the initial reel on first load (subsequent swipes play synchronously inside switchToReel)
   const initializedVideoRef = useRef<string>('');
