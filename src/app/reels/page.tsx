@@ -15,10 +15,12 @@ import {
   MessageSquare,
   Play,
   Plus,
+  Radio,
   Repeat,
   Send,
   Share2,
   SkipForward,
+  Users,
   Volume2,
   VolumeX,
   X,
@@ -61,10 +63,17 @@ interface ReelItem {
   isBookmarked?: boolean;
   author?: { _id?: string; displayName?: string; fullName?: string; username?: string; avatar?: string } | string;
   createdAt?: string;
+  /** TikTok-style randomly interleaved Live Stream card */
+  isLiveStream?: boolean;
+  streamId?: string;
+  streamTitle?: string;
+  viewersCurrent?: number;
 }
 
 export default function ReelsPage() {
   const [reels, setReels] = useState<ReelItem[]>([]);
+  const [liveStreams, setLiveStreams] = useState<ReelItem[]>([]);
+  const [feedMode, setFeedMode] = useState<'reels' | 'live'>('reels');
   const [loading, setLoading] = useState(true);
   const [activeIndex, setActiveIndex] = useState(0);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
@@ -115,14 +124,50 @@ export default function ReelsPage() {
     });
 
     try {
-      // Dedicated server-side Reels cursor pagination with unseen-first ranking
-      const reelsRes = await apiClient.get('/feed/reels?limit=15&unseenFirst=true');
+      // Dedicated server-side Reels cursor pagination (unseen-first) + active Live Streams for TikTok-style interleaving
+      const [reelsRes, liveRes] = await Promise.all([
+        apiClient.get('/feed/reels?limit=15&unseenFirst=true'),
+        apiClient.get('/streaming/streams?status=live&limit=10').catch(() => null),
+      ]);
       const reelPosts: ReelItem[] = Array.isArray(reelsRes?.data?.posts) ? reelsRes.data.posts : [];
       const initialCursor: string | null =
         typeof reelsRes?.data?.nextCursor === 'string' && reelsRes.data.nextCursor
           ? reelsRes.data.nextCursor
           : null;
       const initialHasMore = Boolean(reelsRes?.data?.hasMore && initialCursor);
+
+      const rawLiveList: Array<Record<string, unknown>> = Array.isArray(liveRes?.data?.streams)
+        ? liveRes.data.streams
+        : Array.isArray(liveRes?.data)
+          ? liveRes.data
+          : [];
+      const mappedLives: ReelItem[] = rawLiveList
+        .filter((s) => s && (s.status === 'live' || !s.status) && (s._id || s.id))
+        .map((s) => {
+          const sid = String(s._id || s.id);
+          const hostObj =
+            (s.host && typeof s.host === 'object' ? (s.host as Record<string, unknown>) : null) ||
+            (s.user && typeof s.user === 'object' ? (s.user as Record<string, unknown>) : null);
+          return {
+            _id: `live-${sid}`,
+            isLiveStream: true,
+            streamId: sid,
+            streamTitle: String(s.title || 'Live Broadcast'),
+            body: String(s.description || s.title || 'Streaming live on HyperBuds now!'),
+            thumbnailUrl: typeof s.thumbnailUrl === 'string' ? s.thumbnailUrl : null,
+            viewersCurrent: Number(s.viewersCurrent ?? 0),
+            author: {
+              _id: String(hostObj?._id || hostObj?.id || s.userId || ''),
+              displayName: String(hostObj?.displayName || hostObj?.username || s.hostName || 'Creator'),
+              username: String(hostObj?.username || s.hostUsername || ''),
+              avatar: String(hostObj?.avatar || s.hostAvatar || ''),
+            },
+            createdAt: typeof s.startedAt === 'string' ? s.startedAt : new Date().toISOString(),
+          };
+        });
+      // Shuffle live streams for TikTok-style random discovery
+      const shuffledLives = [...mappedLives].sort(() => Math.random() - 0.5);
+      setLiveStreams(shuffledLives);
 
       const seen = new Set<string>();
       const combined: ReelItem[] = [];
@@ -133,22 +178,40 @@ export default function ReelsPage() {
         combined.push(item);
       }
 
+      // Randomly interleave live stream cards into the Reels feed every 3–4 reels (TikTok style)
+      const interleaved: ReelItem[] = [];
+      let liveCursor = 0;
+      const firstLiveSlot = combined.length >= 2 ? 1 + Math.floor(Math.random() * 2) : 0;
+      for (let i = 0; i < combined.length; i++) {
+        if (
+          liveCursor < shuffledLives.length &&
+          (i === firstLiveSlot || (i > firstLiveSlot && (i - firstLiveSlot) % 4 === 0))
+        ) {
+          interleaved.push(shuffledLives[liveCursor]);
+          liveCursor += 1;
+        }
+        interleaved.push(combined[i]);
+      }
+      if (interleaved.length === 0 && shuffledLives.length > 0) {
+        interleaved.push(...shuffledLives);
+      }
+
       const targetId =
         typeof window !== 'undefined'
           ? new URLSearchParams(window.location.search).get('id')?.trim() || ''
           : '';
-      let ordered = combined;
+      let ordered = interleaved;
       if (targetId) {
-        const hit = combined.find((r) => r._id === targetId);
+        const hit = interleaved.find((r) => r._id === targetId);
         if (hit) {
-          ordered = [hit, ...combined.filter((r) => r._id !== targetId)];
+          ordered = [hit, ...interleaved.filter((r) => r._id !== targetId)];
         } else {
           const singleRes = await apiClient
             .get(`/feed/public/posts/${encodeURIComponent(targetId)}`)
             .catch(() => null);
           const singlePost = singleRes?.data?.post as ReelItem | undefined;
           if (singlePost && singlePost._id) {
-            ordered = [singlePost, ...combined.filter((r) => r._id !== singlePost._id)];
+            ordered = [singlePost, ...interleaved.filter((r) => r._id !== singlePost._id)];
           }
         }
       }
@@ -207,13 +270,15 @@ export default function ReelsPage() {
   // so mobile Safari & Chrome never re-mute or pause on scroll/swipe!
   const switchToReel = useCallback(
     (targetIdx: number) => {
-      if (reels.length === 0) return;
-      const clamped = Math.max(0, Math.min(reels.length - 1, targetIdx));
+      const list = feedMode === 'live' ? liveStreams : reels;
+      if (list.length === 0) return;
+      const clamped = Math.max(0, Math.min(list.length - 1, targetIdx));
       if (clamped === activeIndex) return;
       setActiveIndex(clamped);
       setPaused(false);
 
-      const nextReel = reels[clamped];
+      const nextReel = list[clamped];
+      if (nextReel?.isLiveStream) return;
       const nextMedia = getReelVideoMedia(nextReel);
       const nextRawUrl = nextMedia?.url || '';
       const el = videoRef.current;
@@ -233,7 +298,7 @@ export default function ReelsPage() {
         });
       }
     },
-    [reels, activeIndex],
+    [reels, liveStreams, feedMode, activeIndex],
   );
 
   const goNext = useCallback(() => {
@@ -277,12 +342,13 @@ export default function ReelsPage() {
     return () => window.removeEventListener('keydown', onKey);
   }, [goNext, goPrev]);
 
-  const activeReel = reels[activeIndex] ?? null;
+  const activeFeedList = feedMode === 'live' ? liveStreams : reels;
+  const activeReel = activeFeedList[activeIndex] ?? null;
 
   // Mark reel as seen after 1.5s of playback so unseen-first ranking deprioritizes already-watched reels
   useEffect(() => {
     const reelId = activeReel?._id;
-    if (!reelId || markedSeenIdsRef.current.has(reelId)) return;
+    if (!reelId || activeReel?.isLiveStream || markedSeenIdsRef.current.has(reelId)) return;
     const timer = window.setTimeout(() => {
       if (markedSeenIdsRef.current.has(reelId)) return;
       markedSeenIdsRef.current.add(reelId);
@@ -572,6 +638,50 @@ export default function ReelsPage() {
               </h1>
             </div>
             <div className="flex items-center gap-2">
+              {/* TikTok-style Reels / LIVE Mode Switcher in HyperBuds Theme */}
+              <div className="inline-flex items-center rounded-xl border border-slate-200 bg-slate-100 p-0.5 dark:border-slate-800 dark:bg-slate-900">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFeedMode('reels');
+                    setActiveIndex(0);
+                  }}
+                  className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
+                    feedMode === 'reels'
+                      ? 'bg-purple-600 text-white shadow-2xs'
+                      : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
+                  }`}
+                >
+                  Reels
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFeedMode('live');
+                    setActiveIndex(0);
+                  }}
+                  className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
+                    feedMode === 'live'
+                      ? 'bg-rose-600 text-white shadow-2xs'
+                      : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
+                  }`}
+                >
+                  <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-rose-400" />
+                  LIVE
+                  {liveStreams.length > 0 && (
+                    <span className="rounded-full bg-black/20 px-1.5 text-[10px] font-bold">
+                      {liveStreams.length}
+                    </span>
+                  )}
+                </button>
+              </div>
+              <Link
+                href="/streaming"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-purple-200 bg-purple-50 px-3 py-1.5 text-xs font-semibold text-purple-700 hover:bg-purple-100 dark:border-purple-900/60 dark:bg-purple-950/50 dark:text-purple-300"
+              >
+                <Radio className="h-3.5 w-3.5" />
+                Go Live
+              </Link>
               <button
                 type="button"
                 onClick={() => setAutoAdvance((v) => !v)}
@@ -617,21 +727,54 @@ export default function ReelsPage() {
             </div>
           ) : !activeReel ? (
             <div className="mx-4 mt-8 rounded-2xl border border-slate-200 bg-white p-10 text-center dark:border-slate-800 dark:bg-slate-900 lg:mx-0">
-              <Film className="mx-auto h-10 w-10 text-slate-400" />
-              <p className="mt-3 text-sm font-semibold text-slate-900 dark:text-white">
-                No reels published yet
-              </p>
-              <p className="mt-1 text-xs text-slate-500">
-                Upload a short vertical video to start the Reels feed.
-              </p>
-              <button
-                type="button"
-                onClick={() => setStudioOpen(true)}
-                className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-slate-900 px-4 py-2 text-xs font-semibold text-white hover:bg-slate-800 dark:bg-white dark:text-slate-900"
-              >
-                <Plus className="h-3.5 w-3.5" />
-                Upload First Reel
-              </button>
+              {feedMode === 'live' ? (
+                <>
+                  <Radio className="mx-auto h-10 w-10 text-purple-500" />
+                  <p className="mt-3 text-sm font-semibold text-slate-900 dark:text-white">
+                    No creators are live right now
+                  </p>
+                  <p className="mx-auto mt-1 max-w-sm text-xs text-slate-500">
+                    Start a broadcast in the HyperBuds Live Studio, or switch back to Reels.
+                  </p>
+                  <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+                    <Link
+                      href="/streaming"
+                      className="inline-flex items-center gap-1.5 rounded-lg bg-purple-600 px-4 py-2 text-xs font-semibold text-white hover:bg-purple-500"
+                    >
+                      <Radio className="h-3.5 w-3.5" />
+                      Start Live Studio
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setFeedMode('reels');
+                        setActiveIndex(0);
+                      }}
+                      className="rounded-lg border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200"
+                    >
+                      Back to Reels
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <Film className="mx-auto h-10 w-10 text-slate-400" />
+                  <p className="mt-3 text-sm font-semibold text-slate-900 dark:text-white">
+                    No reels published yet
+                  </p>
+                  <p className="mt-1 text-xs text-slate-500">
+                    Upload a short vertical video to start the Reels feed.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setStudioOpen(true)}
+                    className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-slate-900 px-4 py-2 text-xs font-semibold text-white hover:bg-slate-800 dark:bg-white dark:text-slate-900"
+                  >
+                    <Plus className="h-3.5 w-3.5" />
+                    Upload First Reel
+                  </button>
+                </>
+              )}
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center gap-6 lg:mt-5 lg:flex-row lg:items-start">
@@ -643,13 +786,75 @@ export default function ReelsPage() {
                   onWheel={handleWheel}
                   className="relative flex h-[calc(100dvh-56px)] w-full items-center justify-center overflow-hidden bg-black lg:h-[660px] lg:w-[372px] lg:rounded-2xl lg:border lg:border-slate-200 lg:shadow-lg dark:lg:border-slate-800"
                 >
-                  {activeMediaUrl ? (
+                  {activeReel.isLiveStream && activeReel.streamId ? (
+                    <div className="relative flex h-full w-full flex-col items-center justify-center overflow-hidden bg-gradient-to-b from-[#1a0b2e] via-[#0e0b18] to-black p-6 text-center text-white">
+                      {activeReel.thumbnailUrl && (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={activeReel.thumbnailUrl}
+                          alt={activeReel.streamTitle || 'Live stream'}
+                          className="absolute inset-0 h-full w-full object-cover opacity-40"
+                        />
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/60" />
+
+                      <div className="relative z-10 flex flex-col items-center">
+                        <div className="inline-flex items-center gap-2 rounded-full bg-rose-600 px-3 py-1 text-xs font-bold uppercase tracking-wider text-white shadow-lg shadow-rose-600/30">
+                          <span className="h-2 w-2 animate-ping rounded-full bg-white" />
+                          LIVE NOW
+                          <span className="ml-1 inline-flex items-center gap-1 rounded-full bg-black/25 px-2 py-0.5 text-[11px] font-semibold">
+                            <Users className="h-3 w-3" />
+                            {activeReel.viewersCurrent ?? 0}
+                          </span>
+                        </div>
+
+                        <div className="mt-6 flex h-24 w-24 items-center justify-center rounded-full p-1 ring-4 ring-purple-500/80 shadow-[0_0_40px_rgba(139,92,246,0.5)]">
+                          {activeAuthorObj?.avatar ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={activeAuthorObj.avatar}
+                              alt={activeAuthorName}
+                              className="h-full w-full rounded-full object-cover"
+                            />
+                          ) : (
+                            <span className="flex h-full w-full items-center justify-center rounded-full bg-purple-700 text-2xl font-bold text-white">
+                              {activeAuthorName.slice(0, 2).toUpperCase()}
+                            </span>
+                          )}
+                        </div>
+
+                        <h3 className="mt-4 max-w-xs text-lg font-extrabold tracking-tight text-white">
+                          {activeReel.streamTitle || 'Live Broadcast'}
+                        </h3>
+                        <p className="mt-1 text-xs font-medium text-purple-200">
+                          {activeAuthorName}
+                          {activeAuthorUsername ? ` · @${activeAuthorUsername}` : ''}
+                        </p>
+                        {activeReel.body && activeReel.body !== activeReel.streamTitle && (
+                          <p className="mt-2 line-clamp-2 max-w-xs text-xs text-zinc-300">
+                            {activeReel.body}
+                          </p>
+                        )}
+
+                        <Link
+                          href={`/streaming/room/${encodeURIComponent(activeReel.streamId)}`}
+                          className="mt-6 inline-flex items-center gap-2 rounded-full bg-purple-600 px-6 py-3 text-sm font-bold text-white shadow-xl shadow-purple-600/35 transition hover:bg-purple-500 active:scale-95"
+                        >
+                          <Radio className="h-4 w-4" />
+                          Tap to Watch LIVE
+                        </Link>
+                        <p className="mt-3 text-[11px] text-zinc-400">
+                          Swipe up or down to keep scrolling
+                        </p>
+                      </div>
+                    </div>
+                  ) : activeMediaUrl ? (
                     <video
                       ref={videoRef}
                       src={withVideoPreviewFragment(activeMediaUrl, activePoster)}
                       poster={activePoster}
                       autoPlay
-                      loop={!autoAdvance || reels.length <= 1}
+                      loop={!autoAdvance || activeFeedList.length <= 1}
                       muted={muted}
                       playsInline
                       preload="auto"
@@ -677,14 +882,38 @@ export default function ReelsPage() {
                     </button>
                   )}
 
-                  {/* Top overlay controls: counter + mobile upload + mute */}
+                  {/* Top overlay controls: TikTok-style Reels / LIVE switcher + counter + mobile upload + mute */}
                   <div className="pointer-events-none absolute top-3 right-3 left-3 z-20 flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-bold tracking-tight text-white drop-shadow lg:hidden">
-                        Reels
-                      </span>
+                    <div className="pointer-events-auto flex items-center gap-1.5">
+                      <div className="inline-flex items-center rounded-full bg-black/55 p-0.5 backdrop-blur-md lg:hidden">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setFeedMode('reels');
+                            setActiveIndex(0);
+                          }}
+                          className={`rounded-full px-3 py-1 text-[11px] font-bold transition ${
+                            feedMode === 'reels' ? 'bg-purple-600 text-white' : 'text-white/75'
+                          }`}
+                        >
+                          Reels
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setFeedMode('live');
+                            setActiveIndex(0);
+                          }}
+                          className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-[11px] font-bold transition ${
+                            feedMode === 'live' ? 'bg-rose-600 text-white' : 'text-white/75'
+                          }`}
+                        >
+                          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-rose-400" />
+                          LIVE
+                        </button>
+                      </div>
                       <span className="rounded-full bg-black/55 px-2.5 py-1 text-[11px] font-medium text-white backdrop-blur-md tabular-nums">
-                        {activeIndex + 1} / {reels.length}
+                        {activeIndex + 1} / {activeFeedList.length}
                       </span>
                     </div>
                     <div className="pointer-events-auto flex items-center gap-2">

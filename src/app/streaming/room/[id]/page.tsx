@@ -20,6 +20,10 @@ import {
 } from '@/components/streaming/studio/LiveChatPanel';
 import { StudioControlsDrawer } from '@/components/streaming/studio/StudioControlsDrawer';
 import { BroadcastInfraDrawer } from '@/components/streaming/studio/BroadcastInfraDrawer';
+import {
+  PendingCohostCard,
+  type PendingCohostRequest,
+} from '@/components/streaming/studio/PendingCohostCard';
 import { io, type Socket } from 'socket.io-client';
 import { BASE_URL } from '@/config/baseUrl';
 import { getAccessToken } from '@/store/authSelectors';
@@ -49,11 +53,14 @@ import {
   Hash,
   Layers,
   LayoutGrid,
+  Link2,
   Loader2,
   LogOut,
+  Maximize2,
   Mic,
   MicOff,
   MonitorUp,
+  PhoneOff,
   PictureInPicture2,
   Play,
   Radio,
@@ -68,6 +75,8 @@ import {
   Users,
   Video,
   VideoOff,
+  Volume2,
+  VolumeX,
   Wifi,
   WifiOff,
   X,
@@ -224,12 +233,16 @@ export default function StreamingRoomPage() {
   const [participantCount, setParticipantCount] = useState(0);
   const [copiedLink, setCopiedLink] = useState(false);
 
-  // Co-Host Invites state
+  // Co-Host Invites & Pending Requests state
   const [cohosts, setCohosts] = useState<StreamCohost[]>([]);
   const [showCohostPanel, setShowCohostPanel] = useState(false);
   const [cohostUsername, setCohostUsername] = useState('');
   const [cohostBusy, setCohostBusy] = useState(false);
   const [cohostNotice, setCohostNotice] = useState<string | null>(null);
+  const [pendingActionUserId, setPendingActionUserId] = useState<string | null>(null);
+  const [viewerRequestStatus, setViewerRequestStatus] = useState<'idle' | 'pending' | 'admitted'>('idle');
+  const [stageVolume, setStageVolume] = useState(85);
+  const heroStageRef = useRef<HTMLDivElement | null>(null);
 
   // Browser-Side VOD Recording state
   const [isRecordingVod, setIsRecordingVod] = useState(false);
@@ -396,6 +409,84 @@ export default function StreamingRoomPage() {
     },
     [streamId],
   );
+
+  const pendingCohostRequests: PendingCohostRequest[] = cohosts
+    .filter((c) => c.status === 'pending')
+    .map((c) => ({
+      userId: c.userId,
+      displayName: c.displayName,
+      username: c.username,
+      avatar: c.avatar,
+    }));
+
+  const approvedCohosts = cohosts.filter((c) => c.status !== 'pending');
+
+  const handleRequestToCohost = useCallback(async () => {
+    if (!streamId || viewerRequestStatus === 'pending') return;
+    try {
+      await apiClient.post(`/streaming/streams/${streamId}/cohosts/request`);
+      setViewerRequestStatus('pending');
+      toast.success('Co-host request sent! Waiting for host to admit you.');
+    } catch (err) {
+      toast.error((err as { message?: string })?.message || 'Could not send co-host request');
+    }
+  }, [streamId, viewerRequestStatus]);
+
+  const handleAdmitCohost = useCallback(
+    async (targetUserId: string) => {
+      if (!streamId) return;
+      setPendingActionUserId(targetUserId);
+      try {
+        await apiClient.post(`/streaming/streams/${streamId}/cohosts/${targetUserId}/admit`);
+        setCohosts((prev) =>
+          prev.map((c) => (c.userId === targetUserId ? { ...c, status: 'approved' } : c)),
+        );
+        toast.success('Co-host admitted to the stage!');
+      } catch (err) {
+        toast.error((err as { message?: string })?.message || 'Could not admit co-host');
+      } finally {
+        setPendingActionUserId(null);
+      }
+    },
+    [streamId],
+  );
+
+  const handleDenyCohost = useCallback(
+    async (targetUserId: string) => {
+      if (!streamId) return;
+      setPendingActionUserId(targetUserId);
+      try {
+        await apiClient.post(`/streaming/streams/${streamId}/cohosts/${targetUserId}/deny`);
+        setCohosts((prev) => prev.filter((c) => c.userId !== targetUserId));
+        toast.success('Request declined.');
+      } catch (err) {
+        toast.error((err as { message?: string })?.message || 'Could not decline request');
+      } finally {
+        setPendingActionUserId(null);
+      }
+    },
+    [streamId],
+  );
+
+  useEffect(() => {
+    if (!audioContainerRef.current) return;
+    const audios = audioContainerRef.current.querySelectorAll('audio');
+    const vol = Math.max(0, Math.min(1, stageVolume / 100));
+    audios.forEach((el) => {
+      el.volume = vol;
+      el.muted = vol === 0;
+    });
+  }, [stageVolume, participantCount]);
+
+  const handleToggleFullscreen = () => {
+    const el = heroStageRef.current;
+    if (!el) return;
+    if (document.fullscreenElement) {
+      void document.exitFullscreen().catch(() => null);
+    } else {
+      void el.requestFullscreen?.().catch(() => null);
+    }
+  };
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
@@ -736,6 +827,36 @@ export default function StreamingRoomPage() {
             if (payload.kind === 'vod_recording' && payload.outputUrl) {
               setStream((prev) => (prev ? { ...prev, recordingUrl: payload.outputUrl! } : prev));
               toast.success('Cloud VOD recording is ready!');
+            }
+          });
+          streamSocket.on('stream:cohost-request', (payload: { requester?: StreamCohost }) => {
+            if (!active || !payload?.requester?.userId) return;
+            const reqObj = payload.requester;
+            setCohosts((prev) => {
+              if (prev.some((c) => c.userId === reqObj.userId)) {
+                return prev.map((c) => (c.userId === reqObj.userId ? { ...c, ...reqObj, status: 'pending' } : c));
+              }
+              return [...prev, { ...reqObj, id: reqObj.id || reqObj.userId, streamId: streamId || '', status: 'pending' }];
+            });
+          });
+          streamSocket.on('stream:cohost-admitted', (payload: { userId?: string }) => {
+            if (!active || !payload?.userId) return;
+            setCohosts((prev) =>
+              prev.map((c) => (c.userId === payload.userId ? { ...c, status: 'approved' } : c)),
+            );
+            if (currentUserId && payload.userId === currentUserId) {
+              setViewerRequestStatus('admitted');
+              toast.success('Host admitted you! Connecting as Co-Host…');
+              disconnectLiveKit();
+              window.setTimeout(() => void connectLiveKit(), 400);
+            }
+          });
+          streamSocket.on('stream:cohost-denied', (payload: { userId?: string }) => {
+            if (!active || !payload?.userId) return;
+            setCohosts((prev) => prev.filter((c) => c.userId !== payload.userId));
+            if (currentUserId && payload.userId === currentUserId) {
+              setViewerRequestStatus('idle');
+              toast.error('The host declined your co-host request.');
             }
           });
           streamSocket.on('disconnect', () => {
@@ -1293,21 +1414,117 @@ export default function StreamingRoomPage() {
                 </div>
               </div>
 
-              {/* Main Studio Workspace: Riverside Stage + Discord Chat */}
-              <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
-                {/* Broadcast Stage */}
-                <section className="flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-[#0d1015] dark:border-zinc-800 lg:col-span-8">
-                  <div className="relative flex-1 p-3 sm:p-4">
+              {/* Main Studio Workspace: Reference-Inspired Broadcast Layout in HyperBuds Dark + Purple Theme */}
+              <div className="grid grid-cols-1 gap-4 rounded-3xl border border-white/10 bg-[#0b0d13] p-3 text-white shadow-2xl sm:p-4 lg:grid-cols-12">
+                {/* Left Broadcast Column: Co-Host Strip + Hero Stage + Bottom Participant Dock */}
+                <section className="flex flex-col gap-3 lg:col-span-8">
+                  {/* Top Co-Host / Participant Thumbnail Strip (matches reference top strip) */}
+                  {(approvedCohosts.length > 0 || videoTiles.length > 1) && (
+                    <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+                      {videoTiles.slice(1, 5).map((tile) => (
+                        <div
+                          key={`strip-${tile.id}`}
+                          className="relative aspect-[16/10] overflow-hidden rounded-2xl bg-[#151823] ring-1 ring-white/10"
+                        >
+                          <VideoTrackView tile={tile} compact />
+                        </div>
+                      ))}
+                      {approvedCohosts
+                        .filter((c) => !videoTiles.some((t) => t.identity === c.userId))
+                        .slice(0, Math.max(0, 4 - Math.max(0, videoTiles.length - 1)))
+                        .map((c) => {
+                          const label = c.displayName || c.username || 'Co-Host';
+                          return (
+                            <div
+                              key={`cohost-strip-${c.userId}`}
+                              className="relative flex aspect-[16/10] flex-col items-center justify-center overflow-hidden rounded-2xl bg-[#151823] ring-1 ring-white/10"
+                            >
+                              {c.avatar ? (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img
+                                  src={c.avatar}
+                                  alt={label}
+                                  className="h-11 w-11 rounded-full object-cover ring-2 ring-purple-500/40"
+                                />
+                              ) : (
+                                <span className="flex h-11 w-11 items-center justify-center rounded-full bg-purple-600/30 text-sm font-bold text-purple-200 ring-1 ring-purple-500/40">
+                                  {label.slice(0, 2).toUpperCase()}
+                                </span>
+                              )}
+                              <span className="absolute bottom-2 left-2 inline-flex items-center gap-1 rounded-md bg-black/70 px-2 py-0.5 text-[10px] font-semibold text-zinc-200">
+                                <span className="h-1.5 w-1.5 rounded-full bg-purple-400" />
+                                <span className="max-w-[90px] truncate">{label}</span>
+                              </span>
+                            </div>
+                          );
+                        })}
+                    </div>
+                  )}
+
+                  {/* Hero Broadcast Video Container */}
+                  <div
+                    ref={heroStageRef}
+                    className="relative overflow-hidden rounded-2xl bg-[#090b10] ring-1 ring-white/10"
+                  >
+                    {/* Top-Left Live / Recording Pill & Top-Right Fullscreen Button (matches reference) */}
                     {lkConnected && (
-                      <StageOverlays
-                        studioState={studioState}
-                        reactions={floatingReactions}
-                        connectionQuality={connectionQuality}
-                        isHost={isStreamHost}
-                        onDismissPinned={() => void handleUpdateStudioState({ pinnedMessage: null })}
-                      />
+                      <div className="pointer-events-none absolute left-3 right-3 top-3 z-30 flex items-center justify-between">
+                        <div className="pointer-events-auto inline-flex items-center gap-2 rounded-full bg-black/65 px-3 py-1.5 text-xs font-semibold text-white ring-1 ring-white/15 backdrop-blur-md">
+                          <span
+                            className={`h-2 w-2 rounded-full ${
+                              isRecordingVod
+                                ? 'animate-pulse bg-rose-500'
+                                : stream.status === 'live'
+                                  ? 'animate-pulse bg-purple-400'
+                                  : 'bg-zinc-400'
+                            }`}
+                          />
+                          <span className="tabular-nums">
+                            {isRecordingVod
+                              ? `Recording ${formatVodTimer(vodSeconds)}`
+                              : stream.status === 'live'
+                                ? 'LIVE'
+                                : 'Standby'}
+                          </span>
+                          {isStreamHost && (
+                            <button
+                              type="button"
+                              disabled={vodUploading}
+                              onClick={() => (isRecordingVod ? stopVodRecording() : void startVodRecording())}
+                              title={isRecordingVod ? 'Stop recording' : 'Start VOD recording'}
+                              className="ml-1 rounded-full bg-white/10 p-1 text-zinc-200 hover:bg-white/20"
+                            >
+                              {isRecordingVod ? (
+                                <Square className="h-2.5 w-2.5 fill-current text-rose-400" />
+                              ) : (
+                                <Disc className="h-3 w-3 text-rose-400" />
+                              )}
+                            </button>
+                          )}
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={handleToggleFullscreen}
+                          aria-label="Toggle fullscreen"
+                          className="pointer-events-auto flex h-8 w-8 items-center justify-center rounded-full bg-black/60 text-zinc-200 ring-1 ring-white/15 backdrop-blur-md transition hover:bg-black/80 hover:text-white"
+                        >
+                          <Maximize2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
                     )}
-                    {videoTiles.length > 0 ? (() => {
+
+                    <div className="relative p-2 sm:p-3">
+                      {lkConnected && (
+                        <StageOverlays
+                          studioState={studioState}
+                          reactions={floatingReactions}
+                          connectionQuality={connectionQuality}
+                          isHost={isStreamHost}
+                          onDismissPinned={() => void handleUpdateStudioState({ pinnedMessage: null })}
+                        />
+                      )}
+                      {videoTiles.length > 0 ? (() => {
                       // Respect host Backstage stage queue for remote co-hosts when configured
                       const visibleTiles =
                         studioState.stageUserIds.length > 0
@@ -1331,7 +1548,7 @@ export default function StreamingRoomPage() {
                         return (
                           <div className="relative" data-testid="gaming-pip-stage">
                             <VideoTrackView tile={primaryStageTile} />
-                            <div className="pointer-events-auto absolute bottom-3 right-3 z-10 flex flex-col gap-2">
+                            <div className="pointer-events-auto absolute bottom-16 right-3 z-10 flex flex-col gap-2">
                               {cameraTiles.map((camTile) => (
                                 <div key={camTile.id} className="w-32 sm:w-44 md:w-52">
                                   <VideoTrackView tile={camTile} compact />
@@ -1938,20 +2155,169 @@ export default function StreamingRoomPage() {
                     </div>
 
                     {lkConnected && (
-                      <button
-                        type="button"
-                        onClick={disconnectLiveKit}
-                        className="inline-flex items-center gap-1.5 rounded-md border border-zinc-700 bg-zinc-900 px-3 py-1.5 text-xs font-medium text-rose-400 hover:bg-zinc-800"
-                      >
-                        <LogOut className="h-3.5 w-3.5" />
-                        Leave
-                      </button>
+                      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-white/10 bg-black/55 px-4 py-2.5 backdrop-blur-md">
+                        {/* Bottom-Left Volume Slider (matches reference) */}
+                        <div className="hidden items-center gap-2 sm:flex">
+                          <button
+                            type="button"
+                            onClick={() => setStageVolume((v) => (v === 0 ? 85 : 0))}
+                            aria-label="Toggle volume"
+                            className="text-zinc-300 hover:text-white"
+                          >
+                            {stageVolume === 0 ? (
+                              <VolumeX className="h-4 w-4 text-rose-400" />
+                            ) : (
+                              <Volume2 className="h-4 w-4 text-purple-400" />
+                            )}
+                          </button>
+                          <input
+                            type="range"
+                            min={0}
+                            max={100}
+                            value={stageVolume}
+                            onChange={(e) => setStageVolume(Number(e.target.value))}
+                            className="h-1 w-20 cursor-pointer accent-purple-500"
+                          />
+                        </div>
+
+                        {/* Center Floating Circular Call Controls (matches reference) */}
+                        <div className="mx-auto flex items-center gap-2.5">
+                          {isStreamHost && (
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setActiveStudioDrawer((p) => (p === 'overlays' ? null : 'overlays'))
+                              }
+                              title="Overlays & Lower-Thirds"
+                              className={`flex h-9 w-9 items-center justify-center rounded-full transition ${
+                                activeStudioDrawer === 'overlays' || studioState.lowerThirdVisible
+                                  ? 'bg-purple-600 text-white'
+                                  : 'bg-white/10 text-zinc-200 hover:bg-white/20'
+                              }`}
+                            >
+                              <Type className="h-4 w-4" />
+                            </button>
+                          )}
+                          {canPublish && (
+                            <button
+                              type="button"
+                              onClick={toggleMic}
+                              title={micEnabled ? 'Mute mic' : 'Unmute mic'}
+                              className={`flex h-9 w-9 items-center justify-center rounded-full transition ${
+                                micEnabled
+                                  ? 'bg-white/10 text-white hover:bg-white/20'
+                                  : 'bg-rose-500/20 text-rose-300 ring-1 ring-rose-500/40'
+                              }`}
+                            >
+                              {micEnabled ? <Mic className="h-4 w-4" /> : <MicOff className="h-4 w-4" />}
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            onClick={disconnectLiveKit}
+                            title="Leave stream room"
+                            className="flex h-11 w-11 items-center justify-center rounded-full bg-rose-500 text-white shadow-lg shadow-rose-500/30 transition hover:bg-rose-400"
+                          >
+                            <PhoneOff className="h-5 w-5" />
+                          </button>
+                          {canPublish && (
+                            <button
+                              type="button"
+                              onClick={toggleCamera}
+                              title={camEnabled ? 'Turn off camera' : 'Turn on camera'}
+                              className={`flex h-9 w-9 items-center justify-center rounded-full transition ${
+                                camEnabled
+                                  ? 'bg-white/10 text-white hover:bg-white/20'
+                                  : 'bg-rose-500/20 text-rose-300 ring-1 ring-rose-500/40'
+                              }`}
+                            >
+                              {camEnabled ? <Video className="h-4 w-4" /> : <VideoOff className="h-4 w-4" />}
+                            </button>
+                          )}
+                          {canPublish && (
+                            <button
+                              type="button"
+                              onClick={toggleScreen}
+                              title="Share screen"
+                              className={`flex h-9 w-9 items-center justify-center rounded-full transition ${
+                                screenEnabled
+                                  ? 'bg-purple-600 text-white'
+                                  : 'bg-white/10 text-zinc-200 hover:bg-white/20'
+                              }`}
+                            >
+                              <MonitorUp className="h-4 w-4" />
+                            </button>
+                          )}
+                        </div>
+
+                        {/* Bottom-Right Signal Indicator */}
+                        <div className="hidden items-center gap-1.5 text-[11px] font-medium text-zinc-300 sm:flex">
+                          <Wifi className="h-3.5 w-3.5 text-emerald-400" />
+                          <span>HD Live</span>
+                        </div>
+                      </div>
                     )}
+                  </div>
+                  </div>
+
+                  {/* Bottom Studio Participant & Action Bar (exact reference bottom dock in HyperBuds theme) */}
+                  <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/10 bg-[#141720] px-4 py-3">
+                    <div className="flex items-center gap-2.5 text-xs text-zinc-300">
+                      <Users className="h-4 w-4 text-purple-400" />
+                      <span className="font-semibold text-white">
+                        Participants ({lkConnected ? participantCount : stream.viewersCurrent ?? 0})
+                      </span>
+                      {approvedCohosts.length > 0 && (
+                        <div className="hidden items-center -space-x-2 sm:flex">
+                          {approvedCohosts.slice(0, 4).map((c) => (
+                            <span
+                              key={`av-${c.userId}`}
+                              title={c.displayName || c.username || 'Co-Host'}
+                              className="flex h-7 w-7 items-center justify-center overflow-hidden rounded-full bg-purple-600/40 text-[10px] font-bold text-white ring-2 ring-[#141720]"
+                            >
+                              {c.avatar ? (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img src={c.avatar} alt="" className="h-full w-full object-cover" />
+                              ) : (
+                                (c.displayName || c.username || 'C').slice(0, 2).toUpperCase()
+                              )}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      {isStreamHost ? (
+                        <button
+                          type="button"
+                          onClick={() => setShowCohostPanel((v) => !v)}
+                          className="inline-flex items-center gap-1.5 rounded-xl bg-purple-600 px-3.5 py-2 text-xs font-bold text-white shadow-sm shadow-purple-600/25 transition hover:bg-purple-500"
+                        >
+                          <UserPlus className="h-3.5 w-3.5" />
+                          Add Co-Host
+                        </button>
+                      ) : !canPublish ? (
+                        <button
+                          type="button"
+                          disabled={viewerRequestStatus === 'pending'}
+                          onClick={() => void handleRequestToCohost()}
+                          className={`inline-flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-bold transition ${
+                            viewerRequestStatus === 'pending'
+                              ? 'bg-purple-600/25 text-purple-200 ring-1 ring-purple-500/40'
+                              : 'bg-purple-600 text-white shadow-sm shadow-purple-600/25 hover:bg-purple-500'
+                          }`}
+                        >
+                          <UserPlus className="h-3.5 w-3.5" />
+                          {viewerRequestStatus === 'pending' ? 'Co-Host Request Pending…' : 'Request to Co-Host'}
+                        </button>
+                      ) : null}
+                    </div>
                   </div>
 
                   {/* Host Broadcast Drawers: Overlays / Polls / Backstage / OBS & Multi-Stream */}
                   {isStreamHost && activeStudioDrawer && (
-                    <div className="border-t border-zinc-800 p-3">
+                    <div>
                       {activeStudioDrawer === 'infra' && streamId ? (
                         <BroadcastInfraDrawer
                           streamId={streamId}
@@ -1962,7 +2328,7 @@ export default function StreamingRoomPage() {
                           activePanel={activeStudioDrawer}
                           onClose={() => setActiveStudioDrawer(null)}
                           studioState={studioState}
-                          cohosts={cohosts}
+                          cohosts={approvedCohosts}
                           onUpdateStudioState={handleUpdateStudioState}
                           onCreatePoll={handleCreatePoll}
                         />
@@ -1971,40 +2337,79 @@ export default function StreamingRoomPage() {
                   )}
                 </section>
 
-                {/* Phase 1 Upgraded Live Chat, Polls, Reactions & Super Chats */}
-                <div className="lg:col-span-4">
-                  <LiveChatPanel
-                    messages={chatMessages}
-                    activePoll={activePoll}
-                    slowModeSeconds={studioState.slowModeSeconds}
-                    isHost={isStreamHost}
-                    chatDraft={chatDraft}
-                    sendingChat={sendingChat}
-                    onChatDraftChange={setChatDraft}
-                    onSendChat={handleSendChat}
-                    onSendReaction={(emoji) => void handleSendReaction(emoji)}
-                    onSendSuperChat={handleSendSuperChat}
-                    onVotePoll={(pollId, idx) => void handleVotePoll(pollId, idx)}
-                    onClosePoll={(pollId) => void handleClosePoll(pollId)}
-                    onPinMessage={(msg, sc) => {
-                      const cleanText = sc
-                        ? msg.message.replace(/^\[SUPERCHAT:\d+:\w+\]\s*/, '')
-                        : msg.message;
-                      void handleUpdateStudioState({
-                        pinnedMessage: {
-                          id: msg.id,
-                          senderName: msg.senderName,
-                          message: cleanText,
-                          amountCredits: sc?.amount,
-                          tier: sc?.tier,
-                        },
-                      });
-                    }}
-                    onDeleteMessage={(id) => void handleDeleteChatMessage(id)}
-                    onMuteUser={(uid) => void handleMuteChatUser(uid)}
-                    onToggleSlowMode={(secs) => void handleToggleSlowMode(secs)}
-                    chatEndRef={chatEndRef}
-                  />
+                {/* Right Column: Pending Co-Host Admission Card + Live Chat + Share Link Pill */}
+                <div className="flex flex-col gap-3 lg:col-span-4">
+                  {isStreamHost && pendingCohostRequests.length > 0 && (
+                    <PendingCohostCard
+                      requests={pendingCohostRequests}
+                      busyUserId={pendingActionUserId}
+                      onAdmit={(uid) => void handleAdmitCohost(uid)}
+                      onDeny={(uid) => void handleDenyCohost(uid)}
+                    />
+                  )}
+
+                  <div className="flex-1">
+                    <LiveChatPanel
+                      messages={chatMessages}
+                      activePoll={activePoll}
+                      slowModeSeconds={studioState.slowModeSeconds}
+                      isHost={isStreamHost}
+                      chatDraft={chatDraft}
+                      sendingChat={sendingChat}
+                      onChatDraftChange={setChatDraft}
+                      onSendChat={handleSendChat}
+                      onSendReaction={(emoji) => void handleSendReaction(emoji)}
+                      onSendSuperChat={handleSendSuperChat}
+                      onVotePoll={(pollId, idx) => void handleVotePoll(pollId, idx)}
+                      onClosePoll={(pollId) => void handleClosePoll(pollId)}
+                      onPinMessage={(msg, sc) => {
+                        const cleanText = sc
+                          ? msg.message.replace(/^\[SUPERCHAT:\d+:\w+\]\s*/, '')
+                          : msg.message;
+                        void handleUpdateStudioState({
+                          pinnedMessage: {
+                            id: msg.id,
+                            senderName: msg.senderName,
+                            message: cleanText,
+                            amountCredits: sc?.amount,
+                            tier: sc?.tier,
+                          },
+                        });
+                      }}
+                      onDeleteMessage={(id) => void handleDeleteChatMessage(id)}
+                      onMuteUser={(uid) => void handleMuteChatUser(uid)}
+                      onToggleSlowMode={(secs) => void handleToggleSlowMode(secs)}
+                      chatEndRef={chatEndRef}
+                    />
+                  </div>
+
+                  {/* Bottom-Right Share Room Link Pill (matches reference) */}
+                  <div className="flex items-center justify-between gap-2 rounded-2xl border border-white/10 bg-[#141720] px-3.5 py-2.5 text-xs text-zinc-300">
+                    <div className="flex min-w-0 items-center gap-2">
+                      <Link2 className="h-3.5 w-3.5 shrink-0 text-purple-400" />
+                      <span className="truncate font-mono text-[11px] text-zinc-300">
+                        hyperbuds.cloud/streaming/room/{streamId?.slice(0, 10)}…
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (typeof window === 'undefined') return;
+                        void navigator.clipboard
+                          .writeText(`${window.location.origin}/streaming/room/${streamId}`)
+                          .then(() => {
+                            setCopiedLink(true);
+                            window.setTimeout(() => setCopiedLink(false), 1800);
+                          })
+                          .catch(() => null);
+                      }}
+                      aria-label="Copy room link"
+                      className="inline-flex shrink-0 items-center gap-1 rounded-lg bg-white/10 px-2.5 py-1 text-[11px] font-semibold text-white transition hover:bg-purple-600"
+                    >
+                      {copiedLink ? <Check className="h-3 w-3 text-emerald-400" /> : <Copy className="h-3 w-3" />}
+                      {copiedLink ? 'Copied' : 'Copy'}
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
