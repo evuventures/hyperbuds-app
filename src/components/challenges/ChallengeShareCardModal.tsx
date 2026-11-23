@@ -8,6 +8,7 @@ export interface ShareableGameSummary {
   id: string;
   gameMode: string;
   region: string;
+  difficulty?: string;
   title: string;
   premise: string;
   hashtag: string;
@@ -17,6 +18,7 @@ export interface ShareableGameSummary {
   rewardCredits: number;
   rewardRizzBoost: number;
   username?: string;
+  avatar?: string;
 }
 
 interface ChallengeShareCardModalProps {
@@ -24,44 +26,99 @@ interface ChallengeShareCardModalProps {
   onClose: () => void;
 }
 
-function wrapText(
+function loadImg(src: string, crossOrigin = false): Promise<HTMLImageElement | null> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    if (crossOrigin) img.crossOrigin = 'anonymous';
+    img.onload = () => resolve(img);
+    img.onerror = () => resolve(null);
+    img.src = src;
+  });
+}
+
+function makeWhiteLogoCanvas(logoImg: HTMLImageElement, size: number): HTMLCanvasElement {
+  const off = document.createElement('canvas');
+  off.width = size;
+  off.height = size;
+  const octx = off.getContext('2d');
+  if (octx) {
+    octx.drawImage(logoImg, 0, 0, size, size);
+    octx.globalCompositeOperation = 'source-in';
+    octx.fillStyle = '#ffffff';
+    octx.fillRect(0, 0, size, size);
+  }
+  return off;
+}
+
+function drawRoundedRectPath(
   ctx: CanvasRenderingContext2D,
-  text: string,
   x: number,
   y: number,
-  maxWidth: number,
-  lineHeight: number,
-  maxLines: number,
-): number {
-  const words = text.split(/\s+/);
-  let line = '';
-  let lines = 0;
-  let curY = y;
-  for (let n = 0; n < words.length; n++) {
-    const test = line ? `${line} ${words[n]}` : words[n];
-    if (ctx.measureText(test).width > maxWidth && line) {
-      lines += 1;
-      if (lines >= maxLines) {
-        ctx.fillText(`${line.slice(0, -1)}…`, x, curY);
-        return curY + lineHeight;
-      }
-      ctx.fillText(line, x, curY);
-      line = words[n];
-      curY += lineHeight;
-    } else {
-      line = test;
-    }
-  }
-  if (line) {
-    ctx.fillText(line, x, curY);
-    curY += lineHeight;
-  }
-  return curY;
+  w: number,
+  h: number,
+  r: number,
+) {
+  ctx.beginPath();
+  ctx.roundRect(x, y, w, h, r);
+  ctx.closePath();
+}
+
+function drawTopNotchTrapezoid(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  topY: number,
+  topW: number,
+  botW: number,
+  h: number,
+) {
+  const r = 24;
+  ctx.beginPath();
+  ctx.moveTo(cx - topW / 2, topY);
+  ctx.lineTo(cx + topW / 2, topY);
+  ctx.lineTo(cx + botW / 2 + 6, topY + h - r);
+  ctx.quadraticCurveTo(cx + botW / 2, topY + h, cx + botW / 2 - r, topY + h);
+  ctx.lineTo(cx - botW / 2 + r, topY + h);
+  ctx.quadraticCurveTo(cx - botW / 2, topY + h, cx - botW / 2 - 6, topY + h - r);
+  ctx.closePath();
+}
+
+function drawBottomNotchTrapezoid(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  botY: number,
+  botW: number,
+  topW: number,
+  h: number,
+) {
+  const r = 24;
+  ctx.beginPath();
+  ctx.moveTo(cx - botW / 2, botY);
+  ctx.lineTo(cx + botW / 2, botY);
+  ctx.lineTo(cx + topW / 2 + 6, botY - h + r);
+  ctx.quadraticCurveTo(cx + topW / 2, botY - h, cx + topW / 2 - r, botY - h);
+  ctx.lineTo(cx - topW / 2 + r, botY - h);
+  ctx.quadraticCurveTo(cx - topW / 2, botY - h, cx - topW / 2 - 6, botY - h + r);
+  ctx.closePath();
+}
+
+function drawFourPointSpark(ctx: CanvasRenderingContext2D, cx: number, cy: number, size: number, color: string, alpha = 1) {
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.moveTo(cx, cy - size);
+  ctx.quadraticCurveTo(cx + size * 0.22, cy - size * 0.22, cx + size, cy);
+  ctx.quadraticCurveTo(cx + size * 0.22, cy + size * 0.22, cx, cy + size);
+  ctx.quadraticCurveTo(cx - size * 0.22, cy + size * 0.22, cx - size, cy);
+  ctx.quadraticCurveTo(cx - size * 0.22, cy - size * 0.22, cx, cy - size);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
 }
 
 /**
- * Generates a crisp 1080x1350 (4:5) Story/Post PNG card for TikTok, IG Stories,
- * WhatsApp Status, and X so creators can challenge their audience outside HyperBuds.
+ * Collectible 9:16 (1080x1920) Challenge Card modeled on the user's collectible card reference,
+ * styled in HyperBuds Purple + matte obsidian with the pure white HyperBuds logo.
  */
 export function ChallengeShareCardModal({ game, onClose }: ChallengeShareCardModalProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -75,106 +132,356 @@ export function ChallengeShareCardModal({ game, onClose }: ChallengeShareCardMod
 
   useEffect(() => {
     if (!game) return;
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+    let cancelled = false;
 
-    const W = 1080;
-    const H = 1350;
-    canvas.width = W;
-    canvas.height = H;
+    const render = async () => {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
 
-    // Deep obsidian editorial background
-    ctx.fillStyle = '#0c0e14';
-    ctx.fillRect(0, 0, W, H);
+      const [logoImg, avatarImg] = await Promise.all([
+        loadImg('/images/logo.png', false),
+        game.avatar ? loadImg(game.avatar, true) : Promise.resolve(null),
+      ]);
+      if (cancelled) return;
 
-    // Subtle top-right HyperBuds purple aura
-    const grad = ctx.createRadialGradient(880, 180, 40, 880, 180, 560);
-    grad.addColorStop(0, 'rgba(124, 58, 237, 0.42)');
-    grad.addColorStop(1, 'rgba(12, 14, 20, 0)');
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, W, H);
+      const whiteLogoLarge = logoImg ? makeWhiteLogoCanvas(logoImg, 128) : null;
+      const whiteLogoSmall = logoImg ? makeWhiteLogoCanvas(logoImg, 56) : null;
 
-    // Crisp outer frame
-    ctx.strokeStyle = 'rgba(255,255,255,0.12)';
-    ctx.lineWidth = 3;
-    ctx.strokeRect(48, 48, W - 96, H - 96);
+      const W = 1080;
+      const H = 1920;
+      canvas.width = W;
+      canvas.height = H;
 
-    // Top brand row
-    ctx.fillStyle = '#ffffff';
-    ctx.font = '700 34px system-ui, -apple-system, sans-serif';
-    ctx.fillText('HYPERBUDS', 96, 134);
+      // 1. Vibrant HyperBuds Purple full-bleed backdrop (matches reference blue backdrop in HyperBuds purple)
+      const bgGrad = ctx.createLinearGradient(0, 0, W, H);
+      bgGrad.addColorStop(0, '#7C3AED');
+      bgGrad.addColorStop(0.5, '#5B21B6');
+      bgGrad.addColorStop(1, '#3B0764');
+      ctx.fillStyle = bgGrad;
+      ctx.fillRect(0, 0, W, H);
 
-    // Status pill
-    const statusText =
-      game.completedRounds >= game.totalRounds
-        ? 'CHALLENGE CLEARED'
-        : 'CHALLENGE ACCEPTED';
-    ctx.fillStyle = game.completedRounds >= game.totalRounds ? '#10b981' : '#7c3aed';
-    ctx.beginPath();
-    ctx.roundRect(W - 430, 96, 334, 52, 26);
-    ctx.fill();
-    ctx.fillStyle = '#ffffff';
-    ctx.font = '700 22px system-ui, -apple-system, sans-serif';
-    ctx.fillText(statusText, W - 400, 130);
+      // Soft ambient backdrop orbs & floating translucent HyperBuds marks
+      const aura1 = ctx.createRadialGradient(200, 320, 40, 200, 320, 440);
+      aura1.addColorStop(0, 'rgba(196, 181, 253, 0.35)');
+      aura1.addColorStop(1, 'rgba(124, 58, 237, 0)');
+      ctx.fillStyle = aura1;
+      ctx.fillRect(0, 0, W, H);
 
-    // Game mode + region tag
-    ctx.fillStyle = '#a78bfa';
-    ctx.font = '700 26px system-ui, -apple-system, sans-serif';
-    ctx.fillText(`${game.gameMode.replace(/_/g, ' ').toUpperCase()}  ·  ${game.region}`, 96, 250);
+      const aura2 = ctx.createRadialGradient(880, 1520, 40, 880, 1520, 500);
+      aura2.addColorStop(0, 'rgba(167, 139, 250, 0.32)');
+      aura2.addColorStop(1, 'rgba(59, 7, 100, 0)');
+      ctx.fillStyle = aura2;
+      ctx.fillRect(0, 0, W, H);
 
-    // Title
-    ctx.fillStyle = '#ffffff';
-    ctx.font = '800 64px system-ui, -apple-system, sans-serif';
-    const afterTitleY = wrapText(ctx, game.title, 96, 340, W - 192, 78, 3);
+      // Subtle floating sparks on the outer purple canvas
+      const bgSparks: Array<[number, number, number, number]> = [
+        [150, 260, 42, 0.18],
+        [920, 290, 54, 0.16],
+        [110, 1380, 48, 0.14],
+        [940, 1460, 40, 0.16],
+        [870, 520, 28, 0.14],
+      ];
+      for (const [sx, sy, sz, al] of bgSparks) {
+        drawFourPointSpark(ctx, sx, sy, sz, '#ffffff', al);
+      }
 
-    // Premise
-    ctx.fillStyle = '#cbd5e1';
-    ctx.font = '400 32px system-ui, -apple-system, sans-serif';
-    wrapText(ctx, game.premise, 96, afterTitleY + 26, W - 192, 46, 4);
+      // Top corner editorial labels (matches "UI UX" & "2023" in reference)
+      if (whiteLogoSmall) {
+        ctx.drawImage(whiteLogoSmall, 68, 70, 44, 44);
+      }
+      ctx.fillStyle = 'rgba(255,255,255,0.92)';
+      ctx.font = '700 30px system-ui, -apple-system, sans-serif';
+      ctx.fillText('HYPERBUDS', whiteLogoSmall ? 124 : 72, 102);
 
-    // Stats strip box
-    ctx.fillStyle = 'rgba(255,255,255,0.05)';
-    ctx.beginPath();
-    ctx.roundRect(96, 820, W - 192, 165, 24);
-    ctx.fill();
-    ctx.strokeStyle = 'rgba(255,255,255,0.1)';
-    ctx.lineWidth = 2;
-    ctx.stroke();
+      ctx.textAlign = 'right';
+      ctx.fillStyle = 'rgba(255,255,255,0.88)';
+      ctx.font = '600 30px system-ui, -apple-system, sans-serif';
+      ctx.fillText(`${game.region} · ${new Date().getFullYear()}`, W - 72, 102);
+      ctx.textAlign = 'left';
 
-    ctx.fillStyle = '#94a3b8';
-    ctx.font = '600 22px system-ui, -apple-system, sans-serif';
-    ctx.fillText('ROUNDS', 140, 875);
-    ctx.fillText('REWARD', 450, 875);
-    ctx.fillText('CREATOR', 740, 875);
+      // 2. Centered Matte Obsidian Collectible Card (matches reference proportions & dark bezel)
+      const cardX = 128;
+      const cardY = 265;
+      const cardW = W - 256; // 824
+      const cardH = 1270;
 
-    ctx.fillStyle = '#ffffff';
-    ctx.font = '800 40px system-ui, -apple-system, sans-serif';
-    ctx.fillText(`${game.completedRounds} / ${game.totalRounds}`, 140, 938);
-    ctx.fillText(`+${game.rewardCredits} cr`, 450, 938);
-    ctx.fillStyle = '#c4b5fd';
-    ctx.font = '700 32px system-ui, -apple-system, sans-serif';
-    ctx.fillText(game.username ? `@${game.username.slice(0, 14)}` : 'HyperBuds', 740, 936);
+      ctx.save();
+      ctx.shadowColor = 'rgba(15, 5, 35, 0.55)';
+      ctx.shadowBlur = 70;
+      ctx.shadowOffsetY = 28;
+      drawRoundedRectPath(ctx, cardX, cardY, cardW, cardH, 52);
+      ctx.fillStyle = '#14151A';
+      ctx.fill();
+      ctx.restore();
 
-    // Hashtags
-    const tagsLine = (game.trendingTags.length ? game.trendingTags : [game.hashtag])
-      .slice(0, 4)
-      .map((t) => `#${t.replace(/^#/, '')}`)
-      .join('   ');
-    ctx.fillStyle = '#a78bfa';
-    ctx.font = '700 28px system-ui, -apple-system, sans-serif';
-    ctx.fillText(tagsLine, 96, 1070);
+      // Subtle card edge highlight
+      drawRoundedRectPath(ctx, cardX, cardY, cardW, cardH, 52);
+      ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+      ctx.lineWidth = 3;
+      ctx.stroke();
 
-    // Footer CTA
-    ctx.fillStyle = '#94a3b8';
-    ctx.font = '500 24px system-ui, -apple-system, sans-serif';
-    ctx.fillText('Think you can beat this? Play today’s drop on:', 96, 1185);
-    ctx.fillStyle = '#ffffff';
-    ctx.font = '700 30px system-ui, -apple-system, sans-serif';
-    ctx.fillText('app.hyperbuds.cloud/challenges', 96, 1235);
+      // 3. Inner Artwork Window (top 60% of card)
+      const artPad = 24;
+      const artX = cardX + artPad;
+      const artY = cardY + artPad;
+      const artW = cardW - artPad * 2; // 776
+      const artH = 740;
 
-    setDataUrl(canvas.toDataURL('image/png'));
+      ctx.save();
+      drawRoundedRectPath(ctx, artX, artY, artW, artH, 36);
+      ctx.clip();
+
+      // Rich vibrant HyperBuds purple artwork backdrop
+      const artGrad = ctx.createLinearGradient(artX, artY, artX + artW, artY + artH);
+      artGrad.addColorStop(0, '#8B5CF6');
+      artGrad.addColorStop(0.52, '#6D28D9');
+      artGrad.addColorStop(1, '#4C1D95');
+      ctx.fillStyle = artGrad;
+      ctx.fillRect(artX, artY, artW, artH);
+
+      // Soft center spotlight behind portrait/emblem
+      const spot = ctx.createRadialGradient(
+        artX + artW / 2,
+        artY + artH / 2 + 20,
+        30,
+        artX + artW / 2,
+        artY + artH / 2 + 20,
+        340,
+      );
+      spot.addColorStop(0, 'rgba(233, 213, 255, 0.45)');
+      spot.addColorStop(1, 'rgba(109, 40, 217, 0)');
+      ctx.fillStyle = spot;
+      ctx.fillRect(artX, artY, artW, artH);
+
+      // Floating collectible pattern sparks inside artwork window (HyperBuds equivalent of the reference's floating elements)
+      const innerSparks: Array<[number, number, number, string, number]> = [
+        [artX + 95, artY + 140, 26, '#FDE68A', 0.9],
+        [artX + 670, artY + 150, 22, '#FDE68A', 0.85],
+        [artX + 125, artY + 340, 18, '#FFFFFF', 0.65],
+        [artX + 660, artY + 410, 28, '#FDE68A', 0.88],
+        [artX + 95, artY + 560, 24, '#C4B5FD', 0.75],
+        [artX + 630, artY + 585, 20, '#FFFFFF', 0.6],
+        [artX + 215, artY + 200, 14, '#FFFFFF', 0.55],
+        [artX + 560, artY + 230, 16, '#FDE68A', 0.7],
+      ];
+      for (const [sx, sy, sz, col, al] of innerSparks) {
+        drawFourPointSpark(ctx, sx, sy, sz, col, al);
+      }
+
+      // Center Creator Portrait or Glowing White HyperBuds Emblem
+      const centerX = artX + artW / 2;
+      const centerY = artY + artH / 2 + 12;
+      const avatarRadius = 175;
+
+      // Glowing ring behind portrait
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, avatarRadius + 14, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255,255,255,0.16)';
+      ctx.fill();
+
+      if (avatarImg) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, avatarRadius, 0, Math.PI * 2);
+        ctx.clip();
+        const scale = Math.max((avatarRadius * 2) / avatarImg.width, (avatarRadius * 2) / avatarImg.height);
+        const dw = avatarImg.width * scale;
+        const dh = avatarImg.height * scale;
+        ctx.drawImage(avatarImg, centerX - dw / 2, centerY - dh / 2, dw, dh);
+        ctx.restore();
+      } else {
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, avatarRadius, 0, Math.PI * 2);
+        const orbGrad = ctx.createLinearGradient(
+          centerX - avatarRadius,
+          centerY - avatarRadius,
+          centerX + avatarRadius,
+          centerY + avatarRadius,
+        );
+        orbGrad.addColorStop(0, '#2E1065');
+        orbGrad.addColorStop(1, '#14151A');
+        ctx.fillStyle = orbGrad;
+        ctx.fill();
+
+        if (whiteLogoLarge) {
+          ctx.drawImage(whiteLogoLarge, centerX - 96, centerY - 96, 192, 192);
+        } else {
+          ctx.fillStyle = '#ffffff';
+          ctx.font = '800 110px system-ui, -apple-system, sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText((game.username || 'HB').slice(0, 2).toUpperCase(), centerX, centerY + 38);
+          ctx.textAlign = 'left';
+        }
+      }
+
+      // Crisp white portrait border
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, avatarRadius, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(255,255,255,0.85)';
+      ctx.lineWidth = 6;
+      ctx.stroke();
+
+      // Right-Edge Notched White HyperBuds Logo Badge (exact match to reference's right-side icon tab!)
+      const badgeW = 104;
+      const badgeH = 92;
+      const badgeX = artX + artW - badgeW + 6;
+      const badgeY = artY + 185;
+      ctx.save();
+      drawRoundedRectPath(ctx, badgeX - 10, badgeY - 10, badgeW + 20, badgeH + 20, 26);
+      ctx.fillStyle = '#14151A';
+      ctx.fill();
+      drawRoundedRectPath(ctx, badgeX, badgeY, badgeW - 6, badgeH, 20);
+      ctx.fillStyle = '#7C3AED';
+      ctx.fill();
+      if (whiteLogoLarge) {
+        ctx.drawImage(whiteLogoLarge, badgeX + 18, badgeY + 16, 60, 60);
+      }
+      ctx.restore();
+
+      // Top-Center Notched Rarity / Difficulty Trapezoid Tab (exact match to "Uncommon" tab!)
+      const rarityLabel =
+        game.completedRounds >= game.totalRounds
+          ? 'Cleared'
+          : game.difficulty === 'boss'
+            ? 'Boss Mode'
+            : game.difficulty === 'chill'
+              ? 'Chill'
+              : 'Hustle';
+      drawTopNotchTrapezoid(ctx, artX + artW / 2, artY - 4, 420, 355, 92);
+      ctx.fillStyle = '#14151A';
+      ctx.fill();
+      drawTopNotchTrapezoid(ctx, artX + artW / 2, artY - 4, 396, 336, 78);
+      ctx.fillStyle = '#7C3AED';
+      ctx.fill();
+
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '700 32px system-ui, -apple-system, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(rarityLabel, artX + artW / 2, artY + 48);
+
+      // Bottom-Center Notched Reward Trapezoid Tab (exact match to "0.5 ETH" tab!)
+      drawBottomNotchTrapezoid(ctx, artX + artW / 2, artY + artH + 4, 450, 385, 88);
+      ctx.fillStyle = '#14151A';
+      ctx.fill();
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '800 32px system-ui, -apple-system, sans-serif';
+      ctx.fillText(`+${game.rewardCredits} CR · +${game.rewardRizzBoost} RIZZ`, artX + artW / 2, artY + artH - 26);
+      ctx.textAlign = 'left';
+
+      ctx.restore(); // end artwork clip
+
+      // 4. Lower Obsidian Card Body (Title + White Logo Brand Row + Recessed Stats Box)
+      const bodyX = cardX + 42;
+      const titleY = artY + artH + 74;
+
+      // Challenge Title (matches "HAPE #67")
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '800 44px system-ui, -apple-system, sans-serif';
+      const displayTitle =
+        game.title.length > 28 ? `${game.title.slice(0, 27).trim()}…` : game.title;
+      ctx.fillText(displayTitle, bodyX, titleY);
+
+      // White HyperBuds Logo + Brand / Handle Row (matches "H  HAPE PRIME")
+      const brandY = titleY + 42;
+      ctx.beginPath();
+      ctx.arc(bodyX + 26, brandY + 8, 26, 0, Math.PI * 2);
+      ctx.fillStyle = '#7C3AED';
+      ctx.fill();
+      if (whiteLogoSmall) {
+        ctx.drawImage(whiteLogoSmall, bodyX + 8, brandY - 10, 36, 36);
+      }
+      ctx.fillStyle = '#D4D4D8';
+      ctx.font = '700 28px system-ui, -apple-system, sans-serif';
+      const subBrand = game.username
+        ? `HYPERBUDS · @${game.username.toUpperCase()}`
+        : `HYPERBUDS · ${game.gameMode.replace(/_/g, ' ').toUpperCase()}`;
+      ctx.fillText(subBrand.slice(0, 30), bodyX + 68, brandY + 18);
+
+      // Recessed Dark Stats Pill Container (matches "Avg earnings | Distribution %" box!)
+      const statsX = cardX + 32;
+      const statsY = brandY + 62;
+      const statsW = cardW - 64;
+      const statsH = 225;
+
+      drawRoundedRectPath(ctx, statsX, statsY, statsW, statsH, 32);
+      ctx.fillStyle = '#1E2028';
+      ctx.fill();
+
+      // Left stat column: Progress / Hashtag
+      ctx.fillStyle = '#9CA3AF';
+      ctx.font = '500 26px system-ui, -apple-system, sans-serif';
+      ctx.fillText('Rounds Cleared', statsX + 38, statsY + 72);
+
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '800 44px system-ui, -apple-system, sans-serif';
+      ctx.fillText(`${game.completedRounds} / ${game.totalRounds}`, statsX + 38, statsY + 144);
+
+      ctx.fillStyle = '#A78BFA';
+      ctx.font = '600 22px system-ui, -apple-system, sans-serif';
+      ctx.fillText(`#${game.hashtag.replace(/^#/, '')}`, statsX + 38, statsY + 188);
+
+      // Right stat column: Rizz & Credits split (matches green & purple glowing orb split!)
+      const rightColX = statsX + statsW / 2 + 16;
+      ctx.fillStyle = '#9CA3AF';
+      ctx.font = '500 26px system-ui, -apple-system, sans-serif';
+      ctx.fillText('Rizz / Credits', rightColX, statsY + 72);
+
+      // Green glowing dot
+      ctx.save();
+      ctx.shadowColor = '#10B981';
+      ctx.shadowBlur = 18;
+      ctx.beginPath();
+      ctx.arc(rightColX + 18, statsY + 130, 16, 0, Math.PI * 2);
+      ctx.fillStyle = '#10B981';
+      ctx.fill();
+      ctx.restore();
+
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '800 40px system-ui, -apple-system, sans-serif';
+      ctx.fillText(String(game.rewardRizzBoost), rightColX + 52, statsY + 143);
+
+      // Vertical divider
+      ctx.fillStyle = 'rgba(255,255,255,0.18)';
+      ctx.fillRect(rightColX + 126, statsY + 108, 2, 42);
+
+      ctx.fillStyle = '#ffffff';
+      ctx.fillText(String(game.rewardCredits), rightColX + 148, statsY + 143);
+
+      // Purple glowing dot
+      ctx.save();
+      ctx.shadowColor = '#8B5CF6';
+      ctx.shadowBlur = 18;
+      ctx.beginPath();
+      ctx.arc(rightColX + 236, statsY + 130, 16, 0, Math.PI * 2);
+      ctx.fillStyle = '#8B5CF6';
+      ctx.fill();
+      ctx.restore();
+
+      // Trending hashtag preview on right bottom
+      const trendTag = game.trendingTags.find((t) => t !== game.hashtag) || 'LagosLife';
+      ctx.fillStyle = '#9CA3AF';
+      ctx.font = '600 22px system-ui, -apple-system, sans-serif';
+      ctx.fillText(`#${trendTag.replace(/^#/, '')}`, rightColX, statsY + 188);
+
+      // 5. Bottom Canvas Footer CTA (on the purple backdrop)
+      ctx.textAlign = 'center';
+      ctx.fillStyle = 'rgba(255,255,255,0.88)';
+      ctx.font = '600 28px system-ui, -apple-system, sans-serif';
+      ctx.fillText('Play today’s challenge on HyperBuds', W / 2, cardY + cardH + 108);
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '800 32px system-ui, -apple-system, sans-serif';
+      ctx.fillText('app.hyperbuds.cloud/challenges', W / 2, cardY + cardH + 156);
+      ctx.textAlign = 'left';
+
+      setDataUrl(canvas.toDataURL('image/png'));
+    };
+
+    void render();
+    return () => {
+      cancelled = true;
+    };
   }, [game]);
 
   if (!game) return null;
@@ -190,7 +497,7 @@ export function ChallengeShareCardModal({ game, onClose }: ChallengeShareCardMod
     a.href = dataUrl;
     a.download = `hyperbuds-${game.hashtag}.png`;
     a.click();
-    toast.success('Challenge Card saved! Ready for IG Stories, TikTok & WhatsApp Status.');
+    toast.success('Collectible Challenge Card saved! Ready for IG Stories, TikTok & WhatsApp Status.');
   };
 
   const handleNativeShare = async () => {
@@ -222,11 +529,11 @@ export function ChallengeShareCardModal({ game, onClose }: ChallengeShareCardMod
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-xs">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-xs">
       <div className="w-full max-w-md overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl dark:border-slate-800 dark:bg-slate-900">
         <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3 dark:border-slate-800">
           <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-            Share Challenge Card
+            Collectible Challenge Card
           </h3>
           <button
             type="button"
@@ -240,7 +547,7 @@ export function ChallengeShareCardModal({ game, onClose }: ChallengeShareCardMod
         <div className="p-4">
           <canvas ref={canvasRef} className="hidden" />
           {dataUrl && (
-            <div className="mx-auto max-w-[260px] overflow-hidden rounded-xl border border-slate-200 shadow-md dark:border-slate-800">
+            <div className="mx-auto max-w-[235px] overflow-hidden rounded-2xl border border-slate-200 shadow-lg dark:border-slate-800">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={dataUrl} alt={game.title} className="h-auto w-full" />
             </div>

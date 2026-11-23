@@ -448,6 +448,7 @@ export function GameChallengesArena() {
                           id: game.id,
                           gameMode: game.gameMode,
                           region: game.region,
+                          difficulty: game.difficulty,
                           title: game.title,
                           premise: game.premise,
                           hashtag: game.hashtag,
@@ -459,6 +460,9 @@ export function GameChallengesArena() {
                           username:
                             user?.username ||
                             (user as { profile?: { username?: string } } | null)?.profile?.username,
+                          avatar:
+                            user?.avatar ||
+                            (user as { profile?: { avatar?: string } } | null)?.profile?.avatar,
                         })
                       }
                       className="inline-flex items-center gap-1 rounded-lg bg-purple-600 px-2.5 py-1.5 text-[11px] font-semibold text-white hover:bg-purple-500"
