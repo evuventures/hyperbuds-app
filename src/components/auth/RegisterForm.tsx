@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Eye, EyeOff, Gift, Loader2, Lock, Mail, Sparkles } from 'lucide-react';
+import { Building2, Eye, EyeOff, Gift, Loader2, Lock, Mail, Sparkles } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/auth/useAuth';
 import AuthSplitShowcase from './AuthSplitShowcase';
@@ -33,7 +33,8 @@ function GoogleMark() {
 export default function RegisterForm() {
   const router = useRouter();
   const { register, initiateGoogleLogin } = useAuth();
-  const [role, setRole] = useState<'talent' | 'founder'>('talent');
+  const [role, setRole] = useState<'talent' | 'founder' | 'brand'>('talent');
+  const [brandName, setBrandName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -69,8 +70,19 @@ export default function RegisterForm() {
       return;
     }
 
+    if (role === 'brand' && brandName.trim().length < 2) {
+      setError('Please enter your Brand or Company name (at least 2 characters).');
+      setIsLoading(false);
+      return;
+    }
+
     try {
-      await register({ email, password, role });
+      await register({
+        email,
+        password,
+        role,
+        ...(role === 'brand' ? { brandName: brandName.trim(), fullName: brandName.trim() } : {}),
+      });
       setShowVerificationModal(true);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Registration failed';
@@ -120,13 +132,13 @@ export default function RegisterForm() {
           <div
             role="group"
             aria-label="Select account role"
-            className="grid grid-cols-2 gap-1.5 rounded-xl border border-zinc-800 bg-[#151519] p-1"
+            className="grid grid-cols-3 gap-1 rounded-xl border border-zinc-800 bg-[#151519] p-1"
           >
             <button
               type="button"
               onClick={() => setRole('talent')}
               aria-pressed={role === 'talent'}
-              className={`rounded-lg py-2 text-xs font-semibold transition ${
+              className={`rounded-lg py-2 text-[11px] font-semibold transition sm:text-xs ${
                 role === 'talent'
                   ? 'bg-purple-600 text-white shadow-sm'
                   : 'text-zinc-400 hover:text-zinc-200'
@@ -138,13 +150,25 @@ export default function RegisterForm() {
               type="button"
               onClick={() => setRole('founder')}
               aria-pressed={role === 'founder'}
-              className={`rounded-lg py-2 text-xs font-semibold transition ${
+              className={`rounded-lg py-2 text-[11px] font-semibold transition sm:text-xs ${
                 role === 'founder'
                   ? 'bg-purple-600 text-white shadow-sm'
                   : 'text-zinc-400 hover:text-zinc-200'
               }`}
             >
-              Startup Founder
+              Founder
+            </button>
+            <button
+              type="button"
+              onClick={() => setRole('brand')}
+              aria-pressed={role === 'brand'}
+              className={`rounded-lg py-2 text-[11px] font-semibold transition sm:text-xs ${
+                role === 'brand'
+                  ? 'bg-purple-600 text-white shadow-sm'
+                  : 'text-zinc-400 hover:text-zinc-200'
+              }`}
+            >
+              Brand / Sponsor
             </button>
           </div>
         </div>
@@ -165,6 +189,24 @@ export default function RegisterForm() {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-3">
+          {role === 'brand' && (
+            <div className="relative">
+              <label htmlFor="signup-brand-name" className="sr-only">
+                Brand or Company Name
+              </label>
+              <Building2 className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
+              <input
+                id="signup-brand-name"
+                type="text"
+                value={brandName}
+                onChange={(e) => setBrandName(e.target.value)}
+                placeholder="Brand or Company Name"
+                required
+                className="w-full rounded-xl border border-zinc-800 bg-[#151519] py-3 pl-10 pr-4 text-sm text-white placeholder:text-zinc-500 outline-none transition focus:border-purple-500 focus:bg-[#19191f]"
+              />
+            </div>
+          )}
+
           <div className="relative">
             <label htmlFor="signup-email" className="sr-only">
               Email

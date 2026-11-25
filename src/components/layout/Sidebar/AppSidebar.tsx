@@ -58,6 +58,7 @@ export const NAV_SECTIONS: Array<{ title: string; items: NavItem[] }> = [
   {
     title: 'Business',
     items: [
+      { label: 'Brand Challenges', href: '/brand/challenges', icon: BarChart3, match: (p) => p.startsWith('/brand') },
       { label: 'Startup & Talent Hub', href: '/startup-talent', icon: BriefcaseBusiness, match: (p) => p.startsWith('/startup-talent') },
       { label: 'Marketplace', href: '/marketplace', icon: ShoppingBag, match: (p) => p === '/marketplace' || p.startsWith('/marketplace/') },
       { label: 'Sponsorships', href: '/sponsorships', icon: Megaphone, match: (p) => p.startsWith('/sponsorships') },

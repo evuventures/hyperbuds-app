@@ -11,11 +11,14 @@ interface User {
   id?: string
   _id?: string
   name?: string
+  fullName?: string
+  brandName?: string
   username?: string
   displayName?: string
   email?: string
   avatar?: string
   role?: string
+  isBrand?: boolean
 }
 
 export function useAuth() {

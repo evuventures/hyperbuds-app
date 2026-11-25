@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import DashboardLayout from '@/components/layout/Dashboard/Dashboard';
 import { GameChallengesArena } from '@/components/challenges/GameChallengesArena';
+import { BrandChallengesDiscoverySection } from '@/components/challenges/BrandChallengesDiscoverySection';
 import apiClient from '@/lib/api/client';
 import toast from 'react-hot-toast';
 import {
@@ -466,36 +467,33 @@ export default function ChallengesPage() {
               )}
             </div>
           ) : (
-            <div className="space-y-4">
-              {communityChallenges.length === 0 ? (
-                <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center dark:border-slate-700 dark:bg-slate-900">
-                  <Award className="mx-auto h-10 w-10 text-purple-500" />
-                  <h3 className="mt-3 text-base font-bold text-slate-900 dark:text-white">
-                    No Brand or Community Challenges Open Right Now
+            <div className="space-y-6">
+              <BrandChallengesDiscoverySection />
+
+              {communityChallenges.length > 0 && (
+                <div className="space-y-3">
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                    Platform Community Bounties
                   </h3>
-                  <p className="mt-1 text-xs text-slate-500">
-                    Check back soon for funded brand prize pools — or start a Grow Together Duo Challenge with your AI Matches!
-                  </p>
-                </div>
-              ) : (
-                communityChallenges.map((c) => (
-                  <div
-                    key={c.id}
-                    className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-xs dark:border-slate-800 dark:bg-slate-900"
-                  >
-                    <div>
-                      <span className="rounded-full bg-amber-50 px-2.5 py-0.5 text-[10px] font-bold text-amber-700">
-                        +{c.rewardCredits} Credits Reward
-                      </span>
-                      <h3 className="mt-1.5 text-base font-bold text-slate-900 dark:text-white">
-                        {c.title}
-                      </h3>
-                      {c.description && (
-                        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{c.description}</p>
-                      )}
+                  {communityChallenges.map((c) => (
+                    <div
+                      key={c.id}
+                      className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-xs dark:border-slate-800 dark:bg-slate-900"
+                    >
+                      <div>
+                        <span className="rounded-full bg-amber-50 px-2.5 py-0.5 text-[10px] font-bold text-amber-700">
+                          +{c.rewardCredits} Credits Reward
+                        </span>
+                        <h3 className="mt-1.5 text-base font-bold text-slate-900 dark:text-white">
+                          {c.title}
+                        </h3>
+                        {c.description && (
+                          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{c.description}</p>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))
+                  ))}
+                </div>
               )}
             </div>
           )}

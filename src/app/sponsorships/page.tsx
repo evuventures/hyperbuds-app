@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useState } from 'react';
+import Link from 'next/link';
 import toast from 'react-hot-toast';
 import DashboardLayout from '@/components/layout/Dashboard/Dashboard';
 import apiClient from '@/lib/api/client';
@@ -216,6 +217,12 @@ export default function SponsorshipsPage() {
               </p>
             </div>
             <div className="flex flex-wrap gap-1.5">
+              <Link
+                href="/brand/challenges"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-purple-600 px-3 py-1.5 text-xs font-semibold text-white shadow-xs hover:bg-purple-500"
+              >
+                Launch Brand Challenge Pool →
+              </Link>
               {(
                 [
                   { id: 'campaigns', label: `Campaigns (${campaigns.length})`, icon: Megaphone },
