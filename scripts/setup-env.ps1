@@ -1,4 +1,4 @@
-# Setup Environment Variables Script
+﻿# Setup Environment Variables Script
 # Run this script to set up .env.local for Google OAuth and UploadThing
 
 Write-Host "🚀 Setting up environment variables..." -ForegroundColor Cyan
@@ -59,7 +59,7 @@ if (Test-Path $envFile) {
     
     $envContent = @"
 # Google OAuth Configuration
-NEXT_PUBLIC_GOOGLE_CLIENT_ID=265404811439-3a6feinek5pckg02bjg7mfrva4esuqh0.apps.googleusercontent.com
+NEXT_PUBLIC_GOOGLE_CLIENT_ID=538397905080-9ubnk7n3tmcuhq8huetom5nomnjjrm5g.apps.googleusercontent.com
 NEXT_PUBLIC_GOOGLE_REDIRECT_URI=http://localhost:3000/auth/google-callback
 
 # UploadThing Configuration
