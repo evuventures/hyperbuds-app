@@ -8,7 +8,6 @@ import { BrandChallengesDiscoverySection } from '@/components/challenges/BrandCh
 import apiClient from '@/lib/api/client';
 import toast from 'react-hot-toast';
 import {
-  Award,
   CheckCircle2,
   Circle,
   Flame,
@@ -64,13 +63,23 @@ interface CommunityChallengeItem {
 }
 
 export default function ChallengesPage() {
-  const [tab, setTab] = useState<'games' | 'duo' | 'community'>('games');
+  const [tab, setTab] = useState<'games' | 'duo' | 'brand'>('games');
   const [duoChallenges, setDuoChallenges] = useState<DuoChallengeItem[]>([]);
   const [suggestedPartners, setSuggestedPartners] = useState<PartnerSummary[]>([]);
   const [communityChallenges, setCommunityChallenges] = useState<CommunityChallengeItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [generatingFor, setGeneratingFor] = useState<string | null>(null);
   const [togglingKey, setTogglingKey] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const t = new URLSearchParams(window.location.search).get('tab');
+    if (t === 'duo' || t === 'brand' || t === 'games') {
+      setTab(t);
+    } else if (t === 'community') {
+      setTab('brand');
+    }
+  }, []);
 
   const loadAll = useCallback(async () => {
     setLoading(true);
@@ -102,10 +111,10 @@ export default function ChallengesPage() {
         partnerUserId: partner.userId,
         matchId: partner.matchId || undefined,
       });
-      toast.success(`AI Grow Together Challenge started with ${partner.displayName}!`);
+      toast.success(`Duo Sprint started with ${partner.displayName}!`);
       await loadAll();
     } catch (err) {
-      toast.error((err as { message?: string })?.message || 'Could not start Duo Challenge.');
+      toast.error((err as { message?: string })?.message || 'Could not start Duo Sprint.');
     } finally {
       setGeneratingFor(null);
     }
@@ -132,7 +141,7 @@ export default function ChallengesPage() {
       );
       if (newlyCompleted) {
         toast.success(
-          `🎉 Duo Challenge Completed! You & your match earned +${rewardCredits} Credits & +${rewardRizzBoost} Rizz Score!`,
+          `Duo Sprint Completed! You & your match earned +${rewardCredits} Credits & +${rewardRizzBoost} Rizz Score!`,
           { duration: 6000 },
         );
       } else {
@@ -142,82 +151,95 @@ export default function ChallengesPage() {
       const msg =
         (err as { response?: { data?: { message?: string } }; message?: string })?.response?.data?.message ||
         (err as { message?: string })?.message ||
-        'Complete this action on HyperBuds first, then tap Verify & Complete.';
+        'Complete this action on HyperBuds first, then tap Verify.';
       toast.error(msg, { duration: 6000 });
     } finally {
       setTogglingKey(null);
     }
   };
 
+  const activeDuoCount = duoChallenges.filter((c) => c.status === 'active').length;
+
   return (
     <DashboardLayout>
-      <div className="min-h-full bg-[#f8f9fc] px-4 py-6 pb-24 dark:bg-slate-950 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-5xl space-y-6">
-          {/* Header Hero */}
-          <div className="overflow-hidden rounded-3xl bg-gradient-to-br from-[#3B0F7A] via-[#5B21B6] to-[#1E0A3C] p-6 text-white shadow-lg sm:p-8">
-            <div className="flex flex-wrap items-start justify-between gap-4">
-              <div className="max-w-xl">
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold text-purple-100 backdrop-blur-xs">
-                  <Sparkles className="h-3.5 w-3.5 text-amber-300" />
-                  Grow Together · AI Match Challenges
+      <div className="min-h-full bg-[#fafafa] px-4 py-6 pb-24 dark:bg-slate-950 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-4xl space-y-6">
+          {/* Clean, Uncluttered Page Header */}
+          <header className="flex flex-col gap-4 border-b border-slate-200 pb-5 dark:border-slate-800 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
+                Challenges
+              </h1>
+              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                Play creator games, sprint with your matches, or hop on brand prize pools.
+              </p>
+            </div>
+            <Link
+              href="/ai-matches"
+              className="inline-flex w-fit items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 transition hover:border-purple-300 hover:text-purple-700 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200"
+            >
+              <Users className="h-3.5 w-3.5 text-purple-600" />
+              Find Matches
+            </Link>
+          </header>
+
+          {/* Simple 3-Way Segmented Switcher */}
+          <nav
+            aria-label="Challenge categories"
+            className="grid grid-cols-3 gap-1.5 rounded-2xl border border-slate-200 bg-white p-1.5 dark:border-slate-800 dark:bg-slate-900"
+          >
+            <button
+              type="button"
+              onClick={() => setTab('games')}
+              className={`inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-xl px-3 py-2.5 text-xs font-semibold transition ${
+                tab === 'games'
+                  ? 'bg-slate-900 text-white shadow-2xs dark:bg-white dark:text-slate-900'
+                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white'
+              }`}
+            >
+              <Gamepad2 className="h-4 w-4 shrink-0" />
+              <span>Daily &amp; Games</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setTab('duo')}
+              className={`inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-xl px-3 py-2.5 text-xs font-semibold transition ${
+                tab === 'duo'
+                  ? 'bg-slate-900 text-white shadow-2xs dark:bg-white dark:text-slate-900'
+                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white'
+              }`}
+            >
+              <Flame className="h-4 w-4 shrink-0" />
+              <span>With a Match</span>
+              {(activeDuoCount > 0 || suggestedPartners.length > 0) && (
+                <span
+                  className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${
+                    tab === 'duo'
+                      ? 'bg-white/20 text-white dark:bg-slate-900/15 dark:text-slate-900'
+                      : 'bg-purple-100 text-purple-700 dark:bg-purple-950 dark:text-purple-300'
+                  }`}
+                >
+                  {activeDuoCount || suggestedPartners.length}
                 </span>
-                <h1 className="mt-3 text-2xl font-extrabold tracking-tight sm:text-3xl">
-                  Creator Challenges
-                </h1>
-                <p className="mt-1.5 text-sm text-purple-100/85">
-                  Team up with your AI Matches on personalized 7-day collaboration sprints to grow your audiences together and earn Wallet Credits + Rizz Score boosts.
-                </p>
-              </div>
-              <Link
-                href="/ai-matches"
-                className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2.5 text-xs font-bold text-purple-900 shadow-sm transition hover:bg-purple-50"
-              >
-                <Users className="h-4 w-4" />
-                Find New Matches
-              </Link>
-            </div>
+              )}
+            </button>
 
-            {/* Tabs */}
-            <div className="mt-6 inline-flex flex-wrap rounded-full bg-black/25 p-1">
-              <button
-                type="button"
-                onClick={() => setTab('games')}
-                className={`inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-semibold transition ${
-                  tab === 'games'
-                    ? 'bg-white text-purple-900 shadow-xs'
-                    : 'text-purple-100 hover:text-white'
-                }`}
-              >
-                <Gamepad2 className="h-3.5 w-3.5" />
-                AI Games (Lagos Life &amp; More)
-              </button>
-              <button
-                type="button"
-                onClick={() => setTab('duo')}
-                className={`inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-semibold transition ${
-                  tab === 'duo'
-                    ? 'bg-white text-purple-900 shadow-xs'
-                    : 'text-purple-100 hover:text-white'
-                }`}
-              >
-                <Flame className="h-3.5 w-3.5" />
-                Grow Together Duos ({duoChallenges.length})
-              </button>
-              <button
-                type="button"
-                onClick={() => setTab('community')}
-                className={`inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-semibold transition ${
-                  tab === 'community'
-                    ? 'bg-white text-purple-900 shadow-xs'
-                    : 'text-purple-100 hover:text-white'
-                }`}
-              >
-                <Trophy className="h-3.5 w-3.5" />
-                Community &amp; Brand ({communityChallenges.length})
-              </button>
-            </div>
-          </div>
+            <button
+              type="button"
+              onClick={() => setTab('brand')}
+              className={`inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-xl px-3 py-2.5 text-xs font-semibold transition ${
+                tab === 'brand'
+                  ? 'bg-slate-900 text-white shadow-2xs dark:bg-white dark:text-slate-900'
+                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white'
+              }`}
+            >
+              <Trophy className="h-4 w-4 shrink-0" />
+              <span>Brand Pools</span>
+            </button>
+          </nav>
 
+          {/* Tab Content */}
           {tab === 'games' ? (
             <GameChallengesArena />
           ) : loading ? (
@@ -225,93 +247,18 @@ export default function ChallengesPage() {
               {[1, 2].map((i) => (
                 <div
                   key={i}
-                  className="h-48 animate-pulse rounded-2xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900"
+                  className="h-40 animate-pulse rounded-2xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900"
                 />
               ))}
             </div>
           ) : tab === 'duo' ? (
             <div className="space-y-6">
-              {/* Start a New AI Duo Challenge with Your Matches */}
-              {suggestedPartners.length > 0 && (
-                <section className="rounded-2xl border border-purple-200/80 bg-white p-5 shadow-xs dark:border-purple-900/50 dark:bg-slate-900">
-                  <div className="mb-3 flex items-center justify-between">
-                    <div>
-                      <h2 className="text-sm font-bold text-slate-900 dark:text-white">
-                        Start a Grow Together Challenge with a Match
-                      </h2>
-                      <p className="text-xs text-slate-500 dark:text-slate-400">
-                        AI tailors a 7-day collab sprint based on both of your niches.
-                      </p>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                    {suggestedPartners.map((partner) => (
-                      <div
-                        key={partner.userId}
-                        className="flex flex-col justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-50/70 p-4 dark:border-slate-800 dark:bg-slate-800/40"
-                      >
-                        <div className="flex items-center gap-3">
-                          {partner.avatar ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img
-                              src={partner.avatar}
-                              alt={partner.displayName}
-                              className="h-11 w-11 rounded-full border-2 border-purple-200 object-cover"
-                            />
-                          ) : (
-                            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-purple-600 text-sm font-bold text-white">
-                              {partner.displayName.charAt(0).toUpperCase()}
-                            </div>
-                          )}
-                          <div className="min-w-0">
-                            <p className="truncate text-sm font-bold text-slate-900 dark:text-white">
-                              {partner.displayName}
-                            </p>
-                            <p className="truncate text-xs text-slate-500">
-                              {partner.niche.slice(0, 2).join(' · ') || 'Matched Creator'}
-                            </p>
-                          </div>
-                        </div>
-                        <button
-                          type="button"
-                          disabled={generatingFor === partner.userId}
-                          onClick={() => void handleGenerateDuo(partner)}
-                          className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-purple-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-purple-500 disabled:opacity-50"
-                        >
-                          {generatingFor === partner.userId ? (
-                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                          ) : (
-                            <Sparkles className="h-3.5 w-3.5" />
-                          )}
-                          {generatingFor === partner.userId
-                            ? 'Generating AI Sprint...'
-                            : 'Start AI Duo Challenge'}
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                </section>
-              )}
-
-              {/* Active & Completed Duo Challenges */}
-              {duoChallenges.length === 0 ? (
-                <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center dark:border-slate-700 dark:bg-slate-900">
-                  <Sparkles className="mx-auto h-10 w-10 text-purple-500" />
-                  <h3 className="mt-3 text-base font-bold text-slate-900 dark:text-white">
-                    No Duo Challenges yet
-                  </h3>
-                  <p className="mx-auto mt-1 max-w-md text-xs text-slate-500 dark:text-slate-400">
-                    Match with a creator in AI Matchmaking, then launch a personalized 7-day Grow Together Challenge to earn +25 Credits &amp; +5 Rizz Score together.
-                  </p>
-                  <Link
-                    href="/ai-matches"
-                    className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-purple-600 px-5 py-2 text-xs font-semibold text-white hover:bg-purple-500"
-                  >
-                    Explore AI Matches
-                  </Link>
-                </div>
-              ) : (
-                <div className="space-y-4">
+              {/* Active & Completed Duo Sprints */}
+              {duoChallenges.length > 0 && (
+                <section className="space-y-4">
+                  <h2 className="text-sm font-semibold text-slate-900 dark:text-white">
+                    Your Duo Sprints
+                  </h2>
                   {duoChallenges.map((ch) => {
                     const totalSteps = ch.milestones.length * 2;
                     const doneSteps = ch.milestones.reduce(
@@ -323,7 +270,7 @@ export default function ChallengesPage() {
                     return (
                       <article
                         key={ch.id}
-                        className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs dark:border-slate-800 dark:bg-slate-900"
+                        className="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900"
                       >
                         <div className="flex flex-wrap items-start justify-between gap-3">
                           <div className="flex items-center gap-3">
@@ -332,35 +279,22 @@ export default function ChallengesPage() {
                               <img
                                 src={ch.partner.avatar}
                                 alt={ch.partner.displayName}
-                                className="h-12 w-12 rounded-2xl border-2 border-purple-200 object-cover"
+                                className="h-11 w-11 rounded-full border border-slate-200 object-cover dark:border-slate-700"
                               />
                             ) : (
-                              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-purple-600 text-base font-bold text-white">
+                              <div className="flex h-11 w-11 items-center justify-center rounded-full bg-purple-600 text-sm font-bold text-white">
                                 {ch.partner.displayName.charAt(0).toUpperCase()}
                               </div>
                             )}
                             <div>
-                              <div className="flex flex-wrap items-center gap-2">
-                                <span
-                                  className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase ${
-                                    ch.status === 'completed'
-                                      ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300'
-                                      : 'bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300'
-                                  }`}
-                                >
-                                  {ch.status === 'completed' ? '✓ Completed' : `${ch.durationDays}-Day Duo Sprint`}
-                                </span>
-                                <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-0.5 text-[10px] font-bold text-amber-700 dark:bg-amber-950/40 dark:text-amber-300">
-                                  <Zap className="h-3 w-3" />+{ch.rewardCredits} Credits · +{ch.rewardRizzBoost} Rizz
-                                </span>
-                              </div>
-                              <h3 className="mt-1 text-base font-bold text-slate-900 dark:text-white">
+                              <h3 className="text-base font-semibold text-slate-900 dark:text-white">
                                 {ch.title}
                               </h3>
                               <p className="text-xs text-slate-500">
-                                With{' '}
-                                <span className="font-semibold text-slate-800 dark:text-slate-200">
-                                  {ch.partner.displayName}
+                                With <span className="font-medium text-slate-700 dark:text-slate-300">{ch.partner.displayName}</span>
+                                {' · '}
+                                <span className="text-emerald-600 dark:text-emerald-400">
+                                  +{ch.rewardCredits} cr &amp; +{ch.rewardRizzBoost} Rizz
                                 </span>
                               </p>
                             </div>
@@ -368,35 +302,33 @@ export default function ChallengesPage() {
 
                           <Link
                             href={`/messages?userId=${encodeURIComponent(ch.partner.userId)}`}
-                            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+                            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
                           >
                             <MessageCircle className="h-3.5 w-3.5 text-purple-600" />
-                            Message Partner
+                            Chat
                           </Link>
                         </div>
 
                         <p className="mt-3 text-sm text-slate-600 dark:text-slate-300">{ch.description}</p>
 
-                        {/* Shared Progress Bar */}
+                        {/* Clean Progress Bar */}
                         <div className="mt-4">
-                          <div className="mb-1 flex items-center justify-between text-xs">
-                            <span className="font-semibold text-slate-700 dark:text-slate-300">
-                              Shared Duo Progress
-                            </span>
-                            <span className="font-bold text-purple-700 dark:text-purple-300 tabular-nums">
+                          <div className="mb-1.5 flex items-center justify-between text-xs text-slate-500">
+                            <span>{ch.status === 'completed' ? 'Completed' : `${ch.durationDays}-day sprint`}</span>
+                            <span className="font-semibold tabular-nums text-slate-900 dark:text-white">
                               {pct}% ({doneSteps}/{totalSteps})
                             </span>
                           </div>
-                          <div className="h-2.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+                          <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
                             <div
                               style={{ width: `${pct}%` }}
-                              className="h-full rounded-full bg-gradient-to-r from-purple-600 to-fuchsia-500 transition-all duration-300"
+                              className="h-full rounded-full bg-purple-600 transition-all duration-300"
                             />
                           </div>
                         </div>
 
-                        {/* Shared 3-Milestone Checklist */}
-                        <div className="mt-4 space-y-2.5">
+                        {/* 3 Clean Checklist Steps */}
+                        <div className="mt-4 divide-y divide-slate-100 rounded-xl border border-slate-200 dark:divide-slate-800 dark:border-slate-800">
                           {ch.milestones.map((m) => {
                             const mineDone = ch.isUserA ? m.completedByUserA : m.completedByUserB;
                             const partnerDone = ch.isUserA ? m.completedByUserB : m.completedByUserA;
@@ -408,24 +340,20 @@ export default function ChallengesPage() {
                                 type="button"
                                 disabled={busy || ch.status === 'completed'}
                                 onClick={() => void handleToggleMilestone(ch.id, m.id)}
-                                className={`flex w-full items-start justify-between gap-3 rounded-xl border p-3.5 text-left transition ${
-                                  mineDone
-                                    ? 'border-purple-200 bg-purple-50/50 dark:border-purple-900/50 dark:bg-purple-950/20'
-                                    : 'border-slate-200 bg-white hover:border-purple-300 dark:border-slate-800 dark:bg-slate-900'
-                                }`}
+                                className="flex w-full cursor-pointer items-center justify-between gap-3 px-4 py-3 text-left transition hover:bg-slate-50 disabled:cursor-default dark:hover:bg-slate-800/50"
                               >
-                                <div className="flex items-start gap-3">
-                                  <span className="mt-0.5 text-purple-600 dark:text-purple-400">
+                                <div className="flex items-start gap-3 min-w-0">
+                                  <span className="mt-0.5 shrink-0">
                                     {busy ? (
-                                      <Loader2 className="h-5 w-5 animate-spin" />
+                                      <Loader2 className="h-4 w-4 animate-spin text-purple-600" />
                                     ) : mineDone ? (
-                                      <CheckCircle2 className="h-5 w-5 fill-purple-600 text-white dark:fill-purple-500" />
+                                      <CheckCircle2 className="h-4 w-4 text-emerald-500" />
                                     ) : (
-                                      <Circle className="h-5 w-5 text-slate-300 dark:text-slate-600" />
+                                      <Circle className="h-4 w-4 text-slate-300 dark:text-slate-600" />
                                     )}
                                   </span>
-                                  <div>
-                                    <p className="text-sm font-semibold text-slate-900 dark:text-white">
+                                  <div className="min-w-0">
+                                    <p className="text-sm font-medium text-slate-900 dark:text-white">
                                       {m.title}
                                     </p>
                                     {m.description && (
@@ -436,24 +364,18 @@ export default function ChallengesPage() {
                                   </div>
                                 </div>
 
-                                <div className="flex shrink-0 flex-col items-end gap-1 text-[10px] font-semibold">
-                                  <span
-                                    className={`rounded-full px-2 py-0.5 ${
-                                      mineDone
-                                        ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300'
-                                        : 'bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300'
-                                    }`}
-                                  >
-                                    {mineDone ? 'Verified ✓' : 'Verify & Complete'}
+                                <div className="flex shrink-0 items-center gap-2 text-[11px]">
+                                  <span className="text-slate-400">
+                                    Partner {partnerDone ? '✓' : '·'}
                                   </span>
                                   <span
-                                    className={`rounded-full px-2 py-0.5 ${
-                                      partnerDone
-                                        ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300'
-                                        : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'
+                                    className={`rounded-lg px-2.5 py-1 font-semibold ${
+                                      mineDone
+                                        ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300'
+                                        : 'bg-purple-600 text-white'
                                     }`}
                                   >
-                                    Partner {partnerDone ? '✓' : '·'}
+                                    {mineDone ? 'Done' : 'Verify'}
                                   </span>
                                 </div>
                               </button>
@@ -463,28 +385,102 @@ export default function ChallengesPage() {
                       </article>
                     );
                   })}
-                </div>
+                </section>
               )}
+
+              {/* Start a Sprint with a Match */}
+              {suggestedPartners.length > 0 ? (
+                <section className="space-y-3">
+                  <div>
+                    <h2 className="text-sm font-semibold text-slate-900 dark:text-white">
+                      Ready to Sprint With
+                    </h2>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                      Pick a match to launch a quick 7-day collaboration sprint (+25 cr &amp; +5 Rizz).
+                    </p>
+                  </div>
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    {suggestedPartners.map((partner) => (
+                      <div
+                        key={partner.userId}
+                        className="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900"
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          {partner.avatar ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={partner.avatar}
+                              alt={partner.displayName}
+                              className="h-10 w-10 shrink-0 rounded-full object-cover"
+                            />
+                          ) : (
+                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-purple-600 text-xs font-bold text-white">
+                              {partner.displayName.charAt(0).toUpperCase()}
+                            </div>
+                          )}
+                          <div className="min-w-0">
+                            <p className="truncate text-sm font-semibold text-slate-900 dark:text-white">
+                              {partner.displayName}
+                            </p>
+                            <p className="truncate text-xs text-slate-500">
+                              {partner.niche.slice(0, 2).join(' · ') || 'Matched Creator'}
+                            </p>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          disabled={generatingFor === partner.userId}
+                          onClick={() => void handleGenerateDuo(partner)}
+                          className="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-xl bg-purple-600 px-3.5 py-2 text-xs font-semibold text-white transition hover:bg-purple-500 disabled:opacity-50"
+                        >
+                          {generatingFor === partner.userId ? (
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                          ) : (
+                            <Sparkles className="h-3.5 w-3.5" />
+                          )}
+                          {generatingFor === partner.userId ? 'Starting…' : 'Start'}
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              ) : duoChallenges.length === 0 ? (
+                <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center dark:border-slate-800 dark:bg-slate-900">
+                  <Sparkles className="mx-auto h-9 w-9 text-purple-500" />
+                  <h3 className="mt-3 text-base font-semibold text-slate-900 dark:text-white">
+                    No Duo Sprints yet
+                  </h3>
+                  <p className="mx-auto mt-1 max-w-sm text-xs text-slate-500 dark:text-slate-400">
+                    Match with a creator first, then team up on a 7-day sprint to grow together and earn +25 Credits.
+                  </p>
+                  <Link
+                    href="/ai-matches"
+                    className="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-slate-900 px-4 py-2 text-xs font-semibold text-white hover:bg-slate-800 dark:bg-white dark:text-slate-900"
+                  >
+                    Find a Match
+                  </Link>
+                </div>
+              ) : null}
             </div>
           ) : (
             <div className="space-y-6">
               <BrandChallengesDiscoverySection />
 
               {communityChallenges.length > 0 && (
-                <div className="space-y-3">
-                  <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-                    Platform Community Bounties
-                  </h3>
+                <section className="space-y-3">
+                  <h2 className="text-sm font-semibold text-slate-900 dark:text-white">
+                    Community Bounties
+                  </h2>
                   {communityChallenges.map((c) => (
                     <div
                       key={c.id}
-                      className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-xs dark:border-slate-800 dark:bg-slate-900"
+                      className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900"
                     >
                       <div>
-                        <span className="rounded-full bg-amber-50 px-2.5 py-0.5 text-[10px] font-bold text-amber-700">
-                          +{c.rewardCredits} Credits Reward
+                        <span className="inline-flex items-center gap-1 text-xs font-semibold text-amber-600 dark:text-amber-400">
+                          <Zap className="h-3.5 w-3.5" />+{c.rewardCredits} Credits
                         </span>
-                        <h3 className="mt-1.5 text-base font-bold text-slate-900 dark:text-white">
+                        <h3 className="mt-1 text-base font-semibold text-slate-900 dark:text-white">
                           {c.title}
                         </h3>
                         {c.description && (
@@ -493,7 +489,7 @@ export default function ChallengesPage() {
                       </div>
                     </div>
                   ))}
-                </div>
+                </section>
               )}
             </div>
           )}
