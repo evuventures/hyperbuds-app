@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Eye, MessageCircle, Sparkles } from 'lucide-react';
+import { Eye, Heart, MessageCircle, Sparkles } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import MatchCard from './MatchCard';
@@ -11,6 +11,8 @@ interface MatchHistoryGalleryProps {
   historyMatches: MatchSuggestion[];
   onMessage: (match: MatchSuggestion) => void;
   onViewProfile?: (match: MatchSuggestion) => void;
+  onLike?: (match: MatchSuggestion) => void;
+  onPass?: (match: MatchSuggestion) => void;
 }
 
 const getProfileAge = (profile?: MatchSuggestion['targetUser']): number | undefined => {
@@ -24,6 +26,8 @@ const MatchHistoryGallery: React.FC<MatchHistoryGalleryProps> = ({
   historyMatches,
   onMessage,
   onViewProfile,
+  onLike,
+  onPass,
 }) => {
   const [showAllMatches, setShowAllMatches] = useState(false);
 
@@ -54,6 +58,8 @@ const MatchHistoryGallery: React.FC<MatchHistoryGalleryProps> = ({
             rank={index}
             onMessage={onMessage}
             onViewProfile={onViewProfile}
+            onLike={onLike}
+            onPass={onPass}
           />
         ))}
       </div>
@@ -113,6 +119,25 @@ const MatchHistoryGallery: React.FC<MatchHistoryGalleryProps> = ({
                   </button>
 
                   <div className="flex shrink-0 items-center gap-1">
+                    {onLike && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        disabled={match.status === 'liked' || match.status === 'mutual'}
+                        className={`h-8 w-8 cursor-pointer ${
+                          match.status === 'mutual'
+                            ? 'text-emerald-400'
+                            : match.status === 'liked'
+                              ? 'text-pink-400'
+                              : 'text-pink-300 hover:bg-pink-500/20 hover:text-pink-200'
+                        }`}
+                        aria-label={`Match with ${displayName}`}
+                        onClick={() => onLike(match)}
+                      >
+                        <Heart className={`h-4 w-4 ${match.status === 'liked' || match.status === 'mutual' ? 'fill-current' : ''}`} />
+                      </Button>
+                    )}
                     <Button
                       type="button"
                       variant="ghost"

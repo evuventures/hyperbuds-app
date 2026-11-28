@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Check, MapPin, MessageCircle, Sparkles, UserRound } from 'lucide-react';
+import { Check, Heart, MapPin, MessageCircle, Sparkles, UserRound, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { MatchSuggestion } from '@/types/matching.types';
 
@@ -11,6 +11,8 @@ interface MatchCardProps {
   rank: number;
   onMessage?: (match: MatchSuggestion) => void;
   onViewProfile?: (match: MatchSuggestion) => void;
+  onLike?: (match: MatchSuggestion) => void;
+  onPass?: (match: MatchSuggestion) => void;
 }
 
 const getProfileAge = (profile?: MatchSuggestion['targetUser']): number | undefined => {
@@ -30,6 +32,8 @@ const MatchCard: React.FC<MatchCardProps> = ({
   rank,
   onMessage,
   onViewProfile,
+  onLike,
+  onPass,
 }) => {
   const [hasImageError, setHasImageError] = useState(false);
   const profile = match.targetUser;
@@ -197,6 +201,28 @@ const MatchCard: React.FC<MatchCardProps> = ({
 
           {/* Sleek Actions */}
           <div className="mt-6 flex flex-wrap items-center gap-2.5 border-t border-white/10 pt-4">
+            {onLike && (
+              <Button
+                type="button"
+                disabled={match.status === 'liked' || match.status === 'mutual'}
+                onClick={() => onLike(match)}
+                className={`h-10 cursor-pointer rounded-full px-5 text-xs font-semibold text-white shadow-lg transition ${
+                  match.status === 'mutual'
+                    ? 'bg-emerald-600 shadow-emerald-600/30'
+                    : match.status === 'liked'
+                      ? 'bg-purple-600/60 shadow-purple-600/20'
+                      : 'bg-linear-to-r from-pink-500 via-purple-600 to-indigo-600 shadow-purple-600/35 hover:opacity-95'
+                }`}
+              >
+                <Heart className="mr-1.5 h-3.5 w-3.5 fill-current" />
+                {match.status === 'mutual'
+                  ? 'Matched! 🎉'
+                  : match.status === 'liked'
+                    ? 'Liked ✓'
+                    : 'Match'}
+              </Button>
+            )}
+
             <Button
               type="button"
               disabled={!onMessage}
@@ -216,6 +242,18 @@ const MatchCard: React.FC<MatchCardProps> = ({
               <UserRound className="mr-1.5 h-3.5 w-3.5" />
               View Profile
             </Button>
+
+            {onPass && match.status !== 'mutual' && (
+              <Button
+                type="button"
+                variant="ghost"
+                aria-label={`Pass on ${profile.displayName || profile.username || 'creator'}`}
+                onClick={() => onPass(match)}
+                className="ml-auto h-10 w-10 cursor-pointer rounded-full border border-white/10 bg-white/[0.04] p-0 text-slate-300 hover:border-rose-400/40 hover:bg-rose-500/20 hover:text-rose-200"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
           </div>
         </div>
       </div>

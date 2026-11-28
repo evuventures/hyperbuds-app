@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 import { ArrowLeft, Globe2, Loader2, RefreshCw, ShieldCheck, Sparkles } from "lucide-react";
 import DashboardLayout from "@/components/layout/Dashboard/Dashboard";
 import { CardGridSkeleton } from "@/components/ui/AppSkeletons";
@@ -261,6 +262,51 @@ const AIMatchesPage: React.FC = () => {
     void resolveAndNavigateToProfile(match);
   };
 
+  const handleLikeMatch = async (match: MatchSuggestion) => {
+    const actionTargetId = getMatchUserId(match) || match._id || match.id;
+    if (!actionTargetId) return;
+    try {
+      const res = await apiClient.put(`/matching/matches/${encodeURIComponent(actionTargetId)}/action`, {
+        action: "like",
+      });
+      const isMutual = Boolean(res.data?.isMutual);
+      const nextStatus: MatchSuggestion["status"] = isMutual ? "mutual" : "liked";
+      setDisplayMatches((prev) =>
+        prev.map((m) =>
+          getMatchUserId(m) === actionTargetId || m._id === match._id
+            ? { ...m, status: nextStatus }
+            : m
+        )
+      );
+      if (isMutual) {
+        toast.success(
+          `It's a Match with ${match.targetUser?.displayName || match.targetUser?.username || "this creator"}! 🎉`
+        );
+      } else {
+        toast.success(
+          `Liked ${match.targetUser?.displayName || match.targetUser?.username || "creator"}! Waiting for them to match back.`
+        );
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Could not send match request.");
+    }
+  };
+
+  const handlePassMatch = async (match: MatchSuggestion) => {
+    const actionTargetId = getMatchUserId(match) || match._id || match.id;
+    setDisplayMatches((prev) =>
+      prev.filter((m) => getMatchUserId(m) !== actionTargetId && m._id !== match._id)
+    );
+    if (!actionTargetId) return;
+    try {
+      await apiClient.put(`/matching/matches/${encodeURIComponent(actionTargetId)}/action`, {
+        action: "pass",
+      });
+    } catch {
+      // Optimistically dismissed
+    }
+  };
+
   const handleRefresh = async () => {
     setIsRefreshing(true);
     await refetch();
@@ -307,6 +353,8 @@ const AIMatchesPage: React.FC = () => {
         historyMatches={displayMatches}
         onMessage={handleMessage}
         onViewProfile={handleViewProfile}
+        onLike={handleLikeMatch}
+        onPass={handlePassMatch}
       />
     );
   }

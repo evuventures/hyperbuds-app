@@ -2,10 +2,11 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import Image from "next/image";
+import toast from "react-hot-toast";
 import { Loader2, Heart, X, RefreshCw } from "lucide-react";
 import { motion } from "framer-motion";
 import { BASE_URL } from "@/config/baseUrl";
+import apiClient from "@/lib/api/client";
 import type { MatchSuggestion, CreatorProfile } from "@/types/matching.types";
 import { getAccessToken } from "@/store/authSelectors";
 import { CardGridSkeleton } from "@/components/ui/AppSkeletons";
@@ -59,7 +60,9 @@ export default function MatchmakerPage() {
           const profileData = await profileRes.json();
 
           // Handle different response structures
-          if (profileData.profile) {
+          if (profileData.user?.id || profileData.user?._id) {
+            currentUserId = String(profileData.user.id || profileData.user._id);
+          } else if (profileData.profile) {
             currentProfile = profileData.profile as CreatorProfile;
             currentUserId = currentProfile.userId;
           } else if (profileData.data?.profile) {
@@ -68,8 +71,8 @@ export default function MatchmakerPage() {
           } else if (profileData.data) {
             currentProfile = profileData.data as CreatorProfile;
             currentUserId = currentProfile.userId;
-          } else if (profileData.userId) {
-            currentUserId = profileData.userId;
+          } else if (profileData.userId || profileData.id) {
+            currentUserId = String(profileData.userId || profileData.id);
           }
         }
 
@@ -201,7 +204,8 @@ export default function MatchmakerPage() {
                       ? [`Shared niches: ${suggestion.sharedNiches.join(', ')}`]
                       : []
                   },
-                  targetProfile,
+                  targetUser: targetProfile,
+                  profile: targetProfile,
                   createdAt: new Date().toISOString(),
                   updatedAt: new Date().toISOString()
                 };
@@ -410,7 +414,8 @@ export default function MatchmakerPage() {
                 ? [`Shared niches: ${suggestion.sharedNiches.join(', ')}`]
                 : []
             },
-            targetProfile,
+            targetUser: targetProfile,
+            profile: targetProfile,
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString()
           };
@@ -494,42 +499,99 @@ export default function MatchmakerPage() {
                 </div>
               ) : (
                 <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-                  {matches.map((match, index) => (
-                    <motion.div
-                      key={match.id || match._id || index}
-                      className="relative overflow-hidden p-6 rounded-2xl border shadow-lg bg-white/95 dark:bg-slate-800/90 border-gray-200/60 dark:border-white/10 flex flex-col items-center"
-                      whileHover={{ scale: 1.02 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <div className="absolute inset-0 opacity-0 transition-opacity duration-300 bg-linear-to-br from-purple-500/10 via-transparent to-pink-500/10 group-hover:opacity-100" />
-                      <Image
-                        src={match?.profile?.avatar || match?.targetUser?.avatar || "/default-avatar.png"}
-                        alt={match?.profile?.displayName || match?.targetUser?.displayName || "User"}
-                        width={96}
-                        height={96}
-                        className="w-24 h-24 rounded-full mb-3 object-cover ring-2 ring-purple-200 dark:ring-purple-800"
-                      />
-                      <h2 className="font-semibold text-lg text-gray-900 dark:text-white">
-                        {match?.profile?.displayName || match?.targetUser?.displayName || "Unknown User"}
-                      </h2>
-                      <p className="text-sm text-gray-500 dark:text-gray-400 mb-3 text-center">
-                        {match?.profile?.niche?.join(", ") || match?.targetUser?.niche?.join(", ") || "No niche info"}
-                      </p>
-                      {match.compatibilityScore && (
-                        <p className="text-sm font-medium text-pink-600 dark:text-pink-400 mb-3">
-                          {match.compatibilityScore.toFixed(0)}% Match
+                  {matches.map((match, index) => {
+                    const prof = match?.profile || match?.targetUser;
+                    const displayName = prof?.displayName || prof?.username || "Creator";
+                    const nichesText = prof?.niche?.length ? prof.niche.join(", ") : "Creator open to collabs";
+                    const targetId = match.targetUserId || prof?.userId || match.id;
+                    return (
+                      <motion.div
+                        key={match.id || match._id || index}
+                        className="relative overflow-hidden p-6 rounded-2xl border shadow-lg bg-white/95 dark:bg-slate-800/90 border-gray-200/60 dark:border-white/10 flex flex-col items-center"
+                        whileHover={{ scale: 1.02 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <div className="absolute inset-0 opacity-0 transition-opacity duration-300 bg-linear-to-br from-purple-500/10 via-transparent to-pink-500/10 group-hover:opacity-100" />
+                        {prof?.avatar ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={prof.avatar}
+                            alt={displayName}
+                            className="w-24 h-24 rounded-full mb-3 object-cover ring-2 ring-purple-200 dark:ring-purple-800"
+                          />
+                        ) : (
+                          <div className="w-24 h-24 rounded-full mb-3 flex items-center justify-center bg-linear-to-br from-purple-600 to-indigo-600 text-2xl font-bold text-white ring-2 ring-purple-200 dark:ring-purple-800">
+                            {displayName.charAt(0).toUpperCase()}
+                          </div>
+                        )}
+                        <h2 className="font-semibold text-lg text-gray-900 dark:text-white">
+                          {displayName}
+                        </h2>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mb-3 text-center">
+                          {nichesText}
                         </p>
-                      )}
-                      <div className="flex gap-3">
-                        <button className="p-2 rounded-full bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors">
-                          <X className="text-red-500 dark:text-red-400" />
-                        </button>
-                        <button className="p-2 rounded-full bg-green-100 dark:bg-green-900/30 hover:bg-green-200 dark:hover:bg-green-900/50 transition-colors">
-                          <Heart className="text-green-500 dark:text-green-400" />
-                        </button>
-                      </div>
-                    </motion.div>
-                  ))}
+                        {Number.isFinite(match.compatibilityScore) && (
+                          <p className="text-sm font-medium text-pink-600 dark:text-pink-400 mb-3">
+                            {Math.round(match.compatibilityScore)}% Match
+                          </p>
+                        )}
+                        <div className="flex gap-3 relative z-10">
+                          <button
+                            type="button"
+                            aria-label={`Pass on ${displayName}`}
+                            onClick={async () => {
+                              setMatches((prev) => prev.filter((m) => m.targetUserId !== targetId));
+                              try {
+                                await apiClient.put(`/matching/matches/${encodeURIComponent(targetId)}/action`, {
+                                  action: "pass",
+                                });
+                              } catch {}
+                            }}
+                            className="p-2.5 cursor-pointer rounded-full bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors"
+                          >
+                            <X className="text-red-500 dark:text-red-400" />
+                          </button>
+                          <button
+                            type="button"
+                            aria-label={`Match with ${displayName}`}
+                            disabled={match.status === "liked" || match.status === "mutual"}
+                            onClick={async () => {
+                              try {
+                                const res = await apiClient.put(
+                                  `/matching/matches/${encodeURIComponent(targetId)}/action`,
+                                  { action: "like" }
+                                );
+                                const mutual = Boolean(res.data?.isMutual);
+                                setMatches((prev) =>
+                                  prev.map((m) =>
+                                    m.targetUserId === targetId
+                                      ? { ...m, status: mutual ? "mutual" : "liked" }
+                                      : m
+                                  )
+                                );
+                                toast.success(
+                                  mutual
+                                    ? `It's a Match with ${displayName}! 🎉`
+                                    : `Liked ${displayName}! Waiting for them to match back.`
+                                );
+                              } catch {
+                                toast.error("Could not send match request.");
+                              }
+                            }}
+                            className={`p-2.5 cursor-pointer rounded-full transition-colors ${
+                              match.status === "mutual"
+                                ? "bg-emerald-500 text-white"
+                                : match.status === "liked"
+                                  ? "bg-pink-500 text-white"
+                                  : "bg-green-100 dark:bg-green-900/30 hover:bg-green-200 dark:hover:bg-green-900/50 text-green-500 dark:text-green-400"
+                            }`}
+                          >
+                            <Heart className={match.status === "liked" || match.status === "mutual" ? "fill-current" : ""} />
+                          </button>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
                 </div>
               )}
             </div>

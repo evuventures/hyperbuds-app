@@ -101,7 +101,21 @@ export const matchingApi = {
     if (params?.refresh) searchParams.set("refresh", params.refresh.toString());
 
     const response = await apiClient.get(`/matching/suggestions?${searchParams}`);
-    return response.data;
+    const raw = response.data || {};
+    const list: MatchSuggestion[] = Array.isArray(raw.matches)
+      ? raw.matches
+      : Array.isArray(raw.suggestions)
+        ? raw.suggestions
+        : [];
+    return {
+      ...raw,
+      matches: list,
+      pagination: raw.pagination || {
+        page: params?.page ?? 1,
+        limit: params?.limit ?? 10,
+        total: Number(raw.total ?? list.length),
+      },
+    };
   },
 
   // ✅ 2. Update user matching preferences
