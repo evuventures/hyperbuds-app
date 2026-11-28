@@ -2,10 +2,12 @@
 
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import toast from 'react-hot-toast';
 import {
   Bell,
+  Heart,
   MessageSquare,
   Users,
   ShoppingBag,
@@ -17,7 +19,9 @@ import {
   XCircle,
   Calendar,
   Trash2,
+  X,
 } from 'lucide-react';
+import apiClient from '@/lib/api/client';
 import type { Notification, NotificationType } from '@/types/notifications.types';
 import { useMarkNotificationAsRead, useDeleteNotification } from '@/hooks/features/useNotifications';
 // Simple time formatting utility
@@ -85,6 +89,42 @@ export const NotificationItem: React.FC<NotificationItemProps> = ({
 }) => {
   const markAsReadMutation = useMarkNotificationAsRead();
   const deleteMutation = useDeleteNotification();
+  const [matchReactState, setMatchReactState] = useState<'idle' | 'busy' | 'matched' | 'passed'>('idle');
+
+  const rawData =
+    (notification as unknown as { data?: Record<string, unknown> }).data ||
+    (notification as unknown as { metadata?: Record<string, unknown> }).metadata ||
+    {};
+  const isMatchRequest =
+    rawData?.kind === 'match_request' && typeof rawData?.senderId === 'string' && rawData.senderId.trim().length > 0;
+  const senderId = isMatchRequest ? String(rawData.senderId) : '';
+
+  const handleMatchReaction = async (e: React.MouseEvent, action: 'like' | 'pass') => {
+    e.stopPropagation();
+    if (!senderId || matchReactState === 'busy') return;
+    setMatchReactState('busy');
+    try {
+      const res = await apiClient.put(`/matching/matches/${encodeURIComponent(senderId)}/action`, { action });
+      if (!notification.read) {
+        markAsReadMutation.mutate(notification._id);
+      }
+      if (action === 'like') {
+        const mutual = Boolean(res.data?.isMutual);
+        setMatchReactState('matched');
+        toast.success(
+          mutual
+            ? `It's a Mutual Match with ${String(rawData.senderName || 'this creator')}! 🎉`
+            : 'Match request accepted!',
+        );
+      } else {
+        setMatchReactState('passed');
+        toast('Passed on match request.');
+      }
+    } catch {
+      setMatchReactState('idle');
+      toast.error('Unable to process match response.');
+    }
+  };
 
   const handleClick = () => {
     if (!notification.read) {
@@ -145,6 +185,41 @@ export const NotificationItem: React.FC<NotificationItemProps> = ({
             <p className={`mt-1 text-gray-500 dark:text-gray-500 ${compact ? 'text-xs' : 'text-xs'}`}>
               {timeAgo}
             </p>
+            {isMatchRequest && !compact && (
+              <div className="mt-2.5 flex flex-wrap items-center gap-2">
+                {matchReactState === 'matched' ? (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 px-3 py-1 text-xs font-semibold text-emerald-700 dark:text-emerald-300">
+                    <Heart className="h-3.5 w-3.5 fill-current" />
+                    It&apos;s a Match! 🎉
+                  </span>
+                ) : matchReactState === 'passed' ? (
+                  <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-500 dark:bg-gray-700 dark:text-gray-300">
+                    Passed
+                  </span>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      disabled={matchReactState === 'busy'}
+                      onClick={(e) => void handleMatchReaction(e, 'like')}
+                      className="inline-flex cursor-pointer items-center gap-1.5 rounded-full bg-linear-to-r from-pink-500 via-purple-600 to-indigo-600 px-3.5 py-1.5 text-xs font-semibold text-white shadow-sm hover:opacity-95 disabled:opacity-50"
+                    >
+                      <Heart className="h-3.5 w-3.5 fill-current" />
+                      Match Back
+                    </button>
+                    <button
+                      type="button"
+                      disabled={matchReactState === 'busy'}
+                      onClick={(e) => void handleMatchReaction(e, 'pass')}
+                      className="inline-flex cursor-pointer items-center gap-1 rounded-full border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700 disabled:opacity-50"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                      Pass
+                    </button>
+                  </>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Delete button */}

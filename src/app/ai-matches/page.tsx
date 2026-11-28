@@ -3,13 +3,14 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
-import { ArrowLeft, Globe2, Loader2, RefreshCw, ShieldCheck, Sparkles } from "lucide-react";
+import { ArrowLeft, Globe2, Heart, Loader2, MessageCircle, RefreshCw, ShieldCheck, Sparkles, UserRound, X } from "lucide-react";
 import DashboardLayout from "@/components/layout/Dashboard/Dashboard";
 import { CardGridSkeleton } from "@/components/ui/AppSkeletons";
 import { AiMatchStudioPanel } from "@/components/matching/AiMatchStudioPanel";
 import { Button } from "@/components/ui/button";
 import MatchHistoryGallery from "@/components/matching/MatchHistoryGallery";
 import { useMatching } from "@/hooks/features/useMatching";
+import { useNotificationSocket } from "@/hooks/features/useNotificationSocket";
 import { profileApi, type ProfileByUsernameResponse } from "@/lib/api/profile.api";
 import apiClient from "@/lib/api/client";
 import type { CreatorProfile, MatchSuggestion } from "@/types/matching.types";
@@ -155,12 +156,53 @@ const AIMatchesPage: React.FC = () => {
   const [displayMatches, setDisplayMatches] = useState<MatchSuggestion[]>([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isEnriching, setIsEnriching] = useState(false);
-  const [activeTab, setActiveTab] = useState<'matches' | 'external' | 'prompt'>('matches');
+  const [activeTab, setActiveTab] = useState<'matches' | 'requests' | 'external' | 'prompt'>('matches');
+  const [incomingRequests, setIncomingRequests] = useState<MatchSuggestion[]>([]);
+  const [mutualMatches, setMutualMatches] = useState<MatchSuggestion[]>([]);
+  const [requestsLoading, setRequestsLoading] = useState(false);
   const [externalCreators, setExternalCreators] = useState<ExternalCreatorCard[]>([]);
   const [provenance, setProvenance] = useState<string>('local_heuristic_fallback');
   const [externalLoading, setExternalLoading] = useState(false);
   const [claimProofById, setClaimProofById] = useState<Record<string, string>>({});
   const [extBanner, setExtBanner] = useState<string | null>(null);
+
+  const loadMatchRequests = useCallback(async () => {
+    setRequestsLoading(true);
+    try {
+      const res = await apiClient.get<{
+        incoming?: MatchSuggestion[];
+        mutual?: MatchSuggestion[];
+      }>('/matching/requests');
+      setIncomingRequests(Array.isArray(res.data?.incoming) ? res.data.incoming : []);
+      setMutualMatches(Array.isArray(res.data?.mutual) ? res.data.mutual : []);
+    } catch {
+      // Non-fatal
+    } finally {
+      setRequestsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const t = params.get('tab');
+      if (t === 'requests' || t === 'external' || t === 'prompt' || t === 'matches') {
+        setActiveTab(t);
+      }
+    }
+    void loadMatchRequests();
+  }, [loadMatchRequests]);
+
+  // Real-time refresh when another creator matches with you or accepts your match
+  useNotificationSocket({
+    enabled: true,
+    showToast: false,
+    onNewNotification: (notif) => {
+      if (notif?.type === 'match') {
+        void loadMatchRequests();
+      }
+    },
+  });
 
   const loadExternalCreators = useCallback(async () => {
     setExternalLoading(true);
@@ -284,9 +326,10 @@ const AIMatchesPage: React.FC = () => {
         );
       } else {
         toast.success(
-          `Liked ${match.targetUser?.displayName || match.targetUser?.username || "creator"}! Waiting for them to match back.`
+          `Liked ${match.targetUser?.displayName || match.targetUser?.username || "creator"}! They've been notified to match back.`
         );
       }
+      void loadMatchRequests();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Could not send match request.");
     }
@@ -295,6 +338,9 @@ const AIMatchesPage: React.FC = () => {
   const handlePassMatch = async (match: MatchSuggestion) => {
     const actionTargetId = getMatchUserId(match) || match._id || match.id;
     setDisplayMatches((prev) =>
+      prev.filter((m) => getMatchUserId(m) !== actionTargetId && m._id !== match._id)
+    );
+    setIncomingRequests((prev) =>
       prev.filter((m) => getMatchUserId(m) !== actionTargetId && m._id !== match._id)
     );
     if (!actionTargetId) return;
@@ -309,7 +355,7 @@ const AIMatchesPage: React.FC = () => {
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
-    await refetch();
+    await Promise.all([refetch(), loadMatchRequests()]);
     setIsRefreshing(false);
   };
 
@@ -410,7 +456,7 @@ const AIMatchesPage: React.FC = () => {
                 <p className="text-sm leading-relaxed text-slate-300/85 sm:text-base lg:text-right">
                   Explore creators suggested from your profile, Empire Builder engine, and opt-in public claim index.
                 </p>
-                <div className="inline-flex rounded-full border border-white/15 bg-white/[0.05] p-1 text-xs">
+                <div className="inline-flex flex-wrap rounded-full border border-white/15 bg-white/[0.05] p-1 text-xs">
                   <button
                     type="button"
                     onClick={() => setActiveTab('matches')}
@@ -419,6 +465,21 @@ const AIMatchesPage: React.FC = () => {
                     }`}
                   >
                     AI Matches
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('requests')}
+                    className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 font-medium transition ${
+                      activeTab === 'requests' ? 'bg-pink-600 text-white' : 'text-pink-200 hover:text-white'
+                    }`}
+                  >
+                    <Heart className="h-3.5 w-3.5 fill-current" />
+                    Requests
+                    {incomingRequests.length > 0 && (
+                      <span className="ml-0.5 rounded-full bg-white px-1.5 py-0.2 text-[10px] font-bold text-pink-600">
+                        {incomingRequests.length}
+                      </span>
+                    )}
                   </button>
                   <button
                     type="button"
@@ -445,6 +506,182 @@ const AIMatchesPage: React.FC = () => {
 
             {activeTab === 'matches' ? (
               content
+            ) : activeTab === 'requests' ? (
+              <div className="space-y-8">
+                <section className="rounded-3xl border border-pink-400/25 bg-white/[0.04] p-6 backdrop-blur-xl">
+                  <div className="mb-4 flex items-center justify-between gap-3">
+                    <div>
+                      <h2 className="text-lg font-bold text-white">
+                        Creators Who Want to Match With You ({incomingRequests.length})
+                      </h2>
+                      <p className="text-xs text-slate-300/80">
+                        Tap Match Back to make it mutual, unlock messaging, and publish your Match Card.
+                      </p>
+                    </div>
+                  </div>
+
+                  {requestsLoading ? (
+                    <CardGridSkeleton count={3} columns={3} darkSurface />
+                  ) : incomingRequests.length === 0 ? (
+                    <div className="rounded-2xl border border-white/10 bg-black/20 p-8 text-center text-sm text-slate-300">
+                      No pending match requests right now. When a creator matches with you, they&apos;ll appear here in real time!
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                      {incomingRequests.map((reqItem) => {
+                        const prof = reqItem.targetUser;
+                        const name = prof?.displayName || prof?.username || 'Creator';
+                        return (
+                          <div
+                            key={reqItem._id || reqItem.targetUserId}
+                            className="flex flex-col justify-between rounded-2xl border border-pink-400/25 bg-[#181a24]/90 p-5"
+                          >
+                            <div>
+                              <div className="flex items-center gap-3">
+                                {prof?.avatar ? (
+                                  // eslint-disable-next-line @next/next/no-img-element
+                                  <img
+                                    src={prof.avatar}
+                                    alt={name}
+                                    className="h-12 w-12 rounded-full object-cover ring-2 ring-pink-500/40"
+                                  />
+                                ) : (
+                                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-linear-to-br from-pink-500 to-purple-600 text-base font-bold text-white">
+                                    {name.charAt(0).toUpperCase()}
+                                  </div>
+                                )}
+                                <div className="min-w-0 flex-1">
+                                  <p className="truncate text-sm font-bold text-white">{name}</p>
+                                  <p className="truncate text-xs text-slate-400">@{prof?.username || 'creator'}</p>
+                                </div>
+                                <span className="rounded-full bg-pink-500/20 px-2.5 py-0.5 text-xs font-bold text-pink-200">
+                                  {reqItem.compatibilityScore}% fit
+                                </span>
+                              </div>
+                              {prof?.bio && (
+                                <p className="mt-3 line-clamp-2 text-xs text-slate-300">{prof.bio}</p>
+                              )}
+                              {Array.isArray(prof?.niche) && prof.niche.length > 0 && (
+                                <div className="mt-2.5 flex flex-wrap gap-1">
+                                  {prof.niche.slice(0, 3).map((tag) => (
+                                    <span
+                                      key={tag}
+                                      className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] text-indigo-200"
+                                    >
+                                      {tag}
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+
+                            <div className="mt-4 flex items-center gap-2 border-t border-white/10 pt-3">
+                              <Button
+                                type="button"
+                                size="sm"
+                                onClick={() => void handleLikeMatch(reqItem)}
+                                className="flex-1 cursor-pointer rounded-full bg-linear-to-r from-pink-500 via-purple-600 to-indigo-600 text-xs font-semibold text-white hover:opacity-95"
+                              >
+                                <Heart className="mr-1.5 h-3.5 w-3.5 fill-current" />
+                                Match Back
+                              </Button>
+                              <Button
+                                type="button"
+                                size="icon"
+                                variant="ghost"
+                                aria-label={`View ${name}'s profile`}
+                                onClick={() => handleViewProfile(reqItem)}
+                                className="h-9 w-9 cursor-pointer rounded-full border border-white/10 text-slate-300 hover:bg-white/10 hover:text-white"
+                              >
+                                <UserRound className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                type="button"
+                                size="icon"
+                                variant="ghost"
+                                aria-label={`Pass on ${name}`}
+                                onClick={() => void handlePassMatch(reqItem)}
+                                className="h-9 w-9 cursor-pointer rounded-full border border-white/10 text-slate-300 hover:bg-rose-500/20 hover:text-rose-200"
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </section>
+
+                <section className="rounded-3xl border border-emerald-400/20 bg-white/[0.04] p-6 backdrop-blur-xl">
+                  <div className="mb-4">
+                    <h2 className="text-lg font-bold text-white">
+                      Mutual Matches ({mutualMatches.length})
+                    </h2>
+                    <p className="text-xs text-slate-300/80">
+                      Creators who matched back — start messaging or launch a Grow Together Duo Challenge.
+                    </p>
+                  </div>
+
+                  {mutualMatches.length === 0 ? (
+                    <div className="rounded-2xl border border-white/10 bg-black/20 p-6 text-center text-sm text-slate-300">
+                      No mutual matches yet. Match with creators in AI Matches or accept incoming requests above!
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                      {mutualMatches.map((m) => {
+                        const prof = m.targetUser;
+                        const name = prof?.displayName || prof?.username || 'Creator';
+                        return (
+                          <div
+                            key={m._id || m.targetUserId}
+                            className="flex flex-col justify-between rounded-2xl border border-emerald-400/25 bg-[#181a24]/90 p-5"
+                          >
+                            <div className="flex items-center gap-3">
+                              {prof?.avatar ? (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img
+                                  src={prof.avatar}
+                                  alt={name}
+                                  className="h-12 w-12 rounded-full object-cover ring-2 ring-emerald-500/40"
+                                />
+                              ) : (
+                                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-linear-to-br from-emerald-500 to-teal-600 text-base font-bold text-white">
+                                  {name.charAt(0).toUpperCase()}
+                                </div>
+                              )}
+                              <div className="min-w-0 flex-1">
+                                <p className="truncate text-sm font-bold text-white">{name}</p>
+                                <p className="truncate text-xs text-emerald-300">{m.compatibilityScore}% Mutual Match 🎉</p>
+                              </div>
+                            </div>
+                            <div className="mt-4 flex items-center gap-2 border-t border-white/10 pt-3">
+                              <Button
+                                type="button"
+                                size="sm"
+                                onClick={() => handleMessage(m)}
+                                className="flex-1 cursor-pointer rounded-full bg-emerald-600 text-xs font-semibold text-white hover:bg-emerald-700"
+                              >
+                                <MessageCircle className="mr-1.5 h-3.5 w-3.5" />
+                                Message
+                              </Button>
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="outline"
+                                onClick={() => router.push('/challenges')}
+                                className="cursor-pointer rounded-full border-white/15 bg-white/5 text-xs text-white hover:bg-white/15"
+                              >
+                                Duo Challenge
+                              </Button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </section>
+              </div>
             ) : activeTab === 'prompt' ? (
               <AiMatchStudioPanel mode="prompt" />
             ) : (

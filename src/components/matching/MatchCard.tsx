@@ -109,6 +109,11 @@ const MatchCard: React.FC<MatchCardProps> = ({
           <div className="pointer-events-none absolute inset-0 bg-linear-to-t from-[#0b0d14]/90 via-transparent to-transparent" />
 
           {/* Bottom floating frosted nameplate (reference Sofia/Michael pill) */}
+          {(match as { likedMe?: boolean }).likedMe && match.status !== 'mutual' && (
+            <div className="absolute left-3 top-3 rounded-full bg-linear-to-r from-pink-500 to-purple-600 px-3 py-1 text-[11px] font-bold text-white shadow-lg shadow-pink-600/40 ring-1 ring-white/25">
+              ❤️ Liked You
+            </div>
+          )}
           <div className="absolute inset-x-3 bottom-3 rounded-2xl border border-white/15 bg-[#0f111a]/75 px-4 py-3 backdrop-blur-md">
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
@@ -219,7 +224,9 @@ const MatchCard: React.FC<MatchCardProps> = ({
                   ? 'Matched! 🎉'
                   : match.status === 'liked'
                     ? 'Liked ✓'
-                    : 'Match'}
+                    : (match as { likedMe?: boolean }).likedMe
+                      ? 'Match Back'
+                      : 'Match'}
               </Button>
             )}
 

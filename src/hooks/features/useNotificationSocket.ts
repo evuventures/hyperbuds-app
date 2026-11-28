@@ -2,7 +2,7 @@
 
 'use client';
 
-import { useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import { notificationSocket, type NotificationData } from '@/lib/socket/notificationSocket';
@@ -108,21 +108,59 @@ export const useNotificationSocket = (options: UseNotificationSocketOptions = {}
           window.location.pathname.startsWith(`/messages/${dmConvoId}`);
 
         if (!alreadyInThisDm) {
+          const isMatchReq =
+            raw.type === 'match' &&
+            raw.data &&
+            typeof raw.data === 'object' &&
+            (raw.data as Record<string, unknown>).kind === 'match_request';
+          const isMatch = raw.type === 'match';
           toast(
-            `${headline}${body && body !== headline ? ` — ${body.slice(0, 90)}` : ''}`,
+            (t) =>
+              React.createElement(
+                'div',
+                {
+                  role: 'button',
+                  tabIndex: 0,
+                  onClick: () => {
+                    toast.dismiss(t.id);
+                    if (actionUrl) router.push(actionUrl);
+                  },
+                  onKeyDown: (e: React.KeyboardEvent) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      toast.dismiss(t.id);
+                      if (actionUrl) router.push(actionUrl);
+                    }
+                  },
+                  className: 'cursor-pointer',
+                },
+                React.createElement('p', { className: 'font-semibold text-slate-900' }, headline),
+                body && body !== headline
+                  ? React.createElement('p', { className: 'mt-0.5 text-xs text-slate-600' }, body.slice(0, 110))
+                  : null,
+                isMatchReq
+                  ? React.createElement(
+                      'p',
+                      { className: 'mt-1 text-[11px] font-semibold text-purple-600' },
+                      'Tap to Match Back →',
+                    )
+                  : null,
+              ),
             {
               id: id || undefined,
-              duration: 5000,
-              icon: isDm ? '💬' : raw.type === 'follow' ? '👤' : '🔔',
-              style: { cursor: 'pointer', maxWidth: '380px', fontSize: '13px' },
+              duration: isMatchReq ? 8000 : 5000,
+              icon: isDm ? '💬' : isMatchReq ? '❤️' : isMatch ? '🎉' : raw.type === 'follow' ? '👤' : '🔔',
+              style: { cursor: 'pointer', maxWidth: '390px', fontSize: '13px' },
             },
           );
         }
-        if (actionUrl && typeof window !== 'undefined' && (raw.type === 'stream_live' || isDm)) {
+        if (actionUrl && typeof window !== 'undefined' && (raw.type === 'stream_live' || raw.type === 'match' || isDm)) {
           void router.prefetch?.(actionUrl);
         }
       }
 
+      if (raw.type === 'match') {
+        queryClient.invalidateQueries({ queryKey: ['matching'] });
+      }
       if (raw.type === 'new_message') {
         queryClient.invalidateQueries({ queryKey: ['conversations'] });
         queryClient.invalidateQueries({ queryKey: ['messages'] });
